@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,3 +36,13 @@ jobs:
           name: asagi-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+      - name: Preparar asagi.apk
+        run: cp android/app/build/outputs/apk/debug/*.apk asagi.apk
+      - name: Publicar en la Release "latest"
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: latest
+          prerelease: true
+          overwrite_files: true
+          fail_on_unmatched_files: true
+          files: asagi.apk

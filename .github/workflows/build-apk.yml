@@ -15,8 +15,13 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: android-actions/setup-android@v3
+      # ubuntu-latest ya trae el Android SDK con licencias aceptadas;
+      # android-actions/setup-android@v3 fallaba en este runner, así que se omite
+      # y se comprueba directamente que el SDK exista.
+      - name: Ver Android SDK preinstalado
+        run: echo "ANDROID_HOME=$ANDROID_HOME" && ls "$ANDROID_HOME"
       - run: npm install
+      - run: npm run build
       - run: |
           if [ ! -d android ]; then npx cap add android; fi
           npx cap sync android
@@ -28,3 +33,4 @@ jobs:
         with:
           name: asagi-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

@@ -4,6 +4,8 @@ node_modules/
 *.log
 
 # build outputs
+/dist/
+dist/
 /build/
 build/
 android/build/

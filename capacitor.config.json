@@ -1,0 +1,9 @@
+{
+  "appId": "com.asagi.app",
+  "appName": "ASAGI",
+  "webDir": "dist",
+  "backgroundColor": "#0b1020",
+  "android": {
+    "allowMixedContent": true
+  }
+}

@@ -1,0 +1,30 @@
+name: Build ASAGI APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - run: npm install
+      - run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+      - working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: asagi-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk

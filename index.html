@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <meta
+      name="description"
+      content="ASAGI: asistente personal con navegación por secciones y memoria local."
+    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./assets/icon.svg" />
+    <title>ASAGI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <p class="eyebrow">Proyecto</p>
+            <h1>ASAGI</h1>
+          </div>
+        </div>
+
+        <nav class="nav" aria-label="Navegación principal">
+          <button class="nav-item active" data-section="assistant" type="button">
+            <span>Asistente</span>
+          </button>
+          <button class="nav-item" data-section="launcher" type="button">
+            <span>Launcher</span>
+          </button>
+          <button class="nav-item" data-section="status" type="button">
+            <span>Status</span>
+          </button>
+          <button class="nav-item" data-section="grok" type="button">
+            <span>Grok</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button id="reset-chat" class="secondary" type="button">Reset chat</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <section id="assistant" class="panel active" data-panel="assistant">
+          <header class="panel-header">
+            <div>
+              <p class="eyebrow">Sección</p>
+              <h2>Asistente</h2>
+            </div>
+          </header>
+
+          <div id="chat" class="chat" aria-live="polite" aria-label="Conversación con el asistente"></div>
+
+          <form id="chat-form" class="composer" autocomplete="off">
+            <label class="sr-only" for="message-input">Escribe un mensaje</label>
+            <input
+              id="message-input"
+              name="message"
+              type="text"
+              placeholder="Pregunta o indica una acción..."
+              maxlength="300"
+            />
+            <button type="submit">Enviar</button>
+          </form>
+        </section>
+
+        <section id="launcher" class="panel" data-panel="launcher">
+          <header class="panel-header">
+            <div>
+              <p class="eyebrow">Sección</p>
+              <h2>Launcher</h2>
+            </div>
+          </header>
+          <div class="placeholder-box">
+            <p>Launcher en construcción.</p>
+            <small>Próximamente aquí se gestionarán accesos rápidos.</small>
+          </div>
+        </section>
+
+        <section id="status" class="panel" data-panel="status">
+          <header class="panel-header">
+            <div>
+              <p class="eyebrow">Sección</p>
+              <h2>Status</h2>
+            </div>
+          </header>
+          <div class="placeholder-box">
+            <p>Status en construcción.</p>
+            <small>Se mostrarán indicadores del sistema y del entorno.</small>
+          </div>
+        </section>
+
+        <section id="grok" class="panel" data-panel="grok">
+          <header class="panel-header">
+            <div>
+              <p class="eyebrow">Sección</p>
+              <h2>Grok</h2>
+            </div>
+          </header>
+          <div class="placeholder-box">
+            <p>Grok en construcción.</p>
+            <small>Esta vista quedará lista para integraciones futuras.</small>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
+

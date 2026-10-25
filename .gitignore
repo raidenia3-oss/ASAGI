@@ -6,6 +6,10 @@ node_modules/
 # build outputs
 /dist/
 dist/
+
+# llaves de firma: nunca se suben al repo (van en GitHub Secrets)
+*.keystore
+*.jks
 /build/
 build/
 android/build/

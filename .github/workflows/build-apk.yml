@@ -27,10 +27,32 @@ jobs:
       - run: |
           if [ ! -d android ]; then npx cap add android; fi
           npx cap sync android
+      # Firma estable: todos los builds usan la MISMA llave (el keystore
+      # vive en GitHub Secrets, nunca en el repo). Si falta el secret,
+      # se avisa y se firma con la llave de depuración del runner.
+      - name: Descargar keystore de firma
+        env:
+          KEYSTORE_B64: ${{ secrets.ASAGI_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/asagi.keystore"
+            echo "SIGNING_KEYSTORE_FILE=$RUNNER_TEMP/asagi.keystore" >> "$GITHUB_ENV"
+            echo "Keystore de firma restaurado."
+          else
+            echo "::warning::Secret ASAGI_KEYSTORE_B64 no definido: este build se firma con la llave de depuración del runner (NO estable)."
+          fi
       - working-directory: android
+        env:
+          SIGNING_KEYSTORE_PASSWORD: ${{ secrets.ASAGI_KEYSTORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.ASAGI_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.ASAGI_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
+      - name: Verificar firma del APK
+        run: |
+          echo "Certificado con el que se ha firmado este APK:"
+          keytool -printcert -jarfile android/app/build/outputs/apk/debug/*.apk | grep -E "Owner:|SHA256:"
       - uses: actions/upload-artifact@v4
         with:
           name: asagi-debug-apk

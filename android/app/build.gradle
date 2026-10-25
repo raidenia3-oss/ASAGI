@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Firma estable para CI: cuando el workflow descarga el keystore desde
+// GitHub Secrets (SIGNING_KEYSTORE_FILE + credenciales), el build de
+// debug se firma con ESA llave, para que actualizaciones sucesivas del
+// APK no fallen con "conflicto de firma". Sin esas variables (desarrollo
+// local) se usa la llave de depuración de siempre.
+def ciKeystorePath = System.getenv("SIGNING_KEYSTORE_FILE")
+def ciSigningEnabled = ciKeystorePath != null && file(ciKeystorePath).exists()
+
 android {
     namespace "com.asagi.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -16,7 +24,22 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (ciSigningEnabled) {
+            ci {
+                storeFile file(ciKeystorePath)
+                storePassword System.getenv("SIGNING_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("SIGNING_KEY_ALIAS")
+                keyPassword System.getenv("SIGNING_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
+        debug {
+            if (ciSigningEnabled) {
+                signingConfig signingConfigs.ci
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

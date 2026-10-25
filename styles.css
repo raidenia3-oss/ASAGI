@@ -22,22 +22,16 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  /* Altura fija = altura real de la ventana (con adjustResize se reduce
+     al abrir el teclado). Así la página NUNCA hace scroll: solo la lista
+     de mensajes. */
+  height: 100%;
+  max-width: 100%;
   font-family: Inter, "Segoe UI", sans-serif;
   background: linear-gradient(135deg, #0b1020 0%, #111827 100%);
   color: var(--text);
-}
-
-html,
-body {
-  /* Nunca scroll horizontal: cualquier desbordamiento se recorta. */
-  overflow-x: hidden;
-  max-width: 100%;
-}
-
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
+  /* Nunca scroll horizontal ni scroll de página. */
+  overflow: hidden;
 }
 
 button,
@@ -56,11 +50,12 @@ button {
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+  /* Altura exacta de la ventana: cabecera + chat + composer + tabbar
+     reparten ese alto y SOLO el chat puede desbordar (scroll interno). */
+  height: 100%;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
   /* Zonas seguras de Android/iOS (status bar y laterales en landscape).
      Con viewport-fit=cover el WebView dibuja bajo las barras del sistema
      y estos inset indican cuánto reservar; si no hay solape valen 0.
@@ -74,10 +69,14 @@ button {
 .main-panel {
   flex: 1 1 auto;
   min-width: 0;
+  /* min-height: 0 es la clave: sin él, el panel crece con la lista de
+     mensajes y se lleva por delante composer y tabbar. */
+  min-height: 0;
   max-width: 100%;
   display: flex;
   flex-direction: column;
   padding: 12px;
+  overflow: hidden;
 }
 
 .panel {
@@ -137,6 +136,7 @@ button {
   white-space: nowrap;
 }
 
+/* Único contenedor con scroll de toda la app: la lista de mensajes. */
 .chat {
   flex: 1 1 auto;
   min-height: 0;
@@ -147,7 +147,10 @@ button {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: rgba(15, 23, 42, 0.4);
+  /* ancla inferior: mantiene el último mensaje pegado al final */
+  scroll-behavior: auto;
 }
 
 .message {

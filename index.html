@@ -2,7 +2,10 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#111827" />
     <meta
       name="description"
@@ -16,42 +19,14 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
-        <div class="brand">
-          <div class="brand-mark">A</div>
-          <div>
-            <p class="eyebrow">Proyecto</p>
-            <h1>ASAGI</h1>
-          </div>
-        </div>
-
-        <nav class="nav" aria-label="Navegación principal">
-          <button class="nav-item active" data-section="assistant" type="button">
-            <span>Asistente</span>
-          </button>
-          <button class="nav-item" data-section="launcher" type="button">
-            <span>Launcher</span>
-          </button>
-          <button class="nav-item" data-section="status" type="button">
-            <span>Status</span>
-          </button>
-          <button class="nav-item" data-section="grok" type="button">
-            <span>Grok</span>
-          </button>
-        </nav>
-
-        <div class="sidebar-footer">
-          <button id="reset-chat" class="secondary" type="button">Reset chat</button>
-        </div>
-      </aside>
-
       <main class="main-panel">
         <section id="assistant" class="panel active" data-panel="assistant">
           <header class="panel-header">
-            <div>
-              <p class="eyebrow">Sección</p>
+            <div class="panel-header-text">
+              <p class="eyebrow">ASAGI · Sección</p>
               <h2>Asistente</h2>
             </div>
+            <button id="reset-chat" class="secondary" type="button">Reset chat</button>
           </header>
 
           <div id="chat" class="chat" aria-live="polite" aria-label="Conversación con el asistente"></div>
@@ -71,8 +46,8 @@
 
         <section id="launcher" class="panel" data-panel="launcher">
           <header class="panel-header">
-            <div>
-              <p class="eyebrow">Sección</p>
+            <div class="panel-header-text">
+              <p class="eyebrow">ASAGI · Sección</p>
               <h2>Launcher</h2>
             </div>
           </header>
@@ -84,8 +59,8 @@
 
         <section id="status" class="panel" data-panel="status">
           <header class="panel-header">
-            <div>
-              <p class="eyebrow">Sección</p>
+            <div class="panel-header-text">
+              <p class="eyebrow">ASAGI · Sección</p>
               <h2>Status</h2>
             </div>
           </header>
@@ -97,8 +72,8 @@
 
         <section id="grok" class="panel" data-panel="grok">
           <header class="panel-header">
-            <div>
-              <p class="eyebrow">Sección</p>
+            <div class="panel-header-text">
+              <p class="eyebrow">ASAGI · Sección</p>
               <h2>Grok</h2>
             </div>
           </header>
@@ -108,9 +83,23 @@
           </div>
         </section>
       </main>
+
+      <nav class="tabbar" aria-label="Navegación principal">
+        <button class="nav-item active" data-section="assistant" type="button">
+          <span>Asistente</span>
+        </button>
+        <button class="nav-item" data-section="launcher" type="button">
+          <span>Launcher</span>
+        </button>
+        <button class="nav-item" data-section="status" type="button">
+          <span>Status</span>
+        </button>
+        <button class="nav-item" data-section="grok" type="button">
+          <span>Grok</span>
+        </button>
+      </nav>
     </div>
 
     <script src="./app.js"></script>
   </body>
 </html>
-

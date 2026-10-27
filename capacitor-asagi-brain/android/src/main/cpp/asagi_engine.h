@@ -41,9 +41,14 @@ class Engine {
 public:
     static Engine &instance();
 
+    // Ruta de modelo por defecto que usa load() cuando modelPath está vacío.
+    // Se resuelve dentro del APK (assets) o en la carpeta interna de la app.
+    static std::string modelPathDefault();
+
     // Carga el modelo (mmap) y crea el contexto. "" = OK; si no, error legible.
+    // Si modelPath está vacío se usa modelPathDefault().
     // Se puede llamar repetidamente: si ya está cargado, no hace nada.
-    std::string load(const std::string &modelPath);
+    std::string load(const std::string &modelPath = "");
 
     // Libera modelo y contexto (devuelve la memoria al sistema).
     void unload();
@@ -63,6 +68,7 @@ private:
     mutable std::mutex mutex_;
     ::llama_model *model_ = nullptr;
     ::llama_context *ctx_ = nullptr;
+    std::string modelPath_;
 };
 
 }  // namespace asagi

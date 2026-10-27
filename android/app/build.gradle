@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
-// Firma estable para CI: cuando el workflow descarga el keystore desde
-// GitHub Secrets (SIGNING_KEYSTORE_FILE + credenciales), el build de
-// debug se firma con ESA llave, para que actualizaciones sucesivas del
-// APK no fallen con "conflicto de firma". Sin esas variables (desarrollo
-// local) se usa la llave de depuración de siempre.
+// Stable signing for CI: when the workflow downloads the keystore from
+// GitHub Secrets (SIGNING_KEYSTORE_FILE + credentials), the debug build is
+// signed with THAT key so successive APK updates do not fail with a
+// "signature conflict". Without those variables (local development) the
+// standard debug key is used.
 def ciKeystorePath = System.getenv("SIGNING_KEYSTORE_FILE")
 def ciSigningEnabled = ciKeystorePath != null && file(ciKeystorePath).exists()
 
@@ -19,8 +19,8 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+            // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f1f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
@@ -48,7 +48,7 @@ android {
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
@@ -75,3 +75,19 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
+// Merge the native library bundle produced by the capacitor-asagi-brain
+// module into the app's arm64-v8a directory so libasagi_brain.so ends up
+// in the APK. This is required because the top-level module's mergeDebugJniLibFolders
+// only picks up native libs from AARs and the capacitor-android module,
+// not from a separate :capacitor-asagi-brain library project.
+tasks.register('mergeAsagiBrainNativeLibs', Copy) {
+    dependsOn ':capacitor-asagi-brain:mergeDebugJniLibFolders'
+    from ':capacitor-asagi-brain'
+    include 'src/main/jniLibs/arm64-v8a/*.so'
+    into 'app/src/main/jniLibs/arm64-v8a'
+    rename '(.+)\\.so', 'asagi_brain_$1.so'
+    duplicatesStrategy 'exclude'
+}
+
+

@@ -25,11 +25,54 @@
             <div class="panel-header-text">
               <p class="eyebrow">ASAGI · Sección</p>
               <h2>Asistente</h2>
+              <p id="brain-hint" class="brain-hint" hidden></p>
             </div>
+
+            <div id="panel-brain" class="panel-brain" role="group" aria-label="Cerebro">
+              <fieldset class="radio-group">
+                <legend class="sr-only">Modo de cerebro</legend>
+                <label>
+                  <input type="radio" id="brain-mode-local" name="brain-mode" value="local" />
+                  <span>Local</span>
+                </label>
+                <label>
+                  <input type="radio" id="brain-mode-remote" name="brain-mode" value="remote" />
+                  <span>Remoto</span>
+                </label>
+              </fieldset>
+
+              <button id="brain-apply" class="chip" type="button" hidden>Aplicar</button>
+
+              <div class="brain-fields" id="brain-fields" hidden>
+                <input
+                  id="brain-url"
+                  type="url"
+                  placeholder="http://10.0.0.2:8000"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <input
+                  id="brain-model"
+                  type="text"
+                  placeholder="asagi-local"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <input
+                  id="brain-key"
+                  type="password"
+                  placeholder="clave opcional"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
             <button id="reset-chat" class="secondary" type="button">Reset chat</button>
           </header>
 
           <div id="chat" class="chat" aria-live="polite" aria-label="Conversación con el asistente"></div>
+
+          <div id="bot-reply-status" class="bot-reply-status hidden" aria-live="polite"></div>
 
           <form id="chat-form" class="composer" autocomplete="off">
             <label class="sr-only" for="message-input">Escribe un mensaje</label>

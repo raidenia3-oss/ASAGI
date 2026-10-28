@@ -26,3 +26,6 @@ android/**/build/
 
 # OS files
 Thumbs.db
+
+# ndk/cmake build artifacts
+.cxx/

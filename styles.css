@@ -136,6 +136,211 @@ button {
   white-space: nowrap;
 }
 
+/* ------------------------------------------------------------------
+   Cerebro: selector Local/Remoto + campos en la cabecera del panel
+   ------------------------------------------------------------------ */
+
+.brain-hint {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.35;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.panel-brain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
+}
+
+.panel-brain .radio-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.panel-brain .radio-group label {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.panel-brain .radio-group label span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-brain .radio-group input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.panel-brain .radio-group label:has(input:checked) {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(34, 211, 238, 0.12));
+  border-color: var(--primary);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.35);
+}
+
+.panel-brain .chip {
+  display: none;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+
+.panel-brain .chip:hover {
+  filter: brightness(1.08);
+}
+
+.panel-brain .brain-fields {
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  /* Sin mostrar el botón “Aplicar”: se aplica en caliente con los radios.
+     El ID brain-fields va solo; la clase show la activa/oculta.
+     brainApply (el botón de la clase) se queda en display: none por defecto.
+     */
+}
+
+.panel-brain .brain-fields[hidden] {
+  display: none;
+}
+
+.panel-brain .brain-fields.show {
+  display: flex;
+}
+
+.panel-brain .brain-fields input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 11px;
+  font-size: 0.72rem;
+  background: rgba(15, 23, 42, 0.7);
+  color: var(--text);
+  outline: none;
+  /* Mantener la textbox en línea en pantallas muy estrechas. */
+}
+
+.panel-brain .brain-fields input:focus {
+  border-color: rgba(124, 58, 237, 0.8);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.16);
+}
+
+.panel-brain .brain-fields input[type='url'] {
+  flex: 2 1 0;
+}
+
+/* Respuesta del bot que aparece primero en streaming: indicador discreto. */
+.bot-reply-status {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: rgba(15, 23, 42, 0.7);
+  border-top: 1px solid var(--line);
+  min-height: 1.2em;
+}
+
+.bot-reply-status.hidden {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 480px) {
+  .panel-brain {
+    gap: 6px;
+  }
+
+  .panel-brain .radio-group {
+    gap: 3px;
+  }
+
+  .panel-brain .radio-group label {
+    padding: 6px 8px;
+    font-size: 0.68rem;
+  }
+
+  .panel-brain .chip {
+    padding: 6px 10px;
+    font-size: 0.68rem;
+  }
+
+  .panel-brain .brain-fields input {
+    font-size: 0.68rem;
+    padding: 6px 9px;
+  }
+
+  .panel-brain .brain-fields input[type='password'] {
+    flex-basis: 100%;
+  }
+
+  .brain-hint {
+    font-size: 0.68rem;
+  }
+}
+
 /* Único contenedor con scroll de toda la app: la lista de mensajes. */
 .chat {
   flex: 1 1 auto;

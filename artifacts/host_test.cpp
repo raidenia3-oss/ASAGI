@@ -45,8 +45,10 @@ static long rssKb() {
 int main(int argc, char **argv) {
     setvbuf(stdout, nullptr, _IONBF, 0);  // ver el progreso aunque se cuelgue
     const std::string modelPath = argc > 1 ? argv[1] : "";
+    // --units-only: comprueba stripThink sin cargar el modelo (entornos sin GGUF).
+    const bool unitsOnly = (modelPath == "--units-only");
     if (modelPath.empty()) {
-        fprintf(stderr, "uso: host_test <modelo.gguf>\n");
+        fprintf(stderr, "uso: host_test <modelo.gguf> | --units-only\n");
         return 2;
     }
 
@@ -55,14 +57,19 @@ int main(int argc, char **argv) {
           "valla ```think eliminada");
     check(asagi::stripThink("<pre>```think_stream\nx\n```fin") == "<pre>fin",
           "valla ```think_stream eliminada");
-    const std::string openTag = std::string("<") + "re" + "sponse" + ">";
-    const std::string closeTag = std::string("<") + "/" + "re" + "sponse" + ">";
+    const std::string openTag = std::string("<") + "think" + ">";
+    const std::string closeTag = std::string("<") + "/" + "think" + ">";
     check(asagi::stripThink("A " + openTag + " B " + closeTag + "C") == "A C",
           "etiqueta de razonamiento eliminada");
     check(asagi::stripThink("x " + openTag + " respuesta sin cerrar") == "x ",
           "apertura sin cierre descarta el resto");
     check(asagi::stripThink("respuesta normal 1+1=2") == "respuesta normal 1+1=2",
           "texto normal intacto");
+
+    if (unitsOnly) {
+        printf("\n%d/%d comprobaciones OK (solo unidades, sin modelo)\n", total - failures, total);
+        return failures ? 1 : 0;
+    }
 
     printf("== 2. carga del modelo ==\n");
     const auto t0 = std::chrono::steady_clock::now();
@@ -86,8 +93,8 @@ int main(int argc, char **argv) {
                 const std::string t(tmpl);
                 printf("  plantilla (%zu bytes): %.400s%s\n", t.size(), t.c_str(),
                        t.size() > 400 ? "..." : "");
-                check(t.find("/no_think") != std::string::npos || t.find("no_think") != std::string::npos,
-                      "la plantilla entiende /no_think");
+                check(t.find("<|im_start|>assistant") != std::string::npos,
+                      "la plantilla abre el turno del asistente");
                 check(t.find("think") != std::string::npos, "la plantilla menciona thinking");
             }
             llama_model_free(m);

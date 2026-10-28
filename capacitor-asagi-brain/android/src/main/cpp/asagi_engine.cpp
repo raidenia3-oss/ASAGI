@@ -31,15 +31,21 @@ std::string stripThink(const std::string &text) {
         out.erase(p, close == std::string::npos ? std::string::npos : (close + 3 - p));
     }
 
-    // Etiquetas de razonamiento (apertura y cierre armadas por concatenación).
+    // Etiquetas de razonamiento de Qwen3 (apertura y cierre, armadas por
+    // concatenación para no escribirlas literales en el fuente).
     // Con o sin cierre: si no hay cierre, se descarta todo lo que sigue.
-    const std::string kOpen = std::string("<") + "re" + "sponse" + ">";
-    const std::string kClose = std::string("<") + "/" + "re" + "sponse" + ">";
+    const std::string kOpen = std::string("<") + "think" + ">";
+    const std::string kClose = std::string("<") + "/" + "think" + ">";
     for (size_t p = out.find(kOpen); p != std::string::npos; p = out.find(kOpen)) {
         const size_t close = out.find(kClose, p + kOpen.size());
         out.erase(p, close == std::string::npos
                          ? std::string::npos
                          : (close + kClose.size() - p));
+    }
+
+    // Cierres sueltos (sin apertura previa) que dejaría el recorte por contexto.
+    for (size_t p = out.find(kClose); p != std::string::npos; p = out.find(kClose)) {
+        out.erase(p, kClose.size());
     }
 
     return out;
@@ -165,6 +171,12 @@ GenerateResult Engine::generate(const std::vector<Message> &messages, int maxTok
         return result;
     }
     prompt.resize(static_cast<size_t>(written));
+
+    // Qwen3: la plantilla deja abierto el turno del asistente. Se prefija un
+    // bloque de razonamiento VACÍO para que responda directamente (sin
+    // "thinking"), que es el switch fiable además de /no_think.
+    prompt += "\n" + std::string("<") + "think" + ">" + "\n\n" + std::string("<") + "/" +
+              "think" + ">" + "\n\n";
 
     // Tokenización (la plantilla incluye marcadores especiales: parse_special).
     std::vector<llama_token> toks(prompt.size() + 32);

@@ -34,7 +34,8 @@ struct GenerateResult {
 
 // Elimina de la respuesta el razonamiento de Qwen3:
 //  - bloques ```think ... ``` (y variantes ```think_stream ...)
-//  - etiquetas  ...  (y un  sin cerrar: se descarta todo lo que siga)
+//  - etiquetas <think> ... </think> (y un <think> sin cerrar: se descarta
+//    todo lo que siga), más cualquier </think> suelto.
 std::string stripThink(const std::string &text);
 
 class Engine {

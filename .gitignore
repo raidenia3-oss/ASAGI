@@ -26,3 +26,9 @@ android/**/build/
 
 # OS files
 Thumbs.db
+
+# ndk/cmake build artifacts
+.cxx/
+
+# logs de build locales
+artifacts/*.log

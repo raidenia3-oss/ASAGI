@@ -1,0 +1,16 @@
+{
+  "name": "capacitor-asagi-brain",
+  "version": "1.0.0",
+  "description": "Plugin local de Capacitor para ASAGI: motor llama.cpp (Qwen3 GGUF), descarga del modelo con reanudación y chat remoto compatible con OpenAI",
+  "license": "MIT",
+  "private": true,
+  "keywords": [
+    "capacitor-plugin",
+    "llama.cpp",
+    "gguf",
+    "qwen3"
+  ],
+  "peerDependencies": {
+    "@capacitor/core": "^7.0.0"
+  }
+}

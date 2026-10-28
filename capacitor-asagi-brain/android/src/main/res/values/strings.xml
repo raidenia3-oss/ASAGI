@@ -13,6 +13,10 @@
     <string name="download_confirm_cellular">Descargar con datos móviles</string>
     <string name="download_cancel">No ahora</string>
     <string name="download_retry">Reintentar</string>
+    <string name="download_now">Bajar ahora</string>
+    <string name="download_later">Más tarde</string>
+    <string name="download_description_later">El modelo no está en este teléfono todavía. Puedes usar ASAGI con sus respuestas de prueba; más adelante la primera respuesta descargará el modelo (~400 MB) en segundo plano.</string>
+    <string name="download_status_later">Proxima petición: se descargará el modelo si no está disponible.</string>
     <string name="download_progress">Descargando modelo…</string>
     <string name="download_complete">Modelo listo</string>
     <string name="download_failed">Error al descargar el modelo</string>

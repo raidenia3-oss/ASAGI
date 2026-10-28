@@ -8,8 +8,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginResult;
@@ -54,6 +52,8 @@ public class AsagiBrainPlugin extends Plugin {
     private static final String KEY_LOADED = "loaded";
     private static final String KEY_ERROR = "error";
     private static final String KEY_DOWNLOADING = "downloading";
+    private static final String KEY_PROGRESS = "progress";
+    private static final String KEY_TOTAL = "total";
     private static final String STATUS_READY = "ready";
     private static final String STATUS_DOWNLOADING = "downloading";
     private static final String STATUS_UNAVAILABLE = "unavailable";
@@ -303,7 +303,7 @@ public class AsagiBrainPlugin extends Plugin {
             data.put(KEY_MODEL_SIZE, downloadState.length());
             data.put(KEY_MODEL_HASH, downloadState.getExistingHash());
             data.put(KEY_MODEL_DESIRED_HASH, MODEL_EXPECTED_SHA256);
-            return PluginResult.success(data);
+            return new PluginResult(data);
         }
         if (downloadState.exists() && !downloadState.isLikelyComplete()) {
             JSObject data = new JSObject();
@@ -312,7 +312,7 @@ public class AsagiBrainPlugin extends Plugin {
             data.put(KEY_MODEL_SIZE, downloadState.length());
             data.put(KEY_MODEL_HASH, downloadState.getExistingHash());
             data.put(KEY_MODEL_DESIRED_HASH, MODEL_EXPECTED_SHA256);
-            return PluginResult.success(data);
+            return new PluginResult(data);
         }
         startDownload(call);
         return null;

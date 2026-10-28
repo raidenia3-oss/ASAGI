@@ -41,4 +41,6 @@ android {
 
 dependencies {
     implementation project(':capacitor-android')
+    // NotificationCompat para el aviso de descarga del modelo.
+    implementation "androidx.core:core:$androidxCoreVersion"
 }

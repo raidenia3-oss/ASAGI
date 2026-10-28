@@ -296,6 +296,34 @@ button {
   display: none;
 }
 
+/* Aviso visible cuando el cerebro elegido no está operativo. */
+.brain-alert {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: #fde68a;
+  background: rgba(251, 191, 36, 0.12);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.35);
+  overflow-wrap: anywhere;
+}
+
+.brain-alert[hidden] {
+  display: none;
+}
+
+/* Estos contenedores no deben hacer scroll nunca: el WebView de Android los
+   desplaza al enfocar un input y con eso se perdía la cabecera (LOCAL/REMOTO).
+   overflow: clip no crea contenedor de scroll, a diferencia de hidden. */
+@supports (overflow: clip) {
+  .app-shell,
+  .main-panel,
+  .panel {
+    overflow: clip;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

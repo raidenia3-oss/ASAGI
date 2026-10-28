@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ASAGI Brain</string>
+
+    <string name="model_filename">Qwen3-0.6B-Q4_K_M.gguf</string>
+    <string name="model_size_info">~400 MB</string>
+    <string name="download_title">Descargar modelo local</string>
+    <string name="download_description">El primer uso descargará un modelo ligero (~400 MB) desde Hugging Face. Lo guardamos en el teléfono para poder responder sin conexión.</string>
+    <string name="download_recommend">Te recomendamos Wi-Fi para la descarga. Si usas datos móviles, ASAGI seguirá respondiendo con sus respuestas de prueba.</string>
+    <string name="download_confirm_title">Descargar modelo de ~400 MB</string>
+    <string name="download_confirm_message">Descargarlo ahora y poder usar el motor local. Se descarga en segundo plano y puedes usar la app mientras.</string>
+    <string name="download_confirm_wifi">Descargar con Wi-Fi</string>
+    <string name="download_confirm_cellular">Descargar con datos móviles</string>
+    <string name="download_cancel">No ahora</string>
+    <string name="download_retry">Reintentar</string>
+    <string name="download_progress">Descargando modelo…</string>
+    <string name="download_complete">Modelo listo</string>
+    <string name="download_failed">Error al descargar el modelo</string>
+    <string name="download_partial">Descarga parcial. Se reanudará automáticamente.</string>
+    <string name="status_unavailable">Modelo no disponible</string>
+    <string name="status_ready">Modelo listo</string>
+    <string name="status_loading">Cargando modelo…</string>
+    <string name="status_downloading">Descargando modelo…</string>
+    <string name="status_partial">Descarga parcial</string>
+    <string name="brain_mode_local">Local</string>
+    <string name="brain_mode_remote">Remoto</string>
+    <string name="brain_hint_local_unavailable">Local: modelo no descargado. Responderé con mis respuestas de prueba.</string>
+    <string name="brain_hint_local_error">Local: el modelo no pudo cargarse. Responderé con mis respuestas de prueba.</string>
+    <string name="brain_hint_local_ready">Local: modelo listo</string>
+    <string name="brain_hint_remote_no_url">Remoto: sin URL configurada</string>
+    <string name="brain_hint_remote_url">Remoto: connexión a %1$s</string>
+    <string name="brain_local_available">El modelo local está listo.</string>
+    <string name="brain_local_not_available">El modelo local aún no está descargado.</string>
+    <string name="brain_local_error">El modelo local no pudo cargarse.</string>
+    <string name="brain_local_loading">Cargando modelo local…</string>
+</resources>

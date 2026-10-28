@@ -60,7 +60,7 @@ target_link_libraries(host_test PRIVATE asagi_engine)
 
 # --- puente JNI (libasagi_brain.so) ---------------------------------------
 if(ASAGI_WITH_JNI)
-  add_library(asagi_brain SHARED "${ASAGI_CPP_DIR}/asagi_jni_real.cpp")
+  add_library(asagi_brain SHARED "${ASAGI_CPP_DIR}/asagi_jni.cpp")
   target_link_libraries(asagi_brain PRIVATE asagi_engine)
   if(DEFINED ASAGI_JNI_INCLUDE_DIR AND NOT "${ASAGI_JNI_INCLUDE_DIR}" STREQUAL "")
     target_include_directories(asagi_brain PRIVATE "${ASAGI_JNI_INCLUDE_DIR}")

@@ -29,3 +29,6 @@ Thumbs.db
 
 # ndk/cmake build artifacts
 .cxx/
+
+# logs de build locales
+artifacts/*.log

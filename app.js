@@ -235,7 +235,9 @@ function startBotStreaming(userText) {
   const mb = window.AsagiBrainBridge;
 
   // Modo local con motor nativo disponible y cargado.
-  if (b.mode === 'local' && mb && mb.engineState && mb.engineState.loaded && mb.streamReply) {
+  // Con el plugin nativo disponible se intenta generar; el modelo se carga
+  // de forma perezosa (solo al primer mensaje), no al abrir la app.
+  if (b.mode === 'local' && mb && mb.streamReply && ((mb.engineState && mb.engineState.loaded) || mb.canLazyLoad)) {
     return streamLocalReply(userText, mb);
   }
 
@@ -327,8 +329,6 @@ function streamLocalReply(userText, mb) {
         resolve();
       }
     });
-  });
-
   });
 }
 
@@ -531,3 +531,93 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+
+// --- Puente con el plugin nativo AsagiBrain (Capacitor) -------------------
+// El motor vive en libasagi_brain.so y lo expone el plugin registrado en
+// MainActivity. Sin plugin (navegador, PWA o build sin motor) no se toca nada:
+// la app sigue con las respuestas de prueba y su aviso.
+(function attachNativeBrain() {
+  const capacitor = typeof window !== 'undefined' ? window.Capacitor : null;
+  const plugin = capacitor && capacitor.Plugins ? capacitor.Plugins.AsagiBrain : null;
+  if (!plugin || typeof plugin.stream !== 'function') return;
+
+  const bridge = {
+    engineState: { loaded: false, error: '' },
+    canLazyLoad: true,
+
+    async refresh() {
+      try {
+        const status = await plugin.status();
+        bridge.engineState = {
+          loaded: !!(status && status.loaded),
+          error: (status && status.error) || ''
+        };
+      } catch (error) {
+        bridge.engineState = { loaded: false, error: '' };
+      }
+      refreshBrainStatus();
+      return bridge.engineState;
+    },
+
+    async ensureLoaded() {
+      if (bridge.engineState.loaded) return true;
+      try {
+        const result = await plugin.load();
+        bridge.engineState = {
+          loaded: !!(result && result.loaded),
+          error: (result && result.error) || ''
+        };
+      } catch (error) {
+        bridge.engineState = { loaded: false, error: 'no se pudo cargar el modelo' };
+      }
+      refreshBrainStatus();
+      return bridge.engineState.loaded;
+    },
+
+    streamReply(userText, handlers) {
+      const onToken = (handlers && handlers.onToken) || function () {};
+      const onDone = (handlers && handlers.onDone) || function () {};
+      const onError = (handlers && handlers.onError) || function () {};
+
+      const tokenHandle = plugin.addListener('token', (event) => {
+        if (event && typeof event.token === 'string') onToken(event.token);
+      });
+
+      const cleanup = () => {
+        tokenHandle.then((handle) => handle.remove()).catch(() => {});
+      };
+
+      bridge
+        .ensureLoaded()
+        .then((ready) => {
+          if (!ready) {
+            cleanup();
+            onError(bridge.engineState.error || 'el modelo local no está disponible');
+            return null;
+          }
+          return plugin.stream({
+            messages: [
+              { role: 'system', content: 'Eres ASAGI, asistente personal en español. Responde breve y claro.' },
+              { role: 'user', content: userText }
+            ]
+          });
+        })
+        .then((result) => {
+          if (!result) return;
+          cleanup();
+          if (result.error) {
+            onError(result.error);
+            return;
+          }
+          onDone(result.text || '', result.tokens || 0, result.ms || 0);
+        })
+        .catch((error) => {
+          cleanup();
+          onError(error && error.message ? error.message : String(error));
+        });
+    }
+  };
+
+  window.AsagiBrainBridge = bridge;
+  bridge.refresh();
+})();

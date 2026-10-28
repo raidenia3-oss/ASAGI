@@ -12,6 +12,8 @@ import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginResult;
 import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,14 +35,26 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@CapacitorPlugin(name = AsagiBrainPlugin.PLUGIN_NAME)
 public class AsagiBrainPlugin extends Plugin {
+
+    public static final String PLUGIN_NAME = "AsagiBrain";
+
+    // La biblioteca nativa (llama.cpp + motor) viaja en el APK, solo arm64-v8a.
+    static {
+        System.loadLibrary("asagi_brain");
+    }
 
     private static final String TAG = "AsagiBrain";
     private static final String MODEL_FILENAME = "Qwen3-0.6B-Q4_K_M.gguf";
+    // Revisión fijada del repo (no "main"): el archivo y su hash no cambian
+    // aunque el autor actualice la rama. 50968a4 = revisión verificada.
+    private static final String MODEL_REVISION = "50968a4468ef4233ed78cd7c3de230dd1d61a56b";
     private static final String MODEL_HTTP_URL =
-            "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf";
+            "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/" + MODEL_REVISION
+                    + "/Qwen3-0.6B-Q4_K_M.gguf";
     private static final long MODEL_EXPECTED_BYTES = 396705472L;
-    private static final String MODEL_EXPECTED_SHA256 = "b117130f20e3ecb270284b9f3a09ae7d73267803757483abd3ad75d4fbd84d88";
+    private static final String MODEL_EXPECTED_SHA256 = "ac2d97712095a558e31573f62f466a3f9d93990898b0ec79d7c974c1780d524a";
     private static final int DOWNLOAD_BUFFER_BYTES = 8192;
     private static final long DOWNLOAD_FALLBACK_BYTES = 400 * 1024 * 1024;
 
@@ -61,7 +75,8 @@ public class AsagiBrainPlugin extends Plugin {
     private static native String nativeLoadModel(String path);
     private static native void nativeUnload();
     private static native boolean nativeIsLoaded();
-    private static native String nativeGenerate(String[] roles, String[] contents, int maxTokens);
+    private static native String nativeGenerateResult(String[] roles, String[] contents, int maxTokens);
+    private static native String nativeGenerateStream(String[] roles, String[] contents, int maxTokens);
 
     private Context appContext;
     private File modelDirectory;
@@ -75,6 +90,11 @@ public class AsagiBrainPlugin extends Plugin {
     private OnErrorListener onErrorListener;
     private static final String CHANNEL_ID = "asagi-brain-download";
     private static final int NOTIFICATION_ID_DOWNLOAD = 7201;
+    private static final String KEY_TEXT = "text";
+
+    // Último error legible del motor ("" si todo fue bien). Lo consume la app web.
+    private volatile String lastError = "";
+    private static volatile AsagiBrainPlugin instance;
 
     public AsagiBrainPlugin() {
         super();
@@ -82,6 +102,7 @@ public class AsagiBrainPlugin extends Plugin {
 
     @Override
     public void load() {
+        instance = this;
         appContext = getContext().getApplicationContext();
         modelDirectory = new File(appContext.getFilesDir(), "models");
         modelFile = new File(modelDirectory, MODEL_FILENAME);
@@ -222,12 +243,18 @@ public class AsagiBrainPlugin extends Plugin {
             String err = nativeLoadModel(path);
             if (err != null && !err.isEmpty()) {
                 Log.e(TAG, "nativeLoadModel falló: " + err);
+                lastError = err;
                 loaded.set(false);
             } else {
+                lastError = "";
                 loaded.set(nativeIsLoaded());
+                if (!loaded.get()) {
+                    lastError = "El modelo se abrió pero el contexto no quedó listo.";
+                }
             }
         } catch (UnsatisfiedLinkError e) {
             Log.e(TAG, "No se pudo cargar la biblioteca nativa del motor", e);
+            lastError = "El motor nativo no está disponible en esta instalación.";
             loaded.set(false);
         }
     }
@@ -278,16 +305,21 @@ public class AsagiBrainPlugin extends Plugin {
             return;
         }
         try {
-            String result = nativeGenerate(roles, contents, 256);
-            if (result == null || result.isEmpty()) {
-                JSObject data = new JSObject();
-                data.put(KEY_LOADED, true);
-                call.resolve(data);
-            } else {
-                JSObject data = new JSObject();
-                data.put(KEY_ERROR, result);
-                call.resolve(data);
+            // El JNI responde JSON: {"ok":true,"text":…} o {"ok":false,"error":…}
+            String json = nativeGenerateResult(roles, contents, 256);
+            JSObject data = new JSObject();
+            data.put(KEY_LOADED, true);
+            try {
+                JSONObject obj = new JSONObject(json == null ? "{}" : json);
+                if (obj.optBoolean("ok", false)) {
+                    data.put(KEY_TEXT, obj.optString(KEY_TEXT, ""));
+                } else {
+                    data.put(KEY_ERROR, obj.optString(KEY_ERROR, "El motor local falló."));
+                }
+            } catch (JSONException e) {
+                data.put(KEY_ERROR, "Respuesta inválida del motor local.");
             }
+            call.resolve(data);
         } catch (UnsatisfiedLinkError e) {
             JSObject data = new JSObject();
             data.put(KEY_ERROR, "No se pudo ejecutar el motor local.");
@@ -461,6 +493,114 @@ public class AsagiBrainPlugin extends Plugin {
         void cancel() {
             cancelled = true;
         }
+    }
+
+    // --- API que consume la app web (window.Capacitor.Plugins.AsagiBrain) ---
+
+    // Llamado desde el JNI (hilo de inferencia) por cada token ya válido en UTF-8.
+    static void onNativeToken(String piece) {
+        final AsagiBrainPlugin plugin = instance;
+        if (plugin == null || piece == null || piece.isEmpty()) {
+            return;
+        }
+        plugin.uiHandler.post(() -> {
+            if (!plugin.hasListeners("token")) {
+                return;
+            }
+            JSObject data = new JSObject();
+            data.put("token", piece);
+            plugin.notifyListeners("token", data, true);
+        });
+    }
+
+    @PluginMethod
+    public void status(PluginCall call) {
+        JSObject data = new JSObject();
+        data.put(KEY_LOADED, loaded.get());
+        data.put(KEY_ERROR, lastError);
+        data.put("modelExists", resolveModelFile().exists());
+        data.put("modelSize", resolveModelFile().length());
+        call.resolve(data);
+    }
+
+    @PluginMethod
+    public void load(PluginCall call) {
+        final PluginCall reply = call;
+        executor.execute(() -> {
+            loadModel();
+            final JSObject data = new JSObject();
+            data.put(KEY_LOADED, loaded.get());
+            data.put(KEY_ERROR, lastError);
+            uiHandler.post(() -> reply.resolve(data));
+        });
+    }
+
+    @PluginMethod
+    public void unload(PluginCall call) {
+        final PluginCall reply = call;
+        executor.execute(() -> {
+            unloadModel();
+            final JSObject data = new JSObject();
+            data.put(KEY_LOADED, false);
+            uiHandler.post(() -> reply.resolve(data));
+        });
+    }
+
+    @PluginMethod
+    public void stream(PluginCall call) {
+        JSONArray messages = call.getArray("messages");
+        if (messages == null || messages.length() == 0) {
+            JSObject data = new JSObject();
+            data.put(KEY_ERROR, "No hay mensajes que enviar al modelo.");
+            call.resolve(data);
+            return;
+        }
+
+        final int n = messages.length();
+        final String[] roles = new String[n];
+        final String[] contents = new String[n];
+        try {
+            for (int i = 0; i < n; i++) {
+                JSONObject msg = messages.getJSONObject(i);
+                roles[i] = msg.getString("role");
+                contents[i] = msg.getString("content");
+            }
+        } catch (JSONException e) {
+            JSObject data = new JSObject();
+            data.put(KEY_ERROR, "Los mensajes no tienen la forma esperada (role + content).");
+            call.resolve(data);
+            return;
+        }
+
+        final PluginCall reply = call;
+        executor.execute(() -> {
+            String json = null;
+            try {
+                json = nativeGenerateStream(roles, contents, 256);
+            } catch (UnsatisfiedLinkError e) {
+                Log.e(TAG, "no se pudo ejecutar el motor local", e);
+            }
+
+            final JSObject data = new JSObject();
+            if (json == null) {
+                data.put(KEY_ERROR, "No se pudo ejecutar el motor local.");
+            } else {
+                try {
+                    JSONObject obj = new JSONObject(json);
+                    if (obj.optBoolean("ok", false)) {
+                        data.put(KEY_TEXT, obj.optString(KEY_TEXT, ""));
+                        data.put("tokens", obj.optInt("tokens", 0));
+                        data.put("ms", obj.optLong("ms", 0));
+                        data.put("truncated", obj.optBoolean("truncated", false));
+                    } else {
+                        data.put(KEY_ERROR, obj.optString(KEY_ERROR, "El motor local falló."));
+                    }
+                } catch (JSONException e) {
+                    data.put(KEY_ERROR, "Respuesta inválida del motor local.");
+                }
+            }
+            uiHandler.post(() -> reply.resolve(data));
+        });
     }
 
     @FunctionalInterface

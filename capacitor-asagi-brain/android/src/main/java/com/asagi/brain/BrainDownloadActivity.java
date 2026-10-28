@@ -35,10 +35,14 @@ public class BrainDownloadActivity extends Activity {
 
     private static final String TAG = "AsagiBrain";
     private static final String MODEL_FILENAME = "Qwen3-0.6B-Q4_K_M.gguf";
+    // Revisión fijada del repo (no "main"): el archivo y su hash no cambian
+    // aunque el autor actualice la rama. 50968a4 = revisión verificada.
+    private static final String MODEL_REVISION = "50968a4468ef4233ed78cd7c3de230dd1d61a56b";
     private static final String MODEL_HTTP_URL =
-            "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf";
+            "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/" + MODEL_REVISION
+                    + "/Qwen3-0.6B-Q4_K_M.gguf";
     private static final long MODEL_EXPECTED_BYTES = 396705472L;
-    private static final String MODEL_EXPECTED_SHA256 = "b117130f20e3ecb270284b9f3a09ae7d73267803757483abd3ad75d4fbd84d88";
+    private static final String MODEL_EXPECTED_SHA256 = "ac2d97712095a558e31573f62f466a3f9d93990898b0ec79d7c974c1780d524a";
     private static final int DOWNLOAD_BUFFER_BYTES = 8192;
     private static final long DOWNLOAD_FALLBACK_BYTES = 400 * 1024 * 1024;
 

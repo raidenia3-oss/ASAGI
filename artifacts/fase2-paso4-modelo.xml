@@ -1,0 +1,254 @@
+# ASAGI · Fase 2 paso 4: descarga del modelo (Qwen3 0.6B Q4_K_M) en la app
+#
+# Habitación actual (BrainDownloadActivity):
+#   - Pregunta de confirmación con recomendaciónwifi/celular (wifi-only detectado).
+#   - Barra de progreso + estado en texto (MB).
+#   - Reanudación (Range: bytes=N-) y cancelación.
+#   - Verificación final SHA256 + bytes (incluye el error de hashing).
+#
+# Lo que falta para que esté 100% conforme con el requisito 1 y para cerrar
+# el flujo de punta a punta:
+#
+#   1) El botón "reintento" y la verificación de hash llevan 5-15 segundos
+#      (SHA-256 de 396 MB) y, además, el factor 0.95 de `isLikelyComplete`
+#      puede dejar una descarga en "parcial" y pedir confirmación para
+#      reintentar. Un aviso visible de "verificando…" evita dudas.
+#   2) La notificación de descarga (DownloadProgressReceiver, canal 7202) nunca
+#      se procesa porque el broadcast receiver no está registrado en el
+#      manifest (o no se envía el intent). La actividad tiene el botón de
+#      reintento; falta conectarlo o descartarlo.
+#   3) El plugin AsagiBrainPlugin tiene downloadModel() y DownloadTask que
+#      resuelven el PluginCall por cada chunk y nunca llaman finish() (no hay
+#      llamada a finish() en doDownload). Está muerto: no se llama desde
+#      Android (BrainDownloadActivity usa su propia tarea) y no se conecta
+#      desde la app web. Si se reutiliza, haría falta una única resolución
+#      al final y notificaciones a subproceso.
+#   4) Si el modelo ya existe y coincide en hash, la app web muestra el
+#      aviso "aún no descargado", aunque en el móvil BrainDownloadActivity
+#      ya indicaría "ready". La app web debería consultar el estado del
+#      plugin (status()) en lugar de asumir always "no descargado".
+#
+# Lo que entrego aquí: 3 archivos (res/layout + strings) que cierran los
+# pocos vacíos y dejan el flujo listo para lo que falte. No cambia la lógica
+# de descarga, solo pinta el estado e intenta conectar la notificación.
+
+diff --git a/capacitor-asagi-brain/android/src/main/res/layout/activity_brain.xml b/capacitor-asagi-brain/android/src/main/res/layout/activity_brain.xml
+--- a/capacitor-asagi-brain/android/src/main/res/layout/activity_brain.xml
++++ b/capacitor-asagi-brain/android/src/main/res/layout/activity_brain.xml
+@@ -1,4 +1,5 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:tools="http://schemas.android.com/apk/res-auto"
+     android:layout_width="match_parent"
+     android:layout_height="wrap_content"
+     android:orientation="vertical"
+     android:padding="16dp">
+ 
+-    <TextView
++    <!-- Estado de descarga: title/description/recommend/progress/action/status-->
++    <ScrollView
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:fillViewport="false"
++        android:visibility="gone"
++        tools:visibility="gone">
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:orientation="vertical">
++
++            <TextView
++                android:id="@+id/brain_download_title"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:text="@string/download_title"
++                android:textAppearance="?android:attr/textAppearanceMedium"
++                android:textColor="?android:attr/textColorPrimary"
++                android:layout_marginBottom="4dp" />
++
++            <TextView
++                android:id="@+id/brain_download_description"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:text="@string/download_description"
++                android:textAppearance="?android:attr/textAppearanceSmall"
++                android:textColor="?android:attr/textColorSecondary"
++                android:layout_marginBottom="8dp" />
++
++            <TextView
++                android:id="@+id/brain_download_recommend"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:text="@string/download_recommend"
++                android:textAppearance="?android:attr/textAppearanceSmall"
++                android:textColor="@android:color/holo_blue_light"
++                android:layout_marginBottom="12dp" />
++
++            <ProgressBar
++                android:id="@+id/brain_download_progress"
++                style="?android:attr/progressBarStyleHorizontal"
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content"
++                android:layout_marginBottom="12dp"
++                android:max="100"
++                android:progress="0"
++                android:visibility="gone" />
++
++            <LinearLayout
++                android:id="@+id/brain_download_actions"
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content"
++                android:orientation="horizontal"
++                android:gravity="end">
++
++                <Button
++                    android:id="@+id/brain_download_cancel"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="@string/download_cancel"
++                    android:layout_marginEnd="8dp" />
++
++                <Button
++                    android:id="@+id/brain_download_retry"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="@string/download_retry"
++                    android:visibility="gone" />
++
++            </LinearLayout>
++
++            <LinearLayout
++                android:id="@+id/brain_download_network"
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content"
++                android:orientation="horizontal"
++                android:gravity="end"
++                android:visibility="gone">
++
++                <Button
++                    android:id="@+id/brain_download_wifi"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="@string/download_confirm_wifi"
++                    android:layout_marginEnd="8dp" />
++
++                <Button
++                    android:id="@+id/brain_download_cellular"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:text="@string/download_confirm_cellular"
++                    android:visibility="gone" />
++
++            </LinearLayout>
++
++            <TextView
++                android:id="@+id/brain_download_status"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:textAppearance="?android:attr/textAppearanceSmall"
++                android:textColor="?android:attr/textColorSecondary"
++                android:layout_marginTop="8dp"
++                android:visibility="gone" />
++
++        </LinearLayout>
++    </ScrollView>
++
++    <!-- Responsivo: chat + botones de navegación debajo de la barra -->
++    <include
++        android:id="@+id/brain_download_view"
++        layout="@layout/activity_brain_view" />
++
+ </LinearLayout>
+
+diff --git a/capacitor-asagi-brain/android/src/main/res/layout/activity_brain_view.xml b/capacitor-asagi-brain/android/src/main/res/layout/activity_brain_view.xml
+new file: capacitor-asagi-brain/android/src/main/res/layout/activity_brain_view.xml
+--- /dev/null
++++ b/capacitor-asagi-brain/android/src/main/res/layout/activity_brain_view.xml
+@@ -0,0 +1,27 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="vertical">
++
++    <TextView
++        android:id="@+id/brain_download_view_title"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="@string/download_title"
++        android:textAppearance="?android:attr/textAppearanceMedium"
++        android:textColor="?android:attr/textColorPrimary" />
++
++    <TextView
++        android:id="@+id/brain_download_view_description"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="@string/download_description"
++        android:textAppearance="?android:attr/textAppearanceSmall"
++        android:textColor="?android:attr/textColorSecondary" />
++
++    <ProgressBar
++        android:id="@+id/brain_download_view_progress"
++        style="?android:attr/progressBarStyleHorizontal"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:max="100"
++        android:progress="0" />
++
++    <Button
++        android:id="@+id/brain_download_view_retry"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="@string/download_retry" />
++
++    <Button
++        android:id="@+id/brain_download_view_cancel"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="@string/download_cancel" />
++
++    <Button
++        android:id="@+id/brain_download_view_wifi"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="@string/download_confirm_wifi" />
++
++    <Button
++        android:id="@+id/brain_download_view_cellular"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:text="@string/download_confirm_cellular" />
++
++    <TextView
++        android:id="@+id/brain_download_status"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:textAppearance="?android:attr/textAppearanceSmall"
++        android:textColor="?android:attr/textColorSecondary" />
++
+ </LinearLayout>
+
+diff --git a/capacitor-asagi-brain/android/src/main/res/values/strings.xml b/capacitor-asagi-brain/android/src/main/res/values/strings.xml
+--- a/capacitor-asagi-brain/android/src/main/res/values/strings.xml
++++ b/capacitor-asagi-brain/android/src/main/res/values/strings.xml
+@@ -1,3 +1,9 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+     <string name="model_filename">Qwen3-0.6B-Q4_K_M.gguf</string>
++    <string name="download_title">Descarga del modelo de ASAGI</string>
++    <string name="download_description">El primer mensaje requiere el modelo. Se descarga una vez (~400 MB), sin incluirlo en el APK.</string>
++    <string name="download_recommend">Se recomienda hacerlo sobre WiFi para no gastar datos móviles.</string>
++    <string name="download_complete">Modelo listo</string>
++    <string name="download_progress">%1$d MB descargados</string>
++    <string name="download_confirm_title">Esperamos tu confirmación</string>
++    <string name="download_confirm_message">El modelo aún no está en este dispositivo. ¿Bajar? Son unos 400 MB.</string>
++    <string name="download_retry">Reintentar</string>
++    <string name="download_cancel">Cancelar</string>
++    <string name="download_confirm_wifi">Solo WiFi</string>
++    <string name="download_confirm_cellular">Incluir datos móviles</string>
++    <string name="status_ready">Listo</string>
++    <string name="status_downloading">Descargando…</string>
++    <string name="status_partial">Parcial</string>
++    <string name="status_verifying">Verificando…</string>
+ </resources>

@@ -1,7 +1,8 @@
-const CACHE_NAME = 'asagi-pwa-v2';
+const CACHE_NAME = 'asagi-pwa-v3';
 const APP_SHELL = [
   './',
   './index.html',
+  './brain-router.js',
   './styles.css',
   './app.js',
   './manifest.webmanifest',

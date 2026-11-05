@@ -2,6 +2,7 @@ import { cpSync, mkdirSync, rmSync } from 'node:fs';
 
 const files = [
   'index.html',
+  'brain-router.js',
   'app.js',
   'styles.css',
   'sw.js',

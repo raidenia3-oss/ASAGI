@@ -111,10 +111,18 @@
           <div class="launcher-top">
             <div id="launcher-clock" class="launcher-clock">--:--</div>
             <div id="launcher-date" class="launcher-date"></div>
-            <input id="launcher-search" class="launcher-search" type="text" placeholder="Buscar app…" autocomplete="off">
+            <input id="launcher-search" class="launcher-search" type="text" placeholder="Buscar app o preguntar a ASAGI…" autocomplete="off">
+            <button id="launcher-ask" class="launcher-ask" type="button" hidden>Preguntar a ASAGI</button>
+          </div>
+          <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
+            <div class="launcher-sec">Más usadas</div>
+            <div id="launcher-fav" class="launcher-fav"></div>
           </div>
           <div id="launcher-grid" class="launcher-grid">
             <div class="launcher-empty">Toca para cargar tus apps…<br><small>(requiere el plugin nativo)</small></div>
+          </div>
+          <div class="launcher-foot">
+            <button id="launcher-home" class="secondary" type="button" style="width:auto;">Hacer ASAGI mi inicio</button>
           </div>
         </section>
 

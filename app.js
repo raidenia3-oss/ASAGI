@@ -930,35 +930,60 @@ if ('serviceWorker' in navigator) {
 // Launcher: reloj + rejilla de apps (AsagiControl.listApps / openApp).
 // ---------------------------------------------------------------------------
 (function () {
+  const L = () => window.AsagiLauncher;
   function C() { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null; }
   let apps = [];
   const grid = document.getElementById('launcher-grid');
+  const favWrap = document.getElementById('launcher-fav-wrap');
+  const fav = document.getElementById('launcher-fav');
   const search = document.getElementById('launcher-search');
+  const ask = document.getElementById('launcher-ask');
+  const homeBtn = document.getElementById('launcher-home');
   const clockEl = document.getElementById('launcher-clock');
   const dateEl = document.getElementById('launcher-date');
 
+  // conteo de uso (para "mas usadas")
+  function counts() { try { return JSON.parse(localStorage.getItem('asagi-launch-counts') || '{}'); } catch (e) { return {}; } }
+  function guardarCounts(c) { try { localStorage.setItem('asagi-launch-counts', JSON.stringify(c)); } catch (e) {} }
+
   function tick() {
-    if (!window.AsagiLauncher) return;
-    const r = window.AsagiLauncher.reloj();
+    if (!L()) return;
+    const r = L().reloj();
     if (clockEl) clockEl.textContent = r.hora;
     if (dateEl) dateEl.textContent = r.fecha;
   }
   tick(); setInterval(tick, 20000);
 
+  function abrir(a) {
+    const c = counts(); c[a.package] = (c[a.package] || 0) + 1; guardarCounts(c);
+    const plugin = C(); if (plugin && plugin.openApp) plugin.openApp({ package: a.package });
+    renderFav();
+  }
+
+  function tile(a) {
+    const d = document.createElement('div'); d.className = 'launcher-app';
+    const ico = document.createElement('div'); ico.className = 'launcher-ico';
+    ico.style.background = L().colorTile(a.label);
+    ico.textContent = L().inicial(a.label);
+    const lbl = document.createElement('div'); lbl.className = 'launcher-lbl'; lbl.textContent = a.label;
+    d.appendChild(ico); d.appendChild(lbl);
+    d.addEventListener('click', () => abrir(a));
+    return d;
+  }
+
+  function renderFav() {
+    if (!fav || !favWrap || !L()) return;
+    const top = L().masUsadas(apps, counts(), 8);
+    if (!top.length) { favWrap.hidden = true; return; }
+    favWrap.hidden = false; fav.innerHTML = '';
+    for (const a of top) fav.appendChild(tile(a));
+  }
+
   function render(list) {
-    if (!grid || !window.AsagiLauncher) return;
-    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin apps.</div>'; return; }
+    if (!grid || !L()) return;
+    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin coincidencias.</div>'; return; }
     grid.innerHTML = '';
-    for (const a of list) {
-      const d = document.createElement('div'); d.className = 'launcher-app';
-      const ico = document.createElement('div'); ico.className = 'launcher-ico';
-      ico.style.background = window.AsagiLauncher.colorTile(a.label);
-      ico.textContent = window.AsagiLauncher.inicial(a.label);
-      const lbl = document.createElement('div'); lbl.className = 'launcher-lbl'; lbl.textContent = a.label;
-      d.appendChild(ico); d.appendChild(lbl);
-      d.addEventListener('click', () => { const c = C(); if (c && c.openApp) c.openApp({ package: a.package }); });
-      grid.appendChild(d);
-    }
+    for (const a of list) grid.appendChild(tile(a));
   }
 
   async function cargar() {
@@ -968,15 +993,38 @@ if ('serviceWorker' in navigator) {
     try {
       const r = await c.listApps();
       apps = (r && r.apps) || [];
-      render(window.AsagiLauncher.filtrar(apps, ''));
+      render(L().filtrar(apps, '')); renderFav();
     } catch (e) {
       if (grid) grid.innerHTML = '<div class="launcher-empty">No pude listar apps.</div>';
     }
   }
 
   if (search) search.addEventListener('input', () => {
-    if (window.AsagiLauncher) render(window.AsagiLauncher.filtrar(apps, search.value));
+    if (!L()) return;
+    const q = search.value;
+    const res = L().filtrar(apps, q);
+    render(res);
+    if (ask) ask.hidden = !(q.trim() && res.length === 0);
+    if (favWrap) favWrap.hidden = !!q.trim() || L().masUsadas(apps, counts(), 8).length === 0;
   });
+
+  // Preguntar a ASAGI: lleva la consulta al Asistente.
+  if (ask) ask.addEventListener('click', () => {
+    const q = search ? search.value.trim() : '';
+    const navAsis = document.querySelector('[data-section="asistente"]');
+    if (navAsis) navAsis.click();
+    const input = document.getElementById('message-input');
+    if (input) { input.value = q; input.focus(); }
+    if (search) search.value = '';
+    if (ask) ask.hidden = true;
+  });
+
+  if (homeBtn) homeBtn.addEventListener('click', () => {
+    const c = C();
+    if (c && c.openHomeSettings) c.openHomeSettings();
+    else alert('Ajustes > Apps > Apps predeterminadas > App de inicio > ASAGI');
+  });
+
   document.querySelectorAll('[data-section="launcher"]').forEach((b) =>
     b.addEventListener('click', () => { if (!apps.length) cargar(); }));
   setTimeout(() => { const p = document.getElementById('launcher'); if (p && p.classList.contains('active') && !apps.length) cargar(); }, 500);

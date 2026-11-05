@@ -151,6 +151,22 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** Abre los ajustes para elegir la app de inicio (home/launcher). */
+    @PluginMethod
+    public void openHomeSettings(PluginCall call) {
+        Context ctx = getContext();
+        try {
+            Intent i = new Intent(Settings.ACTION_HOME_SETTINGS);
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(i);
+        } catch (Exception e) {
+            Intent w = new Intent(Settings.ACTION_SETTINGS);
+            w.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(w);
+        }
+        call.resolve();
+    }
+
     /** Abre los ajustes de DNS privado (bloqueo de anuncios system-wide, sin root). */
     @PluginMethod
     public void openDnsSettings(PluginCall call) {

@@ -46,6 +46,16 @@ function inicial(label) {
   return (s[0] || '?').toUpperCase();
 }
 
-const API = { reloj, ordenar, filtrar, colorTile, inicial };
+// Apps mas usadas segun un conteo {package: veces}. Puro.
+// Devuelve hasta n apps con conteo > 0, de mayor a menor uso.
+function masUsadas(apps, counts, n = 8) {
+  const c = counts || {};
+  return (apps || [])
+    .filter((a) => (c[a.package] || 0) > 0)
+    .sort((x, y) => (c[y.package] || 0) - (c[x.package] || 0))
+    .slice(0, n);
+}
+
+const API = { reloj, ordenar, filtrar, colorTile, inicial, masUsadas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;

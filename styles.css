@@ -620,3 +620,10 @@ button { cursor: pointer; }
 #launcher.panel { position: relative; overflow: hidden; }
 #launcher-wall { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
 #launcher > *:not(#launcher-wall) { position: relative; z-index: 1; }
+
+/* Defensa · auditor */
+.def-resultado { margin-top: 12px; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+.def-sum { text-align: center; font: 0.78rem var(--mono); color: #cfe8ff; }
+.def-card { border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; background: rgba(13,20,38,.6); }
+.def-top { display: flex; justify-content: space-between; gap: 8px; font: 700 0.78rem var(--mono); color: #eaf6ff; }
+.def-why { margin-top: 3px; font: 0.68rem var(--mono); color: var(--muted); line-height: 1.4; }

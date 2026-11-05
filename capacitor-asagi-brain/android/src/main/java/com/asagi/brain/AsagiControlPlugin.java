@@ -2,6 +2,8 @@ package com.asagi.brain;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.media.AudioDeviceInfo;
@@ -67,6 +69,68 @@ public class AsagiControlPlugin extends Plugin {
                 o.put("label", pkg);
             }
             o.put("package", pkg);
+            arr.put(o);
+        }
+        JSObject r = new JSObject();
+        r.put("apps", arr);
+        call.resolve(r);
+    }
+
+    /** Auditoria de seguridad: cada app con sus permisos y origen (para defensa.js). */
+    @PluginMethod
+    public void appAudit(PluginCall call) {
+        Context ctx = getContext();
+        PackageManager pm = ctx.getPackageManager();
+        Intent main = new Intent(Intent.ACTION_MAIN, null);
+        main.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = pm.queryIntentActivities(main, 0);
+        String self = ctx.getPackageName();
+        JSArray arr = new JSArray();
+        java.util.HashSet<String> seen = new java.util.HashSet<>();
+        for (ResolveInfo ri : apps) {
+            if (ri.activityInfo == null) {
+                continue;
+            }
+            String pkg = ri.activityInfo.packageName;
+            if (pkg == null || pkg.equals(self) || seen.contains(pkg)) {
+                continue;
+            }
+            seen.add(pkg);
+            JSObject o = new JSObject();
+            o.put("package", pkg);
+            try {
+                o.put("label", ri.loadLabel(pm).toString());
+            } catch (Exception e) {
+                o.put("label", pkg);
+            }
+            JSArray perms = new JSArray();
+            boolean system = false;
+            try {
+                PackageInfo pi = pm.getPackageInfo(pkg, PackageManager.GET_PERMISSIONS);
+                if (pi.requestedPermissions != null) {
+                    for (String p : pi.requestedPermissions) {
+                        perms.put(p);
+                    }
+                }
+                if (pi.applicationInfo != null) {
+                    system = (pi.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                }
+            } catch (Exception e) {
+                // sin permisos legibles
+            }
+            o.put("permissions", perms);
+            o.put("system", system);
+            String installer = "";
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    installer = pm.getInstallSourceInfo(pkg).getInstallingPackageName();
+                } else {
+                    installer = pm.getInstallerPackageName(pkg);
+                }
+            } catch (Exception e) {
+                installer = "";
+            }
+            o.put("installer", installer == null ? "" : installer);
             arr.put(o);
         }
         JSObject r = new JSObject();

@@ -154,6 +154,15 @@
             <small style="display:block;margin-top:8px;opacity:.7;">
               DNS anti-anuncios system-wide: pega <b>dns.adguard-dns.com</b> en "Nombre de host del proveedor".
             </small>
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+            <p>Defensa · auditor de seguridad</p>
+            <div style="display:flex;justify-content:center;">
+              <button id="def-scan" class="secondary" type="button" style="width:auto;">Escanear mis apps</button>
+            </div>
+            <div id="def-resultado" class="def-resultado"></div>
+            <small style="display:block;margin-top:8px;opacity:.7;">
+              Revisa permisos y origen de tus apps (defensa real). No es un antivirus con firmas.
+            </small>
           </div>
         </section>
 
@@ -207,6 +216,7 @@
     <script src="launcher.js"></script>
     <script src="bots.js"></script>
     <script src="wallpaper.js"></script>
+    <script src="defensa.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

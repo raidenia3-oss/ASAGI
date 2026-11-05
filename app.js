@@ -1100,3 +1100,32 @@ if ('serviceWorker' in navigator) {
   document.querySelectorAll('.nav-item').forEach((b) => b.addEventListener('click', () => setTimeout(upd, 60)));
   setTimeout(upd, 700);
 })();
+
+// Defensa: escanea apps (permisos + origen) y marca las riesgosas. Honesto, defensivo.
+(function () {
+  function C() { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null; }
+  const btn = document.getElementById('def-scan');
+  const out = document.getElementById('def-resultado');
+  if (!btn || !out) return;
+  const COLOR = { alto: '#f87171', medio: '#fbbf24', bajo: '#34d399' };
+  function esc(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+  btn.addEventListener('click', async () => {
+    const c = C();
+    if (!c || !c.appAudit) { out.innerHTML = '<div class="launcher-empty">Necesita la app nativa (APK).</div>'; return; }
+    if (!window.AsagiDefensa) return;
+    out.innerHTML = '<div class="launcher-empty">Escaneando tus apps…</div>';
+    try {
+      const r = await c.appAudit();
+      const an = window.AsagiDefensa.analizar((r && r.apps) || []);
+      let html = '<div class="def-sum">' + an.resumen.total + ' apps · <b style="color:' + COLOR.alto + '">' +
+        an.resumen.alto + ' alto</b> · <b style="color:' + COLOR.medio + '">' + an.resumen.medio + ' medio</b></div>';
+      if (!an.riesgosas.length) html += '<div class="launcher-empty">Sin apps riesgosas. 👍</div>';
+      else for (const a of an.riesgosas.slice(0, 20)) {
+        html += '<div class="def-card" style="border-color:' + COLOR[a.nivel] + '44">' +
+          '<div class="def-top"><span>' + esc(a.label) + '</span><span style="color:' + COLOR[a.nivel] + '">' + a.nivel.toUpperCase() + '</span></div>' +
+          '<div class="def-why">' + a.razones.map(esc).join(' · ') + '</div></div>';
+      }
+      out.innerHTML = html;
+    } catch (e) { out.innerHTML = '<div class="launcher-empty">No pude escanear.</div>'; }
+  });
+})();

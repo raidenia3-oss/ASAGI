@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">ASAGI Brain</string>
 
-    <string name="model_filename">Qwen3-0.6B-Q4_K_M.gguf</string>
+    <string name="model_filename">Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf</string>
     <string name="model_size_info">~400 MB</string>
     <string name="download_title">Descargar modelo local</string>
     <string name="download_description">El primer uso descargará un modelo ligero (~400 MB) desde Hugging Face. Lo guardamos en el teléfono para poder responder sin conexión.</string>

@@ -1,7 +1,9 @@
 {
-  "_comment": "Modelo local que descarga Asagi (GGUF). Cambia aqui para usar otro.",
-  "filename": "Qwen3-0.6B-Q4_K_M.gguf",
-  "url": "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+  "_comment": "Modelo local que descarga Asagi (GGUF). Cambia aqui + en los 3 Java si quieres otro.",
+  "filename": "Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf",
+  "url": "https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf",
   "revision": "main",
-  "notas": "Pendiente: cambiar a un modelo SIN CENSURA ligero una vez confirmada la URL."
+  "tamano_mb": 398,
+  "censura": "ninguna (abliterated / uncensored)",
+  "base": "Qwen2.5-0.5B-Instruct (ChatML, compatible con el motor actual)"
 }

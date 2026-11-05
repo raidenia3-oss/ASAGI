@@ -20,7 +20,7 @@ public class DownloadProgressReceiver extends BroadcastReceiver {
         long total = intent.getLongExtra("total", 0L);
         String filename = intent.getStringExtra("filename");
         if (filename == null) {
-            filename = "Qwen3-0.6B-Q4_K_M.gguf";
+            filename = "Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf";
         }
 
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

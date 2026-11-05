@@ -15,8 +15,8 @@ set -u
 REPO="${ASAGI_REPO:-$HOME/asagi}"
 WORK="${ASAGI_WORK:-$HOME/asagi-build}"
 MODELS="${ASAGI_MODELS:-$HOME/asagi-models}"
-MODEL="$MODELS/Qwen3-0.6B-Q4_K_M.gguf"
-MODEL_URL="https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf"
+MODEL="$MODELS/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf"
+MODEL_URL="https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf"
 MODEL_BYTES=396705472
 LLAMA_TAG="v0.7.0"
 LLAMA_SHA256="55d67acf3ad2ad747a9bbeb75f9f0e173dbcc0d1753a471038a90c819421c5e1"

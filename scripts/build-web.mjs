@@ -3,6 +3,9 @@ import { cpSync, mkdirSync, rmSync } from 'node:fs';
 const files = [
   'index.html',
   'brain-router.js',
+  'asagi-browser.js',
+  'asagi-apps.js',
+  'sync-memoria.js',
   'app.js',
   'styles.css',
   'sw.js',

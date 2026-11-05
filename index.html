@@ -128,8 +128,15 @@
             </div>
           </header>
           <div class="placeholder-box">
-            <p>Status en construcción.</p>
-            <small>Se mostrarán indicadores del sistema y del entorno.</small>
+            <p>Control del teléfono</p>
+            <small id="acc-status">Accesibilidad: comprobando…</small>
+            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+              <button id="acc-toggle" class="secondary" type="button" style="width:auto;">Activar accesibilidad</button>
+              <button id="acc-check" class="secondary" type="button" style="width:auto;">Comprobar</button>
+            </div>
+            <small style="display:block;margin-top:12px;opacity:.8;">
+              Leer pantalla y abrir apps = automático. Tocar/escribir en otras apps pide tu aprobación.
+            </small>
           </div>
         </section>
 
@@ -164,6 +171,9 @@
     </div>
 
     <script src="brain-router.js"></script>
+    <script src="asagi-browser.js"></script>
+    <script src="asagi-apps.js"></script>
+    <script src="sync-memoria.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

@@ -807,3 +807,52 @@ if ('serviceWorker' in navigator) {
   window.AsagiBrainBridge = bridge;
   bridge.refresh();
 })();
+
+// ---------------------------------------------------------------------------
+// Control del telefono (AsagiControl nativo + compuerta asagi-apps.js).
+// Lo activa el usuario en Ajustes; aqui solo se cablea y se expone como
+// window.asagiApps. Leer/abrir = auto ; tocar/escribir = pide aprobacion.
+// ---------------------------------------------------------------------------
+(function () {
+  function plugin() {
+    return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null;
+  }
+
+  function construir() {
+    const C = plugin();
+    if (!C || !window.AsagiApps) return null;
+    return new window.AsagiApps.AsagiApps({
+      abrirApp: (p) => C.openApp({ package: p }),
+      leerPantalla: async () => (await C.readScreen()).text,
+      tocar: (a) => C.tap({ x: a.x, y: a.y }),
+      escribir: (t) => C.escribir ? C.escribir({ text: t }) : C.typeText({ text: t }),
+      pedirAprobacion: async (acc) => window.confirm('¿Permitir que ASAGI haga "' + acc.tipo + '" en otra app?'),
+      registrar: (ev) => { try { console.log('[asagi-apps]', JSON.stringify(ev)); } catch (e) {} }
+    });
+  }
+
+  window.asagiApps = construir();
+
+  const elStatus = document.getElementById('acc-status');
+  const elToggle = document.getElementById('acc-toggle');
+  const elCheck = document.getElementById('acc-check');
+
+  async function refrescar() {
+    const C = plugin();
+    if (!elStatus) return;
+    if (!C) { elStatus.textContent = 'Accesibilidad: no disponible (abre la app nativa)'; return; }
+    try {
+      const r = await C.isEnabled();
+      elStatus.textContent = 'Accesibilidad: ' + (r && r.enabled ? 'ACTIVADA ✓' : 'desactivada');
+      if (r && r.enabled && !window.asagiApps) window.asagiApps = construir();
+    } catch (e) {
+      elStatus.textContent = 'Accesibilidad: no disponible';
+    }
+  }
+
+  if (elToggle) elToggle.addEventListener('click', () => { const C = plugin(); if (C) C.openSettings(); });
+  if (elCheck) elCheck.addEventListener('click', refrescar);
+  // comprobar al cargar y al volver a primer plano
+  refrescar();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
+})();

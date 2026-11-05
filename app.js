@@ -22,7 +22,9 @@ const defaultState = {
     mode: 'local',
     remoteUrl: '',
     remoteModel: '',
-    remoteKey: ''
+    remoteKey: '',
+    geminiKey: '',
+    atriaKey: ''
   }
 };
 
@@ -43,6 +45,8 @@ const brainModel = document.getElementById('brain-model');
 const brainKey = document.getElementById('brain-key');
 const brainApply = document.getElementById('brain-apply');
 const brainHint = document.getElementById('brain-hint');
+const brainGeminiKey = document.getElementById('brain-gemini-key');
+const brainAtriaKey = document.getElementById('brain-atria-key');
 
 const botReplyEl = document.getElementById('bot-reply-status');
 const brainAlert = document.getElementById('brain-alert');
@@ -59,7 +63,9 @@ function loadState() {
         mode: (parsed.brain && parsed.brain.mode) || defaultState.brain.mode,
         remoteUrl: (parsed.brain && typeof parsed.brain.remoteUrl === 'string') ? parsed.brain.remoteUrl : defaultState.brain.remoteUrl,
         remoteModel: (parsed.brain && typeof parsed.brain.remoteModel === 'string') ? parsed.brain.remoteModel : defaultState.brain.remoteModel,
-        remoteKey: (parsed.brain && typeof parsed.brain.remoteKey === 'string') ? parsed.brain.remoteKey : defaultState.brain.remoteKey
+        remoteKey: (parsed.brain && typeof parsed.brain.remoteKey === 'string') ? parsed.brain.remoteKey : defaultState.brain.remoteKey,
+        geminiKey: (parsed.brain && typeof parsed.brain.geminiKey === 'string') ? parsed.brain.geminiKey : defaultState.brain.geminiKey,
+        atriaKey: (parsed.brain && typeof parsed.brain.atriaKey === 'string') ? parsed.brain.atriaKey : defaultState.brain.atriaKey
       }
     };
   } catch (error) {
@@ -167,6 +173,13 @@ function showReplyStatus(text) {
 
 function setBrainMode(mode) {
   state.brain.mode = mode;
+  // guardar keys si existen
+  const c = readBrainControls();
+  state.brain.geminiKey = c.geminiKey || '';
+  state.brain.atriaKey = c.atriaKey || '';
+  state.brain.remoteUrl = c.remoteUrl || '';
+  state.brain.remoteModel = c.remoteModel || '';
+  state.brain.remoteKey = c.remoteKey || '';
   saveState();
   renderBrainControls();
   refreshBrainStatus();
@@ -177,19 +190,25 @@ function readBrainControls() {
     mode: state.brain.mode,
     remoteUrl: brainUrl ? brainUrl.value.trim() : state.brain.remoteUrl,
     remoteModel: brainModel ? brainModel.value.trim() : state.brain.remoteModel,
-    remoteKey: brainKey ? brainKey.value.trim() : state.brain.remoteKey
+    remoteKey: brainKey ? brainKey.value.trim() : state.brain.remoteKey,
+    geminiKey: brainGeminiKey ? brainGeminiKey.value.trim() : (state.brain.geminiKey || ''),
+    atriaKey: brainAtriaKey ? brainAtriaKey.value.trim() : (state.brain.atriaKey || '')
   };
 }
 
 function applyBrainControlsFromState() {
   if (brainModeLocal) brainModeLocal.checked = state.brain.mode === 'local';
   if (brainModeRemote) brainModeRemote.checked = state.brain.mode === 'remote';
-  if (brainUrl) brainUrl.value = state.brain.remoteUrl;
-  if (brainModel) brainModel.value = state.brain.remoteModel;
-  if (brainKey) brainKey.value = state.brain.remoteKey;
+  if (brainUrl) brainUrl.value = state.brain.remoteUrl || '';
+  if (brainModel) brainModel.value = state.brain.remoteModel || '';
+  if (brainKey) brainKey.value = state.brain.remoteKey || '';
+  if (brainGeminiKey) brainGeminiKey.value = state.brain.geminiKey || '';
+  if (brainAtriaKey) brainAtriaKey.value = state.brain.atriaKey || '';
   if (brainUrl) brainUrl.disabled = state.brain.mode !== 'remote';
   if (brainModel) brainModel.disabled = state.brain.mode !== 'remote';
   if (brainKey) brainKey.disabled = state.brain.mode !== 'remote';
+  if (brainGeminiKey) brainGeminiKey.disabled = false;
+  if (brainAtriaKey) brainAtriaKey.disabled = false;
 }
 
 function renderBrainControls() {
@@ -332,9 +351,59 @@ function appendMessage(sender, text) {
 
 async function startBotStreaming(userText) {
   const b = readBrainControls();
+  state.brain.geminiKey = b.geminiKey || '';
+  state.brain.atriaKey = b.atriaKey || '';
+  saveState();
   const brain = getBrainBridge();
 
   try {
+    // Usar router si disponible
+    if (typeof window !== 'undefined' && window.AsagiBrainRouter && typeof window.AsagiBrainRouter.BrainRouter === 'function') {
+      const { BrainRouter, atriaResponder } = window.AsagiBrainRouter;
+      const router = new BrainRouter({
+        localFn: (p) => {
+          // intentar usar puente nativo si está listo
+          if (brain && brain.canStream && (brain.loaded || brain.canLazyLoad) && brain.raw && typeof brain.raw.streamReply === 'function') {
+            return new Promise((resolve, reject) => {
+              let doneText = '';
+              brain.raw.streamReply(p, {
+                onToken: () => {},
+                onDone: (text) => { doneText = text || ''; resolve({ text: doneText, backend: 'local' }); },
+                onError: (msg) => reject(new Error(msg))
+              });
+            });
+          }
+          // fallback a lógica actual
+          return Promise.resolve({ text: createBotReply(p), backend: 'local' });
+        },
+        apiKey: state.brain.geminiKey || b.geminiKey,
+        remotoFn: (p, k) => {
+          // usar atriaResponder o fallback remoto
+          if (typeof atriaResponder === 'function') {
+            return atriaResponder(p, k || state.brain.atriaKey || b.atriaKey);
+          }
+          return Promise.resolve({ text: '[ATRIA] ' + String(p).slice(0, 120), backend: 'remoto' });
+        },
+        store: window.localStorage
+      });
+      return router.responder(userText).then((res) => {
+        const texto = res && (res.texto || res.text) ? (res.texto || res.text) : String(userText);
+        const backend = res && res.backend ? res.backend : 'local';
+        appendMessage('bot', texto);
+        // etiqueta chica
+        try {
+          const last = chat.querySelector('.message.bot:last-child');
+          if (last) {
+            const tag = document.createElement('div');
+            tag.className = 'message meta';
+            tag.textContent = 'backend: ' + backend + (res && res.degradado ? ' (degradado)' : '');
+            last.appendChild(tag);
+          }
+        } catch(e){}
+        return;
+      });
+    }
+
     // Modo local con motor nativo realmente cargado.
     if (b.mode === 'local' && brain && brain.canStream && (brain.loaded || brain.canLazyLoad)) {
       return await streamLocalReply(userText, brain);

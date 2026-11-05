@@ -347,6 +347,15 @@ function appendMessage(sender, text) {
   state.messages.push(message);
   saveState();
   renderMessages();
+  // memoria local: guarda lo conversado (dedup) para recordar y sincronizar con ARIA.
+  try {
+    if (window.AsagiMemoria) {
+      if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+      if (text && text.trim()) {
+        window._asagiMem.aprender(text.trim(), sender === 'user' ? 'daniel' : 'asagi', 'chat');
+      }
+    }
+  } catch (e) { /* memoria es best-effort */ }
 }
 
 async function startBotStreaming(userText) {

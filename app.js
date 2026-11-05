@@ -257,38 +257,34 @@ function describeBrain() {
   const b = state.brain;
   const brain = getBrainBridge();
 
+  // ¿hay keys de nube puestas? (el router las usa: Gemini / Atria)
+  const val = (id) => { const e = document.getElementById(id); return e && e.value ? e.value.trim() : ''; };
+  const gk = val('brain-gemini-key') || (b.geminiKey || '');
+  const ak = val('brain-atria-key') || (b.atriaKey || '');
+
   if (b.mode === 'local') {
-    if (brain && brain.stub) {
-      return {
-        detail: 'Local · motor nativo no activo en esta versión',
-        alert: 'El modelo local todavía no está activo en esta versión (motor nativo deshabilitado). ASAGI responde con las respuestas de prueba.'
-      };
-    }
     if (brain && brain.loaded) {
       return { detail: 'Local · modelo listo', alert: '' };
     }
-    if (brain && brain.error) {
-      return {
-        detail: 'Local · ' + brain.error,
-        alert: 'El modelo local no pudo cargarse: ' + brain.error + '. ASAGI responde con las respuestas de prueba.'
-      };
+    // sin modelo local pero con key -> el router usa la nube, sin alarma
+    if (gk || ak) {
+      return { detail: 'Local sin modelo · usando ' + (ak ? 'Atria' : 'Gemini'), alert: '' };
     }
     return {
       detail: 'Local · modelo no descargado',
-      alert: 'El modelo local aún no está descargado (unos 400 MB). ASAGI responde con las respuestas de prueba mientras tanto.'
+      alert: 'El modelo local aún no está descargado (~400 MB). Pon tu key de Gemini/Atria para responder sin descargarlo, o descarga el modelo.'
     };
   }
 
-  if (!b.remoteUrl) {
-    return {
-      detail: 'Remoto · URL no configurada',
-      alert: 'El cerebro remoto no tiene URL configurada. ASAGI responde con las respuestas de prueba mientras tanto.'
-    };
+  // modo remoto: con key, el router responde por la nube (no hace falta URL)
+  if (ak) return { detail: 'Remoto · Atria', alert: '' };
+  if (gk) return { detail: 'Remoto · Gemini', alert: '' };
+  if (b.remoteUrl) {
+    return { detail: 'Remoto · URL: ' + (b.remoteUrl.length > 48 ? b.remoteUrl.slice(0, 48) + '…' : b.remoteUrl), alert: '' };
   }
-
   return {
-    detail: 'Remoto · URL: ' + (b.remoteUrl.length > 48 ? b.remoteUrl.slice(0, 48) + '…' : b.remoteUrl),
-    alert: ''
+    detail: 'Remoto · sin key ni URL',
+    alert: 'Pon tu key de Gemini o Atria en Cerebro para que ASAGI responda. Mientras tanto usa respuestas de prueba.'
   };
 }
 
@@ -372,38 +368,34 @@ async function startBotStreaming(userText) {
   try {
     // Usar router si disponible
     if (typeof window !== 'undefined' && window.AsagiBrainRouter && typeof window.AsagiBrainRouter.BrainRouter === 'function') {
-      const { BrainRouter, atriaResponder } = window.AsagiBrainRouter;
+      const { BrainRouter, atriaResponder, geminiResponder } = window.AsagiBrainRouter;
+      const gk = (state.brain.geminiKey || b.geminiKey || '').trim();
+      const ak = (state.brain.atriaKey || b.atriaKey || '').trim();
       const router = new BrainRouter({
-        localFn: (p) => {
-          // intentar usar puente nativo si está listo
-          if (brain && brain.canStream && (brain.loaded || brain.canLazyLoad) && brain.raw && typeof brain.raw.streamReply === 'function') {
-            return new Promise((resolve, reject) => {
-              let doneText = '';
+        // localFn SIEMPRE devuelve un string (texto).
+        localFn: async (p) => {
+          // motor nativo si de verdad está cargado
+          if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
+            return await new Promise((resolve, reject) => {
               brain.raw.streamReply(p, {
                 onToken: () => {},
-                onDone: (text) => { doneText = text || ''; resolve({ text: doneText, backend: 'local' }); },
+                onDone: (text) => resolve(text || ''),
                 onError: (msg) => reject(new Error(msg))
               });
             });
           }
-          // fallback a lógica actual
-          return Promise.resolve({ text: createBotReply(p), backend: 'local' });
+          // sin modelo local: usa Gemini si hay key; si no, respuesta de prueba
+          if (gk && typeof geminiResponder === 'function') return await geminiResponder(p, gk);
+          return createBotReply(p);
         },
-        apiKey: state.brain.geminiKey || b.geminiKey,
-        remotoFn: (p, k) => {
-          // usar atriaResponder o fallback remoto
-          if (typeof atriaResponder === 'function') {
-            return atriaResponder(p, k || state.brain.atriaKey || b.atriaKey);
-          }
-          return Promise.resolve({ text: '[ATRIA] ' + String(p).slice(0, 120), backend: 'remoto' });
-        },
+        apiKey: gk,
+        remotoFn: (ak && typeof atriaResponder === 'function') ? ((p) => atriaResponder(p, ak)) : null,
         store: window.localStorage
       });
       return router.responder(userText).then((res) => {
-        const texto = res && (res.texto || res.text) ? (res.texto || res.text) : String(userText);
-        const backend = res && res.backend ? res.backend : 'local';
+        const texto = (res && (res.texto || res.text)) ? (res.texto || res.text) : createBotReply(userText);
+        const backend = (res && res.backend) ? res.backend : 'local';
         appendMessage('bot', texto);
-        // etiqueta chica
         try {
           const last = chat.querySelector('.message.bot:last-child');
           if (last) {
@@ -412,7 +404,7 @@ async function startBotStreaming(userText) {
             tag.textContent = 'backend: ' + backend + (res && res.degradado ? ' (degradado)' : '');
             last.appendChild(tag);
           }
-        } catch(e){}
+        } catch (e) {}
         return;
       });
     }

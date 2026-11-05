@@ -32,3 +32,6 @@ Thumbs.db
 
 # logs de build locales
 artifacts/*.log
+
+# llaves reales (nunca al repo)
+config/keys.json

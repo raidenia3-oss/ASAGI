@@ -356,6 +356,10 @@ function appendMessage(sender, text) {
       }
     }
   } catch (e) { /* memoria es best-effort */ }
+  // voz: habla las respuestas del bot (si esta activada y el sigilo lo permite).
+  try {
+    if (sender === 'bot' && text && text.trim() && window.asagiSpeak) window.asagiSpeak(text.trim());
+  } catch (e) { /* voz best-effort */ }
 }
 
 async function startBotStreaming(userText) {
@@ -864,4 +868,68 @@ if ('serviceWorker' in navigator) {
   // comprobar al cargar y al volver a primer plano
   refrescar();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
+})();
+
+// ---------------------------------------------------------------------------
+// Voz (con sigilo) + bloqueo de anuncios por DNS. Usa AsagiControl nativo para
+// detectar audifonos; si no hay, cae al detector web. Config en localStorage.
+// ---------------------------------------------------------------------------
+(function () {
+  function C() { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null; }
+
+  function cfg() {
+    let c = { enabled: false, sigilo: true };
+    try { c = Object.assign(c, JSON.parse(localStorage.getItem('asagi-voz') || '{}')); } catch (e) {}
+    return c;
+  }
+  function guardarCfg(c) { try { localStorage.setItem('asagi-voz', JSON.stringify(c)); } catch (e) {} }
+
+  async function audifonos() {
+    const plugin = C();
+    if (plugin && plugin.headsetConnected) {
+      try { return !!(await plugin.headsetConnected()).connected; } catch (e) {}
+    }
+    if (window.AsagiVoz) { try { return await window.AsagiVoz.audifonosConectados(); } catch (e) {} }
+    return false;
+  }
+
+  // Expuesta: habla un texto respetando voz activada + sigilo + audifonos.
+  window.asagiSpeak = async function (texto) {
+    if (!window.AsagiVoz) return;
+    const c = cfg();
+    if (!c.enabled) return;
+    const aud = await audifonos();
+    window.AsagiVoz.hablar(texto, { habilitado: c.enabled, sigilo: c.sigilo, audifonos: aud, lang: 'es-ES' });
+  };
+
+  const elEstado = document.getElementById('voz-estado');
+  const elSigilo = document.getElementById('voz-sigilo');
+  const elDns = document.getElementById('ads-dns');
+
+  async function pintarEstado() {
+    if (!elEstado) return;
+    const c = cfg();
+    if (!c.enabled) { elEstado.textContent = 'Voz: desactivada (toca "Voz: sigilo" para activar)'; return; }
+    const aud = await audifonos();
+    elEstado.textContent = 'Voz: ' + (c.sigilo
+      ? (aud ? 'sigilo · hablo por audífono ✓' : 'sigilo · sin audífonos, solo texto')
+      : 'en voz alta');
+  }
+
+  if (elSigilo) elSigilo.addEventListener('click', () => {
+    const c = cfg();
+    // ciclo: off -> sigilo on -> voz alta -> off
+    if (!c.enabled) { c.enabled = true; c.sigilo = true; }
+    else if (c.sigilo) { c.sigilo = false; }
+    else { c.enabled = false; c.sigilo = true; }
+    guardarCfg(c); pintarEstado();
+  });
+
+  if (elDns) elDns.addEventListener('click', () => {
+    const plugin = C();
+    if (plugin && plugin.openDnsSettings) plugin.openDnsSettings();
+    else alert('Ajustes > Red > DNS privado > pega: dns.adguard-dns.com');
+  });
+
+  pintarEstado();
 })();

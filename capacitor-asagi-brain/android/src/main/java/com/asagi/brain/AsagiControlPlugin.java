@@ -2,6 +2,9 @@ package com.asagi.brain;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
+import android.os.Build;
 import android.provider.Settings;
 
 import com.getcapacitor.JSObject;
@@ -81,6 +84,50 @@ public class AsagiControlPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("ok", ok);
         call.resolve(r);
+    }
+
+    /** ¿Hay audifonos (cable/BT/USB) conectados? Para el modo sigilo de la voz. */
+    @PluginMethod
+    public void headsetConnected(PluginCall call) {
+        boolean connected = false;
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (am != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                AudioDeviceInfo[] devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+                for (AudioDeviceInfo d : devices) {
+                    int t = d.getType();
+                    if (t == AudioDeviceInfo.TYPE_WIRED_HEADSET
+                            || t == AudioDeviceInfo.TYPE_WIRED_HEADPHONES
+                            || t == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
+                            || t == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                            || t == AudioDeviceInfo.TYPE_USB_HEADSET) {
+                        connected = true;
+                        break;
+                    }
+                }
+            } else {
+                connected = am.isWiredHeadsetOn() || am.isBluetoothA2dpOn();
+            }
+        }
+        JSObject r = new JSObject();
+        r.put("connected", connected);
+        call.resolve(r);
+    }
+
+    /** Abre los ajustes de DNS privado (bloqueo de anuncios system-wide, sin root). */
+    @PluginMethod
+    public void openDnsSettings(PluginCall call) {
+        Context ctx = getContext();
+        try {
+            Intent i = new Intent("android.settings.PRIVATE_DNS_SETTINGS");
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(i);
+        } catch (Exception e) {
+            Intent w = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+            w.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(w);
+        }
+        call.resolve();
     }
 
     @PluginMethod

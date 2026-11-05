@@ -524,7 +524,7 @@ function streamRemoteReply(userText, cfg) {
     const base = cfg.remoteUrl.replace(/\/+$/, '');
     const url = base + '/chat/completions';
     const messages = [
-      { role: 'system', content: 'Eres ASAGI, asistente personal en español. Responde de forma breve, clara y útil.' },
+      { role: 'system', content: (window.AsagiPersona ? window.AsagiPersona.systemPrompt() : 'Eres ASAGI, asistente personal en español. Responde de forma breve, clara y útil.') },
       { role: 'user', content: userText }
     ];
 
@@ -783,7 +783,7 @@ if ('serviceWorker' in navigator) {
           }
           return plugin.stream({
             messages: [
-              { role: 'system', content: 'Eres ASAGI, asistente personal en español. Responde breve y claro.' },
+              { role: 'system', content: (window.AsagiPersona ? window.AsagiPersona.systemPrompt() : 'Eres ASAGI, asistente personal en español. Responde breve y claro.') },
               { role: 'user', content: userText }
             ]
           });

@@ -135,11 +135,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Formulario principal (aplicación) -->
-    <include
-        android:id="@+id/brain_download_form"
-        layout="@layout/activity_brain_form" />
-
     <!-- Fragmento independiente: formulario de descarga -->
     <include
         android:id="@+id/brain_download_form_later"

@@ -151,13 +151,19 @@
         <section id="grok" class="panel" data-panel="grok">
           <header class="panel-header">
             <div class="panel-header-text">
-              <p class="eyebrow">ASAGI · Sección</p>
-              <h2>Grok</h2>
+              <p class="eyebrow">ASAGI · Enjambre</p>
+              <h2>Grok · bots</h2>
             </div>
           </header>
-          <div class="placeholder-box">
-            <p>Grok en construcción.</p>
-            <small>Esta vista quedará lista para integraciones futuras.</small>
+          <div class="grok-wrap">
+            <div id="grok-bots" class="grok-chips"></div>
+            <div id="grok-salida" class="grok-salida">
+              <div class="launcher-empty">Escribe una tarea y despliego los bots adecuados.</div>
+            </div>
+          </div>
+          <div class="composer">
+            <input id="grok-input" type="text" placeholder="¿Qué necesitas que hagan?" autocomplete="off">
+            <button id="grok-go" type="button">Desplegar</button>
           </div>
         </section>
       </main>
@@ -190,6 +196,7 @@
     <script src="voz.js"></script>
     <script src="ads.js"></script>
     <script src="launcher.js"></script>
+    <script src="bots.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

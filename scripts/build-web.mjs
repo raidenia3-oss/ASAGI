@@ -14,6 +14,7 @@ const files = [
   'voz.js',
   'ads.js',
   'launcher.js',
+  'bots.js',
   'app.js',
   'styles.css',
   'sw.js',

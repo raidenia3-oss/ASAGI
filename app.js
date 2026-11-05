@@ -981,3 +981,61 @@ if ('serviceWorker' in navigator) {
     b.addEventListener('click', () => { if (!apps.length) cargar(); }));
   setTimeout(() => { const p = document.getElementById('launcher'); if (p && p.classList.contains('active') && !apps.length) cargar(); }, 500);
 })();
+
+// ---------------------------------------------------------------------------
+// Grok · bots: despliega bots especializados (bots.js) via el cerebro (router).
+// ---------------------------------------------------------------------------
+(function () {
+  const chips = document.getElementById('grok-bots');
+  const salida = document.getElementById('grok-salida');
+  const input = document.getElementById('grok-input');
+  const go = document.getElementById('grok-go');
+
+  function pintarChips() {
+    if (!chips || !window.AsagiBots) return;
+    chips.innerHTML = '';
+    for (const b of window.AsagiBots.BOTS) {
+      const c = document.createElement('span');
+      c.className = 'grok-chip'; c.textContent = b.nombre; c.style.borderColor = b.color;
+      chips.appendChild(c);
+    }
+  }
+  pintarChips();
+
+  function val(id) { const e = document.getElementById(id); return e && e.value ? e.value.trim() : ''; }
+
+  async function ejecutarBot(prompt) {
+    const R = window.AsagiBrainRouter;
+    if (!R) return '(cerebro no disponible)';
+    const gk = val('brain-gemini-key'); const ak = val('brain-atria-key');
+    const router = new R.BrainRouter({
+      localFn: async (p) => {
+        if (gk && R.geminiResponder) return await R.geminiResponder(p, gk);
+        return '(sin cerebro: pon tu key de Gemini en Asistente)';
+      },
+      apiKey: gk,
+      remotoFn: (ak && R.atriaResponder) ? ((p) => R.atriaResponder(p, ak)) : null,
+      store: window.localStorage
+    });
+    const res = await router.responder(prompt);
+    return (res && (res.texto || res.text)) || '';
+  }
+
+  async function desplegar() {
+    if (!window.AsagiBots || !input) return;
+    const tarea = input.value.trim(); if (!tarea) return;
+    input.value = '';
+    if (salida) salida.innerHTML = '<div class="launcher-empty">Desplegando bots…</div>';
+    const res = await window.AsagiBots.desplegar(tarea, ejecutarBot, { max: 2 });
+    if (!salida) return;
+    salida.innerHTML = '';
+    for (const r of res) {
+      const card = document.createElement('div'); card.className = 'grok-card';
+      const h = document.createElement('h4'); h.textContent = r.bot.nombre; h.style.color = r.bot.color;
+      const p = document.createElement('p'); p.textContent = r.texto;
+      card.appendChild(h); card.appendChild(p); salida.appendChild(card);
+    }
+  }
+  if (go) go.addEventListener('click', desplegar);
+  if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') desplegar(); });
+})();

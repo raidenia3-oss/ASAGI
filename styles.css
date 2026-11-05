@@ -615,3 +615,8 @@ button { cursor: pointer; }
 .launcher-fav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 6px; }
 @media (min-width: 600px) { .launcher-fav { grid-template-columns: repeat(8, 1fr); } }
 .launcher-foot { flex: 0 0 auto; padding: 10px 16px; display: flex; justify-content: center; border-top: 1px solid var(--line-soft); }
+
+/* Wallpaper animado (Hyprland) detrás del Launcher */
+#launcher.panel { position: relative; overflow: hidden; }
+#launcher-wall { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+#launcher > *:not(#launcher-wall) { position: relative; z-index: 1; }

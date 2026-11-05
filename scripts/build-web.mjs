@@ -15,6 +15,7 @@ const files = [
   'ads.js',
   'launcher.js',
   'bots.js',
+  'wallpaper.js',
   'app.js',
   'styles.css',
   'sw.js',

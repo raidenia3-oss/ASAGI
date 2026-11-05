@@ -1087,3 +1087,16 @@ if ('serviceWorker' in navigator) {
   if (go) go.addEventListener('click', desplegar);
   if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') desplegar(); });
 })();
+
+// Wallpaper animado del Launcher (solo corre cuando el Launcher está visible).
+(function () {
+  const canvas = document.getElementById('launcher-wall');
+  if (!canvas || !window.AsagiWallpaper) return;
+  const wp = window.AsagiWallpaper.crearWallpaper(canvas);
+  function upd() {
+    const p = document.getElementById('launcher');
+    if (p && p.classList.contains('active')) { wp.resize(); wp.start(); } else { wp.stop(); }
+  }
+  document.querySelectorAll('.nav-item').forEach((b) => b.addEventListener('click', () => setTimeout(upd, 60)));
+  setTimeout(upd, 700);
+})();

@@ -1,0 +1,7 @@
+{
+  "_comment": "Modelo local que descarga Asagi (GGUF). Cambia aqui para usar otro.",
+  "filename": "Qwen3-0.6B-Q4_K_M.gguf",
+  "url": "https://huggingface.co/unsloth/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q4_K_M.gguf",
+  "revision": "main",
+  "notas": "Pendiente: cambiar a un modelo SIN CENSURA ligero una vez confirmada la URL."
+}

@@ -37,4 +37,5 @@
     <string name="brain_local_not_available">El modelo local aún no está descargado.</string>
     <string name="brain_local_error">El modelo local no pudo cargarse.</string>
     <string name="brain_local_loading">Cargando modelo local…</string>
+    <string name="accessibility_desc">ASAGI usa este servicio para leer la pantalla y, con tu aprobacion, tocar y escribir en otras apps.</string>
 </resources>

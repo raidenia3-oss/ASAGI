@@ -3,6 +3,7 @@ package com.asagi.app;
 import android.os.Bundle;
 
 import com.asagi.brain.AsagiBrainPlugin;
+import com.asagi.brain.AsagiControlPlugin;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -14,6 +15,7 @@ public class MainActivity extends BridgeActivity {
         // mano antes de crear el bridge. Así la app web lo ve en
         // window.Capacitor.Plugins.AsagiBrain.
         registerPlugin(AsagiBrainPlugin.class);
+        registerPlugin(AsagiControlPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

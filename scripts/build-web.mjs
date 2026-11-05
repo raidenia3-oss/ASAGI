@@ -13,6 +13,7 @@ const files = [
   'rea.js',
   'voz.js',
   'ads.js',
+  'launcher.js',
   'app.js',
   'styles.css',
   'sw.js',

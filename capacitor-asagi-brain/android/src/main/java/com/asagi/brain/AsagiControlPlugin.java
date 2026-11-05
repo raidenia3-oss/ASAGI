@@ -2,16 +2,21 @@ package com.asagi.brain;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.os.Build;
 import android.provider.Settings;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+
+import java.util.List;
 
 /**
  * Plugin "AsagiControl": expone a la app web (asagi-apps.js) las primitivas del
@@ -35,6 +40,38 @@ public class AsagiControlPlugin extends Plugin {
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(i);
         call.resolve();
+    }
+
+    /** Lista las apps lanzables del telefono (para el Launcher de ASAGI). */
+    @PluginMethod
+    public void listApps(PluginCall call) {
+        Context ctx = getContext();
+        PackageManager pm = ctx.getPackageManager();
+        Intent main = new Intent(Intent.ACTION_MAIN, null);
+        main.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = pm.queryIntentActivities(main, 0);
+        String self = ctx.getPackageName();
+        JSArray arr = new JSArray();
+        for (ResolveInfo ri : apps) {
+            if (ri.activityInfo == null) {
+                continue;
+            }
+            String pkg = ri.activityInfo.packageName;
+            if (pkg == null || pkg.equals(self)) {
+                continue;
+            }
+            JSObject o = new JSObject();
+            try {
+                o.put("label", ri.loadLabel(pm).toString());
+            } catch (Exception e) {
+                o.put("label", pkg);
+            }
+            o.put("package", pkg);
+            arr.put(o);
+        }
+        JSObject r = new JSObject();
+        r.put("apps", arr);
+        call.resolve(r);
     }
 
     @PluginMethod

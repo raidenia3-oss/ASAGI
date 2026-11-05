@@ -108,15 +108,13 @@
         </section>
 
         <section id="launcher" class="panel" data-panel="launcher">
-          <header class="panel-header">
-            <div class="panel-header-text">
-              <p class="eyebrow">ASAGI · Sección</p>
-              <h2>Launcher</h2>
-            </div>
-          </header>
-          <div class="placeholder-box">
-            <p>Launcher en construcción.</p>
-            <small>Próximamente aquí se gestionarán accesos rápidos.</small>
+          <div class="launcher-top">
+            <div id="launcher-clock" class="launcher-clock">--:--</div>
+            <div id="launcher-date" class="launcher-date"></div>
+            <input id="launcher-search" class="launcher-search" type="text" placeholder="Buscar app…" autocomplete="off">
+          </div>
+          <div id="launcher-grid" class="launcher-grid">
+            <div class="launcher-empty">Toca para cargar tus apps…<br><small>(requiere el plugin nativo)</small></div>
           </div>
         </section>
 
@@ -191,6 +189,7 @@
     <script src="rea.js"></script>
     <script src="voz.js"></script>
     <script src="ads.js"></script>
+    <script src="launcher.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

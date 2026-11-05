@@ -925,3 +925,59 @@ if ('serviceWorker' in navigator) {
 
   pintarEstado();
 })();
+
+// ---------------------------------------------------------------------------
+// Launcher: reloj + rejilla de apps (AsagiControl.listApps / openApp).
+// ---------------------------------------------------------------------------
+(function () {
+  function C() { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null; }
+  let apps = [];
+  const grid = document.getElementById('launcher-grid');
+  const search = document.getElementById('launcher-search');
+  const clockEl = document.getElementById('launcher-clock');
+  const dateEl = document.getElementById('launcher-date');
+
+  function tick() {
+    if (!window.AsagiLauncher) return;
+    const r = window.AsagiLauncher.reloj();
+    if (clockEl) clockEl.textContent = r.hora;
+    if (dateEl) dateEl.textContent = r.fecha;
+  }
+  tick(); setInterval(tick, 20000);
+
+  function render(list) {
+    if (!grid || !window.AsagiLauncher) return;
+    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin apps.</div>'; return; }
+    grid.innerHTML = '';
+    for (const a of list) {
+      const d = document.createElement('div'); d.className = 'launcher-app';
+      const ico = document.createElement('div'); ico.className = 'launcher-ico';
+      ico.style.background = window.AsagiLauncher.colorTile(a.label);
+      ico.textContent = window.AsagiLauncher.inicial(a.label);
+      const lbl = document.createElement('div'); lbl.className = 'launcher-lbl'; lbl.textContent = a.label;
+      d.appendChild(ico); d.appendChild(lbl);
+      d.addEventListener('click', () => { const c = C(); if (c && c.openApp) c.openApp({ package: a.package }); });
+      grid.appendChild(d);
+    }
+  }
+
+  async function cargar() {
+    const c = C();
+    if (!c || !c.listApps) { if (grid) grid.innerHTML = '<div class="launcher-empty">El Launcher necesita la app nativa (APK).</div>'; return; }
+    if (grid) grid.innerHTML = '<div class="launcher-empty">Cargando apps…</div>';
+    try {
+      const r = await c.listApps();
+      apps = (r && r.apps) || [];
+      render(window.AsagiLauncher.filtrar(apps, ''));
+    } catch (e) {
+      if (grid) grid.innerHTML = '<div class="launcher-empty">No pude listar apps.</div>';
+    }
+  }
+
+  if (search) search.addEventListener('input', () => {
+    if (window.AsagiLauncher) render(window.AsagiLauncher.filtrar(apps, search.value));
+  });
+  document.querySelectorAll('[data-section="launcher"]').forEach((b) =>
+    b.addEventListener('click', () => { if (!apps.length) cargar(); }));
+  setTimeout(() => { const p = document.getElementById('launcher'); if (p && p.classList.contains('active') && !apps.length) cargar(); }, 500);
+})();

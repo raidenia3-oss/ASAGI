@@ -514,3 +514,62 @@ button { cursor: pointer; }
   .composer { padding: 18px 26px; }
   .tabbar .nav-item { font-size: 0.86rem; padding: 16px; }
 }
+
+/* ------------------------------------------------------------------
+   Boot de arranque (estilo BrowOS). CSS puro: corre una vez y se va.
+   ------------------------------------------------------------------ */
+#boot {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background:
+    radial-gradient(600px 400px at 50% 40%, rgba(56, 189, 248, 0.10), transparent 70%),
+    #060a14;
+  animation: boot-out 0.6s ease 2s forwards;
+}
+@keyframes boot-out {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+.boot-orb {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 2px solid rgba(56, 189, 248, 0.25);
+  border-top-color: var(--cyan);
+  border-right-color: var(--teal);
+  box-shadow: 0 0 36px -6px var(--glow), inset 0 0 20px -8px var(--glow);
+  animation: boot-spin 0.9s linear infinite;
+}
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+.boot-name {
+  font: 800 1.5rem/1 var(--mono);
+  letter-spacing: 0.4em;
+  color: #eaf6ff;
+  text-shadow: 0 0 24px var(--glow);
+  padding-left: 0.4em;
+}
+.boot-bar {
+  width: 180px;
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.14);
+  overflow: hidden;
+}
+.boot-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--teal));
+  animation: boot-fill 2s ease forwards;
+}
+@keyframes boot-fill { to { width: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  #boot { animation-delay: 0.2s; }
+  .boot-orb, .boot-bar span { animation: none; }
+}

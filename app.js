@@ -979,11 +979,40 @@ if ('serviceWorker' in navigator) {
     for (const a of top) fav.appendChild(tile(a));
   }
 
-  function render(list) {
+  // Ejecuta un comando del palette por id.
+  function ejecutarAccion(id) {
+    const ir = (sec) => { const n = document.querySelector('[data-section="' + sec + '"]'); if (n) n.click(); };
+    if (id === 'preguntar') { if (ask) { ask.hidden = false; ask.click(); } return; }
+    if (id === 'ir-status') return ir('status');
+    if (id === 'ir-grok') return ir('grok');
+    if (id === 'escanear') { ir('status'); setTimeout(() => { const b = document.getElementById('def-scan'); if (b) b.click(); }, 180); return; }
+    if (id === 'voz') { ir('status'); setTimeout(() => { const b = document.getElementById('voz-sigilo'); if (b) b.click(); }, 180); return; }
+    if (id === 'ads') { ir('status'); setTimeout(() => { const b = document.getElementById('ads-dns'); if (b) b.click(); }, 180); return; }
+    if (id === 'fondo') { if (window._asagiAbrirFondo) window._asagiAbrirFondo(); return; }
+  }
+
+  // Fila de comando (palette) — distinta del tile de app.
+  function filaCmd(it) {
+    const d = document.createElement('button'); d.className = 'cmd-row'; d.type = 'button';
+    d.innerHTML = '<span class="cmd-ico">' + (it.ico || '•') + '</span><span class="cmd-txt"><b>' +
+      it.label.replace(/</g, '&lt;') + '</b><small>' + (it.sub || '') + '</small></span>';
+    d.addEventListener('click', () => { if (search) search.value = ''; render(apps); if (favWrap) favWrap.hidden = false; ejecutarAccion(it.id); });
+    return d;
+  }
+
+  // Render con entrada escalonada. list = items del palette (apps o acciones) o apps crudas.
+  function render(list, palette) {
     if (!grid || !L()) return;
     if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin coincidencias.</div>'; return; }
     grid.innerHTML = '';
-    for (const a of list) grid.appendChild(tile(a));
+    grid.classList.toggle('as-list', !!palette);
+    let i = 0;
+    for (const it of list) {
+      const el = palette ? (it.tipo === 'accion' ? filaCmd(it) : tile(it._app || it)) : tile(it);
+      el.style.animationDelay = Math.min(i, 16) * 22 + 'ms';
+      el.classList.add('as-in');
+      grid.appendChild(el); i++;
+    }
   }
 
   async function cargar() {
@@ -1002,16 +1031,23 @@ if ('serviceWorker' in navigator) {
   if (search) search.addEventListener('input', () => {
     if (!L()) return;
     const q = search.value;
-    const res = L().filtrar(apps, q);
-    render(res);
-    if (ask) ask.hidden = !(q.trim() && res.length === 0);
-    if (favWrap) favWrap.hidden = !!q.trim() || L().masUsadas(apps, counts(), 8).length === 0;
+    if (window.AsagiPalette && q.trim()) {
+      const res = window.AsagiPalette.buscar(apps, q);
+      render(res, true);
+      const hayApp = res.some((x) => x.tipo === 'app');
+      if (ask) ask.hidden = !(q.trim() && !hayApp);
+      if (favWrap) favWrap.hidden = true;
+    } else {
+      render(L().filtrar(apps, q));
+      if (ask) ask.hidden = true;
+      if (favWrap) favWrap.hidden = L().masUsadas(apps, counts(), 8).length === 0;
+    }
   });
 
   // Preguntar a ASAGI: lleva la consulta al Asistente.
   if (ask) ask.addEventListener('click', () => {
     const q = search ? search.value.trim() : '';
-    const navAsis = document.querySelector('[data-section="asistente"]');
+    const navAsis = document.querySelector('[data-section="assistant"]');
     if (navAsis) navAsis.click();
     const input = document.getElementById('message-input');
     if (input) { input.value = q; input.focus(); }
@@ -1092,13 +1128,82 @@ if ('serviceWorker' in navigator) {
 (function () {
   const canvas = document.getElementById('launcher-wall');
   if (!canvas || !window.AsagiWallpaper) return;
-  const wp = window.AsagiWallpaper.crearWallpaper(canvas);
+  let modo = 'constelacion', tema = 'cian';
+  try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; } catch (e) {}
+  const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema });
+  window._asagiWall = wp;                 // el panel de personalización lo controla
   function upd() {
     const p = document.getElementById('launcher');
     if (p && p.classList.contains('active')) { wp.resize(); wp.start(); } else { wp.stop(); }
   }
   document.querySelectorAll('.nav-item').forEach((b) => b.addEventListener('click', () => setTimeout(upd, 60)));
   setTimeout(upd, 700);
+})();
+
+// Personalización del fondo: hoja con modos + colores, en vivo y persistida.
+(function () {
+  if (!window.AsagiWallpaper) return;
+  const btn = document.getElementById('wall-cfg');
+  const sheet = document.getElementById('wall-sheet');
+  const cerrar = document.getElementById('wall-cerrar');
+  const rModos = document.getElementById('wall-modos');
+  const rTemas = document.getElementById('wall-temas');
+  if (!btn || !sheet || !rModos || !rTemas) return;
+  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas' };
+  const SW = { cian: '#38bdf8', violeta: '#a78bfa', verde: '#2dd4bf', rosa: '#f472b6', ambar: '#fbbf24' };
+  function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'constelacion', t: w ? w.getTema() : 'cian' }; }
+  function pintar() {
+    const c = cur();
+    rModos.innerHTML = ''; rTemas.innerHTML = '';
+    window.AsagiWallpaper.MODOS.forEach((m) => {
+      const b = document.createElement('button');
+      b.className = 'wall-chip' + (m === c.m ? ' on' : ''); b.type = 'button'; b.textContent = NOMBRE[m] || m;
+      b.addEventListener('click', () => { if (window._asagiWall) { window._asagiWall.setModo(m); } try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {} pintar(); });
+      rModos.appendChild(b);
+    });
+    Object.keys(SW).forEach((t) => {
+      const b = document.createElement('button');
+      b.className = 'wall-sw' + (t === c.t ? ' on' : ''); b.type = 'button'; b.style.background = SW[t];
+      b.setAttribute('aria-label', t);
+      b.addEventListener('click', () => { if (window._asagiWall) window._asagiWall.setTema(t); try { localStorage.setItem('asagi-wall-tema', t); } catch (e) {} pintar(); });
+      rTemas.appendChild(b);
+    });
+  }
+  function abrir() { pintar(); sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open')); }
+  function cerrarSheet() { sheet.classList.remove('open'); setTimeout(() => { sheet.hidden = true; }, 240); }
+  btn.addEventListener('click', abrir);
+  if (cerrar) cerrar.addEventListener('click', cerrarSheet);
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) cerrarSheet(); });
+  window._asagiAbrirFondo = abrir;        // el comando "Cambiar fondo" del palette
+})();
+
+// Chips de estado del Launcher: red, batería y última defensa.
+(function () {
+  const cont = document.getElementById('launcher-chips');
+  if (!cont) return;
+  function chip(txt, cls) { return '<span class="lchip ' + (cls || '') + '">' + txt + '</span>'; }
+  function ultDefensa() {
+    try {
+      if (!window.AsagiMemoria || !window._asagiMem) return '';
+      const hs = window._asagiMem.buscar ? window._asagiMem.buscar('defensa', 3) : [];
+      return (hs && hs.length) ? '🛡 auditado' : '';
+    } catch (e) { return ''; }
+  }
+  async function pintar() {
+    let html = '';
+    html += chip(navigator.onLine ? '● en línea' : '○ sin red', navigator.onLine ? 'ok' : 'warn');
+    try {
+      if (navigator.getBattery) {
+        const b = await navigator.getBattery();
+        const pct = Math.round(b.level * 100);
+        html += chip((b.charging ? '⚡' : '') + pct + '%', pct <= 20 ? 'warn' : 'ok');
+      }
+    } catch (e) {}
+    const d = ultDefensa(); if (d) html += chip(d, 'ok');
+    cont.innerHTML = html;
+  }
+  pintar(); setInterval(pintar, 30000);
+  window.addEventListener('online', pintar); window.addEventListener('offline', pintar);
 })();
 
 // Defensa: escanea apps (permisos + origen) y marca las riesgosas. Honesto, defensivo.

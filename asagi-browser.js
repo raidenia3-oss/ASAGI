@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Navegador propio del asistente (version "BrowOS" para Asagi).
 //
 // Da a Asagi un navegador DENTRO de la app que el asistente maneja: navegar, LEER la
@@ -185,3 +186,5 @@ const API = { extraer, extraerTitulo, extraerMeta, extraerJsonLd, extraerPrecio,
               extraerEnlaces, clasificarAccion, guardia, AsagiBrowser };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiBrowser = API;
+
+})();

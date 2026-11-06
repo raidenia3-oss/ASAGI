@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Personalidad (quien es Asagi). ORIGINAL e inspirada en rasgos, no copia de
 // personajes con dueno. Echidna es de ARIA; Asagi toma otros rasgos:
 //   - DEDUCCION afilada y observacion de detective (rasgo tipo Lieselotte Sherlock),
@@ -46,3 +47,5 @@ function systemPrompt(ctx = {}, extra = '') {
 const API = { NOMBRE, PERSONA, tono, systemPrompt };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiPersona = API;
+
+})();

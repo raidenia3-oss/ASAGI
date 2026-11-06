@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Gestos: deslizar para cambiar de pestana (y arriba en el Launcher = buscar).
 // Idea de launcher (Lynx/GNOME): navegacion por swipe. Logica pura (direccion) +
 // un enganche de toque.
@@ -46,3 +47,5 @@ function crear(el, onSwipe, opts) {
 const API = { direccion, mover, crear };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiGestos = API;
+
+})();

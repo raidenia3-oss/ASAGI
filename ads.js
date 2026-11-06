@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Bloqueo de anuncios (a nivel de dominio). Motor de lista; la aplicacion
 // a TODO el celular la hace un VpnService nativo (DNS blackhole) que consulta este
 // motor por cada peticion. Bloquear anuncios en TU propio dispositivo es legitimo.
@@ -66,3 +67,5 @@ function decidir(host, blocklist = BLOCKLIST) {
 const API = { BLOCKLIST, normalizar, esAnuncio, cargarLista, decidir };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiAds = API;
+
+})();

@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Grok bots: despliega varios bots especializados para ayudarte en cualquier
 // cosa. Tu das una tarea, el orquestador elige los bots adecuados y cada uno responde
 // (via el cerebro: brain-router). Ligero: cada bot = un rol (prompt) + palabras clave.
@@ -75,3 +76,5 @@ async function desplegar(tarea, ejecutar, { max = 2 } = {}) {
 const API = { BOTS, botPorId, elegirBots, promptDe, desplegar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiBots = API;
+
+})();

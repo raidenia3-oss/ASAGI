@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Defensa: auditor de seguridad de TU propio celular (defensivo y honesto).
 //
 // NO es un antivirus magico ni detecta "hackers" por arte de magia: eso seria mentir.
@@ -86,3 +87,5 @@ function aviso() {
 const API = { PELIGROSOS, analizarApp, analizar, aviso };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiDefensa = API;
+
+})();

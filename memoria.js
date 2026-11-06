@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Memoria local (grafo de conocimiento ligero). Port de conocimiento.py de ARIA.
 //
 // Guarda proposiciones (lo que Asagi aprende/hablan) con tema y fuente, dedup por texto.
@@ -93,3 +94,5 @@ class Memoria {
 const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiMemoria = API;
+
+})();

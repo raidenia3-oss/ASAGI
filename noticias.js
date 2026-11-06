@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Noticias (la "Vigia"). Port de noticias.py de ARIA: junta titulares del dia
 // por RSS (fetch, saliente = Regla v2). Mezcla noticias + comunidad, dedup, cachea.
 // Neutral: solo lista titulares con su fuente y link; no opina.
@@ -72,3 +73,5 @@ function resumen(p) {
 const API = { FUENTES, parseFeed, obtener, resumen };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiNoticias = API;
+
+})();

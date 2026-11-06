@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Sync de memoria selectiva (lado Asagi). Espejo JS de sync_memoria.py de ARIA.
 //
 // ARIA (PC) y Asagi (celu) comparten memoria SIN servidor: via un archivo JSON neutral
@@ -138,3 +139,5 @@ function importar({ bundleStr, leer, importarItems }) {
 const API = { hash, politica, esCompartible, construirBundle, fusionar, exportar, importar, VERSION };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiSync = API;
+
+})();

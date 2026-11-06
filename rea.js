@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - REA (Reverse Engineer Anything). Port de investigacion.py de ARIA.
 //
 // Le das un TEMA y FUENTES (texto que Asagi junto de la web via asagi-browser/web_api)
@@ -91,3 +92,5 @@ function investigar(tema, fuentes) {
 const API = { analizar, playbookMd, investigar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiREA = API;
+
+})();

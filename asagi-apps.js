@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Control de apps del celular (capa segura). Version "computer use" para Asagi.
 //
 // Permite a Asagi USAR las apps del telefono: abrirlas, leer la pantalla y (con tu
@@ -96,3 +97,5 @@ class AsagiApps {
 const API = { clasificar, guardia, AsagiApps };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiApps = API;
+
+})();

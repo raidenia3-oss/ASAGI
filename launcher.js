@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Launcher (lanzadera): reloj + rejilla de apps buscable. La lista de apps y
 // abrirlas vienen del plugin nativo AsagiControl (listApps/openApp). Aqui va la LOGICA
 // pura (filtrar, ordenar, reloj, color de tile), testeable sin Android.
@@ -59,3 +60,5 @@ function masUsadas(apps, counts, n = 8) {
 const API = { reloj, ordenar, filtrar, colorTile, inicial, masUsadas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
+
+})();

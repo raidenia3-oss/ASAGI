@@ -109,10 +109,12 @@
 
         <section id="launcher" class="panel" data-panel="launcher">
           <canvas id="launcher-wall"></canvas>
+          <button id="wall-cfg" class="wall-cfg" type="button" aria-label="Personalizar fondo">✶</button>
           <div class="launcher-top">
             <div id="launcher-clock" class="launcher-clock">--:--</div>
             <div id="launcher-date" class="launcher-date"></div>
-            <input id="launcher-search" class="launcher-search" type="text" placeholder="Buscar app o preguntar a ASAGI…" autocomplete="off">
+            <div id="launcher-chips" class="launcher-chips" aria-label="Estado"></div>
+            <input id="launcher-search" class="launcher-search" type="text" placeholder="Buscar app o comando…" autocomplete="off">
             <button id="launcher-ask" class="launcher-ask" type="button" hidden>Preguntar a ASAGI</button>
           </div>
           <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
@@ -124,6 +126,17 @@
           </div>
           <div class="launcher-foot">
             <button id="launcher-home" class="secondary" type="button" style="width:auto;">Hacer ASAGI mi inicio</button>
+          </div>
+
+          <div id="wall-sheet" class="wall-sheet" hidden>
+            <div class="wall-sheet-in">
+              <div class="wall-grab"></div>
+              <div class="wall-sheet-h">Estilo de fondo</div>
+              <div class="wall-row" id="wall-modos"></div>
+              <div class="wall-sheet-h">Color</div>
+              <div class="wall-row" id="wall-temas"></div>
+              <button id="wall-cerrar" class="wall-listo" type="button">Listo</button>
+            </div>
           </div>
         </section>
 
@@ -218,6 +231,7 @@
     <script src="wallpaper.js"></script>
     <script src="defensa.js"></script>
     <script src="gestures.js"></script>
+    <script src="palette.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

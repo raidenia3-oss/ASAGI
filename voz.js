@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Voz + Sigilo. Asagi habla por TTS, pero con DISCRECION:
 //   - Habla en voz alta solo si esta habilitada Y (el sigilo esta apagado O hay
 //     audifonos conectados). Asi, con "sigilo" puesto, solo te habla al oido por
@@ -77,3 +78,5 @@ async function audifonosConectados(detectorNativo) {
 const API = { debeHablar, motivo, hablar, audifonosConectados };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiVoz = API;
+
+})();

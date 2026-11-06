@@ -1,3 +1,4 @@
+;(function () {
 // ASAGI - Razonamiento (robado de ARIA: planificador coarse-to-fine + certeza no-inventar).
 //
 // Da a Asagi la forma de PENSAR de ARIA, sin peso:
@@ -77,3 +78,5 @@ function sugerirBackend(pregunta, { online = false, cupo = 0, atria = false } = 
 const API = { complejidad, plan, necesitaDatos, certezaGuia, sugerirBackend };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiRazon = API;
+
+})();

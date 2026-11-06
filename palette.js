@@ -14,6 +14,7 @@ function acciones() {
     { id: 'voz', label: 'Voz en sigilo', sub: 'Audífonos', ico: '🎧', tipo: 'accion' },
     { id: 'ads', label: 'Bloquear anuncios', sub: 'DNS privado', ico: '⛔', tipo: 'accion' },
     { id: 'fondo', label: 'Cambiar fondo', sub: 'Wallpaper', ico: '✶', tipo: 'accion' },
+    { id: 'aprender', label: 'Aprender de un texto', sub: 'Pega una transcripción o artículo', ico: '📚', tipo: 'accion' },
   ];
 }
 

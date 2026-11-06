@@ -19,6 +19,7 @@ const files = [
   'defensa.js',
   'gestures.js',
   'palette.js',
+  'conocimiento.js',
   'app.js',
   'styles.css',
   'sw.js',

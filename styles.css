@@ -691,3 +691,12 @@ button { cursor: pointer; }
 @keyframes asIn { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
 .as-in { animation: asIn .34s cubic-bezier(.22,1,.36,1) both; }
 @media (prefers-reduced-motion: reduce) { .as-in { animation: none; } }
+
+/* Ingestor de conocimiento: hoja para pegar texto */
+.learn-in { width: 100%; margin: 4px 0 10px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: rgba(10,16,32,.6); color: var(--text); font-size: 14px; }
+.learn-area { width: 100%; min-height: 160px; resize: vertical; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid var(--line); background: rgba(10,16,32,.6); color: var(--text); font-size: 14px; line-height: 1.4; }
+.learn-estado { margin: 12px 2px 0; font-size: 13px; line-height: 1.45; opacity: .92; }
+.learn-estado b { color: var(--cyan); }
+.learn-estado small { opacity: .75; }

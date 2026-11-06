@@ -358,6 +358,20 @@ function appendMessage(sender, text) {
   } catch (e) { /* voz best-effort */ }
 }
 
+// Recupera lo que ASAGI aprendió que sea relevante a la pregunta y lo entrega
+// como contexto para el cerebro (RAG: informar con lo aprendido, citando fuente).
+function ctxMemoria(q) {
+  try {
+    if (!window.AsagiMemoria || !q || !q.trim()) return '';
+    if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+    const hits = window._asagiMem.buscar(q, 5).filter((n) => n && n.tema !== 'chat');
+    if (!hits.length) return '';
+    const lineas = hits.map((n) => '- ' + n.texto + (n.fuente ? ' (fuente: ' + n.fuente + ')' : ''));
+    return 'Esto es lo que has aprendido y puede ser relevante. Úsalo solo si aplica, y si informas de ' +
+      'finanzas aclara que es información, no un consejo de inversión:\n' + lineas.join('\n');
+  } catch (e) { return ''; }
+}
+
 async function startBotStreaming(userText) {
   const b = readBrainControls();
   state.brain.geminiKey = b.geminiKey || '';
@@ -529,9 +543,11 @@ function streamRemoteReply(userText, cfg) {
     const base = cfg.remoteUrl.replace(/\/+$/, '');
     const url = base + '/chat/completions';
     const messages = [
-      { role: 'system', content: (window.AsagiPersona ? window.AsagiPersona.systemPrompt() : 'Eres ASAGI, asistente personal en español. Responde de forma breve, clara y útil.') },
-      { role: 'user', content: userText }
+      { role: 'system', content: (window.AsagiPersona ? window.AsagiPersona.systemPrompt() : 'Eres ASAGI, asistente personal en español. Responde de forma breve, clara y útil.') }
     ];
+    const _ctx = ctxMemoria(userText);
+    if (_ctx) messages.push({ role: 'system', content: _ctx });
+    messages.push({ role: 'user', content: userText });
 
     const body = JSON.stringify({
       model: (cfg.remoteModel || 'asagi-local').trim() || 'asagi-local',
@@ -786,12 +802,13 @@ if ('serviceWorker' in navigator) {
             onError(bridge.engineState.error || 'el modelo local no está disponible');
             return null;
           }
-          return plugin.stream({
-            messages: [
-              { role: 'system', content: (window.AsagiPersona ? window.AsagiPersona.systemPrompt() : 'Eres ASAGI, asistente personal en español. Responde breve y claro.') },
-              { role: 'user', content: userText }
-            ]
-          });
+          const msgs = [
+            { role: 'system', content: (window.AsagiPersona ? window.AsagiPersona.systemPrompt() : 'Eres ASAGI, asistente personal en español. Responde breve y claro.') }
+          ];
+          const _c = ctxMemoria(userText);
+          if (_c) msgs.push({ role: 'system', content: _c });
+          msgs.push({ role: 'user', content: userText });
+          return plugin.stream({ messages: msgs });
         })
         .then((result) => {
           if (!result) return;
@@ -989,6 +1006,7 @@ if ('serviceWorker' in navigator) {
     if (id === 'voz') { ir('status'); setTimeout(() => { const b = document.getElementById('voz-sigilo'); if (b) b.click(); }, 180); return; }
     if (id === 'ads') { ir('status'); setTimeout(() => { const b = document.getElementById('ads-dns'); if (b) b.click(); }, 180); return; }
     if (id === 'fondo') { if (window._asagiAbrirFondo) window._asagiAbrirFondo(); return; }
+    if (id === 'aprender') { if (window._asagiAbrirAprender) window._asagiAbrirAprender(); return; }
   }
 
   // Fila de comando (palette) — distinta del tile de app.
@@ -1175,6 +1193,36 @@ if ('serviceWorker' in navigator) {
   if (cerrar) cerrar.addEventListener('click', cerrarSheet);
   sheet.addEventListener('click', (e) => { if (e.target === sheet) cerrarSheet(); });
   window._asagiAbrirFondo = abrir;        // el comando "Cambiar fondo" del palette
+})();
+
+// Ingestor de conocimiento: pega una transcripción/artículo y ASAGI lo aprende
+// (lo probamos: 1 exposición basta). Se guarda en memoria por tema para informarte luego.
+(function () {
+  const sheet = document.getElementById('learn-sheet');
+  const go = document.getElementById('learn-go');
+  const fuente = document.getElementById('learn-fuente');
+  const texto = document.getElementById('learn-texto');
+  const estado = document.getElementById('learn-estado');
+  if (!sheet || !go || !texto) return;
+  function abrir() { estado.textContent = ''; sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open')); setTimeout(() => texto.focus(), 250); }
+  function cerrar() { sheet.classList.remove('open'); setTimeout(() => { sheet.hidden = true; }, 240); }
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) cerrar(); });
+  window._asagiAbrirAprender = abrir;
+  go.addEventListener('click', () => {
+    const t = (texto.value || '').trim();
+    if (!t) { estado.textContent = 'Pega algún texto primero.'; return; }
+    if (!window.AsagiConocimiento) { estado.textContent = 'Falta el módulo de conocimiento.'; return; }
+    const r = window.AsagiConocimiento.ingerir(t, (fuente.value || '').trim() || 'manual');
+    try {
+      if (window.AsagiMemoria) {
+        if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+        r.items.forEach((it) => window._asagiMem.aprender(it.texto, it.tema, it.fuente));
+      }
+    } catch (e) {}
+    estado.innerHTML = '<b>' + r.resumen + '</b>' + (r.items.length ? '<br><small>' +
+      r.items.slice(0, 3).map((i) => '• ' + i.texto.replace(/</g, '&lt;')).join('<br>') + '</small>' : '');
+    if (r.items.length) { texto.value = ''; }
+  });
 })();
 
 // Chips de estado del Launcher: red, batería y última defensa.

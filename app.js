@@ -1117,6 +1117,15 @@ if ('serviceWorker' in navigator) {
     try {
       const r = await c.appAudit();
       const an = window.AsagiDefensa.analizar((r && r.apps) || []);
+      // C) guardar el reporte en memoria -> el puente lo sincroniza con ARIA
+      try {
+        if (window.AsagiMemoria) {
+          if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+          const top = an.riesgosas.slice(0, 5).map((a) => a.label + '(' + a.nivel + ')').join(', ');
+          window._asagiMem.aprender('Defensa ' + new Date().toISOString().slice(0, 10) + ': ' +
+            an.resumen.alto + ' alto, ' + an.resumen.medio + ' medio' + (top ? ' — ' + top : ''), 'defensa', 'defensa');
+        }
+      } catch (e) {}
       let html = '<div class="def-sum">' + an.resumen.total + ' apps · <b style="color:' + COLOR.alto + '">' +
         an.resumen.alto + ' alto</b> · <b style="color:' + COLOR.medio + '">' + an.resumen.medio + ' medio</b></div>';
       if (!an.riesgosas.length) html += '<div class="launcher-empty">Sin apps riesgosas. 👍</div>';
@@ -1128,4 +1137,17 @@ if ('serviceWorker' in navigator) {
       out.innerHTML = html;
     } catch (e) { out.innerHTML = '<div class="launcher-empty">No pude escanear.</div>'; }
   });
+})();
+
+// Gestos: deslizar horizontal = cambiar pestana; arriba en Launcher = buscar.
+(function () {
+  if (!window.AsagiGestos) return;
+  const shell = document.querySelector('.app-shell') || document.body;
+  const tabs = ['assistant', 'launcher', 'status', 'grok'];
+  function actual() { const a = document.querySelector('.panel.active'); return a ? a.getAttribute('data-panel') : 'assistant'; }
+  function irA(sec) { const nav = document.querySelector('[data-section="' + sec + '"]'); if (nav) nav.click(); }
+  window.AsagiGestos.crear(shell, function (dir) {
+    if (dir === 'izq' || dir === 'der') irA(window.AsagiGestos.mover(tabs, actual(), dir));
+    else if (dir === 'arriba' && actual() === 'launcher') { const s = document.getElementById('launcher-search'); if (s) s.focus(); }
+  }, { umbral: 60 });
 })();

@@ -627,3 +627,10 @@ button { cursor: pointer; }
 .def-card { border: 1px solid var(--line); border-radius: 12px; padding: 9px 12px; background: rgba(13,20,38,.6); }
 .def-top { display: flex; justify-content: space-between; gap: 8px; font: 700 0.78rem var(--mono); color: #eaf6ff; }
 .def-why { margin-top: 3px; font: 0.68rem var(--mono); color: var(--muted); line-height: 1.4; }
+
+/* Pulido launcher (VengenceUI: glass dock, glow) */
+.launcher-search { background: rgba(10,16,32,.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.launcher-fav-wrap { background: rgba(10,16,32,.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line); border-radius: 20px; margin: 12px 14px 0; padding: 12px 14px 10px; }
+.launcher-app:active .launcher-ico { box-shadow: 0 0 0 2px var(--cyan), 0 8px 20px -6px var(--glow); }
+.launcher-ico { transition: box-shadow .12s; }

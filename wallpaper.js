@@ -77,11 +77,21 @@ function crearWallpaper(canvas, opts) {
   let ondas = [];                         // para modo 'ondas'
   let t = 0, raf = null, corriendo = false, ultimo = 0, limpiado = false;
   let modo = opts.modo || 'constelacion';
-  let tema = TEMAS[opts.tema] ? opts.tema : 'cian';
+  let tema = (opts.tema === 'auto' || TEMAS[opts.tema]) ? opts.tema : 'cian';
   const DIST = opts.dist || 118;
   const touch = { x: -999, y: -999, on: false };
+  const tilt = { x: 0, y: 0 };            // parallax por inclinación (giroscopio)
 
-  function cols() { return TEMAS[tema] || TEMAS.cian; }
+  // Paleta según la hora (tema 'auto', estilo iOS: cambia con el día).
+  function autoPal() {
+    const h = new Date().getHours();
+    if (h < 6) return TEMAS.violeta;       // madrugada
+    if (h < 12) return TEMAS.cian;         // mañana
+    if (h < 18) return TEMAS.verde;        // tarde
+    if (h < 21) return TEMAS.ambar;        // atardecer
+    return TEMAS.rosa;                      // noche
+  }
+  function cols() { return tema === 'auto' ? autoPal() : (TEMAS[tema] || TEMAS.cian); }
   function col(i) { return cols()[i % cols().length]; }
 
   function nParts() {
@@ -108,7 +118,9 @@ function crearWallpaper(canvas, opts) {
     ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 3; i++) {
       const b = posBlob(t, i, 3);
-      const cx = b.x * W, cy = b.y * H, rad = Math.max(W, H) * 0.5;
+      // parallax: cada capa se desplaza distinto con la inclinación (profundidad)
+      const dep = 10 + i * 9;
+      const cx = b.x * W + tilt.x * dep, cy = b.y * H + tilt.y * dep, rad = Math.max(W, H) * 0.5;
       const c = col(i);
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
       g.addColorStop(0, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + (alpha || 0.12) + ')');
@@ -244,7 +256,7 @@ function crearWallpaper(canvas, opts) {
   function stop() { corriendo = false; if (raf) window.cancelAnimationFrame(raf); raf = null; }
 
   function setModo(m) { if (MODOS.indexOf(m) === -1) return; modo = m; limpiado = false; ondas = []; resize(); }
-  function setTema(x) { if (TEMAS[x]) tema = x; }
+  function setTema(x) { if (x === 'auto' || TEMAS[x]) tema = x; }
 
   function onTouch(e) {
     const r = canvas.getBoundingClientRect();
@@ -253,12 +265,22 @@ function crearWallpaper(canvas, opts) {
   }
   function offTouch() { touch.on = false; touch.x = -999; touch.y = -999; }
 
+  // Parallax por giroscopio (Android no pide permiso). Suave y acotado.
+  function onTilt(e) {
+    const g = e.gamma, b = e.beta;
+    if (g == null || b == null) return;
+    const tx = Math.max(-1, Math.min(1, g / 28));
+    const ty = Math.max(-1, Math.min(1, (b - 45) / 28));
+    tilt.x += (tx - tilt.x) * 0.12; tilt.y += (ty - tilt.y) * 0.12;   // lerp
+  }
+
   window.addEventListener('resize', resize);
   document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); });
   canvas.addEventListener('touchmove', onTouch, { passive: true });
   canvas.addEventListener('mousemove', onTouch);
   canvas.addEventListener('touchend', offTouch);
   canvas.addEventListener('mouseleave', offTouch);
+  try { window.addEventListener('deviceorientation', onTilt); } catch (e) {}
 
   return {
     start: start, stop: stop, resize: resize,

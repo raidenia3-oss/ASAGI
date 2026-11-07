@@ -1018,6 +1018,18 @@ if ('serviceWorker' in navigator) {
     return d;
   }
 
+  // Fila de resultado de calculadora (tap = copiar).
+  function filaCalc(it) {
+    const d = document.createElement('button'); d.className = 'cmd-row cmd-calc'; d.type = 'button';
+    d.innerHTML = '<span class="cmd-ico">=</span><span class="cmd-txt"><b>' + it.valor +
+      '</b><small>' + it.expr.replace(/</g, '&lt;') + ' · toca para copiar</small></span>';
+    d.addEventListener('click', () => {
+      try { navigator.clipboard && navigator.clipboard.writeText(String(it.valor)); } catch (e) {}
+      const s = d.querySelector('small'); if (s) s.textContent = '¡copiado!';
+    });
+    return d;
+  }
+
   // Render con entrada escalonada. list = items del palette (apps o acciones) o apps crudas.
   function render(list, palette) {
     if (!grid || !L()) return;
@@ -1026,7 +1038,9 @@ if ('serviceWorker' in navigator) {
     grid.classList.toggle('as-list', !!palette);
     let i = 0;
     for (const it of list) {
-      const el = palette ? (it.tipo === 'accion' ? filaCmd(it) : tile(it._app || it)) : tile(it);
+      const el = palette
+        ? (it.tipo === 'calc' ? filaCalc(it) : it.tipo === 'accion' ? filaCmd(it) : tile(it._app || it))
+        : tile(it);
       el.style.animationDelay = Math.min(i, 16) * 22 + 'ms';
       el.classList.add('as-in');
       grid.appendChild(el); i++;
@@ -1051,6 +1065,8 @@ if ('serviceWorker' in navigator) {
     const q = search.value;
     if (window.AsagiPalette && q.trim()) {
       const res = window.AsagiPalette.buscar(apps, q);
+      const calc = window.AsagiPalette.calcular(q);
+      if (calc) res.unshift({ tipo: 'calc', valor: calc.valor, expr: calc.expr });
       render(res, true);
       const hayApp = res.some((x) => x.tipo === 'app');
       if (ask) ask.hidden = !(q.trim() && !hayApp);
@@ -1150,6 +1166,16 @@ if ('serviceWorker' in navigator) {
   try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; } catch (e) {}
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema });
   window._asagiWall = wp;                 // el panel de personalización lo controla
+  // Acento dinámico: la UI (pestañas, botones) sigue el color del fondo (Material You / Niagara).
+  const ACC = { cian: ['#38bdf8', 'rgba(56,189,248,.4)'], violeta: ['#a78bfa', 'rgba(167,139,250,.4)'],
+    verde: ['#2dd4bf', 'rgba(45,212,191,.4)'], rosa: ['#f472b6', 'rgba(244,114,182,.4)'], ambar: ['#fbbf24', 'rgba(251,191,36,.4)'] };
+  window._asagiAccento = function (t) {
+    let key = t;
+    if (t === 'auto') { const h = new Date().getHours(); key = h < 6 ? 'violeta' : h < 12 ? 'cian' : h < 18 ? 'verde' : h < 21 ? 'ambar' : 'rosa'; }
+    const a = ACC[key] || ACC.cian;
+    try { document.documentElement.style.setProperty('--cyan', a[0]); document.documentElement.style.setProperty('--glow', a[1]); } catch (e) {}
+  };
+  window._asagiAccento(tema);
   function upd() {
     const p = document.getElementById('launcher');
     if (p && p.classList.contains('active')) { wp.resize(); wp.start(); } else { wp.stop(); }
@@ -1168,7 +1194,8 @@ if ('serviceWorker' in navigator) {
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
   const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas' };
-  const SW = { cian: '#38bdf8', violeta: '#a78bfa', verde: '#2dd4bf', rosa: '#f472b6', ambar: '#fbbf24' };
+  const SW = { cian: '#38bdf8', violeta: '#a78bfa', verde: '#2dd4bf', rosa: '#f472b6', ambar: '#fbbf24',
+    auto: 'conic-gradient(from 0deg, #38bdf8, #a78bfa, #2dd4bf, #fbbf24, #f472b6, #38bdf8)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'constelacion', t: w ? w.getTema() : 'cian' }; }
   function pintar() {
     const c = cur();
@@ -1183,7 +1210,12 @@ if ('serviceWorker' in navigator) {
       const b = document.createElement('button');
       b.className = 'wall-sw' + (t === c.t ? ' on' : ''); b.type = 'button'; b.style.background = SW[t];
       b.setAttribute('aria-label', t);
-      b.addEventListener('click', () => { if (window._asagiWall) window._asagiWall.setTema(t); try { localStorage.setItem('asagi-wall-tema', t); } catch (e) {} pintar(); });
+      b.addEventListener('click', () => {
+        if (window._asagiWall) window._asagiWall.setTema(t);
+        if (window._asagiAccento) window._asagiAccento(t);
+        try { localStorage.setItem('asagi-wall-tema', t); } catch (e) {}
+        pintar();
+      });
       rTemas.appendChild(b);
     });
   }
@@ -1237,6 +1269,24 @@ if ('serviceWorker' in navigator) {
       return (hs && hs.length) ? '🛡 auditado' : '';
     } catch (e) { return ''; }
   }
+  // Clima (at-a-glance, estilo Niagara/Lawnchair): open-meteo, sin API key.
+  // Geolocalización opcional: si se niega o falla, el chip simplemente no aparece.
+  let clima = '';
+  const ICONO = (c) => c === 0 ? '☀' : c < 4 ? '⛅' : c < 50 ? '☁' : c < 70 ? '🌧' : c < 80 ? '❄' : '⛈';
+  function cargarClima() {
+    try {
+      if (!navigator.geolocation || !navigator.onLine) return;
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude.toFixed(2) +
+            '&longitude=' + longitude.toFixed(2) + '&current=temperature_2m,weather_code';
+          const r = await fetch(u); const j = await r.json();
+          if (j && j.current) { clima = ICONO(j.current.weather_code) + ' ' + Math.round(j.current.temperature_2m) + '°'; pintar(); }
+        } catch (e) {}
+      }, () => {}, { timeout: 8000, maximumAge: 1800000 });
+    } catch (e) {}
+  }
   async function pintar() {
     let html = '';
     html += chip(navigator.onLine ? '● en línea' : '○ sin red', navigator.onLine ? 'ok' : 'warn');
@@ -1247,10 +1297,11 @@ if ('serviceWorker' in navigator) {
         html += chip((b.charging ? '⚡' : '') + pct + '%', pct <= 20 ? 'warn' : 'ok');
       }
     } catch (e) {}
+    if (clima) html += chip(clima);
     const d = ultDefensa(); if (d) html += chip(d, 'ok');
     cont.innerHTML = html;
   }
-  pintar(); setInterval(pintar, 30000);
+  pintar(); cargarClima(); setInterval(pintar, 30000); setInterval(cargarClima, 1800000);
   window.addEventListener('online', pintar); window.addEventListener('offline', pintar);
 })();
 

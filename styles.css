@@ -620,7 +620,9 @@ button { cursor: pointer; }
 /* Wallpaper animado (Hyprland) detrás del Launcher */
 #launcher.panel { position: relative; overflow: hidden; }
 #launcher-wall { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
-#launcher > *:not(#launcher-wall) { position: relative; z-index: 1; }
+/* Solo el contenido EN FLUJO va sobre el wallpaper; el botón y las hojas (absolutos)
+   conservan su posición absoluta y no ocupan espacio en la columna. */
+.launcher-top, .launcher-fav-wrap, .launcher-grid, .launcher-foot { position: relative; z-index: 1; }
 
 /* Defensa · auditor */
 .def-resultado { margin-top: 12px; text-align: left; display: flex; flex-direction: column; gap: 8px; }
@@ -700,3 +702,10 @@ button { cursor: pointer; }
 .learn-estado { margin: 12px 2px 0; font-size: 13px; line-height: 1.45; opacity: .92; }
 .learn-estado b { color: var(--cyan); }
 .learn-estado small { opacity: .75; }
+
+/* Resultado de calculadora en el palette */
+.cmd-calc { border-color: var(--cyan); background: linear-gradient(135deg, rgba(56,189,248,.18), rgba(167,139,250,.12)); }
+.cmd-calc .cmd-ico { background: linear-gradient(135deg, var(--cyan), #8b5cf6); color: #05070f; font-weight: 800; }
+.cmd-calc .cmd-txt b { font-size: 20px; color: var(--cyan); }
+/* Swatch 'auto' (gradiente cónico) */
+.wall-sw[aria-label="auto"] { background-size: cover; }

@@ -110,6 +110,7 @@
 
         <section id="launcher" class="home active" data-panel="launcher">
           <canvas id="launcher-wall"></canvas>
+          <div id="launcher-photo" class="launcher-photo"><img id="launcher-photo-img" alt=""></div>
           <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots">⟐</button>
           <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo">✶</button>
           <div class="home-hint home-hint-top" aria-hidden="true">⌄ Status</div>
@@ -147,6 +148,25 @@
               <div class="wall-row" id="wall-modos"></div>
               <div class="wall-sheet-h">Color</div>
               <div class="wall-row" id="wall-temas"></div>
+
+              <div class="wall-sheet-h">Foto de fondo</div>
+              <input type="file" id="wall-foto-file" accept="image/*" hidden>
+              <div class="wall-row">
+                <button id="wall-foto-pick" class="wall-chip" type="button">Elegir foto…</button>
+                <button id="wall-foto-quitar" class="wall-chip" type="button" hidden>Quitar foto</button>
+              </div>
+              <div id="wall-foto-edit" class="wall-foto-edit" hidden>
+                <div class="wf-fit wall-row">
+                  <button data-fit="cover" class="wall-chip on" type="button">Cubrir</button>
+                  <button data-fit="contain" class="wall-chip" type="button">Contener</button>
+                </div>
+                <label class="wf-lab">Zoom <input type="range" id="wf-zoom" min="100" max="300" value="100"></label>
+                <label class="wf-lab">Horizontal <input type="range" id="wf-x" min="0" max="100" value="50"></label>
+                <label class="wf-lab">Vertical <input type="range" id="wf-y" min="0" max="100" value="50"></label>
+                <label class="wf-lab">Oscurecer <input type="range" id="wf-dim" min="0" max="80" value="32"></label>
+                <label class="wf-lab">Desenfoque <input type="range" id="wf-blur" min="0" max="18" value="0"></label>
+              </div>
+
               <button id="wall-cerrar" class="wall-listo" type="button">Listo</button>
             </div>
           </div>

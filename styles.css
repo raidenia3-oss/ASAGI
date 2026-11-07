@@ -789,3 +789,17 @@ button { cursor: pointer; }
 .enj-feed-line b { font-weight: 700; }
 @keyframes enjIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
 .enj-card-res { margin-top: 8px; font-size: .74rem; line-height: 1.4; color: #cfe3ff; border-top: 1px solid var(--line-soft); padding-top: 7px; white-space: pre-wrap; }
+
+/* ===== Foto de fondo + editor (recortar/centrar/ajustar) ===== */
+.launcher-photo { position: absolute; inset: 0; z-index: 0; display: none; overflow: hidden; background: #05070f; }
+.launcher-photo.on { display: block; }
+#launcher-photo-img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
+  will-change: transform; transform-origin: center; }
+/* scrim para que el reloj/apps se lean sobre cualquier foto */
+.launcher-photo::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.08) 38%, rgba(0,0,0,.12) 62%, rgba(0,0,0,.5)); }
+
+.wall-foto-edit { margin-top: 10px; display: flex; flex-direction: column; gap: 9px; }
+.wf-lab { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px;
+  font: 600 .72rem var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.wf-lab input[type="range"] { width: 100%; accent-color: var(--cyan); height: 22px; }

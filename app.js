@@ -1271,9 +1271,9 @@ if ('serviceWorker' in navigator) {
 (function () {
   const canvas = document.getElementById('launcher-wall');
   if (!canvas || !window.AsagiWallpaper) return;
-  let modo = 'constelacion', tema = 'cian';
-  try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; } catch (e) {}
-  const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema });
+  let modo = 'constelacion', tema = 'cian', imagen = null;
+  try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; if (modo === 'imagen') imagen = localStorage.getItem('asagi-wall-img'); } catch (e) {}
+  const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });
   window._asagiWall = wp;                 // el panel de personalización lo controla
   // Acento dinámico: la UI (pestañas, botones) sigue el color del fondo (Material You / Niagara).
   const ACC = { cian: ['#38bdf8', 'rgba(56,189,248,.4)'], violeta: ['#a78bfa', 'rgba(167,139,250,.4)'],
@@ -1304,7 +1304,37 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas' };
+  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', anime: 'Anime', imagen: 'Imagen propia' };
+
+  // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
+  function pedirImagen() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+    inp.addEventListener('change', () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      const fr = new FileReader();
+      fr.onload = () => {
+        const im = new Image();
+        im.onload = () => {
+          // reducir a máx 900px de ancho para que entre en localStorage
+          const maxW = 900, esc = Math.min(1, maxW / im.width);
+          const cv = document.createElement('canvas');
+          cv.width = Math.round(im.width * esc); cv.height = Math.round(im.height * esc);
+          cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
+          let data; try { data = cv.toDataURL('image/jpeg', 0.82); } catch (e) { data = fr.result; }
+          try { localStorage.setItem('asagi-wall-img', data); } catch (e) {}
+          if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
+          try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
+          pintar();
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(f);
+    });
+    document.body.appendChild(inp); inp.click();
+    setTimeout(() => inp.remove(), 60000);
+  }
+  window._asagiPedirImagen = pedirImagen;
   const SW = { cian: '#38bdf8', violeta: '#a78bfa', verde: '#2dd4bf', rosa: '#f472b6', ambar: '#fbbf24',
     auto: 'conic-gradient(from 0deg, #38bdf8, #a78bfa, #2dd4bf, #fbbf24, #f472b6, #38bdf8)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'constelacion', t: w ? w.getTema() : 'cian' }; }
@@ -1314,7 +1344,17 @@ if ('serviceWorker' in navigator) {
     window.AsagiWallpaper.MODOS.forEach((m) => {
       const b = document.createElement('button');
       b.className = 'wall-chip' + (m === c.m ? ' on' : ''); b.type = 'button'; b.textContent = NOMBRE[m] || m;
-      b.addEventListener('click', () => { if (window._asagiWall) { window._asagiWall.setModo(m); } try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {} pintar(); });
+      b.addEventListener('click', () => {
+        if (m === 'imagen') {
+          let guardada = null; try { guardada = localStorage.getItem('asagi-wall-img'); } catch (e) {}
+          if (guardada && window._asagiWall) { window._asagiWall.setImagen(guardada); window._asagiWall.setModo('imagen'); try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {} pintar(); }
+          else pedirImagen();                 // sin imagen aún -> pide una
+          return;
+        }
+        if (window._asagiWall) window._asagiWall.setModo(m);
+        try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {}
+        pintar();
+      });
       rModos.appendChild(b);
     });
     Object.keys(SW).forEach((t) => {
@@ -1366,6 +1406,86 @@ if ('serviceWorker' in navigator) {
       r.items.slice(0, 3).map((i) => '• ' + i.texto.replace(/</g, '&lt;')).join('<br>') + '</small>' : '');
     if (r.items.length) { texto.value = ''; }
   });
+})();
+
+// Foto de fondo + editor: el usuario pone una foto y la encuadra (recorte/centro/
+// ajuste/zoom/oscurecer/desenfoque). Toda foto queda bien sin importar su tamaño.
+(function () {
+  const file = document.getElementById('wall-foto-file');
+  const pick = document.getElementById('wall-foto-pick');
+  const quitar = document.getElementById('wall-foto-quitar');
+  const edit = document.getElementById('wall-foto-edit');
+  const capa = document.getElementById('launcher-photo');
+  const img = document.getElementById('launcher-photo-img');
+  if (!file || !pick || !capa || !img) return;
+  const S = { zoom: 'wf-zoom', x: 'wf-x', y: 'wf-y', dim: 'wf-dim', blur: 'wf-blur' };
+  let cfg = { ajuste: 'cover', zoom: 100, x: 50, y: 50, dim: 32, blur: 0 };
+
+  function aplicar() {
+    img.style.objectFit = cfg.ajuste;
+    img.style.objectPosition = cfg.x + '% ' + cfg.y + '%';
+    img.style.transform = 'scale(' + (cfg.zoom / 100) + ')';
+    img.style.filter = 'brightness(' + (1 - cfg.dim / 100).toFixed(2) + ') blur(' + cfg.blur + 'px)';
+  }
+  function mostrarFoto(on) {
+    capa.classList.toggle('on', on);
+    const canvas = document.getElementById('launcher-wall');
+    if (canvas) canvas.style.display = on ? 'none' : 'block';
+    try { if (on && window._asagiWall) window._asagiWall.stop(); else if (window._asagiWallUpd) window._asagiWallUpd(); } catch (e) {}
+    if (quitar) quitar.hidden = !on;
+    if (edit) edit.hidden = !on;
+  }
+  function guardar() {
+    try { localStorage.setItem('asagi-foto-cfg', JSON.stringify(cfg)); } catch (e) {}
+  }
+  function syncSliders() {
+    for (const k in S) { const el = document.getElementById(S[k]); if (el) el.value = cfg[k]; }
+    document.querySelectorAll('.wf-fit [data-fit]').forEach((b) => b.classList.toggle('on', b.dataset.fit === cfg.ajuste));
+  }
+
+  // Reduce la imagen a tamaño de pantalla y la guarda como JPEG (cabe en localStorage).
+  function importar(f) {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const maxW = 1080, maxH = 2400;
+        let w = im.width, h = im.height;
+        const r = Math.min(maxW / w, maxH / h, 1); w = Math.round(w * r); h = Math.round(h * r);
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(im, 0, 0, w, h);
+        let data; try { data = cv.toDataURL('image/jpeg', 0.85); } catch (e) { data = fr.result; }
+        try { localStorage.setItem('asagi-foto-img', data); } catch (e) {}
+        img.src = data;
+        cfg = { ajuste: 'cover', zoom: 100, x: 50, y: 50, dim: 32, blur: 0 };
+        guardar(); syncSliders(); aplicar(); mostrarFoto(true);
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(f);
+  }
+
+  pick.addEventListener('click', () => file.click());
+  file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });
+  if (quitar) quitar.addEventListener('click', () => {
+    try { localStorage.removeItem('asagi-foto-img'); localStorage.removeItem('asagi-foto-cfg'); } catch (e) {}
+    img.removeAttribute('src'); mostrarFoto(false);
+  });
+  for (const k in S) {
+    const el = document.getElementById(S[k]);
+    if (el) el.addEventListener('input', () => { cfg[k] = Number(el.value); aplicar(); guardar(); });
+  }
+  document.querySelectorAll('.wf-fit [data-fit]').forEach((b) =>
+    b.addEventListener('click', () => { cfg.ajuste = b.dataset.fit; syncSliders(); aplicar(); guardar(); }));
+
+  // Cargar foto guardada al arrancar.
+  try {
+    const data = localStorage.getItem('asagi-foto-img');
+    if (data) {
+      const c = localStorage.getItem('asagi-foto-cfg'); if (c) cfg = Object.assign(cfg, JSON.parse(c));
+      img.src = data; syncSliders(); aplicar(); mostrarFoto(true);
+    }
+  } catch (e) {}
 })();
 
 // Chips de estado del Launcher: red, batería y última defensa.

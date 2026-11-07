@@ -17,7 +17,7 @@ const TEMAS = {
   rosa:    [[244, 114, 182], [251, 113, 133], [240, 171, 252], [248, 113, 113]],
   ambar:   [[251, 191, 36], [249, 115, 22], [253, 224, 71], [248, 113, 113]],
 };
-const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas'];
+const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'anime', 'imagen'];
 
 // Retrocompat: COLORES = tema cian.
 const COLORES = TEMAS.cian;
@@ -77,6 +77,9 @@ function crearWallpaper(canvas, opts) {
   let stars = [];                         // starfield de profundidad
   let fugaces = [];                       // estrellas fugaces (constelacion)
   let ondas = [];                         // para modo 'ondas'
+  let petalos = [];                       // pétalos de sakura (modo anime)
+  let skyline = [];                       // silueta de ciudad (modo anime)
+  let imgEl = null, imgLista = false;     // imagen propia (modo imagen)
   let t = 0, raf = null, corriendo = false, ultimo = 0, limpiado = false;
   let modo = opts.modo || 'constelacion';
   let tema = (opts.tema === 'auto' || TEMAS[opts.tema]) ? opts.tema : 'cian';
@@ -115,7 +118,26 @@ function crearWallpaper(canvas, opts) {
     const ns = Math.min(140, Math.round((W * H) / 5200));
     stars = [];
     for (let i = 0; i < ns; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + 0.3, ph: Math.random() * 6.28, sp: 0.5 + Math.random() * 1.5, dp: Math.random() });
+    // pétalos de sakura (modo anime)
+    const np = Math.min(60, Math.round((W * H) / 11000));
+    petalos = [];
+    for (let i = 0; i < np; i++) petalos.push(nuevoPetalo());
+    // silueta de ciudad (determinista por ancho)
+    skyline = [];
+    let x = -10;
+    while (x < W + 10) {
+      const w = 18 + (Math.sin(x * 0.7) * 0.5 + 0.5) * 42;
+      const h = 30 + (Math.sin(x * 1.3 + 2) * 0.5 + 0.5) * 120;
+      skyline.push({ x: x, w: w, h: h });
+      x += w + 2;
+    }
     limpiado = false;
+  }
+
+  function nuevoPetalo() {
+    return { x: Math.random() * W, y: Math.random() * -H, vy: 0.5 + Math.random() * 1.1,
+      sway: Math.random() * 6.28, swaySp: 0.01 + Math.random() * 0.02, amp: 8 + Math.random() * 22,
+      rot: Math.random() * 6.28, rotV: (Math.random() - 0.5) * 0.06, s: 4 + Math.random() * 5, dp: Math.random() };
   }
 
   // ---- FONDO (gradientes que fluyen, comun a varios modos) ----
@@ -278,10 +300,90 @@ function crearWallpaper(canvas, opts) {
     ctx.globalCompositeOperation = 'source-over'; vineta();
   }
 
+  // ---- MODO anime (escena original: cielo, luna, estrellas, sakura, ciudad) ----
+  function cieloAnime() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#140a2e');       // indigo profundo
+    g.addColorStop(0.42, '#3a2168');    // violeta
+    g.addColorStop(0.72, '#7d3f7e');    // malva
+    g.addColorStop(0.9, '#c9657e');     // rosa
+    g.addColorStop(1, '#e79a84');       // durazno (horizonte)
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  function luna() {
+    const mx = W * 0.72 + tilt.x * 12, my = H * 0.22 + tilt.y * 12, r = Math.min(W, H) * 0.12;
+    const halo = ctx.createRadialGradient(mx, my, 0, mx, my, r * 3);
+    halo.addColorStop(0, 'rgba(255,246,224,0.5)'); halo.addColorStop(1, 'rgba(255,246,224,0)');
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(mx, my, r * 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fdf3dc'; ctx.beginPath(); ctx.arc(mx, my, r, 0, Math.PI * 2); ctx.fill();
+  }
+  function petalo(p) {
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.fillStyle = 'rgba(255,183,206,0.92)';
+    ctx.beginPath();
+    ctx.moveTo(0, -p.s); ctx.quadraticCurveTo(p.s * 0.7, -p.s * 0.3, 0, p.s);
+    ctx.quadraticCurveTo(-p.s * 0.7, -p.s * 0.3, 0, -p.s);
+    ctx.fill(); ctx.restore();
+  }
+  function ciudad() {
+    ctx.fillStyle = '#0b0712';
+    const baseY = H;
+    for (const b of skyline) {
+      ctx.fillRect(b.x + tilt.x * 4, baseY - b.h, b.w, b.h);
+      // ventanitas tenues
+      ctx.fillStyle = 'rgba(255,214,150,0.16)';
+      for (let wy = baseY - b.h + 8; wy < baseY - 6; wy += 14) for (let wx = b.x + 5; wx < b.x + b.w - 5; wx += 11) {
+        if ((Math.floor(wx) + Math.floor(wy)) % 3 === 0) ctx.fillRect(wx + tilt.x * 4, wy, 3, 4);
+      }
+      ctx.fillStyle = '#0b0712';
+    }
+  }
+  function dibAnime() {
+    cieloAnime();
+    // estrellas (solo en el cielo alto)
+    for (const s of stars) { if (s.y > H * 0.6) continue; const tw = 0.3 + 0.5 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph)); ctx.fillStyle = 'rgba(255,255,255,' + tw.toFixed(3) + ')'; ctx.beginPath(); ctx.arc(s.x + tilt.x * (3 + s.dp * 8), s.y, s.r, 0, Math.PI * 2); ctx.fill(); }
+    luna();
+    ciudad();
+    // sakura cayendo
+    for (const p of petalos) {
+      p.sway += p.swaySp; p.y += p.vy; p.x += Math.sin(p.sway) * 0.6; p.rot += p.rotV;
+      const px = p.x + tilt.x * (6 + p.dp * 14);
+      const guard = p; const old = p.x; p.x = px; petalo(p); p.x = old;
+      if (p.y > H + 12) { Object.assign(p, nuevoPetalo()); p.y = -12; }
+    }
+  }
+
+  // ---- MODO imagen (tu propia foto) ----
+  function dibImagen() {
+    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    if (imgEl && imgLista) {
+      const ir = imgEl.width / imgEl.height, cr = W / H;
+      let dw, dh;
+      if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
+      const dx = (W - dw) / 2 + tilt.x * 10, dy = (H - dh) / 2 + tilt.y * 10;
+      try { ctx.drawImage(imgEl, dx, dy, dw, dh); } catch (e) {}
+      // velo para legibilidad del reloj/apps
+      const v = ctx.createLinearGradient(0, 0, 0, H);
+      v.addColorStop(0, 'rgba(5,7,15,0.45)'); v.addColorStop(0.5, 'rgba(5,7,15,0.15)'); v.addColorStop(1, 'rgba(5,7,15,0.55)');
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    } else {
+      ctx.fillStyle = 'rgba(200,210,230,0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Elige una imagen en ✶ → Imagen propia', W / 2, H / 2);
+    }
+    // sakura sutil encima (toque anime opcional)
+    for (const p of petalos) {
+      p.sway += p.swaySp; p.y += p.vy * 0.8; p.x += Math.sin(p.sway) * 0.5; p.rot += p.rotV;
+      if (p.dp < 0.5) { const old = p.x; p.x = p.x + tilt.x * 8; petalo(p); p.x = old; }
+      if (p.y > H + 12) { Object.assign(p, nuevoPetalo()); p.y = -12; }
+    }
+  }
+
   function dibujar() {
     if (modo === 'flujo') return dibFlujo();
     if (modo === 'aurora') return dibAurora();
     if (modo === 'ondas') return dibOndas();
+    if (modo === 'anime') return dibAnime();
+    if (modo === 'imagen') return dibImagen();
     return dibConstelacion();
   }
 
@@ -298,6 +400,15 @@ function crearWallpaper(canvas, opts) {
 
   function setModo(m) { if (MODOS.indexOf(m) === -1) return; modo = m; limpiado = false; ondas = []; resize(); }
   function setTema(x) { if (x === 'auto' || TEMAS[x]) tema = x; }
+  // Carga una imagen propia (dataURL o URL) para el modo 'imagen'.
+  function setImagen(src) {
+    if (!src) { imgEl = null; imgLista = false; return; }
+    imgLista = false; const im = new Image();
+    im.onload = function () { imgEl = im; imgLista = true; };
+    im.onerror = function () { imgEl = null; imgLista = false; };
+    try { im.src = src; } catch (e) {}
+  }
+  if (opts.imagen) setImagen(opts.imagen);
 
   function onTouch(e) {
     const r = canvas.getBoundingClientRect();
@@ -325,7 +436,7 @@ function crearWallpaper(canvas, opts) {
 
   return {
     start: start, stop: stop, resize: resize,
-    setModo: setModo, setTema: setTema,
+    setModo: setModo, setTema: setTema, setImagen: setImagen,
     getModo: function () { return modo; }, getTema: function () { return tema; },
   };
 }

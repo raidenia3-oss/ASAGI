@@ -1418,14 +1418,30 @@ if ('serviceWorker' in navigator) {
   const capa = document.getElementById('launcher-photo');
   const img = document.getElementById('launcher-photo-img');
   if (!file || !pick || !capa || !img) return;
-  const S = { zoom: 'wf-zoom', x: 'wf-x', y: 'wf-y', dim: 'wf-dim', blur: 'wf-blur' };
-  let cfg = { ajuste: 'cover', zoom: 100, x: 50, y: 50, dim: 32, blur: 0 };
+  const tint = document.getElementById('wf-tint');
+  const vig = document.getElementById('wf-vig');
+  const notas = document.getElementById('wf-notas');
+  const autoBtn = document.getElementById('wf-auto');
+  const filtrosRow = document.getElementById('wf-filtros');
+  const DEF = { ajuste: 'cover', zoom: 100, x: 50, y: 50, dim: 32, blur: 0, exposicion: 100, contraste: 100, saturacion: 100, calidez: 0, vineta: 0, gris: 0 };
+  const S = { zoom: 'wf-zoom', x: 'wf-x', y: 'wf-y', dim: 'wf-dim', blur: 'wf-blur', exposicion: 'wf-exposicion', contraste: 'wf-contraste', saturacion: 'wf-saturacion', calidez: 'wf-calidez', vineta: 'wf-vineta' };
+  let cfg = Object.assign({}, DEF);
 
   function aplicar() {
     img.style.objectFit = cfg.ajuste;
     img.style.objectPosition = cfg.x + '% ' + cfg.y + '%';
     img.style.transform = 'scale(' + (cfg.zoom / 100) + ')';
-    img.style.filter = 'brightness(' + (1 - cfg.dim / 100).toFixed(2) + ') blur(' + cfg.blur + 'px)';
+    const brillo = (cfg.exposicion / 100) * (1 - cfg.dim / 100);
+    img.style.filter = 'brightness(' + brillo.toFixed(2) + ') contrast(' + (cfg.contraste / 100).toFixed(2) +
+      ') saturate(' + (cfg.saturacion / 100).toFixed(2) + ') grayscale(' + (cfg.gris || 0) + ') blur(' + cfg.blur + 'px)';
+    // calidez: tinte cálido (naranja) o frío (azul)
+    if (tint) {
+      const c = cfg.calidez / 100;
+      if (c > 0) { tint.style.background = '#ff9838'; tint.style.opacity = (c * 0.9).toFixed(2); }
+      else if (c < 0) { tint.style.background = '#3aa0ff'; tint.style.opacity = (-c * 0.9).toFixed(2); }
+      else { tint.style.opacity = 0; }
+    }
+    if (vig) vig.style.opacity = (cfg.vineta / 100).toFixed(2);
   }
   function mostrarFoto(on) {
     capa.classList.toggle('on', on);
@@ -1435,30 +1451,77 @@ if ('serviceWorker' in navigator) {
     if (quitar) quitar.hidden = !on;
     if (edit) edit.hidden = !on;
   }
-  function guardar() {
-    try { localStorage.setItem('asagi-foto-cfg', JSON.stringify(cfg)); } catch (e) {}
-  }
+  function guardar() { try { localStorage.setItem('asagi-foto-cfg', JSON.stringify(cfg)); } catch (e) {} }
   function syncSliders() {
     for (const k in S) { const el = document.getElementById(S[k]); if (el) el.value = cfg[k]; }
     document.querySelectorAll('.wf-fit [data-fit]').forEach((b) => b.classList.toggle('on', b.dataset.fit === cfg.ajuste));
   }
 
-  // Reduce la imagen a tamaño de pantalla y la guarda como JPEG (cabe en localStorage).
+  // Histograma real de la imagen (para que ASAGI la analice con criterio).
+  function histograma() {
+    try {
+      const n = 64, cv = document.createElement('canvas'); cv.width = n; cv.height = n;
+      const g = cv.getContext('2d'); g.drawImage(img, 0, 0, n, n);
+      const d = g.getImageData(0, 0, n, n).data, N = n * n;
+      let sum = 0, sr = 0, sg = 0, sb = 0, som = 0, alt = 0; const L = [];
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255;
+        const l = 0.299 * r + 0.587 * gg + 0.114 * b; L.push(l);
+        sum += l; sr += r; sg += gg; sb += b; if (l < 0.12) som++; if (l > 0.92) alt++;
+      }
+      const brillo = sum / N; let v = 0; for (const l of L) v += (l - brillo) * (l - brillo);
+      return { brillo: brillo, desv: Math.sqrt(v / N), rMean: sr / N, gMean: sg / N, bMean: sb / N, sombra: som / N, alta: alt / N };
+    } catch (e) { return null; }
+  }
+
+  // ASAGI edita la foto: analiza y aplica correcciones fundamentadas + explica.
+  function auto() {
+    if (!window.AsagiFotoIA) return;
+    const st = histograma(); if (!st) { if (notas) { notas.hidden = false; notas.textContent = 'No pude leer la imagen.'; } return; }
+    const res = window.AsagiFotoIA.analizar(st);
+    const a = res.ajustes;
+    cfg.exposicion = Math.round(window.AsagiFotoIA.clamp(a.exposicion * 100, 50, 160));
+    cfg.contraste = Math.round(window.AsagiFotoIA.clamp(a.contraste * 100, 60, 160));
+    cfg.saturacion = Math.round(window.AsagiFotoIA.clamp(a.saturacion * 100, 0, 200));
+    cfg.calidez = Math.round(window.AsagiFotoIA.clamp(a.calidez * 100, -50, 50));
+    cfg.vineta = Math.round(window.AsagiFotoIA.clamp(a.vineta * 100, 0, 70));
+    cfg.gris = 0;
+    syncSliders(); aplicar(); guardar();
+    if (notas) { notas.hidden = false; notas.innerHTML = '<b>ASAGI editó la foto:</b><br>' + res.notas.map((n) => '• ' + n).join('<br>'); }
+  }
+
+  function pintarFiltros() {
+    if (!filtrosRow || !window.AsagiFotoIA) return;
+    const NOM = { ninguno: 'Ninguno', vivido: 'Vívido', cine: 'Cine', frio: 'Frío', calido: 'Cálido', byn: 'B/N', suave: 'Suave' };
+    filtrosRow.innerHTML = '';
+    Object.keys(window.AsagiFotoIA.FILTROS).forEach((key) => {
+      const b = document.createElement('button'); b.className = 'wall-chip'; b.type = 'button'; b.textContent = NOM[key] || key;
+      b.addEventListener('click', () => {
+        const f = window.AsagiFotoIA.FILTROS[key];
+        cfg.exposicion = Math.round(f.exposicion * 100); cfg.contraste = Math.round(f.contraste * 100);
+        cfg.saturacion = Math.round(f.saturacion * 100); cfg.calidez = Math.round(f.calidez * 100);
+        cfg.vineta = Math.round(f.vineta * 100); cfg.gris = f.gris || 0;
+        syncSliders(); aplicar(); guardar();
+        if (notas) notas.hidden = true;
+      });
+      filtrosRow.appendChild(b);
+    });
+  }
+
+  // Importa: reduce a tamaño de pantalla y guarda como JPEG (cabe en localStorage).
   function importar(f) {
     const fr = new FileReader();
     fr.onload = () => {
       const im = new Image();
       im.onload = () => {
-        const maxW = 1080, maxH = 2400;
-        let w = im.width, h = im.height;
+        const maxW = 1080, maxH = 2400; let w = im.width, h = im.height;
         const r = Math.min(maxW / w, maxH / h, 1); w = Math.round(w * r); h = Math.round(h * r);
         const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
         cv.getContext('2d').drawImage(im, 0, 0, w, h);
         let data; try { data = cv.toDataURL('image/jpeg', 0.85); } catch (e) { data = fr.result; }
         try { localStorage.setItem('asagi-foto-img', data); } catch (e) {}
+        img.onload = () => { cfg = Object.assign({}, DEF); syncSliders(); aplicar(); mostrarFoto(true); guardar(); if (notas) notas.hidden = true; img.onload = null; };
         img.src = data;
-        cfg = { ajuste: 'cover', zoom: 100, x: 50, y: 50, dim: 32, blur: 0 };
-        guardar(); syncSliders(); aplicar(); mostrarFoto(true);
       };
       im.src = fr.result;
     };
@@ -1469,20 +1532,18 @@ if ('serviceWorker' in navigator) {
   file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });
   if (quitar) quitar.addEventListener('click', () => {
     try { localStorage.removeItem('asagi-foto-img'); localStorage.removeItem('asagi-foto-cfg'); } catch (e) {}
-    img.removeAttribute('src'); mostrarFoto(false);
+    img.removeAttribute('src'); mostrarFoto(false); if (notas) notas.hidden = true;
   });
-  for (const k in S) {
-    const el = document.getElementById(S[k]);
-    if (el) el.addEventListener('input', () => { cfg[k] = Number(el.value); aplicar(); guardar(); });
-  }
-  document.querySelectorAll('.wf-fit [data-fit]').forEach((b) =>
-    b.addEventListener('click', () => { cfg.ajuste = b.dataset.fit; syncSliders(); aplicar(); guardar(); }));
+  if (autoBtn) autoBtn.addEventListener('click', auto);
+  for (const k in S) { const el = document.getElementById(S[k]); if (el) el.addEventListener('input', () => { cfg[k] = Number(el.value); aplicar(); guardar(); }); }
+  document.querySelectorAll('.wf-fit [data-fit]').forEach((b) => b.addEventListener('click', () => { cfg.ajuste = b.dataset.fit; syncSliders(); aplicar(); guardar(); }));
+  pintarFiltros();
 
   // Cargar foto guardada al arrancar.
   try {
     const data = localStorage.getItem('asagi-foto-img');
     if (data) {
-      const c = localStorage.getItem('asagi-foto-cfg'); if (c) cfg = Object.assign(cfg, JSON.parse(c));
+      const c = localStorage.getItem('asagi-foto-cfg'); if (c) cfg = Object.assign({}, DEF, JSON.parse(c));
       img.src = data; syncSliders(); aplicar(); mostrarFoto(true);
     }
   } catch (e) {}

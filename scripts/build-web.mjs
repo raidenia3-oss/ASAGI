@@ -21,6 +21,7 @@ const files = [
   'palette.js',
   'conocimiento.js',
   'enjambre.js',
+  'foto-ia.js',
   'app.js',
   'styles.css',
   'sw.js',

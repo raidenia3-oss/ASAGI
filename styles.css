@@ -803,3 +803,16 @@ button { cursor: pointer; }
 .wf-lab { display: grid; grid-template-columns: 92px 1fr; align-items: center; gap: 10px;
   font: 600 .72rem var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 .wf-lab input[type="range"] { width: 100%; accent-color: var(--cyan); height: 22px; }
+
+/* Capas de edición de foto (tinte de calidez + viñeta) */
+.wf-tint { position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: soft-light; }
+.wf-vig { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,1) 115%); }
+
+/* Botón Auto de ASAGI + notas de lo que hizo */
+.wf-auto { width: 100%; padding: 12px; border-radius: 14px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--cyan), #8b5cf6); color: #05070f; font-weight: 800; font-size: 15px; }
+.wf-auto:active { filter: brightness(1.08); }
+.wf-notas { margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
+  background: rgba(56,189,248,.08); font-size: 13px; line-height: 1.5; color: #cfe3ff; }
+.wf-notas b { color: var(--cyan); }

@@ -24,7 +24,8 @@ const defaultState = {
     remoteModel: '',
     remoteKey: '',
     geminiKey: '',
-    atriaKey: ''
+    atriaKey: '',
+    mistralKey: ''
   }
 };
 
@@ -47,6 +48,7 @@ const brainApply = document.getElementById('brain-apply');
 const brainHint = document.getElementById('brain-hint');
 const brainGeminiKey = document.getElementById('brain-gemini-key');
 const brainAtriaKey = document.getElementById('brain-atria-key');
+const brainMistralKey = document.getElementById('brain-mistral-key');
 
 const botReplyEl = document.getElementById('bot-reply-status');
 const brainAlert = document.getElementById('brain-alert');
@@ -65,7 +67,8 @@ function loadState() {
         remoteModel: (parsed.brain && typeof parsed.brain.remoteModel === 'string') ? parsed.brain.remoteModel : defaultState.brain.remoteModel,
         remoteKey: (parsed.brain && typeof parsed.brain.remoteKey === 'string') ? parsed.brain.remoteKey : defaultState.brain.remoteKey,
         geminiKey: (parsed.brain && typeof parsed.brain.geminiKey === 'string') ? parsed.brain.geminiKey : defaultState.brain.geminiKey,
-        atriaKey: (parsed.brain && typeof parsed.brain.atriaKey === 'string') ? parsed.brain.atriaKey : defaultState.brain.atriaKey
+        atriaKey: (parsed.brain && typeof parsed.brain.atriaKey === 'string') ? parsed.brain.atriaKey : defaultState.brain.atriaKey,
+        mistralKey: (parsed.brain && typeof parsed.brain.mistralKey === 'string') ? parsed.brain.mistralKey : defaultState.brain.mistralKey
       }
     };
   } catch (error) {
@@ -173,6 +176,7 @@ function setBrainMode(mode) {
   const c = readBrainControls();
   state.brain.geminiKey = c.geminiKey || '';
   state.brain.atriaKey = c.atriaKey || '';
+  state.brain.mistralKey = c.mistralKey || '';
   state.brain.remoteUrl = c.remoteUrl || '';
   state.brain.remoteModel = c.remoteModel || '';
   state.brain.remoteKey = c.remoteKey || '';
@@ -188,7 +192,8 @@ function readBrainControls() {
     remoteModel: brainModel ? brainModel.value.trim() : state.brain.remoteModel,
     remoteKey: brainKey ? brainKey.value.trim() : state.brain.remoteKey,
     geminiKey: brainGeminiKey ? brainGeminiKey.value.trim() : (state.brain.geminiKey || ''),
-    atriaKey: brainAtriaKey ? brainAtriaKey.value.trim() : (state.brain.atriaKey || '')
+    atriaKey: brainAtriaKey ? brainAtriaKey.value.trim() : (state.brain.atriaKey || ''),
+    mistralKey: brainMistralKey ? brainMistralKey.value.trim() : (state.brain.mistralKey || '')
   };
 }
 
@@ -200,11 +205,13 @@ function applyBrainControlsFromState() {
   if (brainKey) brainKey.value = state.brain.remoteKey || '';
   if (brainGeminiKey) brainGeminiKey.value = state.brain.geminiKey || '';
   if (brainAtriaKey) brainAtriaKey.value = state.brain.atriaKey || '';
+  if (brainMistralKey) brainMistralKey.value = state.brain.mistralKey || '';
   if (brainUrl) brainUrl.disabled = state.brain.mode !== 'remote';
   if (brainModel) brainModel.disabled = state.brain.mode !== 'remote';
   if (brainKey) brainKey.disabled = state.brain.mode !== 'remote';
   if (brainGeminiKey) brainGeminiKey.disabled = false;
   if (brainAtriaKey) brainAtriaKey.disabled = false;
+  if (brainMistralKey) brainMistralKey.disabled = false;
 }
 
 function renderBrainControls() {
@@ -372,34 +379,32 @@ async function startBotStreaming(userText) {
   const b = readBrainControls();
   state.brain.geminiKey = b.geminiKey || '';
   state.brain.atriaKey = b.atriaKey || '';
+  state.brain.mistralKey = b.mistralKey || '';
   saveState();
   const brain = getBrainBridge();
 
   try {
     // Usar router si disponible
     if (typeof window !== 'undefined' && window.AsagiBrainRouter && typeof window.AsagiBrainRouter.BrainRouter === 'function') {
-      const { BrainRouter, atriaResponder, geminiResponder } = window.AsagiBrainRouter;
+      const { BrainRouter, geminiResponder, mistralResponder, atriaResponder } = window.AsagiBrainRouter;
       const gk = (state.brain.geminiKey || b.geminiKey || '').trim();
       const ak = (state.brain.atriaKey || b.atriaKey || '').trim();
+      const mk = (state.brain.mistralKey || b.mistralKey || '').trim();
       const router = new BrainRouter({
-        // localFn SIEMPRE devuelve un string (texto).
+        // modelo nativo si de verdad está cargado; si no, '' para que el router pase al siguiente cerebro
         localFn: async (p) => {
-          // motor nativo si de verdad está cargado
           if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
             return await new Promise((resolve, reject) => {
-              brain.raw.streamReply(p, {
-                onToken: () => {},
-                onDone: (text) => resolve(text || ''),
-                onError: (msg) => reject(new Error(msg))
-              });
+              brain.raw.streamReply(p, { onToken: () => {}, onDone: (text) => resolve(text || ''), onError: (msg) => reject(new Error(msg)) });
             });
           }
-          // sin modelo local: usa Gemini si hay key; si no, respuesta de prueba
-          if (gk && typeof geminiResponder === 'function') return await geminiResponder(p, gk);
-          return createBotReply(p);
+          return '';
         },
+        geminiFn: gk ? ((p) => geminiResponder(p, gk)) : null,
+        // remoto: Mistral si hay key (fuerte en código), si no Atria
+        remotoFn: mk ? ((p) => mistralResponder(p, mk)) : (ak ? ((p) => atriaResponder(p, ak)) : null),
+        testFn: (p) => createBotReply(p),
         apiKey: gk,
-        remotoFn: (ak && typeof atriaResponder === 'function') ? ((p) => atriaResponder(p, ak)) : null,
         store: window.localStorage
       });
       return router.responder(userText).then((res) => {
@@ -1133,14 +1138,17 @@ if ('serviceWorker' in navigator) {
 
   function val(id) { const e = document.getElementById(id); return e && e.value ? e.value.trim() : ''; }
 
-  async function ejecutarBot(prompt) {
+  async function ejecutarBot(prompt, bot) {
     const R = window.AsagiBrainRouter;
     if (!R) return '(cerebro no disponible)';
-    const gk = val('brain-gemini-key'); const ak = val('brain-atria-key');
+    const gk = val('brain-gemini-key'), ak = val('brain-atria-key'), mk = val('brain-mistral-key');
+    const esProg = bot && bot.id === 'programador';       // el Programador prefiere Mistral (código)
     const router = new R.BrainRouter({
-      localFn: async (p) => { if (gk && R.geminiResponder) return await R.geminiResponder(p, gk); return '(sin cerebro: pon tu key de Gemini en el Asistente)'; },
-      apiKey: gk,
-      remotoFn: (ak && R.atriaResponder) ? ((p) => R.atriaResponder(p, ak)) : null,
+      geminiFn: gk ? ((p) => R.geminiResponder(p, gk)) : null,
+      remotoFn: (esProg && mk) ? ((p) => R.mistralResponder(p, mk, 'codestral-latest'))
+              : mk ? ((p) => R.mistralResponder(p, mk))
+              : ak ? ((p) => R.atriaResponder(p, ak)) : null,
+      testFn: () => 'El bot ' + (bot ? bot.nombre : '') + ' necesita una key (Gemini/Mistral/Atria) para responder de verdad.',
       store: window.localStorage,
     });
     const res = await router.responder(prompt);

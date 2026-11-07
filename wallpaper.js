@@ -74,6 +74,8 @@ function crearWallpaper(canvas, opts) {
   const ctx = canvas.getContext('2d');
   let W = 1, H = 1, dpr = 1;
   let parts = [];
+  let stars = [];                         // starfield de profundidad
+  let fugaces = [];                       // estrellas fugaces (constelacion)
   let ondas = [];                         // para modo 'ondas'
   let t = 0, raf = null, corriendo = false, ultimo = 0, limpiado = false;
   let modo = opts.modo || 'constelacion';
@@ -109,6 +111,10 @@ function crearWallpaper(canvas, opts) {
     const n = nParts();
     parts = [];
     for (let i = 0; i < n; i++) parts.push(nueva(i, W, H));
+    // Starfield de profundidad (parpadea). Barato: puntos pequeños.
+    const ns = Math.min(140, Math.round((W * H) / 5200));
+    stars = [];
+    for (let i = 0; i < ns; i++) stars.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.1 + 0.3, ph: Math.random() * 6.28, sp: 0.5 + Math.random() * 1.5, dp: Math.random() });
     limpiado = false;
   }
 
@@ -127,7 +133,18 @@ function crearWallpaper(canvas, opts) {
       g.addColorStop(1, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0)');
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.fill();
     }
+    starfield();
     ctx.globalCompositeOperation = 'source-over';
+  }
+
+  // Campo de estrellas que parpadean (profundidad, con leve parallax).
+  function starfield() {
+    for (const s of stars) {
+      const tw = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph));
+      const sx = s.x + tilt.x * (4 + s.dp * 10), sy = s.y + tilt.y * (4 + s.dp * 10);
+      ctx.fillStyle = 'rgba(200,225,255,' + tw.toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(sx, sy, s.r, 0, Math.PI * 2); ctx.fill();
+    }
   }
 
   function vineta() {
@@ -165,12 +182,36 @@ function crearWallpaper(canvas, opts) {
         }
       }
     }
+    // nodos con bloom (halo suave + núcleo brillante)
     for (const p of parts) {
       const c = col(p.ci);
-      ctx.fillStyle = 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.9)';
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, (p.s + 0.4) * 4);
+      g.addColorStop(0, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0.55)');
+      g.addColorStop(1, 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, (p.s + 0.4) * 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(' + Math.min(255, c[0] + 40) + ',' + Math.min(255, c[1] + 40) + ',' + Math.min(255, c[2] + 40) + ',0.95)';
       ctx.beginPath(); ctx.arc(p.x, p.y, p.s + 0.4, 0, Math.PI * 2); ctx.fill();
     }
+    estrellasFugaces();
     ctx.globalCompositeOperation = 'source-over'; vineta();
+  }
+
+  // Estrellas fugaces: aparecen de vez en cuando y cruzan con estela.
+  function estrellasFugaces() {
+    if (fugaces.length < 1 && Math.random() < 0.012) {
+      const fromL = Math.random() < 0.5;
+      fugaces.push({ x: fromL ? -20 : W + 20, y: Math.random() * H * 0.5, vx: (fromL ? 1 : -1) * (6 + Math.random() * 4), vy: 2 + Math.random() * 2, vida: 1 });
+    }
+    for (const f of fugaces) {
+      f.x += f.vx; f.y += f.vy; f.vida -= 0.012;
+      const len = 16;
+      const g = ctx.createLinearGradient(f.x, f.y, f.x - f.vx * (len / 6), f.y - f.vy * (len / 6));
+      g.addColorStop(0, 'rgba(220,240,255,' + Math.max(0, f.vida).toFixed(2) + ')');
+      g.addColorStop(1, 'rgba(220,240,255,0)');
+      ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x - f.vx * (len / 6), f.y - f.vy * (len / 6)); ctx.stroke();
+    }
+    fugaces = fugaces.filter((f) => f.vida > 0 && f.x > -40 && f.x < W + 40 && f.y < H + 40);
   }
 
   // ---- MODO flujo (flow field con ruido) ----

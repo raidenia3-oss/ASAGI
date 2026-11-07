@@ -9,7 +9,7 @@ function uid() {
 }
 
 const defaultState = {
-  activeSection: 'assistant',
+  activeSection: 'launcher',
   messages: [
     {
       id: uid(),
@@ -123,18 +123,14 @@ function installHeaderPinning() {
   schedule();
 }
 
+// Núcleo v5: el Launcher es la casa (siempre visible). Asistente/Status/Grok son
+// overlays ambientales que suben/bajan sobre la casa. 'launcher' = volver a casa.
 function setActiveSection(sectionName) {
   state.activeSection = sectionName;
-  navItems.forEach((button) => {
-    const isActive = button.dataset.section === sectionName;
-    button.classList.toggle('active', isActive);
-    button.setAttribute('aria-current', isActive ? 'page' : 'false');
-  });
-
-  panels.forEach((panel) => {
-    panel.classList.toggle('active', panel.dataset.panel === sectionName);
-  });
-
+  const overlays = document.querySelectorAll('.panel.overlay');
+  const aCasa = !sectionName || sectionName === 'launcher' || sectionName === 'home';
+  overlays.forEach((o) => o.classList.toggle('open', !aCasa && o.dataset.panel === sectionName));
+  try { if (window._asagiWallUpd) setTimeout(window._asagiWallUpd, 30); } catch (e) {}
   saveState();
 }
 
@@ -719,7 +715,7 @@ resetButton.addEventListener('click', () => {
 });
 
 ensureWelcomeMessage();
-setActiveSection(state.activeSection);
+setActiveSection('launcher');            // siempre arranca en la casa
 renderBrainControls();
 renderMessages();
 refreshBrainStatus();
@@ -998,7 +994,7 @@ if ('serviceWorker' in navigator) {
 
   // Ejecuta un comando del palette por id.
   function ejecutarAccion(id) {
-    const ir = (sec) => { const n = document.querySelector('[data-section="' + sec + '"]'); if (n) n.click(); };
+    const ir = (sec) => setActiveSection(sec);
     if (id === 'preguntar') { if (ask) { ask.hidden = false; ask.click(); } return; }
     if (id === 'ir-status') return ir('status');
     if (id === 'ir-grok') return ir('grok');
@@ -1078,15 +1074,28 @@ if ('serviceWorker' in navigator) {
     }
   });
 
-  // Preguntar a ASAGI: lleva la consulta al Asistente.
-  if (ask) ask.addEventListener('click', () => {
-    const q = search ? search.value.trim() : '';
-    const navAsis = document.querySelector('[data-section="assistant"]');
-    if (navAsis) navAsis.click();
-    const input = document.getElementById('message-input');
-    if (input) { input.value = q; input.focus(); }
+  // Preguntar a ASAGI (ambiental): abre el Asistente y ENVÍA la consulta.
+  function preguntar(q) {
+    q = (q || '').trim(); if (!q) return;
+    setActiveSection('assistant');
+    const form = document.getElementById('chat-form');
+    const mi = document.getElementById('message-input');
+    if (mi && form) { mi.value = q; try { form.requestSubmit(); } catch (e) { form.dispatchEvent(new Event('submit', { cancelable: true })); } }
     if (search) search.value = '';
     if (ask) ask.hidden = true;
+    render(apps); if (favWrap) favWrap.hidden = true;
+  }
+  window._asagiPreguntar = preguntar;
+  if (ask) ask.addEventListener('click', () => preguntar(search ? search.value : ''));
+  // Enter en la barra: si hay apps, abre la primera; si no, pregunta a ASAGI.
+  if (search) search.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const q = search.value.trim(); if (!q) return;
+    const res = window.AsagiPalette ? window.AsagiPalette.buscar(apps, q) : [];
+    const app0 = res.find((x) => x.tipo === 'app');
+    const calc = window.AsagiPalette && window.AsagiPalette.calcular(q);
+    if (app0 && !calc) abrir(app0._app || app0);
+    else preguntar(q);
   });
 
   if (homeBtn) homeBtn.addEventListener('click', () => {
@@ -1095,9 +1104,14 @@ if ('serviceWorker' in navigator) {
     else alert('Ajustes > Apps > Apps predeterminadas > App de inicio > ASAGI');
   });
 
-  document.querySelectorAll('[data-section="launcher"]').forEach((b) =>
-    b.addEventListener('click', () => { if (!apps.length) cargar(); }));
-  setTimeout(() => { const p = document.getElementById('launcher'); if (p && p.classList.contains('active') && !apps.length) cargar(); }, 500);
+  // El launcher es la casa: carga las apps al arrancar.
+  setTimeout(() => { if (!apps.length) cargar(); }, 500);
+
+  // Botón Enjambre (home) + botones "volver" de los overlays.
+  const enjambre = document.getElementById('enjambre-btn');
+  if (enjambre) enjambre.addEventListener('click', () => setActiveSection('grok'));
+  document.querySelectorAll('[data-close]').forEach((b) =>
+    b.addEventListener('click', () => setActiveSection('launcher')));
 })();
 
 // ---------------------------------------------------------------------------
@@ -1176,11 +1190,13 @@ if ('serviceWorker' in navigator) {
     try { document.documentElement.style.setProperty('--cyan', a[0]); document.documentElement.style.setProperty('--glow', a[1]); } catch (e) {}
   };
   window._asagiAccento(tema);
+  // El launcher es la casa (siempre visible): el fondo corre salvo que haya un
+  // overlay abierto encima (ahorra batería).
   function upd() {
-    const p = document.getElementById('launcher');
-    if (p && p.classList.contains('active')) { wp.resize(); wp.start(); } else { wp.stop(); }
+    const tapado = document.querySelector('.panel.overlay.open');
+    if (!tapado) { wp.resize(); wp.start(); } else { wp.stop(); }
   }
-  document.querySelectorAll('.nav-item').forEach((b) => b.addEventListener('click', () => setTimeout(upd, 60)));
+  window._asagiWallUpd = upd;              // setActiveSection lo llama al abrir/cerrar overlays
   setTimeout(upd, 700);
 })();
 
@@ -1343,15 +1359,23 @@ if ('serviceWorker' in navigator) {
   });
 })();
 
-// Gestos: deslizar horizontal = cambiar pestana; arriba en Launcher = buscar.
+// Gestos del núcleo: en la casa, deslizar ARRIBA = Asistente, ABAJO = Status.
+// Con un overlay abierto, deslizar en sentido de cierre = volver a la casa.
 (function () {
   if (!window.AsagiGestos) return;
-  const shell = document.querySelector('.app-shell') || document.body;
-  const tabs = ['assistant', 'launcher', 'status', 'grok'];
-  function actual() { const a = document.querySelector('.panel.active'); return a ? a.getAttribute('data-panel') : 'assistant'; }
-  function irA(sec) { const nav = document.querySelector('[data-section="' + sec + '"]'); if (nav) nav.click(); }
-  window.AsagiGestos.crear(shell, function (dir) {
-    if (dir === 'izq' || dir === 'der') irA(window.AsagiGestos.mover(tabs, actual(), dir));
-    else if (dir === 'arriba' && actual() === 'launcher') { const s = document.getElementById('launcher-search'); if (s) s.focus(); }
-  }, { umbral: 60 });
+  const home = document.getElementById('launcher');
+  function hayOverlay() { return document.querySelector('.panel.overlay.open'); }
+  // gestos en la casa (no en la barra de búsqueda, para no estorbar al escribir)
+  if (home) window.AsagiGestos.crear(home, function (dir) {
+    if (hayOverlay()) return;
+    if (dir === 'arriba') setActiveSection('assistant');
+    else if (dir === 'abajo') setActiveSection('status');
+  }, { umbral: 70 });
+  // cerrar overlays con el gesto natural (asistente/grok: abajo; status: arriba)
+  document.querySelectorAll('.panel.overlay').forEach(function (ov) {
+    const cerrarDir = ov.classList.contains('from-top') ? 'arriba' : 'abajo';
+    window.AsagiGestos.crear(ov, function (dir) {
+      if (ov.classList.contains('open') && dir === cerrarDir) setActiveSection('launcher');
+    }, { umbral: 80 });
+  });
 })();

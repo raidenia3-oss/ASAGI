@@ -26,10 +26,11 @@
     </div>
     <div class="app-shell">
       <main class="main-panel">
-        <section id="assistant" class="panel active" data-panel="assistant">
+        <section id="assistant" class="panel overlay from-bottom" data-panel="assistant">
+          <button class="ov-back" type="button" data-close aria-label="Volver al inicio">⌄</button>
           <header class="panel-header">
             <div class="panel-header-text">
-              <p class="eyebrow">ASAGI · Sección</p>
+              <p class="eyebrow">ASAGI · ambiental</p>
               <h2>Asistente</h2>
               <p id="brain-hint" class="brain-hint" hidden></p>
             </div>
@@ -107,14 +108,16 @@
           </form>
         </section>
 
-        <section id="launcher" class="panel" data-panel="launcher">
+        <section id="launcher" class="home active" data-panel="launcher">
           <canvas id="launcher-wall"></canvas>
-          <button id="wall-cfg" class="wall-cfg" type="button" aria-label="Personalizar fondo">✶</button>
+          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots">⟐</button>
+          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo">✶</button>
+          <div class="home-hint home-hint-top" aria-hidden="true">⌄ Status</div>
           <div class="launcher-top">
             <div id="launcher-clock" class="launcher-clock">--:--</div>
             <div id="launcher-date" class="launcher-date"></div>
             <div id="launcher-chips" class="launcher-chips" aria-label="Estado"></div>
-            <input id="launcher-search" class="launcher-search" type="text" placeholder="Buscar app o comando…" autocomplete="off">
+            <input id="launcher-search" class="launcher-search" type="text" placeholder="Busca una app, calcula o pregunta a ASAGI…" autocomplete="off">
             <button id="launcher-ask" class="launcher-ask" type="button" hidden>Preguntar a ASAGI</button>
           </div>
           <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
@@ -124,9 +127,7 @@
           <div id="launcher-grid" class="launcher-grid">
             <div class="launcher-empty">Toca para cargar tus apps…<br><small>(requiere el plugin nativo)</small></div>
           </div>
-          <div class="launcher-foot">
-            <button id="launcher-home" class="secondary" type="button" style="width:auto;">Hacer ASAGI mi inicio</button>
-          </div>
+          <div class="home-hint home-hint-bottom" aria-hidden="true">⌃ desliza para hablar con ASAGI</div>
 
           <div id="learn-sheet" class="wall-sheet" hidden>
             <div class="wall-sheet-in">
@@ -151,14 +152,20 @@
           </div>
         </section>
 
-        <section id="status" class="panel" data-panel="status">
+        <section id="status" class="panel overlay from-top" data-panel="status">
+          <button class="ov-back ov-back-top" type="button" data-close aria-label="Volver al inicio">⌃</button>
           <header class="panel-header">
             <div class="panel-header-text">
-              <p class="eyebrow">ASAGI · Sección</p>
+              <p class="eyebrow">ASAGI · ajustes rápidos</p>
               <h2>Status</h2>
             </div>
           </header>
           <div class="placeholder-box">
+            <p>Inicio</p>
+            <div style="display:flex;justify-content:center;margin-bottom:6px;">
+              <button id="launcher-home" class="secondary" type="button" style="width:auto;">Hacer ASAGI mi inicio</button>
+            </div>
+            <hr style="border:none;border-top:1px solid var(--line);margin:14px 0;">
             <p>Control del teléfono</p>
             <small id="acc-status">Accesibilidad: comprobando…</small>
             <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
@@ -190,7 +197,8 @@
           </div>
         </section>
 
-        <section id="grok" class="panel" data-panel="grok">
+        <section id="grok" class="panel overlay from-bottom" data-panel="grok">
+          <button class="ov-back" type="button" data-close aria-label="Volver al inicio">⌄</button>
           <header class="panel-header">
             <div class="panel-header-text">
               <p class="eyebrow">ASAGI · Enjambre</p>
@@ -209,21 +217,6 @@
           </div>
         </section>
       </main>
-
-      <nav class="tabbar" aria-label="Navegación principal">
-        <button class="nav-item active" data-section="assistant" type="button">
-          <span>Asistente</span>
-        </button>
-        <button class="nav-item" data-section="launcher" type="button">
-          <span>Launcher</span>
-        </button>
-        <button class="nav-item" data-section="status" type="button">
-          <span>Status</span>
-        </button>
-        <button class="nav-item" data-section="grok" type="button">
-          <span>Grok</span>
-        </button>
-      </nav>
     </div>
 
     <script src="brain-router.js"></script>

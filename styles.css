@@ -816,3 +816,12 @@ button { cursor: pointer; }
 .wf-notas { margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
   background: rgba(56,189,248,.08); font-size: 13px; line-height: 1.5; color: #cfe3ff; }
 .wf-notas b { color: var(--cyan); }
+
+/* Acciones del editor + galería de fondos guardados */
+.wf-acc { margin-top: 10px; }
+.wf-lib { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.wf-thumb { width: 54px; height: 90px; border-radius: 10px; border: 1px solid var(--line); object-fit: cover;
+  cursor: pointer; position: relative; background-size: cover; background-position: center; }
+.wf-thumb.on { border-color: var(--cyan); box-shadow: 0 0 0 2px var(--cyan); }
+.wf-thumb-x { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
+  border: none; background: #ef4444; color: #fff; font-size: 12px; line-height: 1; cursor: pointer; }

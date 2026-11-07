@@ -1547,6 +1547,97 @@ if ('serviceWorker' in navigator) {
   document.querySelectorAll('.wf-fit [data-fit]').forEach((b) => b.addEventListener('click', () => { cfg.ajuste = b.dataset.fit; syncSliders(); aplicar(); guardar(); }));
   pintarFiltros();
 
+  // --- B) Renderiza la foto EDITADA (encuadre + tono + tinte + viñeta) a un canvas ---
+  function renderEditado(TW, TH) {
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    if (!iw || !ih) return null;
+    const cv = document.createElement('canvas'); cv.width = TW; cv.height = TH;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#05070f'; g.fillRect(0, 0, TW, TH);
+    const z = cfg.zoom / 100;
+    let scale = cfg.ajuste === 'contain' ? Math.min(TW / iw, TH / ih) : Math.max(TW / iw, TH / ih);
+    scale *= z;
+    const dw = iw * scale, dh = ih * scale;
+    const dx = (TW - dw) * (cfg.x / 100), dy = (TH - dh) * (cfg.y / 100);
+    const brillo = (cfg.exposicion / 100) * (1 - cfg.dim / 100);
+    g.filter = 'brightness(' + brillo.toFixed(2) + ') contrast(' + (cfg.contraste / 100).toFixed(2) +
+      ') saturate(' + (cfg.saturacion / 100).toFixed(2) + ') grayscale(' + (cfg.gris || 0) + ') blur(' + cfg.blur + 'px)';
+    g.drawImage(img, dx, dy, dw, dh);
+    g.filter = 'none';
+    // tinte de calidez
+    const c = cfg.calidez / 100;
+    if (c !== 0) { g.globalCompositeOperation = 'soft-light'; g.fillStyle = c > 0 ? 'rgba(255,152,56,' + (Math.abs(c) * 0.9) + ')' : 'rgba(58,160,255,' + (Math.abs(c) * 0.9) + ')'; g.fillRect(0, 0, TW, TH); g.globalCompositeOperation = 'source-over'; }
+    // viñeta
+    if (cfg.vineta > 0) { const gr = g.createRadialGradient(TW / 2, TH / 2, Math.min(TW, TH) * 0.3, TW / 2, TH / 2, Math.max(TW, TH) * 0.72); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,' + (cfg.vineta / 100) + ')'); g.fillStyle = gr; g.fillRect(0, 0, TW, TH); }
+    return cv;
+  }
+  const btnExport = document.getElementById('wf-exportar');
+  if (btnExport) btnExport.addEventListener('click', () => {
+    const cv = renderEditado(1080, 2340); if (!cv) return;
+    cv.toBlob((blob) => {
+      if (!blob) return;
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'asagi-foto-' + Date.now() + '.jpg'; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }, 'image/jpeg', 0.92);
+  });
+
+  // --- B) Crítica con Gemini (visión): ASAGI mira la foto y sugiere, con más matiz ---
+  const btnCritica = document.getElementById('wf-critica');
+  if (btnCritica) btnCritica.addEventListener('click', async () => {
+    const gkEl = document.getElementById('brain-gemini-key');
+    const gk = gkEl && gkEl.value ? gkEl.value.trim() : '';
+    if (!notas) return;
+    notas.hidden = false;
+    if (!gk) { notas.innerHTML = '<b>Crítica IA:</b> pon tu key de Gemini en el Asistente para que ASAGI mire la foto.'; return; }
+    if (!navigator.onLine) { notas.innerHTML = '<b>Crítica IA:</b> necesitas conexión.'; return; }
+    notas.innerHTML = '<b>Crítica IA:</b> analizando la foto…';
+    try {
+      const data = (localStorage.getItem('asagi-foto-img') || img.src || '');
+      const b64 = data.split(',')[1]; const mime = (data.match(/^data:(.*?);/) || [])[1] || 'image/jpeg';
+      const prompt = 'Eres un fotógrafo honesto y directo. Mira esta foto y en 3-4 viñetas breves en español di qué está bien y qué mejorarías (exposición, encuadre/composición, color, nitidez). Sin relleno.';
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(gk);
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }] }] }) });
+      if (!r.ok) throw new Error('gemini ' + r.status);
+      const j = await r.json();
+      const cand = j && j.candidates && j.candidates[0];
+      const txt = (cand && cand.content && cand.content.parts || []).map((p) => p.text || '').join('') || 'Sin respuesta.';
+      notas.innerHTML = '<b>Crítica de ASAGI (visión):</b><br>' + txt.replace(/</g, '&lt;').replace(/\n/g, '<br>');
+    } catch (e) { notas.innerHTML = '<b>Crítica IA:</b> no pude analizar (' + (e.message || e) + ').'; }
+  });
+
+  // --- B) Mis fondos: guardar varias fotos y alternar ---
+  const libRow = document.getElementById('wf-lib');
+  const libH = document.getElementById('wf-lib-h');
+  const btnGuardarLib = document.getElementById('wf-guardar-lib');
+  function leerLib() { try { return JSON.parse(localStorage.getItem('asagi-foto-lib') || '[]'); } catch (e) { return []; } }
+  function escribirLib(l) { try { localStorage.setItem('asagi-foto-lib', JSON.stringify(l)); } catch (e) {} }
+  function pintarLib() {
+    const lib = leerLib(); if (!libRow || !libH) return;
+    libH.hidden = lib.length === 0; libRow.innerHTML = '';
+    const actual = localStorage.getItem('asagi-foto-img');
+    lib.forEach((it) => {
+      const wrap = document.createElement('div'); wrap.className = 'wf-thumb' + (it.data === actual ? ' on' : ''); wrap.style.backgroundImage = 'url(' + it.data + ')';
+      wrap.addEventListener('click', () => {
+        try { localStorage.setItem('asagi-foto-img', it.data); if (it.cfg) localStorage.setItem('asagi-foto-cfg', JSON.stringify(it.cfg)); } catch (e) {}
+        cfg = Object.assign({}, DEF, it.cfg || {}); img.src = it.data; syncSliders(); aplicar(); mostrarFoto(true); pintarLib();
+      });
+      const x = document.createElement('button'); x.className = 'wf-thumb-x'; x.textContent = '×'; x.type = 'button';
+      x.addEventListener('click', (e) => { e.stopPropagation(); escribirLib(leerLib().filter((z) => z.id !== it.id)); pintarLib(); });
+      wrap.appendChild(x); libRow.appendChild(wrap);
+    });
+  }
+  if (btnGuardarLib) btnGuardarLib.addEventListener('click', () => {
+    const data = localStorage.getItem('asagi-foto-img'); if (!data) return;
+    let lib = leerLib();
+    if (lib.some((z) => z.data === data)) { lib = lib.map((z) => z.data === data ? { id: z.id, data: data, cfg: Object.assign({}, cfg) } : z); }
+    else { lib.push({ id: Date.now(), data: data, cfg: Object.assign({}, cfg) }); }
+    while (lib.length > 4) lib.shift();              // tope para no llenar el storage
+    escribirLib(lib); pintarLib();
+  });
+  pintarLib();
+
   // Cargar foto guardada al arrancar.
   try {
     const data = localStorage.getItem('asagi-foto-img');

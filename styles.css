@@ -750,3 +750,42 @@ button { cursor: pointer; }
 .home-hint-bottom { bottom: 8px; animation: hintPulse 2.6s ease-in-out infinite; }
 @keyframes hintPulse { 0%,100% { opacity: .4; } 50% { opacity: .85; } }
 @media (prefers-reduced-motion: reduce) { .home-hint-bottom { animation: none; } }
+
+/* ===== Enjambre · sala de control (consola/HUD) ===== */
+.enj-stats { display: flex; gap: 10px; padding: 6px 16px 2px; }
+.enj-stat { flex: 1; text-align: center; background: rgba(10,16,32,.5); border: 1px solid var(--line);
+  border-radius: 14px; padding: 8px 4px; }
+.enj-stat b { display: block; font: 800 1.3rem var(--mono); color: var(--cyan); line-height: 1; }
+.enj-stat small { font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.enj-live { color: #34d399; animation: enjPulse 1.3s ease-in-out infinite; }
+@keyframes enjPulse { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+
+.enj-graph { width: calc(100% - 32px); height: 120px; margin: 10px 16px 2px; display: block;
+  border-radius: 16px; border: 1px solid var(--line); background: rgba(5,8,16,.6); }
+
+.enj-grid { flex: 0 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 16px;
+  overflow-y: auto; max-height: 38vh; }
+.enj-card { background: rgba(12,18,32,.72); border: 1px solid var(--line); border-radius: 16px; padding: 11px 12px;
+  position: relative; overflow: hidden; }
+.enj-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--bc, #38bdf8); opacity: .8; }
+.enj-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.enj-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--bc, #38bdf8); flex: 0 0 auto; box-shadow: 0 0 8px var(--bc, #38bdf8); }
+.enj-card.trabajando .enj-dot { animation: enjBlink .9s ease-in-out infinite; }
+@keyframes enjBlink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+.enj-card-name { font: 700 .82rem var(--mono); color: #eaf6ff; flex: 1; }
+.enj-card-estado { font-size: .58rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.enj-card.listo .enj-card-estado { color: #34d399; }
+.enj-paso { font-size: .72rem; color: var(--muted); min-height: 1em; margin-bottom: 7px; font-family: var(--mono); }
+.enj-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.07); overflow: hidden; }
+.enj-bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--bc,#38bdf8), #a78bfa);
+  border-radius: 3px; transition: width .14s linear; box-shadow: 0 0 10px var(--bc,#38bdf8); }
+
+.enj-feed-wrap { flex: 1 1 auto; min-height: 60px; display: flex; flex-direction: column; margin: 2px 16px 0;
+  border: 1px solid var(--line); border-radius: 14px; background: rgba(2,5,12,.72); overflow: hidden; }
+.enj-feed-h { font: 700 .62rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  padding: 8px 12px; border-bottom: 1px solid var(--line-soft); }
+.enj-feed { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 8px 12px; font: .72rem/1.5 var(--mono); }
+.enj-feed-line { opacity: 0; animation: enjIn .25s ease forwards; }
+.enj-feed-line b { font-weight: 700; }
+@keyframes enjIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+.enj-card-res { margin-top: 8px; font-size: .74rem; line-height: 1.4; color: #cfe3ff; border-top: 1px solid var(--line-soft); padding-top: 7px; white-space: pre-wrap; }

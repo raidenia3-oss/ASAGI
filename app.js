@@ -1118,21 +1118,18 @@ if ('serviceWorker' in navigator) {
 // Grok · bots: despliega bots especializados (bots.js) via el cerebro (router).
 // ---------------------------------------------------------------------------
 (function () {
-  const chips = document.getElementById('grok-bots');
-  const salida = document.getElementById('grok-salida');
   const input = document.getElementById('grok-input');
   const go = document.getElementById('grok-go');
+  const cont = document.getElementById('enj-bots');
+  const feed = document.getElementById('enj-feed');
+  const gcanvas = document.getElementById('enj-graph');
+  const elTrab = document.getElementById('enj-trabajando');
+  const elList = document.getElementById('enj-listos');
+  const elTot = document.getElementById('enj-total');
+  if (elTot && window.AsagiBots) elTot.textContent = window.AsagiBots.BOTS.length;
 
-  function pintarChips() {
-    if (!chips || !window.AsagiBots) return;
-    chips.innerHTML = '';
-    for (const b of window.AsagiBots.BOTS) {
-      const c = document.createElement('span');
-      c.className = 'grok-chip'; c.textContent = b.nombre; c.style.borderColor = b.color;
-      chips.appendChild(c);
-    }
-  }
-  pintarChips();
+  let estado = null, timer = null, feedVistos = 0;
+  const tarjetas = {};                    // id -> {card, bar, paso, estadoEl, resEl}
 
   function val(id) { const e = document.getElementById(id); return e && e.value ? e.value.trim() : ''; }
 
@@ -1141,35 +1138,133 @@ if ('serviceWorker' in navigator) {
     if (!R) return '(cerebro no disponible)';
     const gk = val('brain-gemini-key'); const ak = val('brain-atria-key');
     const router = new R.BrainRouter({
-      localFn: async (p) => {
-        if (gk && R.geminiResponder) return await R.geminiResponder(p, gk);
-        return '(sin cerebro: pon tu key de Gemini en Asistente)';
-      },
+      localFn: async (p) => { if (gk && R.geminiResponder) return await R.geminiResponder(p, gk); return '(sin cerebro: pon tu key de Gemini en el Asistente)'; },
       apiKey: gk,
       remotoFn: (ak && R.atriaResponder) ? ((p) => R.atriaResponder(p, ak)) : null,
-      store: window.localStorage
+      store: window.localStorage,
     });
     const res = await router.responder(prompt);
     return (res && (res.texto || res.text)) || '';
   }
 
-  async function desplegar() {
-    if (!window.AsagiBots || !input) return;
+  function tarjeta(w) {
+    const d = document.createElement('div'); d.className = 'enj-card trabajando'; d.style.setProperty('--bc', w.color);
+    d.innerHTML = '<div class="enj-card-top"><span class="enj-dot"></span><span class="enj-card-name">' + w.nombre +
+      '</span><span class="enj-card-estado">en cola</span></div>' +
+      '<div class="enj-paso">—</div><div class="enj-bar"><i></i></div><div class="enj-card-res" hidden></div>';
+    tarjetas[w.id] = { card: d, bar: d.querySelector('.enj-bar > i'), paso: d.querySelector('.enj-paso'),
+      estadoEl: d.querySelector('.enj-card-estado'), resEl: d.querySelector('.enj-card-res') };
+    return d;
+  }
+
+  function pintarFeed() {
+    if (!feed || !estado) return;
+    for (let i = feedVistos; i < estado.feed.length; i++) {
+      const ev = estado.feed[i];
+      const line = document.createElement('div'); line.className = 'enj-feed-line';
+      line.innerHTML = '<b style="color:' + ev.color + '">' + ev.bot + '</b> <span style="opacity:.55">›</span> ' + ev.txt.replace(/</g, '&lt;');
+      feed.appendChild(line);
+    }
+    feedVistos = estado.feed.length;
+    feed.scrollTop = feed.scrollHeight;
+    while (feed.children.length > 80) feed.removeChild(feed.firstChild);
+  }
+
+  function pintar() {
+    if (!estado) return;
+    for (const w of estado.workers) {
+      const tj = tarjetas[w.id]; if (!tj) continue;
+      tj.bar.style.width = w.progreso + '%';
+      tj.paso.textContent = w.paso;
+      tj.estadoEl.textContent = w.estado === 'trabajando' ? 'trabajando' : (w.estado === 'listo' ? 'listo' : 'en cola');
+      tj.card.classList.toggle('trabajando', w.estado === 'trabajando');
+      tj.card.classList.toggle('listo', w.estado === 'listo');
+    }
+    const r = window.AsagiEnjambre.resumen(estado);
+    if (elTrab) elTrab.textContent = r.trabajando;
+    if (elList) elList.textContent = r.listos;
+    pintarFeed();
+  }
+
+  function desplegar() {
+    if (!window.AsagiBots || !window.AsagiEnjambre || !input) return;
     const tarea = input.value.trim(); if (!tarea) return;
     input.value = '';
-    if (salida) salida.innerHTML = '<div class="launcher-empty">Desplegando bots…</div>';
-    const res = await window.AsagiBots.desplegar(tarea, ejecutarBot, { max: 2 });
-    if (!salida) return;
-    salida.innerHTML = '';
-    for (const r of res) {
-      const card = document.createElement('div'); card.className = 'grok-card';
-      const h = document.createElement('h4'); h.textContent = r.bot.nombre; h.style.color = r.bot.color;
-      const p = document.createElement('p'); p.textContent = r.texto;
-      card.appendChild(h); card.appendChild(p); salida.appendChild(card);
-    }
+    const bots = window.AsagiBots.elegirBots(tarea, 4);
+    estado = window.AsagiEnjambre.crearTrabajo(bots, tarea);
+    feedVistos = 0; if (feed) feed.innerHTML = '';
+    for (const k in tarjetas) delete tarjetas[k];
+    if (cont) { cont.innerHTML = ''; for (const w of estado.workers) cont.appendChild(tarjeta(w)); }
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+      estado = window.AsagiEnjambre.tick(estado, 1);
+      pintar();
+      if (estado.hecho) { clearInterval(timer); timer = null; }
+    }, 110);
+    // En paralelo: el cerebro resuelve de verdad y el resultado aparece en cada tarjeta.
+    window.AsagiBots.desplegar(tarea, ejecutarBot, { max: bots.length }).then((res) => {
+      for (const r of res) {
+        const tj = tarjetas[r.bot.id]; if (tj && tj.resEl) { tj.resEl.hidden = false; tj.resEl.textContent = r.texto; }
+      }
+    }).catch(() => {});
   }
   if (go) go.addEventListener('click', desplegar);
   if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') desplegar(); });
+
+  // --- Grafo del enjambre: núcleo ASAGI central + bots en círculo + pulsos ---
+  (function graph() {
+    if (!gcanvas || !gcanvas.getContext) return;
+    const g = gcanvas.getContext('2d');
+    let W = 1, H = 1, raf = null, tt = 0;
+    function size() {
+      const r = gcanvas.getBoundingClientRect(); const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = Math.max(1, r.width); H = Math.max(1, r.height);
+      gcanvas.width = Math.floor(W * dpr); gcanvas.height = Math.floor(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    function draw() {
+      raf = requestAnimationFrame(draw); tt += 0.03;
+      g.clearRect(0, 0, W, H); g.fillStyle = 'rgba(5,8,16,0.5)'; g.fillRect(0, 0, W, H);
+      const cx = W / 2, cy = H / 2;
+      const ws = (estado && estado.workers) || [];
+      const n = Math.max(ws.length, 1);
+      // edges + pulsos
+      ws.forEach((w, i) => {
+        const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
+        const R = Math.min(W, H) * 0.36;
+        const bx = cx + Math.cos(ang) * R, by = cy + Math.sin(ang) * R;
+        g.strokeStyle = 'rgba(120,150,190,0.22)'; g.lineWidth = 1;
+        g.beginPath(); g.moveTo(cx, cy); g.lineTo(bx, by); g.stroke();
+        if (w.estado === 'trabajando') {
+          const fp = (tt * 0.6 + i * 0.3) % 1;                 // pulso viaja núcleo->bot
+          const px = cx + (bx - cx) * fp, py = cy + (by - cy) * fp;
+          g.fillStyle = w.color; g.beginPath(); g.arc(px, py, 2.4, 0, Math.PI * 2); g.fill();
+        }
+        // nodo bot
+        const glow = w.estado === 'trabajando' ? (0.6 + 0.4 * Math.sin(tt * 4 + i)) : (w.estado === 'listo' ? 0.9 : 0.4);
+        g.fillStyle = w.color; g.globalAlpha = glow;
+        g.beginPath(); g.arc(bx, by, w.estado === 'listo' ? 6 : 5, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+        g.fillStyle = 'rgba(220,235,255,0.75)'; g.font = '8px monospace'; g.textAlign = 'center';
+        g.fillText(w.nombre.slice(0, 7), bx, by + 15);
+      });
+      // núcleo ASAGI
+      const pulse = 0.7 + 0.3 * Math.sin(tt * 2);
+      const grd = g.createRadialGradient(cx, cy, 0, cx, cy, 20);
+      grd.addColorStop(0, 'rgba(56,189,248,' + (0.9 * pulse).toFixed(2) + ')');
+      grd.addColorStop(1, 'rgba(56,189,248,0)');
+      g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, 20, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#eaf6ff'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(220,235,255,0.9)'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
+      g.fillText('ASAGI', cx, cy + 3);
+    }
+    function run() { const ab = document.getElementById('grok'); if (ab && ab.classList.contains('open')) { if (!raf) { size(); draw(); } } else if (raf) { cancelAnimationFrame(raf); raf = null; } }
+    window.addEventListener('resize', () => { if (raf) size(); });
+    // arranca/para el grafo según el overlay esté abierto
+    const enjBtn = document.getElementById('enjambre-btn');
+    if (enjBtn) enjBtn.addEventListener('click', () => setTimeout(run, 360));
+    document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => setTimeout(run, 360)));
+    setInterval(run, 1000);
+  })();
 })();
 
 // Wallpaper animado del Launcher (solo corre cuando el Launcher está visible).

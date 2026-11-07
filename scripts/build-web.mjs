@@ -20,6 +20,7 @@ const files = [
   'gestures.js',
   'palette.js',
   'conocimiento.js',
+  'enjambre.js',
   'app.js',
   'styles.css',
   'sw.js',

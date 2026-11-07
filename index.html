@@ -202,14 +202,21 @@
           <header class="panel-header">
             <div class="panel-header-text">
               <p class="eyebrow">ASAGI · Enjambre</p>
-              <h2>Grok · bots</h2>
+              <h2>Sala de control</h2>
             </div>
           </header>
-          <div class="grok-wrap">
-            <div id="grok-bots" class="grok-chips"></div>
-            <div id="grok-salida" class="grok-salida">
-              <div class="launcher-empty">Escribe una tarea y despliego los bots adecuados.</div>
-            </div>
+          <div class="enj-stats">
+            <div class="enj-stat"><b id="enj-trabajando">0</b><small>trabajando</small></div>
+            <div class="enj-stat"><b id="enj-listos">0</b><small>listos</small></div>
+            <div class="enj-stat"><b id="enj-total">6</b><small>bots</small></div>
+          </div>
+          <canvas id="enj-graph" class="enj-graph"></canvas>
+          <div id="enj-bots" class="enj-grid">
+            <div class="launcher-empty">Escribe una tarea y despliego a los bots adecuados.</div>
+          </div>
+          <div class="enj-feed-wrap">
+            <div class="enj-feed-h"><span class="enj-live">◉</span> actividad del enjambre</div>
+            <div id="enj-feed" class="enj-feed"></div>
           </div>
           <div class="composer">
             <input id="grok-input" type="text" placeholder="¿Qué necesitas que hagan?" autocomplete="off">
@@ -237,6 +244,7 @@
     <script src="gestures.js"></script>
     <script src="palette.js"></script>
     <script src="conocimiento.js"></script>
+    <script src="enjambre.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

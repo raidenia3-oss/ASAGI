@@ -17,7 +17,9 @@ const TEMAS = {
   rosa:    [[244, 114, 182], [251, 113, 133], [240, 171, 252], [248, 113, 113]],
   ambar:   [[251, 191, 36], [249, 115, 22], [253, 224, 71], [248, 113, 113]],
 };
-const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'anime', 'imagen'];
+const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen'];
+// Caracteres para la lluvia ASCII (katakana + dígitos + símbolos), look Matrix.
+const MATRIX_CHARS = 'ｱｶｻﾀﾅﾊﾏﾔﾗ0123456789:.=*+-<>¦|çﾘｸﾂﾇﾍﾐ'.split('');
 
 // Retrocompat: COLORES = tema cian.
 const COLORES = TEMAS.cian;
@@ -77,6 +79,7 @@ function crearWallpaper(canvas, opts) {
   let stars = [];                         // starfield de profundidad
   let fugaces = [];                       // estrellas fugaces (constelacion)
   let ondas = [];                         // para modo 'ondas'
+  let matrix = null;                      // columnas de lluvia ASCII (modo 'matrix')
   let petalos = [];                       // pétalos de sakura (modo anime)
   let skyline = [];                       // silueta de ciudad (modo anime)
   let imgEl = null, imgLista = false;     // imagen propia (modo imagen)
@@ -378,10 +381,38 @@ function crearWallpaper(canvas, opts) {
     }
   }
 
+  // ---- MODO matrix (lluvia ASCII verde, look hacker) ----
+  function dibMatrix() {
+    const fs = Math.max(12, Math.round(W / 34));     // tamaño de fuente segun ancho
+    const ncol = Math.max(1, Math.floor(W / fs));
+    if (!matrix || matrix.fs !== fs || matrix.col.length !== ncol) {
+      matrix = { fs: fs, col: [] };
+      for (let i = 0; i < ncol; i++) matrix.col.push({ y: Math.random() * -H, v: 0.5 + Math.random() * 1.1 });
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);   // arranca en negro
+    }
+    // estela: velo oscuro traslucido (deja rastro verde)
+    ctx.fillStyle = 'rgba(0,8,2,0.10)'; ctx.fillRect(0, 0, W, H);
+    ctx.font = fs + "px 'Courier New', monospace"; ctx.textBaseline = 'top';
+    const base = cols()[0];                           // tinte del tema (verde por defecto)
+    for (let i = 0; i < matrix.col.length; i++) {
+      const c = matrix.col[i], x = i * fs;
+      const ch = MATRIX_CHARS[(Math.random() * MATRIX_CHARS.length) | 0];
+      // cabeza brillante
+      ctx.fillStyle = 'rgba(200,255,210,0.95)';
+      ctx.fillText(ch, x, c.y);
+      // un rastro tenue detras
+      ctx.fillStyle = 'rgba(' + base[0] + ',' + base[1] + ',' + base[2] + ',0.55)';
+      ctx.fillText(MATRIX_CHARS[(Math.random() * MATRIX_CHARS.length) | 0], x, c.y - fs);
+      c.y += c.v * fs * 0.6;
+      if (c.y > H && Math.random() > 0.975) c.y = Math.random() * -40;
+    }
+  }
+
   function dibujar() {
     if (modo === 'flujo') return dibFlujo();
     if (modo === 'aurora') return dibAurora();
     if (modo === 'ondas') return dibOndas();
+    if (modo === 'matrix') return dibMatrix();
     if (modo === 'anime') return dibAnime();
     if (modo === 'imagen') return dibImagen();
     return dibConstelacion();

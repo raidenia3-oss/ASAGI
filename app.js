@@ -1312,7 +1312,7 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', anime: 'Anime', imagen: 'Imagen propia' };
+  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia' };
 
   // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
   function pedirImagen() {

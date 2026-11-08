@@ -241,6 +241,18 @@
             <small style="display:block;margin-top:8px;opacity:.7;">
               Revisa permisos y origen de tus apps (defensa real). No es un antivirus con firmas.
             </small>
+
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+            <p>Monitor · tus servicios</p>
+            <div class="mon-add">
+              <input id="mon-url" type="text" placeholder="sitio o servicio (ej. github.com)" autocomplete="off" spellcheck="false">
+              <button id="mon-add-btn" class="secondary" type="button" style="width:auto;">Vigilar</button>
+            </div>
+            <div id="mon-stats" class="mon-stats"></div>
+            <div id="mon-lista" class="mon-lista"></div>
+            <small style="display:block;margin-top:8px;opacity:.7;">
+              Comprueba si tus sitios responden, con latencia e historial. Local, sin servidor.
+            </small>
           </div>
         </section>
 
@@ -293,6 +305,7 @@
     <script src="conocimiento.js"></script>
     <script src="enjambre.js"></script>
     <script src="foto-ia.js"></script>
+    <script src="monitor.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

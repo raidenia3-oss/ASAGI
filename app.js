@@ -1734,6 +1734,92 @@ if ('serviceWorker' in navigator) {
   });
 })();
 
+// Monitor de servicios (idea de Uptime Kuma, sin servidor): vigila si tus sitios
+// responden, con latencia, historial y % de disponibilidad. Chequeo por fetch no-cors.
+(function () {
+  if (!window.AsagiMonitor) return;
+  const M = window.AsagiMonitor;
+  const inUrl = document.getElementById('mon-url');
+  const btnAdd = document.getElementById('mon-add-btn');
+  const lista = document.getElementById('mon-lista');
+  const stats = document.getElementById('mon-stats');
+  if (!lista) return;
+  let targets = [];
+  try { targets = JSON.parse(localStorage.getItem('asagi-monitor') || '[]'); } catch (e) { targets = []; }
+
+  function guardar() { try { localStorage.setItem('asagi-monitor', JSON.stringify(targets)); } catch (e) {} }
+
+  // Chequeo real: fetch no-cors con timeout. Resuelve = alcanzable; error/timeout = caído.
+  function chequear(url, ms) {
+    return new Promise((resolve) => {
+      const t0 = (performance && performance.now) ? performance.now() : Date.now();
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const to = setTimeout(() => { if (ctl) ctl.abort(); resolve({ ok: false, ms: null }); }, ms || 8000);
+      fetch(url, { mode: 'no-cors', cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+        .then(() => { clearTimeout(to); const t1 = (performance && performance.now) ? performance.now() : Date.now(); resolve({ ok: true, ms: t1 - t0 }); })
+        .catch(() => { clearTimeout(to); resolve({ ok: false, ms: null }); });
+    });
+  }
+
+  function spark(hist) {
+    const h = (hist || []).slice(-20);
+    if (!h.length) return '';
+    const max = Math.max.apply(null, h.map((x) => x.ms || 0).concat([1]));
+    return '<div class="mon-spark">' + h.map((x) => {
+      const alt = x.ok ? Math.max(4, Math.round((x.ms || 0) / max * 22)) : 22;
+      return '<i class="' + (x.ok ? '' : 'd') + '" style="height:' + alt + 'px"></i>';
+    }).join('') + '</div>';
+  }
+
+  function pintar() {
+    lista.innerHTML = '';
+    if (!targets.length) { lista.innerHTML = '<div class="launcher-empty">Agrega un sitio para vigilarlo.</div>'; }
+    targets.forEach((t) => {
+      const up = M.uptime(t), lat = t.latencia;
+      const card = document.createElement('div'); card.className = 'mon-card';
+      card.innerHTML = '<span class="mon-dot ' + t.estado + '"></span>' +
+        '<div class="mon-info"><div class="mon-nombre">' + t.nombre.replace(/</g, '&lt;') + '</div>' +
+        '<div class="mon-sub">' + (t.estado === 'up' ? (lat != null ? lat + ' ms' : 'en línea') : t.estado === 'down' ? 'sin respuesta' : '—') +
+        (up != null ? ' · ' + up + '% activo' : '') + '</div></div>' + spark(t.historia) +
+        '<button class="mon-x" aria-label="Quitar">×</button>';
+      card.querySelector('.mon-x').addEventListener('click', () => { targets = targets.filter((x) => x.id !== t.id); guardar(); pintar(); });
+      lista.appendChild(card);
+    });
+    if (stats) {
+      const r = M.resumen(targets);
+      stats.innerHTML = targets.length ? '<span class="lchip ok">' + r.up + ' arriba</span>' +
+        (r.down ? '<span class="lchip warn">' + r.down + ' caídos</span>' : '') +
+        '<span class="lchip">' + r.total + ' total</span>' : '';
+    }
+  }
+
+  async function revisar(t) {
+    const res = await chequear(t.url);
+    const i = targets.findIndex((x) => x.id === t.id);
+    if (i === -1) return;
+    targets[i] = M.registrarChequeo(targets[i], res);
+    guardar(); pintar();
+  }
+  function revisarTodos() { targets.forEach(revisar); }
+
+  function agregar() {
+    const v = inUrl ? inUrl.value.trim() : ''; if (!v) return;
+    const t = M.nuevoTarget('', v);
+    targets.push(t); if (inUrl) inUrl.value = ''; guardar(); pintar(); revisar(t);
+  }
+  if (btnAdd) btnAdd.addEventListener('click', agregar);
+  if (inUrl) inUrl.addEventListener('keydown', (e) => { if (e.key === 'Enter') agregar(); });
+
+  pintar();
+  // revisa al abrir Status y cada 60s mientras esté abierto
+  const statusPanel = document.getElementById('status');
+  function visible() { return statusPanel && statusPanel.classList.contains('open'); }
+  setInterval(() => { if (visible()) revisarTodos(); }, 60000);
+  const obs = new MutationObserver(() => { if (visible()) revisarTodos(); });
+  if (statusPanel) obs.observe(statusPanel, { attributes: true, attributeFilter: ['class'] });
+  window._asagiMonitorRevisar = revisarTodos;
+})();
+
 // Gestos del núcleo: en la casa, deslizar ARRIBA = Asistente, ABAJO = Status.
 // Con un overlay abierto, deslizar en sentido de cierre = volver a la casa.
 (function () {

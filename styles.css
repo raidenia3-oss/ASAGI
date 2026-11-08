@@ -825,3 +825,24 @@ button { cursor: pointer; }
 .wf-thumb.on { border-color: var(--cyan); box-shadow: 0 0 0 2px var(--cyan); }
 .wf-thumb-x { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%;
   border: none; background: #ef4444; color: #fff; font-size: 12px; line-height: 1; cursor: pointer; }
+
+/* ===== Monitor de servicios (Status) ===== */
+.mon-add { display: flex; gap: 8px; margin-bottom: 10px; }
+.mon-add input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
+  background: rgba(10,16,32,.6); color: var(--text); font-size: 14px; }
+.mon-stats { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+.mon-stats .lchip { font-size: 11px; }
+.mon-lista { display: flex; flex-direction: column; gap: 8px; }
+.mon-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px;
+  border: 1px solid var(--line); background: rgba(10,16,32,.55); text-align: left; }
+.mon-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; background: #64748b; }
+.mon-dot.up { background: #34d399; box-shadow: 0 0 8px #34d399; }
+.mon-dot.down { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: enjBlink 1s ease-in-out infinite; }
+.mon-dot.pendiente { background: #fbbf24; }
+.mon-info { flex: 1; min-width: 0; }
+.mon-nombre { font: 600 .84rem var(--mono); color: #eaf6ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mon-sub { font-size: .68rem; color: var(--muted); font-family: var(--mono); }
+.mon-spark { display: flex; gap: 2px; align-items: flex-end; height: 22px; }
+.mon-spark i { width: 3px; border-radius: 1px; background: #34d399; opacity: .85; }
+.mon-spark i.d { background: #ef4444; }
+.mon-x { border: none; background: transparent; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; }

@@ -253,6 +253,18 @@
             <small style="display:block;margin-top:8px;opacity:.7;">
               Comprueba si tus sitios responden, con latencia e historial. Local, sin servidor.
             </small>
+
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+            <p>Análisis de dominio · recon pasivo</p>
+            <div class="mon-add">
+              <input id="recon-dom" type="text" placeholder="dominio (ej. github.com)" autocomplete="off" spellcheck="false">
+              <button id="recon-btn" class="secondary" type="button" style="width:auto;">Analizar</button>
+            </div>
+            <div id="recon-out" class="recon-out"></div>
+            <small style="display:block;margin-top:8px;opacity:.7;">
+              Ve a qué resuelve un dominio (IPs, correo, nameservers, TXT) por DNS-over-HTTPS.
+              100% pasivo: solo información pública, no escanea ni ataca.
+            </small>
           </div>
         </section>
 
@@ -306,6 +318,7 @@
     <script src="enjambre.js"></script>
     <script src="foto-ia.js"></script>
     <script src="monitor.js"></script>
+    <script src="recon.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

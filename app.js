@@ -1820,6 +1820,46 @@ if ('serviceWorker' in navigator) {
   window._asagiMonitorRevisar = revisarTodos;
 })();
 
+// Análisis de dominio (recon pasivo, OSINT defensivo): consulta DNS por DNS-over-HTTPS
+// y muestra a qué resuelve un dominio. Solo información pública, nada ofensivo.
+(function () {
+  if (!window.AsagiRecon) return;
+  const R = window.AsagiRecon;
+  const inp = document.getElementById('recon-dom');
+  const btn = document.getElementById('recon-btn');
+  const out = document.getElementById('recon-out');
+  if (!inp || !btn || !out) return;
+  const ORDEN = ['A', 'AAAA', 'MX', 'NS', 'TXT'];
+
+  async function consultar(dom, tipo) {
+    try {
+      const r = await fetch(R.urlDoH(dom, tipo), { headers: { accept: 'application/dns-json' } });
+      if (!r.ok) return { ok: false, registros: [], nombre: tipo };
+      return R.interpretar(await r.json(), tipo);
+    } catch (e) { return { ok: false, registros: [], nombre: tipo, error: true }; }
+  }
+
+  async function analizar() {
+    const dom = R.normalizarDominio(inp.value);
+    if (!dom || !R.valido(dom)) { out.innerHTML = '<div class="recon-msg">Escribe un dominio válido, ej. github.com</div>'; return; }
+    out.innerHTML = '<div class="recon-msg">Consultando ' + dom.replace(/</g, '&lt;') + '…</div>';
+    const res = await Promise.all(ORDEN.map((t) => consultar(dom, t)));
+    let html = '';
+    res.forEach((r) => {
+      html += '<div class="recon-grupo"><div class="recon-h">' + (R.ETIQUETA[r.nombre] || r.nombre) + '</div>';
+      if (r.registros && r.registros.length) {
+        html += r.registros.map((v) => '<div class="recon-val">' + v.replace(/</g, '&lt;') + '</div>').join('');
+      } else {
+        html += '<div class="recon-val vacio">' + (r.error ? 'sin conexión' : '—') + '</div>';
+      }
+      html += '</div>';
+    });
+    out.innerHTML = html;
+  }
+  btn.addEventListener('click', analizar);
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
+})();
+
 // Gestos del núcleo: en la casa, deslizar ARRIBA = Asistente, ABAJO = Status.
 // Con un overlay abierto, deslizar en sentido de cierre = volver a la casa.
 (function () {

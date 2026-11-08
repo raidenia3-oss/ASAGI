@@ -846,3 +846,11 @@ button { cursor: pointer; }
 .mon-spark i { width: 3px; border-radius: 1px; background: #34d399; opacity: .85; }
 .mon-spark i.d { background: #ef4444; }
 .mon-x { border: none; background: transparent; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; }
+
+/* Análisis de dominio (recon) */
+.recon-out { display: flex; flex-direction: column; gap: 8px; }
+.recon-grupo { border: 1px solid var(--line); border-radius: 12px; background: rgba(10,16,32,.5); padding: 9px 12px; }
+.recon-h { font: 700 .66rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--cyan); margin-bottom: 5px; }
+.recon-val { font: .76rem/1.5 var(--mono); color: #cfe3ff; word-break: break-all; }
+.recon-val.vacio { color: var(--muted); opacity: .7; }
+.recon-msg { font-size: .76rem; color: var(--muted); font-family: var(--mono); }

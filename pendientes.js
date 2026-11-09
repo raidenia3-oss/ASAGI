@@ -54,6 +54,76 @@ function esPendiente(texto) {
   return false;
 }
 
+// --- Parseo de tiempo (conservador, español). Devuelve { limpio, cuando, etiqueta }.
+// 'cuando' es timestamp ms o null. Solo frases claras; si duda, cuando=null. PURO.
+function _dosDig(n) { return (n < 10 ? '0' : '') + n; }
+
+function parsearTiempo(texto, ahora) {
+  var base = (ahora instanceof Date) ? new Date(ahora.getTime()) : new Date(ahora || Date.now());
+  var t = String(texto || '');
+  var n = _norm(t);
+  var d = new Date(base.getTime());
+  var tieneDia = false, tieneHora = false;
+  var quitar = [];                                   // fragmentos (regex) a borrar del texto
+
+  // "en N minutos / horas"
+  var mRel = n.match(/\ben\s+(\d{1,3})\s*(min(?:uto)?s?|h(?:ora)?s?)\b/);
+  if (mRel) {
+    var cant = parseInt(mRel[1], 10);
+    if (/^h/.test(mRel[2])) d.setHours(d.getHours() + cant);
+    else d.setMinutes(d.getMinutes() + cant);
+    quitar.push(new RegExp('\\ben\\s+' + mRel[1] + '\\s*' + mRel[2].replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i'));
+    return _res(t, quitar, d.getTime(), base);        // relativo ya es fecha+hora
+  }
+
+  // día: hoy / mañana / pasado mañana
+  if (/\bpasado\s+manana\b/.test(n)) { d.setDate(d.getDate() + 2); tieneDia = true; quitar.push(/\bpasado\s+ma(?:ñ|n)ana\b/i); }
+  else if (/\bmanana\b/.test(n)) { d.setDate(d.getDate() + 1); tieneDia = true; quitar.push(/\bma(?:ñ|n)ana\b/i); }
+  else if (/\bhoy\b/.test(n)) { tieneDia = true; quitar.push(/\bhoy\b/i); }
+
+  // hora: "a las 8", "a las 8:30", "a las 8 pm", "a las 20:30"
+  var mH = n.match(/\ba\s+las?\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm|de\s+la\s+ma(?:ñ|n)ana|de\s+la\s+tarde|de\s+la\s+noche)?/);
+  if (mH) {
+    var h = parseInt(mH[1], 10);
+    var min = mH[2] ? parseInt(mH[2], 10) : 0;
+    var suf = mH[3] || '';
+    if (/pm|tarde|noche/.test(suf) && h < 12) h += 12;
+    if (/am|ma(ñ|n)ana/.test(suf) && h === 12) h = 0;
+    if (h >= 0 && h <= 23 && min >= 0 && min <= 59) {
+      d.setHours(h, min, 0, 0); tieneHora = true;
+      quitar.push(/\ba\s+las?\s+\d{1,2}(?::\d{2})?\s*(am|pm|de\s+la\s+(ma(?:ñ|n)ana|tarde|noche))?/i);
+    }
+  }
+
+  if (!tieneDia && !tieneHora) return { limpio: t.trim(), cuando: null, etiqueta: '' };
+  if (tieneDia && !tieneHora) d.setHours(9, 0, 0, 0);               // día sin hora -> 9:00
+  if (!tieneDia && tieneHora && d.getTime() <= base.getTime()) d.setDate(d.getDate() + 1); // hora ya pasada -> mañana
+  return _res(t, quitar, d.getTime(), base);
+}
+
+function _res(t, quitar, cuando, base) {
+  var limpio = t;
+  for (var i = 0; i < quitar.length; i++) limpio = limpio.replace(quitar[i], ' ');
+  limpio = limpio.replace(/\s+/g, ' ').replace(/\s+([,.])/g, '$1').trim();
+  return { limpio: limpio, cuando: cuando, etiqueta: etiquetaCuando(cuando, base) };
+}
+
+// Etiqueta legible de un timestamp respecto a 'base'. PURO.
+function etiquetaCuando(cuando, base) {
+  if (!cuando) return '';
+  var d = new Date(cuando);
+  var b = (base instanceof Date) ? new Date(base.getTime()) : new Date(base || Date.now());
+  var hhmm = _dosDig(d.getHours()) + ':' + _dosDig(d.getMinutes());
+  var d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  var b0 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+  var dias = Math.round((d0 - b0) / 86400000);
+  if (dias === 0) return 'hoy ' + hhmm;
+  if (dias === 1) return 'mañana ' + hhmm;
+  if (dias === -1) return 'ayer ' + hhmm;
+  var DMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  return d.getDate() + ' ' + DMES[d.getMonth()] + ' ' + hhmm;
+}
+
 var _seq = 0;
 function _id() {
   _seq += 1;
@@ -64,7 +134,12 @@ function _id() {
 function nuevo(texto, ahora) {
   var limpio = parsearEntrada(texto);
   if (!limpio) return null;
-  return { id: _id(), texto: limpio, hecho: false, creado: ahora || Date.now() };
+  var msAhora = (ahora instanceof Date) ? ahora.getTime() : (ahora || Date.now());
+  var tp = parsearTiempo(limpio, msAhora);
+  return {
+    id: _id(), texto: (tp.limpio || limpio), hecho: false, creado: msAhora,
+    cuando: tp.cuando || null, etiqueta: tp.etiqueta || ''
+  };
 }
 
 // Devuelve una lista NUEVA con el item agregado al frente. PURO.
@@ -76,7 +151,9 @@ function agregar(lista, texto, ahora) {
 
 function alternar(lista, id) {
   return (lista || []).map(function (x) {
-    return x.id === id ? { id: x.id, texto: x.texto, hecho: !x.hecho, creado: x.creado } : x;
+    return x.id === id
+      ? { id: x.id, texto: x.texto, hecho: !x.hecho, creado: x.creado, cuando: x.cuando || null, etiqueta: x.etiqueta || '' }
+      : x;
   });
 }
 
@@ -88,10 +165,14 @@ function limpiarHechos(lista) {
   return (lista || []).filter(function (x) { return !x.hecho; });
 }
 
-// Pendientes primero (mas nuevos arriba), luego los hechos. PURO (no muta).
+// Pendientes primero; con hora -> por lo más próximo; sin hora -> más nuevos
+// arriba; los hechos al final. PURO (no muta).
 function ordenar(lista) {
   return (lista || []).slice().sort(function (a, b) {
     if (!!a.hecho !== !!b.hecho) return a.hecho ? 1 : -1;
+    var ca = a.cuando || 0, cb = b.cuando || 0;
+    if (ca && cb) return ca - cb;                     // ambos con hora: antes el más próximo
+    if (ca || cb) return ca ? -1 : 1;                 // con hora antes que sin hora
     return (b.creado || 0) - (a.creado || 0);
   });
 }
@@ -111,12 +192,16 @@ function deserializar(txt) {
   return arr.filter(function (x) {
     return x && typeof x.id === 'string' && typeof x.texto === 'string';
   }).map(function (x) {
-    return { id: x.id, texto: x.texto, hecho: !!x.hecho, creado: Number(x.creado) || Date.now() };
+    return {
+      id: x.id, texto: x.texto, hecho: !!x.hecho, creado: Number(x.creado) || Date.now(),
+      cuando: x.cuando ? Number(x.cuando) : null, etiqueta: x.etiqueta || ''
+    };
   });
 }
 
 var API = {
-  PREFIJOS: PREFIJOS, parsearEntrada: parsearEntrada, esPendiente: esPendiente, nuevo: nuevo, agregar: agregar,
+  PREFIJOS: PREFIJOS, parsearEntrada: parsearEntrada, esPendiente: esPendiente,
+  parsearTiempo: parsearTiempo, etiquetaCuando: etiquetaCuando, nuevo: nuevo, agregar: agregar,
   alternar: alternar, borrar: borrar, limpiarHechos: limpiarHechos, ordenar: ordenar,
   contarPendientes: contarPendientes, serializar: serializar, deserializar: deserializar
 };

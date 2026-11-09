@@ -828,7 +828,16 @@ renderBrainControls();
     chk.textContent = it.hecho ? '✓' : ''; chk.setAttribute('aria-label', 'Marcar');
     chk.addEventListener('click', () => { lista = P.alternar(lista, it.id); guardar(); pintar(); });
     const txt = document.createElement('span');
-    txt.className = 'pend-txt'; txt.textContent = it.texto;
+    txt.className = 'pend-txt';
+    txt.textContent = it.texto;
+    if (it.cuando) {
+      const b = document.createElement('span');
+      const vencido = !it.hecho && it.cuando < Date.now();
+      b.className = 'pend-when' + (vencido ? ' vencido' : '');
+      b.textContent = (vencido ? '⏰ ' : '🕐 ') + P.etiquetaCuando(it.cuando, Date.now());
+      txt.appendChild(document.createElement('br'));
+      txt.appendChild(b);
+    }
     const del = document.createElement('button');
     del.className = 'pend-del'; del.type = 'button'; del.textContent = '✕'; del.setAttribute('aria-label', 'Borrar');
     del.addEventListener('click', () => { lista = P.borrar(lista, it.id); guardar(); pintar(); });

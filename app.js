@@ -872,7 +872,46 @@ renderBrainControls();
     else mic.hidden = true;
   }
 
+  // --- Vigilante de vencimientos: avisa cuando llega la hora de un pendiente.
+  // SIEMPRE avisa en pantalla (discreto). SOLO habla si hay audifonos puestos,
+  // aunque este en "voz alta": nada de que te escuche gente alrededor.
+  const aviso = document.getElementById('aviso');
+  const avisoTxt = document.getElementById('aviso-txt');
+  const avisoModo = document.getElementById('aviso-modo');
+  const avisoX = document.getElementById('aviso-x');
+  let avisoTimer = null;
+
+  function mostrarAviso(texto, sono) {
+    if (!aviso || !avisoTxt) return;
+    avisoTxt.textContent = '⏰ ' + texto;
+    if (avisoModo) avisoModo.textContent = sono ? '🎧' : 'en silencio';
+    aviso.hidden = false;
+    clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(() => { aviso.hidden = true; }, 12000);
+  }
+  if (avisoX) avisoX.addEventListener('click', () => { aviso.hidden = true; clearTimeout(avisoTimer); });
+
+  async function revisarVencidos() {
+    const due = P.vencidos(lista, Date.now());
+    if (!due.length) return;
+    for (const it of due) { lista = P.marcarAvisado(lista, it.id); }
+    guardar(); pintar();
+    const primero = due[0];
+    const frase = due.length === 1
+      ? 'Te toca: ' + primero.texto
+      : 'Tienes ' + due.length + ' pendientes: ' + due.map((x) => x.texto).join(', ');
+    let sono = false;
+    try { sono = !!(window.asagiSpeakPrivado && await window.asagiSpeakPrivado(frase)); } catch (e) {}
+    mostrarAviso(frase, sono);
+  }
+
   cargar(); pintar();
+
+  // El primer chequeo espera a que la voz (asagiSpeakPrivado) este definida.
+  setTimeout(revisarVencidos, 1500);
+  setInterval(revisarVencidos, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) revisarVencidos(); });
+  window._asagiRevisarVencidos = revisarVencidos;    // para pruebas
 })();
 renderMessages();
 refreshBrainStatus();
@@ -1063,6 +1102,20 @@ if ('serviceWorker' in navigator) {
     const aud = await audifonos();
     window.AsagiVoz.hablar(texto, { habilitado: c.enabled, sigilo: c.sigilo, audifonos: aud, lang: 'es-ES' });
   };
+
+  // Como asagiSpeak pero SIEMPRE discreta: suena solo con audifonos, aunque
+  // este puesta "voz alta". Para avisos que no deben oirse si hay gente cerca.
+  // Devuelve true si llego a sonar.
+  window.asagiSpeakPrivado = async function (texto) {
+    if (!window.AsagiVoz) return false;
+    const c = cfg();
+    if (!c.enabled) return false;
+    if (!(await audifonos())) return false;          // sin audifonos -> callada
+    window.AsagiVoz.hablar(texto, { habilitado: true, sigilo: true, audifonos: true, lang: 'es-ES' });
+    return true;
+  };
+  // Para que otros modulos consulten si pueden sonar en privado.
+  window.asagiAudifonos = audifonos;
 
   const elEstado = document.getElementById('voz-estado');
   const elSigilo = document.getElementById('voz-sigilo');

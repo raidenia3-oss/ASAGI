@@ -1029,3 +1029,20 @@ button { cursor: pointer; }
 .launcher-app:nth-child(12) { animation-delay: .46s; }
 @keyframes fx-in { from { opacity: 0; transform: translateY(14px) scale(.96); }
   to { opacity: 1; transform: none; } }
+
+/* ===== Aviso de pendiente vencido (discreto) ===== */
+.aviso {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  z-index: 10000; max-width: min(92vw, 420px);
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: 14px;
+  border: 1px solid var(--cyan);
+  background: rgba(8, 20, 32, .97);
+  box-shadow: 0 10px 30px rgba(0,0,0,.5), 0 0 18px rgba(56,189,248,.25);
+  animation: aviso-entra .25s ease-out;
+}
+@keyframes aviso-entra { from { opacity: 0; transform: translate(-50%, 12px); } }
+.aviso-txt { flex: 1 1 auto; color: var(--text); font-size: 14px; }
+.aviso-modo { flex: 0 0 auto; font-size: 11px; color: var(--muted); }
+.aviso-x { flex: 0 0 auto; border: none; background: transparent; color: var(--muted);
+  font-size: 15px; cursor: pointer; padding: 2px 4px; }

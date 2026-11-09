@@ -152,7 +152,7 @@ function agregar(lista, texto, ahora) {
 function alternar(lista, id) {
   return (lista || []).map(function (x) {
     return x.id === id
-      ? { id: x.id, texto: x.texto, hecho: !x.hecho, creado: x.creado, cuando: x.cuando || null, etiqueta: x.etiqueta || '' }
+      ? { id: x.id, texto: x.texto, hecho: !x.hecho, creado: x.creado, cuando: x.cuando || null, etiqueta: x.etiqueta || '', avisado: !!x.avisado }
       : x;
   });
 }
@@ -194,8 +194,25 @@ function deserializar(txt) {
   }).map(function (x) {
     return {
       id: x.id, texto: x.texto, hecho: !!x.hecho, creado: Number(x.creado) || Date.now(),
-      cuando: x.cuando ? Number(x.cuando) : null, etiqueta: x.etiqueta || ''
+      cuando: x.cuando ? Number(x.cuando) : null, etiqueta: x.etiqueta || '', avisado: !!x.avisado
     };
+  });
+}
+
+// Pendientes cuya hora ya llego, sin hacer y sin avisar todavia. PURO.
+function vencidos(lista, ahora) {
+  var t = (ahora instanceof Date) ? ahora.getTime() : (ahora || Date.now());
+  return (lista || []).filter(function (x) {
+    return !x.hecho && x.cuando && x.cuando <= t && !x.avisado;
+  });
+}
+
+// Marca uno como ya avisado (para no repetir el aviso). PURO.
+function marcarAvisado(lista, id) {
+  return (lista || []).map(function (x) {
+    if (x.id !== id) return x;
+    return { id: x.id, texto: x.texto, hecho: !!x.hecho, creado: x.creado,
+             cuando: x.cuando || null, etiqueta: x.etiqueta || '', avisado: true };
   });
 }
 
@@ -203,7 +220,8 @@ var API = {
   PREFIJOS: PREFIJOS, parsearEntrada: parsearEntrada, esPendiente: esPendiente,
   parsearTiempo: parsearTiempo, etiquetaCuando: etiquetaCuando, nuevo: nuevo, agregar: agregar,
   alternar: alternar, borrar: borrar, limpiarHechos: limpiarHechos, ordenar: ordenar,
-  contarPendientes: contarPendientes, serializar: serializar, deserializar: deserializar
+  contarPendientes: contarPendientes, vencidos: vencidos, marcarAvisado: marcarAvisado,
+  serializar: serializar, deserializar: deserializar
 };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiPendientes = API;

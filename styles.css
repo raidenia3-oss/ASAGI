@@ -893,3 +893,38 @@ button { cursor: pointer; }
   mix-blend-mode: screen; }
 [data-spot]:hover::after { opacity: 1; }
 [data-mag] { transition: transform .2s cubic-bezier(.2,.7,.3,1); will-change: transform; }
+
+/* ---------- Ripple al pulsar ---------- */
+.wall-chip, .wall-listo, .secondary { position: relative; overflow: hidden; }
+.fx-ripple { position: absolute; border-radius: 50%; background: rgba(125,255,176,.26);
+  transform: scale(0); animation: fx-rip .55s ease-out forwards; pointer-events: none; z-index: 2; }
+@keyframes fx-rip { to { transform: scale(3); opacity: 0; } }
+
+/* ---------- Switch pill (CRT) ---------- */
+.pill { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.pill input { display: none; }
+.pill-track { width: 46px; height: 26px; border-radius: 13px; position: relative; flex-shrink: 0;
+  background: rgba(56,189,248,.10); border: 1px solid var(--line);
+  transition: background .25s, border-color .25s; }
+.pill-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: #64748b; transition: transform .25s cubic-bezier(.2,.7,.3,1), background .25s; }
+.pill input:checked + .pill-track { background: rgba(56,189,248,.35); border-color: var(--cyan); }
+.pill input:checked + .pill-track .pill-knob { transform: translateX(20px); background: var(--cyan); }
+.pill-label { font-size: .82rem; color: var(--text); }
+
+/* ---------- Entrada escalonada del launcher ---------- */
+.launcher-app { animation: fx-in .45s cubic-bezier(.2,.7,.3,1) backwards; }
+.launcher-app:nth-child(1) { animation-delay: .02s; }
+.launcher-app:nth-child(2) { animation-delay: .06s; }
+.launcher-app:nth-child(3) { animation-delay: .10s; }
+.launcher-app:nth-child(4) { animation-delay: .14s; }
+.launcher-app:nth-child(5) { animation-delay: .18s; }
+.launcher-app:nth-child(6) { animation-delay: .22s; }
+.launcher-app:nth-child(7) { animation-delay: .26s; }
+.launcher-app:nth-child(8) { animation-delay: .30s; }
+.launcher-app:nth-child(9) { animation-delay: .34s; }
+.launcher-app:nth-child(10) { animation-delay: .38s; }
+.launcher-app:nth-child(11) { animation-delay: .42s; }
+.launcher-app:nth-child(12) { animation-delay: .46s; }
+@keyframes fx-in { from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to { opacity: 1; transform: none; } }

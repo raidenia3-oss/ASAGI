@@ -1964,15 +1964,15 @@ if ('serviceWorker' in navigator) {
 // --- Modo CRT global (scanlines + glow + viñeta). Idea de ascii-magic.com ---
 (function initCrt() {
   const ov = document.getElementById('crt-overlay');
-  const btn = document.getElementById('crt-toggle');
+  const box = document.getElementById('crt-toggle');
   if (!ov) return;
   function poner(on) {
     ov.classList.toggle('on', !!on);
     try { localStorage.setItem('asagi-crt', on ? '1' : '0'); } catch (e) {}
-    if (btn) btn.textContent = on ? 'Modo CRT: ON' : 'Modo CRT';
+    if (box) box.checked = !!on;
   }
   let on = false;
   try { on = localStorage.getItem('asagi-crt') === '1'; } catch (e) {}
   poner(on);
-  if (btn) btn.addEventListener('click', function () { poner(!ov.classList.contains('on')); });
+  if (box) box.addEventListener('change', function () { poner(box.checked); });
 })();

@@ -27,6 +27,7 @@ const files = [
   'retro.js',
   'ui-fx.js',
   'avatar.js',
+  'dictado.js',
   'app.js',
   'styles.css',
   'sw.js',

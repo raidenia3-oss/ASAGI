@@ -747,6 +747,35 @@ renderBrainControls();
     else if (av.estado !== 'pensando') lbl.textContent = NOM[av.estado] || NOM.reposo;
   }, 300);
 })();
+
+// --- Dictado por voz: hablarle a ASAGI y que se transcriba al chat ---
+(function initDictado() {
+  const mic = document.getElementById('mic-btn');
+  if (!mic || !window.AsagiDictado || !window.AsagiDictado.soportado()) return;
+  mic.hidden = false;                       // solo si el WebView lo soporta
+  let enviarTimer = null;
+  const dic = window.AsagiDictado.crearDictado({
+    lang: 'es-ES',
+    onParcial(texto) { input.value = texto; },
+    onFinal(texto) {
+      input.value = texto;
+      // Max automatización: al terminar la frase, envía solo tras una pausa breve.
+      clearTimeout(enviarTimer);
+      enviarTimer = setTimeout(function () {
+        if (input.value.trim()) {
+          if (typeof chatForm.requestSubmit === 'function') chatForm.requestSubmit();
+          else chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+      }, 700);
+    },
+    onEstado(e) {
+      mic.classList.toggle('escuchando', e === 'escuchando');
+      if (e === 'error') mic.classList.remove('escuchando');
+    },
+  });
+  if (!dic) { mic.hidden = true; return; }
+  mic.addEventListener('click', function () { dic.alternar(); });
+})();
 renderMessages();
 refreshBrainStatus();
 installHeaderPinning();

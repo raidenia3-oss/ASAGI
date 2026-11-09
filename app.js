@@ -701,6 +701,15 @@ chatForm.addEventListener('submit', (event) => {
   appendMessage('user', text);
   input.value = '';
 
+  // Intención de recordatorio: ASAGI lo anota él mismo y lo confirma hablando.
+  if (window.AsagiPendientes && window.AsagiPendientes.esPendiente(text) && window._asagiAddPendiente) {
+    const tarea = window._asagiAddPendiente(text);
+    if (tarea) {
+      appendMessage('bot', '📌 Anotado en tus pendientes: ' + tarea + '.');
+      return;
+    }
+  }
+
   showReplyStatus('generando…');
   if (window._asagiAvatarEstado) window._asagiAvatarEstado('pensando');
   Promise.resolve(startBotStreaming(text))
@@ -828,10 +837,13 @@ renderBrainControls();
   }
 
   function agregar(texto) {
-    const t = (texto || '').trim(); if (!t) return;
+    const t = (texto || '').trim(); if (!t) return '';
     lista = P.agregar(lista, t); guardar(); pintar();
     if (inp) inp.value = '';
+    return P.parsearEntrada(t);
   }
+  // Hook global: el asistente añade un pendiente y recibe el texto limpio.
+  window._asagiAddPendiente = function (texto) { return agregar(texto); };
 
   if (open) open.addEventListener('click', () => { setActiveSection('pendientes'); pintar(); });
   if (go) go.addEventListener('click', () => agregar(inp && inp.value));

@@ -18,20 +18,40 @@ function _norm(s) {
   return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
+// Si 'n' (normalizado) empieza con el prefijo p respetando frontera de palabra,
+// devuelve el índice donde termina el prefijo (para cortar el original); si no, -1.
+function _finPrefijo(n, p) {
+  if (n.indexOf(p) !== 0) return -1;
+  if (n.length === p.length) return p.length;        // prefijo solo, sin resto
+  var sig = n.charAt(p.length);
+  if (p.charAt(p.length - 1) === ':' || sig === ' ' || sig === ':' || sig === ',') return p.length;
+  return -1;                                          // "recuerda" dentro de "recuerdame" -> no
+}
+
 // Quita un prefijo de intencion ("recuerdame ...", "anota ...") si lo hay. PURO.
 function parsearEntrada(texto) {
   var t = String(texto || '').trim();
   if (!t) return '';
   var n = _norm(t);
   for (var i = 0; i < PREFIJOS.length; i++) {
-    var p = PREFIJOS[i];
-    if (n.indexOf(p) === 0) {
-      var resto = t.slice(p.length);
-      resto = resto.replace(/^[\s:,]+/, '');          // limpia ": " o ", "
+    var fin = _finPrefijo(n, PREFIJOS[i]);
+    if (fin >= 0) {
+      var resto = t.slice(fin).replace(/^[\s:,]+/, '');
       if (resto.trim()) return resto.trim();
     }
   }
   return t;
+}
+
+// ¿El texto empieza con una intención de recordatorio? PURO.
+function esPendiente(texto) {
+  var n = _norm(String(texto || '').trim());
+  if (!n) return false;
+  for (var i = 0; i < PREFIJOS.length; i++) {
+    var fin = _finPrefijo(n, PREFIJOS[i]);
+    if (fin >= 0 && n.slice(fin).replace(/^[\s:,]+/, '')) return true;
+  }
+  return false;
 }
 
 var _seq = 0;
@@ -96,7 +116,7 @@ function deserializar(txt) {
 }
 
 var API = {
-  PREFIJOS: PREFIJOS, parsearEntrada: parsearEntrada, nuevo: nuevo, agregar: agregar,
+  PREFIJOS: PREFIJOS, parsearEntrada: parsearEntrada, esPendiente: esPendiente, nuevo: nuevo, agregar: agregar,
   alternar: alternar, borrar: borrar, limpiarHechos: limpiarHechos, ordenar: ordenar,
   contarPendientes: contarPendientes, serializar: serializar, deserializar: deserializar
 };

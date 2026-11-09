@@ -29,6 +29,7 @@ const files = [
   'avatar.js',
   'dictado.js',
   'pendientes.js',
+  'notificar.js',
   'app.js',
   'styles.css',
   'sw.js',

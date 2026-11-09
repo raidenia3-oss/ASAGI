@@ -802,7 +802,12 @@ renderBrainControls();
   let lista = [];
 
   function cargar() { try { lista = P.deserializar(localStorage.getItem(CLAVE)); } catch (e) { lista = []; } }
-  function guardar() { try { localStorage.setItem(CLAVE, P.serializar(lista)); } catch (e) {} }
+  function guardar() {
+    try { localStorage.setItem(CLAVE, P.serializar(lista)); } catch (e) {}
+    // Notificaciones nativas: avisan aunque la app este cerrada. Sin plugin
+    // (navegador) no hace nada y queda el aviso dentro de la app.
+    try { if (window.AsagiNotificar) window.AsagiNotificar.sincronizar(lista); } catch (e) {}
+  }
 
   function pintarContador() {
     if (!countEl) return;
@@ -906,6 +911,7 @@ renderBrainControls();
   }
 
   cargar(); pintar();
+  try { if (window.AsagiNotificar) window.AsagiNotificar.sincronizar(lista); } catch (e) {}
 
   // El primer chequeo espera a que la voz (asagiSpeakPrivado) este definida.
   setTimeout(revisarVencidos, 1500);

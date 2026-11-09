@@ -883,3 +883,13 @@ button { cursor: pointer; }
   color: #7dffb0; font: 8px/1 'Courier New', monospace; letter-spacing: 0;
   white-space: pre; overflow-x: auto; text-shadow: 0 0 6px rgba(125,255,176,.45); }
 .wall-chip.on { border-color: var(--cyan, #38bdf8); color: var(--cyan, #38bdf8); }
+
+/* ---------- Micro-interacciones (ui-fx.js): spotlight + magnetico ---------- */
+[data-spot] { position: relative; }
+[data-spot]::after { content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(90,255,190,.10), rgba(56,189,248,.05) 40%, transparent 62%);
+  pointer-events: none; opacity: 0; transition: opacity .25s ease;
+  mix-blend-mode: screen; }
+[data-spot]:hover::after { opacity: 1; }
+[data-mag] { transition: transform .2s cubic-bezier(.2,.7,.3,1); will-change: transform; }

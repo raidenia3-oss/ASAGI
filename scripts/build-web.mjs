@@ -26,6 +26,7 @@ const files = [
   'recon.js',
   'retro.js',
   'ui-fx.js',
+  'avatar.js',
   'app.js',
   'styles.css',
   'sw.js',

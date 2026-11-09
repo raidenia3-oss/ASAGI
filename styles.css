@@ -116,6 +116,28 @@ button { cursor: pointer; }
   text-shadow: 0 0 22px rgba(56, 189, 248, 0.25);
 }
 
+/* ===== Avatar vivo del asistente ===== */
+.avatar-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 42px 0 10px;   /* deja sitio al boton de volver (⌄) arriba */
+}
+#avatar-cv {
+  width: 132px;
+  height: 132px;
+  display: block;
+}
+.avatar-estado {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  opacity: .72;
+}
+
 .panel-header {
   flex: 0 0 auto;
   display: flex;

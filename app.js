@@ -702,6 +702,7 @@ chatForm.addEventListener('submit', (event) => {
   input.value = '';
 
   showReplyStatus('generando…');
+  if (window._asagiAvatarEstado) window._asagiAvatarEstado('pensando');
   Promise.resolve(startBotStreaming(text))
     .catch((error) => {
       const reason = error && error.message ? error.message : String(error);
@@ -710,6 +711,7 @@ chatForm.addEventListener('submit', (event) => {
     })
     .finally(() => {
       showReplyStatus(null);
+      if (window._asagiAvatarEstado) window._asagiAvatarEstado('reposo');
     });
 });
 
@@ -722,6 +724,29 @@ resetButton.addEventListener('click', () => {
 ensureWelcomeMessage();
 setActiveSection('launcher');            // siempre arranca en la casa
 renderBrainControls();
+
+// --- Avatar vivo del asistente: respira, piensa y mueve la boca al hablar ---
+(function initAvatar() {
+  if (!window.AsagiAvatar) return;
+  const cv = document.getElementById('avatar-cv');
+  const lbl = document.getElementById('avatar-estado');
+  if (!cv) return;
+  const NOM = { reposo: 'en reposo', pensando: 'pensando…', hablando: 'hablando' };
+  let av = null;
+  try { av = window.AsagiAvatar.crearAvatar(cv); } catch (e) { return; }
+  window._asagiAvatar = av;
+  window._asagiAvatarEstado = function (e) {
+    try { av.setEstado(e); if (lbl) lbl.textContent = NOM[e] || e; } catch (_) {}
+  };
+  // Refleja el habla real (speechSynthesis) en la etiqueta, sin forzar estado.
+  setInterval(function () {
+    if (!lbl) return;
+    let hablando = false;
+    try { hablando = !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch (_) {}
+    if (hablando) lbl.textContent = NOM.hablando;
+    else if (av.estado !== 'pensando') lbl.textContent = NOM[av.estado] || NOM.reposo;
+  }, 300);
+})();
 renderMessages();
 refreshBrainStatus();
 installHeaderPinning();

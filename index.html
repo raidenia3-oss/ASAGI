@@ -28,6 +28,10 @@
       <main class="main-panel">
         <section id="assistant" class="panel overlay from-bottom" data-panel="assistant">
           <button class="ov-back" type="button" data-close aria-label="Volver al inicio">⌄</button>
+          <div id="avatar-wrap" class="avatar-wrap">
+            <canvas id="avatar-cv" aria-hidden="true"></canvas>
+            <span id="avatar-estado" class="avatar-estado">en reposo</span>
+          </div>
           <header class="panel-header">
             <div class="panel-header-text">
               <p class="eyebrow">ASAGI · ambiental</p>
@@ -340,6 +344,7 @@
     <script src="recon.js"></script>
     <script src="retro.js"></script>
     <script src="ui-fx.js"></script>
+    <script src="avatar.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

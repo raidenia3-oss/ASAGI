@@ -215,6 +215,48 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /**
+     * Dice QUE salida de audio esta activa (earbuds, auto, altavoz...) y su
+     * nombre. Sirve para que ASAGI sepa si puede hablar y con que tono.
+     * Usa solo AudioManager: NO necesita permisos de Bluetooth ni ubicacion.
+     */
+    @PluginMethod
+    public void audioOutput(PluginCall call) {
+        String tipo = "altavoz";
+        String nombre = "";
+        boolean privado = false;
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        if (am != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            AudioDeviceInfo[] devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+            for (AudioDeviceInfo d : devices) {
+                int t = d.getType();
+                String cand = null;
+                if (t == AudioDeviceInfo.TYPE_WIRED_HEADSET
+                        || t == AudioDeviceInfo.TYPE_WIRED_HEADPHONES
+                        || t == AudioDeviceInfo.TYPE_USB_HEADSET) {
+                    cand = "audifonos";
+                } else if (t == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
+                        || t == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                    cand = "bluetooth";
+                }
+                if (cand != null) {
+                    tipo = cand;
+                    privado = true;
+                    try {
+                        CharSequence pn = d.getProductName();
+                        if (pn != null) nombre = pn.toString();
+                    } catch (Throwable ignored) { }
+                    break;   // el primero privado manda
+                }
+            }
+        }
+        JSObject r = new JSObject();
+        r.put("tipo", tipo);        // audifonos | bluetooth | altavoz
+        r.put("nombre", nombre);    // p.ej. "WH-1000XM4" o el nombre del auto
+        r.put("privado", privado);  // true = solo lo oyes tu
+        call.resolve(r);
+    }
+
     /** Abre los ajustes para elegir la app de inicio (home/launcher). */
     @PluginMethod
     public void openHomeSettings(PluginCall call) {

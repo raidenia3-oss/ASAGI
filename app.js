@@ -886,15 +886,16 @@ renderBrainControls();
   const avisoX = document.getElementById('aviso-x');
   let avisoTimer = null;
 
-  function mostrarAviso(texto, sono) {
+  function mostrarAviso(texto, sono, icono) {
     if (!aviso || !avisoTxt) return;
-    avisoTxt.textContent = '⏰ ' + texto;
+    avisoTxt.textContent = (icono || '⏰') + ' ' + texto;
     if (avisoModo) avisoModo.textContent = sono ? '🎧' : 'en silencio';
     aviso.hidden = false;
     clearTimeout(avisoTimer);
     avisoTimer = setTimeout(() => { aviso.hidden = true; }, 12000);
   }
   if (avisoX) avisoX.addEventListener('click', () => { aviso.hidden = true; clearTimeout(avisoTimer); });
+  window._asagiAviso = mostrarAviso;      // lo usa la guardia de audifonos
 
   async function revisarVencidos() {
     const due = P.vencidos(lista, Date.now());
@@ -1107,7 +1108,26 @@ if ('serviceWorker' in navigator) {
     if (!c.enabled) return;
     const aud = await audifonos();
     window.AsagiVoz.hablar(texto, { habilitado: c.enabled, sigilo: c.sigilo, audifonos: aud, lang: 'es-ES' });
+    if (c.sigilo && aud) vigilarAudifonos();         // sonó porque hay audifonos: vigílalos
   };
+
+  // Si te quitas los audifonos mientras ASAGI habla, el audio saltaria al
+  // altavoz y te delataria. Esta guardia corta la voz al instante.
+  let _guardia = null;
+  function vigilarAudifonos() {
+    clearInterval(_guardia);
+    _guardia = setInterval(async () => {
+      let hablando = false;
+      try { hablando = !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch (e) {}
+      if (!hablando) { clearInterval(_guardia); _guardia = null; return; }
+      if (!(await audifonos())) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+        clearInterval(_guardia); _guardia = null;
+        if (window._asagiAviso) window._asagiAviso('Corté la voz: te quitaste los audífonos.', false, '🔇');
+      }
+    }, 400);
+  }
+  window._asagiVigilarAudifonos = vigilarAudifonos;   // para pruebas
 
   // Como asagiSpeak pero SIEMPRE discreta: suena solo con audifonos, aunque
   // este puesta "voz alta". Para avisos que no deben oirse si hay gente cerca.
@@ -1118,10 +1138,22 @@ if ('serviceWorker' in navigator) {
     if (!c.enabled) return false;
     if (!(await audifonos())) return false;          // sin audifonos -> callada
     window.AsagiVoz.hablar(texto, { habilitado: true, sigilo: true, audifonos: true, lang: 'es-ES' });
+    vigilarAudifonos();                               // siempre: solo suena en privado
     return true;
   };
   // Para que otros modulos consulten si pueden sonar en privado.
   window.asagiAudifonos = audifonos;
+
+  // Que salida de audio esta activa y si es privada. Usa el nativo (que da
+  // tambien el NOMBRE del aparato: earbuds, el auto, etc.); si no, deduce.
+  window.asagiSalidaAudio = async function () {
+    const p = C();
+    if (p && p.audioOutput) {
+      try { return await p.audioOutput(); } catch (e) {}
+    }
+    const aud = await audifonos();
+    return { tipo: aud ? 'audifonos' : 'altavoz', nombre: '', privado: aud };
+  };
 
   const elEstado = document.getElementById('voz-estado');
   const elSigilo = document.getElementById('voz-sigilo');
@@ -1131,10 +1163,11 @@ if ('serviceWorker' in navigator) {
     if (!elEstado) return;
     const c = cfg();
     if (!c.enabled) { elEstado.textContent = 'Voz: desactivada (toca "Voz: sigilo" para activar)'; return; }
-    const aud = await audifonos();
+    const sal = await window.asagiSalidaAudio();
+    const quien = sal.nombre ? ' (' + sal.nombre + ')' : '';
     elEstado.textContent = 'Voz: ' + (c.sigilo
-      ? (aud ? 'sigilo · hablo por audífono ✓' : 'sigilo · sin audífonos, solo texto')
-      : 'en voz alta');
+      ? (sal.privado ? 'sigilo · hablo por audífono ✓' + quien : 'sigilo · sin audífonos, solo texto')
+      : 'en voz alta' + (sal.privado ? ' · pero hay audífonos' + quien : ' · ⚠ por el altavoz'));
   }
 
   if (elSigilo) elSigilo.addEventListener('click', () => {

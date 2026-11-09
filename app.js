@@ -1278,6 +1278,8 @@ if ('serviceWorker' in navigator) {
     if (!gcanvas || !gcanvas.getContext) return;
     const g = gcanvas.getContext('2d');
     let W = 1, H = 1, raf = null, tt = 0;
+    let convT = 0;                     // 0..1: convergencia de los bots al terminar
+    const easeOut = (x) => 1 - Math.pow(1 - x, 3);
     function size() {
       const r = gcanvas.getBoundingClientRect(); const dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = Math.max(1, r.width); H = Math.max(1, r.height);
@@ -1289,26 +1291,48 @@ if ('serviceWorker' in navigator) {
       const cx = W / 2, cy = H / 2;
       const ws = (estado && estado.workers) || [];
       const n = Math.max(ws.length, 1);
+      // convergencia: cuando todo está hecho, los bots se acercan al núcleo (idea Swarm Rebuild)
+      const hecho = !!(estado && estado.hecho) && ws.length > 0;
+      convT += ((hecho ? 1 : 0) - convT) * 0.06;
+      if (convT < 0.001) convT = 0;
+      const pull = easeOut(Math.min(1, convT)) * 0.5;          // hasta 50% hacia el centro
       // edges + pulsos
       ws.forEach((w, i) => {
         const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
-        const R = Math.min(W, H) * 0.36;
+        const R = Math.min(W, H) * 0.36 * (1 - pull);
         const bx = cx + Math.cos(ang) * R, by = cy + Math.sin(ang) * R;
-        g.strokeStyle = 'rgba(120,150,190,0.22)'; g.lineWidth = 1;
+        g.strokeStyle = 'rgba(120,150,190,' + (0.22 - pull * 0.12).toFixed(2) + ')'; g.lineWidth = 1;
         g.beginPath(); g.moveTo(cx, cy); g.lineTo(bx, by); g.stroke();
         if (w.estado === 'trabajando') {
           const fp = (tt * 0.6 + i * 0.3) % 1;                 // pulso viaja núcleo->bot
           const px = cx + (bx - cx) * fp, py = cy + (by - cy) * fp;
           g.fillStyle = w.color; g.beginPath(); g.arc(px, py, 2.4, 0, Math.PI * 2); g.fill();
         }
+        // anillo de progreso por agente (medidor en vivo, idea Swarm Rebuild)
+        const prog = Math.max(0, Math.min(100, w.progreso || 0)) / 100;
+        if (prog > 0 && w.estado !== 'listo') {
+          g.strokeStyle = w.color; g.globalAlpha = 0.9; g.lineWidth = 2;
+          g.beginPath(); g.arc(bx, by, 9, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2); g.stroke();
+          g.globalAlpha = 1; g.lineWidth = 1;
+        }
         // nodo bot
         const glow = w.estado === 'trabajando' ? (0.6 + 0.4 * Math.sin(tt * 4 + i)) : (w.estado === 'listo' ? 0.9 : 0.4);
         g.fillStyle = w.color; g.globalAlpha = glow;
         g.beginPath(); g.arc(bx, by, w.estado === 'listo' ? 6 : 5, 0, Math.PI * 2); g.fill();
         g.globalAlpha = 1;
+        if (w.estado === 'listo') {                            // tilde al terminar
+          g.strokeStyle = '#eaffea'; g.lineWidth = 1.6; g.beginPath();
+          g.moveTo(bx - 2.4, by); g.lineTo(bx - 0.6, by + 2); g.lineTo(bx + 2.6, by - 2.4); g.stroke(); g.lineWidth = 1;
+        }
         g.fillStyle = 'rgba(220,235,255,0.75)'; g.font = '8px monospace'; g.textAlign = 'center';
         g.fillText(w.nombre.slice(0, 7), bx, by + 15);
       });
+      // destello de completado: anillo que se expande una vez al converger
+      if (convT > 0.02 && convT < 0.6) {
+        const rr = easeOut(convT / 0.6) * Math.min(W, H) * 0.42;
+        g.strokeStyle = 'rgba(56,189,248,' + (0.5 * (1 - convT / 0.6)).toFixed(2) + ')';
+        g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1;
+      }
       // núcleo ASAGI
       const pulse = 0.7 + 0.3 * Math.sin(tt * 2);
       const grd = g.createRadialGradient(cx, cy, 0, cx, cy, 20);

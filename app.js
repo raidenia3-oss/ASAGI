@@ -1547,6 +1547,86 @@ if ('serviceWorker' in navigator) {
   document.querySelectorAll('.wf-fit [data-fit]').forEach((b) => b.addEventListener('click', () => { cfg.ajuste = b.dataset.fit; syncSliders(); aplicar(); guardar(); }));
   pintarFiltros();
 
+  // --- Retro: dithering y arte ASCII (idea de ascii-magic.com, motor retro.js) ---
+  const retroRow = document.getElementById('wf-retro');
+  const asciiBtn = document.getElementById('wf-ascii-btn');
+  const asciiOff = document.getElementById('wf-ascii-off');
+  const asciiBox = document.getElementById('wf-ascii');
+  const RETRO_NOM = { '': 'Original', gameboy: 'Game Boy', pico8: 'PICO-8', c64: 'C64', verde: 'Verde', ambar: 'Ámbar', bn: 'B/N' };
+  let retroPaleta = '';
+
+  function conOriginal(maxW) {
+    return new Promise(function (res, rej) {
+      const src = localStorage.getItem('asagi-foto-img');
+      if (!src) return rej(new Error('sin foto'));
+      const im = new Image();
+      im.onload = function () {
+        const r = Math.min(1, maxW / im.width);
+        const w = Math.max(1, Math.round(im.width * r)), h = Math.max(1, Math.round(im.height * r));
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0, w, h);
+        res({ cv: cv, cx: cx, w: w, h: h });
+      };
+      im.onerror = function () { rej(new Error('no carga')); };
+      im.src = src;
+    });
+  }
+
+  function pintarRetro() {
+    if (!retroRow) return;
+    retroRow.innerHTML = '';
+    ['', 'gameboy', 'pico8', 'c64', 'verde', 'ambar', 'bn'].forEach(function (k) {
+      const b = document.createElement('button');
+      b.className = 'wall-chip' + (k === retroPaleta ? ' on' : '');
+      b.type = 'button'; b.textContent = RETRO_NOM[k] || k;
+      b.addEventListener('click', function () { aplicarRetro(k); });
+      retroRow.appendChild(b);
+    });
+  }
+
+  async function aplicarRetro(paleta) {
+    retroPaleta = paleta;
+    pintarRetro();
+    try {
+      if (!paleta) {                                    // volver a la foto original
+        const src = localStorage.getItem('asagi-foto-img');
+        if (src) { img.onload = null; img.src = src; }
+        return;
+      }
+      if (!window.AsagiRetro) return;
+      const o = await conOriginal(420);
+      const d = o.cx.getImageData(0, 0, o.w, o.h);
+      window.AsagiRetro.ditherData(d.data, o.w, o.h, paleta);
+      o.cx.putImageData(d, 0, 0);
+      img.onload = null;
+      img.src = o.cv.toDataURL('image/png');
+    } catch (e) { /* sin foto cargada */ }
+  }
+
+  async function verAscii(on) {
+    if (!asciiBox) return;
+    if (!on) {
+      asciiBox.hidden = true;
+      if (asciiOff) asciiOff.hidden = true;
+      if (asciiBtn) asciiBtn.hidden = false;
+      return;
+    }
+    try {
+      const o = await conOriginal(300);
+      const d = o.cx.getImageData(0, 0, o.w, o.h);
+      asciiBox.textContent = window.AsagiRetro.asciiDeData(d.data, o.w, o.h, 96);
+    } catch (e) {
+      asciiBox.textContent = '(elige una foto primero)';
+    }
+    asciiBox.hidden = false;
+    if (asciiOff) asciiOff.hidden = false;
+    if (asciiBtn) asciiBtn.hidden = true;
+  }
+
+  if (asciiBtn) asciiBtn.addEventListener('click', function () { verAscii(true); });
+  if (asciiOff) asciiOff.addEventListener('click', function () { verAscii(false); });
+  pintarRetro();
+
   // --- B) Renderiza la foto EDITADA (encuadre + tono + tinte + viñeta) a un canvas ---
   function renderEditado(TW, TH) {
     const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
@@ -1879,4 +1959,20 @@ if ('serviceWorker' in navigator) {
       if (ov.classList.contains('open') && dir === cerrarDir) setActiveSection('launcher');
     }, { umbral: 80 });
   });
+})();
+
+// --- Modo CRT global (scanlines + glow + viñeta). Idea de ascii-magic.com ---
+(function initCrt() {
+  const ov = document.getElementById('crt-overlay');
+  const btn = document.getElementById('crt-toggle');
+  if (!ov) return;
+  function poner(on) {
+    ov.classList.toggle('on', !!on);
+    try { localStorage.setItem('asagi-crt', on ? '1' : '0'); } catch (e) {}
+    if (btn) btn.textContent = on ? 'Modo CRT: ON' : 'Modo CRT';
+  }
+  let on = false;
+  try { on = localStorage.getItem('asagi-crt') === '1'; } catch (e) {}
+  poner(on);
+  if (btn) btn.addEventListener('click', function () { poner(!ov.classList.contains('on')); });
 })();

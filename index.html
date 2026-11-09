@@ -175,6 +175,14 @@
                 <div class="wall-sheet-h">Filtros</div>
                 <div class="wall-row" id="wf-filtros"></div>
 
+                <div class="wall-sheet-h">Retro · dither</div>
+                <div class="wall-row" id="wf-retro"></div>
+                <div class="wall-row wf-acc">
+                  <button id="wf-ascii-btn" class="wall-chip" type="button"># Imagen → ASCII</button>
+                  <button id="wf-ascii-off" class="wall-chip" type="button" hidden>Ver foto</button>
+                </div>
+                <pre id="wf-ascii" class="wf-ascii" hidden></pre>
+
                 <div class="wall-sheet-h">Encuadre</div>
                 <div class="wf-fit wall-row">
                   <button data-fit="cover" class="wall-chip on" type="button">Cubrir</button>
@@ -227,6 +235,7 @@
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
               <button id="ads-dns" class="secondary" type="button" style="width:auto;">Bloquear anuncios (DNS)</button>
               <button id="voz-sigilo" class="secondary" type="button" style="width:auto;">Voz: sigilo</button>
+              <button id="crt-toggle" class="secondary" type="button" style="width:auto;">Modo CRT</button>
             </div>
             <small id="voz-estado" style="display:block;margin-top:10px;opacity:.8;">Voz: desactivada</small>
             <small style="display:block;margin-top:8px;opacity:.7;">
@@ -316,9 +325,16 @@
     <script src="palette.js"></script>
     <script src="conocimiento.js"></script>
     <script src="enjambre.js"></script>
+  <div id="crt-overlay" class="crt-overlay" aria-hidden="true">
+    <div class="crt-scan"></div>
+    <div class="crt-glow"></div>
+    <div class="crt-vig"></div>
+  </div>
+
     <script src="foto-ia.js"></script>
     <script src="monitor.js"></script>
     <script src="recon.js"></script>
+    <script src="retro.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

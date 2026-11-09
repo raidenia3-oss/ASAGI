@@ -854,3 +854,32 @@ button { cursor: pointer; }
 .recon-val { font: .76rem/1.5 var(--mono); color: #cfe3ff; word-break: break-all; }
 .recon-val.vacio { color: var(--muted); opacity: .7; }
 .recon-msg { font-size: .76rem; color: var(--muted); font-family: var(--mono); }
+
+/* ---------- Modo CRT (idea de ascii-magic.com) ---------- */
+.crt-overlay { position: fixed; inset: 0; z-index: 95; pointer-events: none;
+  opacity: 0; transition: opacity .18s ease; }
+.crt-overlay.on { opacity: 1; }
+.crt-scan { position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg,
+    rgba(190,255,220,.055) 0px, rgba(190,255,220,.055) 1px,
+    rgba(0,0,0,.30) 1px, rgba(0,0,0,.30) 2px,
+    rgba(0,0,0,0) 2px, rgba(0,0,0,0) 3px); }
+.crt-overlay::before { content: ''; position: absolute; inset: 0;
+  background: rgba(60,255,180,.045); mix-blend-mode: screen; }
+.crt-glow { position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(90,255,190,.11) 0%, rgba(90,255,190,0) 64%);
+  animation: crtFlick 4.2s infinite ease-in-out; }
+.crt-vig { position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(0,0,0,.70) 100%); }
+.crt-overlay::after { content: ''; position: absolute; inset: 0;
+  box-shadow: inset 0 0 0 1px rgba(56,189,248,.10), inset 0 0 42px rgba(0,255,190,.05); }
+@keyframes crtFlick {
+  0%, 100% { opacity: .85; } 47% { opacity: .68; } 52% { opacity: .95; } 73% { opacity: .8; }
+}
+
+/* ---------- Arte ASCII en el editor ---------- */
+.wf-ascii { margin: 8px 0 4px; padding: 8px; max-height: 260px; overflow: auto;
+  background: #010603; border: 1px solid rgba(120,255,150,.22); border-radius: 10px;
+  color: #7dffb0; font: 8px/1 'Courier New', monospace; letter-spacing: 0;
+  white-space: pre; overflow-x: auto; text-shadow: 0 0 6px rgba(125,255,176,.45); }
+.wall-chip.on { border-color: var(--cyan, #38bdf8); color: var(--cyan, #38bdf8); }

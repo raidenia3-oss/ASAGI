@@ -24,6 +24,7 @@ const files = [
   'foto-ia.js',
   'monitor.js',
   'recon.js',
+  'retro.js',
   'app.js',
   'styles.css',
   'sw.js',

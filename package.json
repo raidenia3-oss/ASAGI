@@ -9,7 +9,8 @@
   "scripts": {
     "build": "node scripts/build-web.mjs",
     "android:sync": "npm run build && npx cap sync android",
-    "android:open": "npx cap open android"
+    "android:open": "npx cap open android",
+    "test:retro": "node retro-test.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",

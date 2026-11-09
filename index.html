@@ -131,6 +131,7 @@
             <div id="launcher-chips" class="launcher-chips" aria-label="Estado"></div>
             <input id="launcher-search" class="launcher-search" type="text" placeholder="Busca una app, calcula o pregunta a ASAGI…" autocomplete="off">
             <button id="launcher-ask" class="launcher-ask" type="button" hidden>Preguntar a ASAGI</button>
+            <button id="pend-open" class="pend-chip" type="button">✓ Pendientes <span id="pend-count" class="pend-count" hidden>0</span></button>
           </div>
           <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
             <div class="launcher-sec">Más usadas</div>
@@ -286,6 +287,26 @@
           </div>
         </section>
 
+        <section id="pendientes" class="panel overlay from-bottom" data-panel="pendientes">
+          <button class="ov-back" type="button" data-close aria-label="Volver al inicio">⌄</button>
+          <header class="panel-header">
+            <div class="panel-header-text">
+              <p class="eyebrow">ASAGI · tu día</p>
+              <h2>Pendientes</h2>
+            </div>
+          </header>
+          <div class="pend-add">
+            <input id="pend-input" type="text" placeholder="Escribe o dicta: recuérdame…" autocomplete="off">
+            <button id="pend-mic" class="mic-btn" type="button" hidden aria-label="Dictar pendiente">🎤</button>
+            <button id="pend-go" type="button">Añadir</button>
+          </div>
+          <ul id="pend-list" class="pend-list"></ul>
+          <div id="pend-vacio" class="pend-vacio">Nada pendiente. Dile a ASAGI "recuérdame…" o escríbelo arriba.</div>
+          <div class="pend-foot">
+            <button id="pend-limpiar" class="secondary" type="button" style="width:auto;">Limpiar hechos</button>
+          </div>
+        </section>
+
         <section id="grok" class="panel overlay from-bottom" data-panel="grok">
           <button class="ov-back" type="button" data-close aria-label="Volver al inicio">⌄</button>
           <header class="panel-header">
@@ -347,6 +368,7 @@
     <script src="ui-fx.js"></script>
     <script src="avatar.js"></script>
     <script src="dictado.js"></script>
+    <script src="pendientes.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

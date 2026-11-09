@@ -776,6 +776,83 @@ renderBrainControls();
   if (!dic) { mic.hidden = true; return; }
   mic.addEventListener('click', function () { dic.alternar(); });
 })();
+
+// --- Pendientes: recordatorios locales (con captura por voz) ---
+(function initPendientes() {
+  const P = window.AsagiPendientes;
+  if (!P) return;
+  const open = document.getElementById('pend-open');
+  const countEl = document.getElementById('pend-count');
+  const listEl = document.getElementById('pend-list');
+  const vacio = document.getElementById('pend-vacio');
+  const inp = document.getElementById('pend-input');
+  const go = document.getElementById('pend-go');
+  const limpiar = document.getElementById('pend-limpiar');
+  const mic = document.getElementById('pend-mic');
+  const CLAVE = 'asagi-pendientes';
+  let lista = [];
+
+  function cargar() { try { lista = P.deserializar(localStorage.getItem(CLAVE)); } catch (e) { lista = []; } }
+  function guardar() { try { localStorage.setItem(CLAVE, P.serializar(lista)); } catch (e) {} }
+
+  function pintarContador() {
+    if (!countEl) return;
+    const n = P.contarPendientes(lista);
+    countEl.textContent = n; countEl.hidden = n === 0;
+  }
+
+  function pintar() {
+    if (listEl) {
+      listEl.innerHTML = '';
+      const ord = P.ordenar(lista);
+      for (const it of ord) listEl.appendChild(fila(it));
+    }
+    if (vacio) vacio.hidden = lista.length > 0;
+    pintarContador();
+  }
+
+  function fila(it) {
+    const li = document.createElement('li');
+    li.className = 'pend-item' + (it.hecho ? ' hecho' : '');
+    const chk = document.createElement('button');
+    chk.className = 'pend-check'; chk.type = 'button';
+    chk.textContent = it.hecho ? '✓' : ''; chk.setAttribute('aria-label', 'Marcar');
+    chk.addEventListener('click', () => { lista = P.alternar(lista, it.id); guardar(); pintar(); });
+    const txt = document.createElement('span');
+    txt.className = 'pend-txt'; txt.textContent = it.texto;
+    const del = document.createElement('button');
+    del.className = 'pend-del'; del.type = 'button'; del.textContent = '✕'; del.setAttribute('aria-label', 'Borrar');
+    del.addEventListener('click', () => { lista = P.borrar(lista, it.id); guardar(); pintar(); });
+    li.appendChild(chk); li.appendChild(txt); li.appendChild(del);
+    return li;
+  }
+
+  function agregar(texto) {
+    const t = (texto || '').trim(); if (!t) return;
+    lista = P.agregar(lista, t); guardar(); pintar();
+    if (inp) inp.value = '';
+  }
+
+  if (open) open.addEventListener('click', () => { setActiveSection('pendientes'); pintar(); });
+  if (go) go.addEventListener('click', () => agregar(inp && inp.value));
+  if (inp) inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); agregar(inp.value); } });
+  if (limpiar) limpiar.addEventListener('click', () => { lista = P.limpiarHechos(lista); guardar(); pintar(); });
+
+  // Dictado dentro del panel de pendientes (reusa AsagiDictado)
+  if (mic && window.AsagiDictado && window.AsagiDictado.soportado()) {
+    mic.hidden = false;
+    const dic = window.AsagiDictado.crearDictado({
+      lang: 'es-ES',
+      onParcial(txt) { if (inp) inp.value = txt; },
+      onFinal(txt) { agregar(txt); },
+      onEstado(e) { mic.classList.toggle('escuchando', e === 'escuchando'); },
+    });
+    if (dic) mic.addEventListener('click', () => dic.alternar());
+    else mic.hidden = true;
+  }
+
+  cargar(); pintar();
+})();
 renderMessages();
 refreshBrainStatus();
 installHeaderPinning();

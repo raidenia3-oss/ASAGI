@@ -28,6 +28,7 @@ const files = [
   'ui-fx.js',
   'avatar.js',
   'dictado.js',
+  'pendientes.js',
   'app.js',
   'styles.css',
   'sw.js',

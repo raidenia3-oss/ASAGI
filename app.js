@@ -1647,7 +1647,7 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia' };
+  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia', video: 'Video / GIF' };
 
   // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
   function pedirImagen() {
@@ -1678,6 +1678,25 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => inp.remove(), 60000);
   }
   window._asagiPedirImagen = pedirImagen;
+
+  // Video/GIF de la galería como fondo vivo. Se guarda en IndexedDB (no cabe en localStorage).
+  const IDB = { abrir() { return new Promise((ok, no) => { const r = indexedDB.open('asagi-wall', 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }); },
+    async poner(k, v) { const d = await this.abrir(); return new Promise((ok, no) => { const t = d.transaction('f', 'readwrite'); t.objectStore('f').put(v, k); t.oncomplete = ok; t.onerror = () => no(t.error); }); },
+    async leer(k) { const d = await this.abrir(); return new Promise((ok, no) => { const q = d.transaction('f').objectStore('f').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); } };
+  function ponerVideoBlob(b) { try { window._asagiWall.setVideo(URL.createObjectURL(b)); window._asagiWall.setModo('video'); localStorage.setItem('asagi-wall-modo', 'video'); } catch (e) {} pintar(); }
+  function pedirVideo() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'video/*,image/gif'; inp.style.display = 'none';
+    inp.addEventListener('change', async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      try { await IDB.poner('video', f); } catch (e) {}
+      ponerVideoBlob(f);
+    });
+    document.body.appendChild(inp); inp.click();
+    setTimeout(() => inp.remove(), 60000);
+  }
+  window._asagiPedirVideo = pedirVideo;
+  (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
   const SW = { cian: '#38bdf8', violeta: '#a78bfa', verde: '#2dd4bf', rosa: '#f472b6', ambar: '#fbbf24',
     auto: 'conic-gradient(from 0deg, #38bdf8, #a78bfa, #2dd4bf, #fbbf24, #f472b6, #38bdf8)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'constelacion', t: w ? w.getTema() : 'cian' }; }
@@ -1694,6 +1713,7 @@ if ('serviceWorker' in navigator) {
           else pedirImagen();                 // sin imagen aún -> pide una
           return;
         }
+        if (m === 'video') { pedirVideo(); return; }
         if (window._asagiWall) window._asagiWall.setModo(m);
         try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {}
         pintar();

@@ -17,3 +17,10 @@ Origen: capturas de Instagram del usuario. Nada de esto esta hecho en ARIA todav
    en el escritorio. ASAGI (celular) no puede usarlo.
 7. **SVG.js** (MIT, sin dependencias) — animar el avatar de ARIA en su interfaz Qt/web si se migra.
 8. Descartado: Live Wallpaper (era un anuncio), FreeVideo/Universal Modder (pesados, sin uso claro).
+
+## Añadido 10-nov (tarde)
+- Esquema ASK/FILL/BUILD/MARK/HOLD/LOG: ante una orden ambigua, preguntar o suponer a la vista y registrar rechazos.
+- DeskBuddy (STDP, red neuronal bio-inspirada que reacciona a la pantalla): idea de mascota reactiva para ARIA en PC.
+- Reanimate (skill MIT que clona animaciones desde video/GIF/Lottie a CSS/GSAP/Three): util para animar la UI/avatar.
+- Oficina virtual 3D de agentes y 67js (motor 3D controlado por agentes via MCP): visualizar el enjambre de ARIA.
+- Fondos animados tipo Wallpaper Engine: ya en ASAGI (modo Video/GIF); en ARIA PC seria un QVideoWidget de fondo.

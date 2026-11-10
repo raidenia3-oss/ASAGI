@@ -17,7 +17,7 @@ const TEMAS = {
   rosa:    [[244, 114, 182], [251, 113, 133], [240, 171, 252], [248, 113, 113]],
   ambar:   [[251, 191, 36], [249, 115, 22], [253, 224, 71], [248, 113, 113]],
 };
-const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen'];
+const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen', 'video'];
 // Caracteres para la lluvia ASCII (katakana + dígitos + símbolos), look Matrix.
 const MATRIX_CHARS = 'ｱｶｻﾀﾅﾊﾏﾔﾗ0123456789:.=*+-<>¦|çﾘｸﾂﾇﾍﾐ'.split('');
 
@@ -71,7 +71,7 @@ function crearWallpaper(canvas, opts) {
   opts = opts || {};
   if (!canvas || !canvas.getContext) {
     return { start: function () {}, stop: function () {}, resize: function () {},
-      setModo: function () {}, setTema: function () {}, getModo: function () { return 'constelacion'; }, getTema: function () { return 'cian'; } };
+      setModo: function () {}, setTema: function () {}, setVideo: function () {}, getModo: function () { return 'constelacion'; }, getTema: function () { return 'cian'; } };
   }
   const ctx = canvas.getContext('2d');
   let W = 1, H = 1, dpr = 1;
@@ -427,6 +427,35 @@ function crearWallpaper(canvas, opts) {
     }
   }
 
+  // ---- MODO video / GIF animado (estilo Wallpaper Engine) ----
+  let vidEl = null, vidLista = false;
+  function dibVideo() {
+    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    if (vidEl && vidLista && vidEl.videoWidth) {
+      const ir = vidEl.videoWidth / vidEl.videoHeight, cr = W / H;
+      let dw, dh; if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
+      const sinGiro = (Date.now() - ultimoTilt) > 2500;
+      const tx = sinGiro ? Math.sin(t * 0.3) * 0.6 : tilt.x, ty = sinGiro ? Math.cos(t * 0.25) * 0.4 : tilt.y;
+      try { ctx.drawImage(vidEl, (W - dw * 1.05) / 2 + tx * 8, (H - dh * 1.05) / 2 + ty * 8, dw * 1.05, dh * 1.05); } catch (e) {}
+      const v = ctx.createLinearGradient(0, 0, 0, H);
+      v.addColorStop(0, 'rgba(5,7,15,0.40)'); v.addColorStop(0.5, 'rgba(5,7,15,0.08)'); v.addColorStop(1, 'rgba(5,7,15,0.50)');
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    } else {
+      ctx.fillStyle = 'rgba(200,210,230,0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Elige un video o GIF en ✶', W / 2, H / 2);
+    }
+  }
+  function setVideo(src) {
+    if (vidEl) { try { vidEl.pause(); vidEl.removeAttribute('src'); vidEl.load(); } catch (e) {} }
+    vidEl = null; vidLista = false;
+    if (!src) return;
+    const v = document.createElement('video');
+    v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+    v.addEventListener('loadeddata', function () { vidEl = v; vidLista = true; try { v.play(); } catch (e) {} });
+    v.addEventListener('error', function () { vidEl = null; vidLista = false; });
+    try { v.src = src; v.load(); v.play && v.play().catch(function () {}); } catch (e) {}
+  }
+
   // ---- MODO matrix (lluvia ASCII verde, look hacker) ----
   function dibMatrix() {
     const fs = Math.max(12, Math.round(W / 34));     // tamaño de fuente segun ancho
@@ -461,6 +490,7 @@ function crearWallpaper(canvas, opts) {
     if (modo === 'matrix') return dibMatrix();
     if (modo === 'anime') return dibAnime();
     if (modo === 'imagen') return dibImagen();
+    if (modo === 'video') return dibVideo();
     return dibConstelacion();
   }
 
@@ -514,7 +544,7 @@ function crearWallpaper(canvas, opts) {
 
   return {
     start: start, stop: stop, resize: resize,
-    setModo: setModo, setTema: setTema, setImagen: setImagen,
+    setModo: setModo, setTema: setTema, setImagen: setImagen, setVideo: setVideo,
     getModo: function () { return modo; }, getTema: function () { return tema; },
   };
 }

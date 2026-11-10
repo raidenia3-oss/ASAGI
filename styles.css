@@ -1059,3 +1059,9 @@ button { cursor: pointer; }
 .enl-item .enl-meta { display: block; font-size: .68rem; color: var(--muted); margin-bottom: 2px; }
 .enl-codigo { padding: 10px; border-radius: 10px; border: 1px dashed var(--cyan); font-family: var(--mono);
   font-size: .72rem; word-break: break-all; user-select: all; -webkit-user-select: all; margin-bottom: 8px; }
+
+/* --- Arreglos de capturas del celular (10-nov) ---
+   Las hojas y avisos con [hidden] seguian ocupando espacio (display:flex les ganaba al
+   atributo): aplastaban la lista de apps y el aviso vacio tapaba el boton del chat. */
+.wall-sheet[hidden], .aviso[hidden], #learn-sheet[hidden] { display: none !important; }
+#launcher > .wall-sheet, #launcher > #learn-sheet { position: absolute !important; }

@@ -281,9 +281,13 @@ function describeBrain() {
     if (gk || ak) {
       return { detail: 'Local sin modelo · usando ' + (ak ? 'Atria' : 'Gemini'), alert: '' };
     }
+    const espera = dl && dl.estado === 'espera';
     return {
       detail: 'Local · modelo no descargado',
-      alert: 'El modelo local aún no está descargado (~400 MB). Pon tu key de Gemini/Atria para responder sin descargarlo, o descarga el modelo.'
+      descargar: !!window._asagiDescargarModelo,
+      alert: espera
+        ? 'Estás con datos móviles, así que no descargo solo el modelo (~400 MB). Con Wi-Fi arranca solo; si prefieres ya, toca el botón.'
+        : 'El modelo local aún no está descargado (~400 MB). Pon tu key de Gemini/Atria para responder sin descargarlo, o descárgalo.'
     };
   }
 
@@ -310,6 +314,19 @@ function refreshBrainStatus() {
   if (brainAlert) {
     brainAlert.textContent = info.alert;
     brainAlert.hidden = !info.alert;
+  }
+  const dlBtn = document.getElementById('brain-dl');
+  if (dlBtn) {
+    dlBtn.hidden = !info.descargar;
+    if (!dlBtn._ok) {
+      dlBtn._ok = true;
+      dlBtn.addEventListener('click', () => {
+        dlBtn.hidden = true;
+        window._asagiModelo = { estado: 'descargando', bytes: 0, total: 0, error: '' };
+        try { window._asagiDescargarModelo(); } catch (e) {}
+        refreshBrainStatus();
+      });
+    }
   }
 }
 
@@ -2496,6 +2513,7 @@ if ('serviceWorker' in navigator) {
       if (e.descargando) return;
       if (celular()) {            // no gasta tus datos moviles sin que lo pidas
         window._asagiModelo = { estado: 'espera', bytes: e.parcial, total: e.total, error: '' };
+        refrescar();
         return;
       }
       await plugin.descargarModelo();

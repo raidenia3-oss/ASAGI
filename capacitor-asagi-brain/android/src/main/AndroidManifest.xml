@@ -9,6 +9,7 @@
 
     <!-- WiFi y Bluetooth (herramientas de ASAGI). Ubicacion: Android la exige para ver redes. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />

@@ -84,6 +84,21 @@ public class AsagiAccessibilityService extends AccessibilityService {
         }
     }
 
+    /** Toca el primer elemento visible cuyo texto contiene 'texto' (o su padre clicable). */
+    public boolean tapTexto(String texto) {
+        if (texto == null || texto.trim().isEmpty()) return false;
+        AccessibilityNodeInfo root = getRootInActiveWindow();
+        if (root == null) return false;
+        java.util.List<AccessibilityNodeInfo> hallados = root.findAccessibilityNodeInfosByText(texto.trim());
+        if (hallados == null) return false;
+        for (AccessibilityNodeInfo n : hallados) {
+            AccessibilityNodeInfo c = n;
+            while (c != null && !c.isClickable()) c = c.getParent();
+            if (c != null && c.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return true;
+        }
+        return false;
+    }
+
     /** Toque en (x,y) de la pantalla. Requiere API 24+ (gestos). */
     public boolean tap(float x, float y) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {

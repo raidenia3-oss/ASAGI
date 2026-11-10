@@ -34,6 +34,10 @@ import android.os.Looper;
 import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import android.net.wifi.WifiNetworkSuggestion;
+import android.bluetooth.BluetoothProfile;
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -615,5 +619,181 @@ public class AsagiControlPlugin extends Plugin {
                 call.resolve(r);
             }
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Conectar como lo hacen los audifonos: recordar el aparato y reconectarlo
+    // ------------------------------------------------------------------
+
+    private BluetoothDevice buscarVinculado(BluetoothAdapter ad, String nombre, String mac) {
+        try {
+            String q = nombre == null ? "" : nombre.trim().toLowerCase();
+            for (BluetoothDevice d : ad.getBondedDevices()) {
+                String n = d.getName() == null ? "" : d.getName().toLowerCase();
+                if ((mac != null && !mac.isEmpty() && mac.equalsIgnoreCase(d.getAddress()))
+                        || (!q.isEmpty() && (n.equals(q) || n.contains(q) || q.contains(n) && !n.isEmpty()))) {
+                    return d;
+                }
+            }
+        } catch (Throwable ignored) { }
+        return null;
+    }
+
+    /** Intenta conectar los perfiles de audio por la via interna del sistema (no siempre permitida). */
+    private void conectarPerfiles(final BluetoothAdapter ad, final BluetoothDevice dev) {
+        final int[] perfiles = new int[]{BluetoothProfile.A2DP, BluetoothProfile.HEADSET};
+        for (final int perfil : perfiles) {
+            try {
+                ad.getProfileProxy(getContext(), new BluetoothProfile.ServiceListener() {
+                    @Override public void onServiceConnected(int profile, BluetoothProfile proxy) {
+                        try {
+                            Method m = proxy.getClass().getDeclaredMethod("connect", BluetoothDevice.class);
+                            m.setAccessible(true);
+                            m.invoke(proxy, dev);
+                        } catch (Throwable ignored) { }
+                        try { ad.closeProfileProxy(profile, proxy); } catch (Throwable ignored) { }
+                    }
+                    @Override public void onServiceDisconnected(int profile) { }
+                }, perfil);
+            } catch (Throwable ignored) { }
+        }
+    }
+
+    /**
+     * Conecta (o empareja) un aparato Bluetooth por nombre. Vinculado: reconecta como
+     * los audifonos; si el sistema no deja, abre Ajustes y lo toca por texto con la
+     * Accesibilidad. No vinculado: pide el emparejamiento al sistema (un toque en "Vincular").
+     */
+    @PluginMethod
+    public void bluetoothConectar(PluginCall call) {
+        final String nombre = call.getString("nombre", "");
+        final String mac = call.getString("mac", "");
+        Context ctx = getContext();
+        BluetoothManager bm = (BluetoothManager) ctx.getSystemService(Context.BLUETOOTH_SERVICE);
+        final BluetoothAdapter ad = bm == null ? null : bm.getAdapter();
+        JSObject r = new JSObject();
+        if (ad == null) { r.put("estado", "sinBluetooth"); call.resolve(r); return; }
+        if (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_CONNECT")) {
+            r.put("estado", "sinPermiso"); r.put("sinPermiso", true); call.resolve(r); return;
+        }
+        if (!ad.isEnabled()) {
+            // Encenderlo: el sistema lo pide con un dialogo de un toque.
+            try {
+                Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                ctx.startActivity(i);
+            } catch (Throwable ignored) { }
+            r.put("estado", "encendiendo"); call.resolve(r); return;
+        }
+        final BluetoothDevice dev = buscarVinculado(ad, nombre, mac);
+        if (dev == null) {
+            r.put("estado", "noVinculado");
+            r.put("detalle", "No está vinculado todavía. Buscando para emparejarlo…");
+            // Buscar y emparejar el primero que coincida (el sistema muestra "Vincular").
+            if (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_SCAN")) { call.resolve(r); return; }
+            final String q = nombre.trim().toLowerCase();
+            final AtomicBoolean hecho = new AtomicBoolean(false);
+            final BroadcastReceiver rec = new BroadcastReceiver() {
+                @Override public void onReceive(Context c, Intent i) {
+                    try {
+                        BluetoothDevice d = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                        String n = d == null || d.getName() == null ? "" : d.getName().toLowerCase();
+                        if (d != null && !q.isEmpty() && (n.contains(q) || q.contains(n) && !n.isEmpty()) && hecho.compareAndSet(false, true)) {
+                            ad.cancelDiscovery();
+                            d.createBond();
+                        }
+                    } catch (Throwable ignored) { }
+                }
+            };
+            try {
+                IntentFilter f = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                if (Build.VERSION.SDK_INT >= 33) ctx.registerReceiver(rec, f, Context.RECEIVER_EXPORTED);
+                else ctx.registerReceiver(rec, f);
+                ad.startDiscovery();
+            } catch (Throwable t) { call.resolve(r); return; }
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                try { ad.cancelDiscovery(); } catch (Throwable ignored) { }
+                try { ctx.unregisterReceiver(rec); } catch (Throwable ignored) { }
+                r.put("estado", hecho.get() ? "emparejando" : "noEncontrado");
+                call.resolve(r);
+            }, 9000);
+            return;
+        }
+        // Ya vinculado: reconectar.
+        conectarPerfiles(ad, dev);
+        final String nombreReal = dev.getName() == null ? nombre : dev.getName();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            boolean conectado = nombreReal != null && !nombreReal.isEmpty() && nombreReal.equals(audioBtActivo());
+            if (!conectado) {
+                // Plan B: Ajustes > Bluetooth y tocar el nombre con la Accesibilidad.
+                AsagiAccessibilityService svc = AsagiAccessibilityService.getInstance();
+                if (svc != null) {
+                    try {
+                        Intent i = new Intent(Settings.ACTION_BLUETOOTH_SETTINGS);
+                        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        ctx.startActivity(i);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            boolean ok = svc.tapTexto(nombreReal);
+                            JSObject o = new JSObject();
+                            o.put("estado", ok ? "tocadoEnAjustes" : "noPudeTocar");
+                            o.put("nombre", nombreReal);
+                            call.resolve(o);
+                        }, 1800);
+                        return;
+                    } catch (Throwable ignored) { }
+                }
+            }
+            JSObject o = new JSObject();
+            o.put("estado", conectado ? "conectado" : "intentado");
+            o.put("nombre", nombreReal);
+            o.put("sinAccesibilidad", AsagiAccessibilityService.getInstance() == null);
+            call.resolve(o);
+        }, 3500);
+    }
+
+    /**
+     * Guarda una red WiFi como sugerencia del sistema: Android la recuerda y se
+     * conecta sola cada vez que esta en rango, igual que un aparato vinculado.
+     * La primera vez el sistema pide aprobar las sugerencias de ASAGI (un toque).
+     */
+    @PluginMethod
+    public void wifiConectar(PluginCall call) {
+        final String ssid = call.getString("ssid", "");
+        final String clave = call.getString("clave", "");
+        JSObject r = new JSObject();
+        if (ssid == null || ssid.trim().isEmpty()) { call.reject("falta el nombre de la red"); return; }
+        WifiManager wm = (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wm == null) { r.put("estado", "sinWifi"); call.resolve(r); return; }
+        if (Build.VERSION.SDK_INT < 29) { r.put("estado", "androidViejo"); call.resolve(r); return; }
+        try {
+            WifiNetworkSuggestion.Builder b = new WifiNetworkSuggestion.Builder()
+                    .setSsid(ssid.trim()).setIsAppInteractionRequired(false);
+            if (clave != null && !clave.isEmpty()) b.setWpa2Passphrase(clave);
+            WifiNetworkSuggestion sug = b.build();
+            wm.removeNetworkSuggestions(Collections.singletonList(sug));
+            int st = wm.addNetworkSuggestions(Collections.singletonList(sug));
+            String estado;
+            switch (st) {
+                case WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS: estado = "guardada"; break;
+                case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_APP_DISALLOWED: estado = "faltaAprobar"; break;
+                case WifiManager.STATUS_NETWORK_SUGGESTIONS_ERROR_ADD_DUPLICATE: estado = "yaGuardada"; break;
+                default: estado = "error" + st;
+            }
+            r.put("estado", estado);
+            r.put("ssid", ssid.trim());
+        } catch (Throwable t) {
+            r.put("estado", "error");
+            r.put("detalle", t.getClass().getSimpleName());
+        }
+        call.resolve(r);
+    }
+
+    /** Toca un texto en la pantalla actual (Accesibilidad). */
+    @PluginMethod
+    public void tapTexto(PluginCall call) {
+        AsagiAccessibilityService s = AsagiAccessibilityService.getInstance();
+        JSObject r = new JSObject();
+        r.put("ok", s != null && s.tapTexto(call.getString("texto", "")));
+        call.resolve(r);
     }
 }

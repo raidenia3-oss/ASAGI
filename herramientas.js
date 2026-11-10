@@ -30,6 +30,13 @@ function parsear(texto) {
   var t = String(texto || '').trim();
   if (!t) return null;
   var n = _norm(t);
+  var mc = /^(?:con[eé]cta(?:te)?|con[eé]ctar|empareja(?:r)?|vincula(?:r)?)\s+(?:a(?:l)?\s+|el\s+)?(?:(?:el\s+)?(bluetooth|bt)|(wifi|wi-fi))\s+(?:a(?:l)?\s+|de(?:l)?\s+)?([\s\S]+)$/i.exec(t);
+  if (mc) {
+    var resto = mc[3].trim();
+    if (mc[1]) return { tipo: 'bt-conectar', arg: resto.replace(/^["“']|["”']$/g, '') };
+    var mw = /^(.+?)(?:\s+(?:clave|contrase(?:ñ|n)a|password|pass)\s*[:=]?\s*(\S[\s\S]*))?$/i.exec(resto);
+    return { tipo: 'wifi-conectar', arg: mw[1].trim().replace(/^["“']|["”']$/g, ''), clave: mw[2] ? mw[2].trim() : '' };
+  }
   var m = /^(termux|shell|ejecuta en termux)\s*[:\s]\s*([\s\S]+)$/i.exec(t);
   if (m && m[2].trim()) return { tipo: 'termux', arg: m[2].trim() };
   m = /^nix\s*[:\s]\s*([\s\S]+)$/i.exec(t);
@@ -104,6 +111,36 @@ function formatoBt(i) {
   return out.join('\n');
 }
 
+function formatoBtConectar(r, nombre) {
+  if (!r) return 'No pude hablar con el Bluetooth.';
+  if (r.sinPermiso) return 'Necesito el permiso de Bluetooth. Te lo pido ahora; acéptalo y repite la orden.';
+  var n = r.nombre || nombre;
+  switch (r.estado) {
+    case 'conectado': return '🔵 Conectado a ' + n + '.';
+    case 'tocadoEnAjustes': return '🔵 Le pedí a ' + n + ' que se conecte desde Ajustes. Dame unos segundos.';
+    case 'intentado': return '🔵 Intenté conectar ' + n + '. ' + (r.sinAccesibilidad ? 'Si no se conecta solo, activa la Accesibilidad de ASAGI y repite.' : 'Si no lo hace, ponlo en modo de vinculación.');
+    case 'noPudeTocar': return '🔵 Abrí Bluetooth pero no vi "' + n + '" en pantalla. ¿Está encendido y cerca?';
+    case 'emparejando': return '🔵 Lo encontré y pedí el emparejamiento: toca "Vincular" en el aviso del sistema.';
+    case 'noEncontrado': return '🔵 No encontré "' + n + '" cerca. Enciéndelo y ponlo en modo de vinculación.';
+    case 'noVinculado': return '🔵 "' + n + '" no está vinculado y no pude buscarlo (falta permiso de escaneo).';
+    case 'encendiendo': return '🔵 El Bluetooth estaba apagado: acepta el aviso para encenderlo y repite la orden.';
+    case 'sinBluetooth': return 'Este aparato no tiene Bluetooth.';
+    default: return '🔵 ' + (r.detalle || 'No pude conectar.');
+  }
+}
+
+function formatoWifiConectar(r, ssid) {
+  if (!r) return 'No pude hablar con el WiFi.';
+  switch (r.estado) {
+    case 'guardada': return '📶 Guardé "' + ssid + '": el celular se conectará solo cuando esté en rango, como un aparato vinculado.';
+    case 'yaGuardada': return '📶 "' + ssid + '" ya estaba guardada; se conecta sola cuando está cerca.';
+    case 'faltaAprobar': return '📶 Android pide aprobar las redes que sugiere ASAGI: toca "Permitir" en el aviso y repite la orden.';
+    case 'androidViejo': return '📶 Este Android es muy antiguo para guardar redes desde la app.';
+    case 'sinWifi': return 'Este aparato no tiene WiFi.';
+    default: return '📶 No pude guardar la red (' + (r.estado || 'error') + ').';
+  }
+}
+
 function formatoTermux(r) {
   if (!r) return 'Termux no respondió.';
   if (r.error) return '⚠ ' + r.error;
@@ -136,6 +173,16 @@ async function ejecutar(orden) {
       if (b && b.sinPermiso && p.pedirPermisosRadios) { try { p.pedirPermisosRadios(); } catch (e) {} }
       return formatoBt(b);
     }
+    if (orden.tipo === 'bt-conectar') {
+      var rc = await p.bluetoothConectar({ nombre: orden.arg });
+      if (rc && rc.sinPermiso && p.pedirPermisosRadios) { try { p.pedirPermisosRadios(); } catch (e) {} }
+      if (rc && (rc.estado === 'conectado' || rc.estado === 'tocadoEnAjustes' || rc.estado === 'intentado' || rc.estado === 'emparejando')) confiar(orden.arg);
+      return formatoBtConectar(rc, orden.arg);
+    }
+    if (orden.tipo === 'wifi-conectar') {
+      var rw = await p.wifiConectar({ ssid: orden.arg, clave: orden.clave || '' });
+      return formatoWifiConectar(rw, orden.arg);
+    }
     if (orden.tipo === 'termux' || orden.tipo === 'nix') {
       var cmd = orden.tipo === 'nix' ? comandoNix(orden.arg) : orden.arg;
       if (bloqueado(cmd)) return '⛔ Ese comando es demasiado destructivo; no lo ejecuto.';
@@ -149,7 +196,50 @@ async function ejecutar(orden) {
   return null;
 }
 
-var API = { parsear: parsear, bloqueado: bloqueado, comandoNix: comandoNix, formatoWifi: formatoWifi,
+// --- Aparatos de confianza: ASAGI los vuelve a conectar solo (como unos audifonos) ---
+var K_CONF = 'asagi-bt-confianza';
+function confiados() {
+  try { var a = JSON.parse(localStorage.getItem(K_CONF) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function confiar(nombre) {
+  var n = String(nombre || '').trim();
+  if (!n) return;
+  var l = confiados();
+  if (l.map(function (x) { return x.toLowerCase(); }).indexOf(n.toLowerCase()) < 0) {
+    l.push(n);
+    try { localStorage.setItem(K_CONF, JSON.stringify(l.slice(-8))); } catch (e) {}
+  }
+}
+// Pura: ¿cuales de los de confianza no estan conectados ahora? (info = resultado de bluetoothInfo)
+function porReconectar(lista, info) {
+  var vin = (info && info.vinculados) || [];
+  return (lista || []).filter(function (nombre) {
+    var q = String(nombre).toLowerCase();
+    var d = vin.filter(function (x) { var n = String(x.nombre || '').toLowerCase(); return n === q || (n && (n.indexOf(q) >= 0 || q.indexOf(n) >= 0)); })[0];
+    return d ? !d.conectado : false;
+  });
+}
+var _vigilando = false;
+function vigilar() {
+  if (_vigilando || typeof setInterval !== 'function') return;
+  _vigilando = true;
+  var ocupado = false;
+  setInterval(async function () {
+    if (ocupado || (typeof document !== 'undefined' && document.hidden)) return;
+    var lista = confiados(); if (!lista.length) return;
+    var p = _plugin(); if (!p) return;
+    ocupado = true;
+    try {
+      var info = await p.bluetoothInfo({});
+      if (!info || info.sinPermiso || !info.habilitado) return;
+      var falta = porReconectar(lista, info);
+      if (falta.length) await p.bluetoothConectar({ nombre: falta[0] });
+    } catch (e) {} finally { ocupado = false; }
+  }, 90000);
+}
+if (typeof window !== 'undefined') setTimeout(vigilar, 5000);
+
+var API = { porReconectar: porReconectar, confiados: confiados, formatoBtConectar: formatoBtConectar, formatoWifiConectar: formatoWifiConectar, parsear: parsear, bloqueado: bloqueado, comandoNix: comandoNix, formatoWifi: formatoWifi,
             formatoBt: formatoBt, formatoTermux: formatoTermux, ejecutar: ejecutar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiHerr = API;

@@ -719,6 +719,14 @@ chatForm.addEventListener('submit', (event) => {
   // Herramientas del celular: wifi, bluetooth, termux:, nix: (solo por orden escrita aqui).
   const herr = window.AsagiHerr && window.AsagiHerr.parsear(text);
   if (herr) {
+    if (herr.tipo === 'wifi-conectar' && herr.clave) {          // la clave no se queda en el historial
+      try {
+        const ult = state.messages[state.messages.length - 1];
+        if (ult && ult.sender === 'user' && typeof ult.text === 'string') {
+          ult.text = ult.text.split(herr.clave).join('••••'); saveState(); renderMessages();
+        }
+      } catch (e) {}
+    }
     appendMessage('bot', herr.tipo === 'termux' || herr.tipo === 'nix' ? '⚙ Ejecutando…' : '🔎 Mirando…');
     window.AsagiHerr.ejecutar(herr).then((t) => { if (t) appendMessage('bot', t); });
     return;
@@ -2463,18 +2471,28 @@ if ('serviceWorker' in navigator) {
     if (!ev) return;
     window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '' };
     refrescar();
+    if (ev.estado === 'listo') cargarMotor();
     if (ev.estado === 'listo' && !avisado) {
       avisado = true;
       if (window._asagiAviso) window._asagiAviso('Modelo local descargado: ASAGI ya funciona sin internet', false, '🧠');
     }
   });
+  let cargado = false;
+  function cargarMotor() {            // precarga el motor para que el primer mensaje no espere
+    if (cargado || typeof plugin.load !== 'function') return;
+    cargado = true;
+    Promise.resolve(plugin.load()).then(refrescar).catch(() => { cargado = false; });
+  }
   function celular() {
     try { const c = navigator.connection; return !!(c && (c.type === 'cellular' || c.saveData)); } catch (e) { return false; }
   }
   async function revisar() {
     try {
       const e = await plugin.estadoModelo();
-      if (e.listo) { window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' }; refrescar(); return; }
+      if (e.listo) {
+        window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' };
+        cargarMotor(); refrescar(); return;
+      }
       if (e.descargando) return;
       if (celular()) {            // no gasta tus datos moviles sin que lo pidas
         window._asagiModelo = { estado: 'espera', bytes: e.parcial, total: e.total, error: '' };
@@ -2507,6 +2525,18 @@ if ('serviceWorker' in navigator) {
     catch (e) { inSetup.select(); try { document.execCommand('copy'); bCop.textContent = 'Copiado ✓'; } catch (e2) {} }
     setTimeout(() => { bCop.textContent = 'Copiar'; }, 1800);
   });
+
+  // Primer arranque: pide TODOS los permisos de golpe, sin que haya que tocar nada en ASAGI.
+  try {
+    if (!localStorage.getItem('asagi-permisos-v1')) {
+      setTimeout(() => {
+        const p = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+        if (p && p.pedirPermisosRadios) {
+          p.pedirPermisosRadios().then(() => { try { localStorage.setItem('asagi-permisos-v1', '1'); } catch (e) {} }).catch(() => {});
+        }
+      }, 9000);
+    }
+  } catch (e) {}
 
   // Respuesta de texto SIN tocar el chat (para Discord): mismo router que el asistente.
   window._asagiResponderTexto = async function (prompt) {

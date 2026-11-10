@@ -6,6 +6,7 @@ const files = [
   'asagi-browser.js',
   'asagi-apps.js',
   'sync-memoria.js',
+  'enlace.js',
   'personalidad.js',
   'razonamiento.js',
   'noticias.js',

@@ -19,8 +19,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -92,9 +95,16 @@ public class AsagiBrainPlugin extends Plugin {
     private static final int NOTIFICATION_ID_DOWNLOAD = 7201;
     private static final String KEY_TEXT = "text";
 
+    // Enlaces por cable USB (adb-carpeta): buzones en almacenamiento privado de la app.
+    private static final String ENLACE_DIR = "/sdcard/Android/data/com.asagi.brain/files/enlace";
+    private static final String ENLACE_INBOX = ENLACE_DIR + "/inbox.json";
+    private static final String ENLACE_OUTBOX = ENLACE_DIR + "/outbox.json";
+    private static final long ENLACE_POLL_MS = 10000;
+
     // Último error legible del motor ("" si todo fue bien). Lo consume la app web.
     private volatile String lastError = "";
     private static volatile AsagiBrainPlugin instance;
+    private volatile boolean enlacePollRunning = false;
 
     public AsagiBrainPlugin() {
         super();
@@ -107,6 +117,7 @@ public class AsagiBrainPlugin extends Plugin {
         modelDirectory = new File(appContext.getFilesDir(), "models");
         modelFile = new File(modelDirectory, MODEL_FILENAME);
         downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME);
+        iniciarEnlacePoller();
     }
 
     private File resolveModelDirectory() {
@@ -621,6 +632,96 @@ public class AsagiBrainPlugin extends Plugin {
             data.put(KEY_LOADED, false);
             uiHandler.post(() -> reply.resolve(data));
         });
+    }
+
+    // ---------------------------- Enlace por adb (carpeta USB) ----------------------------
+
+    private void iniciarEnlacePoller() {
+        if (enlacePollRunning) return;
+        enlacePollRunning = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (enlacePollRunning) {
+                    try {
+                        Thread.sleep(ENLACE_POLL_MS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                    try {
+                        leerEnlaceYNotificar();
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        }, "asagi-enlace-poller").start();
+    }
+
+    private void leerEnlaceYNotificar() {
+        File f = new File(ENLACE_INBOX);
+        if (!f.exists()) return;
+        try (BufferedReader r = new BufferedReader(new FileReader(f))) {
+            StringBuilder sb = new StringBuilder();
+            String linea;
+            while ((linea = r.readLine()) != null) sb.append(linea);
+            JSONObject doc = new JSONObject(sb.toString());
+            JSONArray msgs = doc.optJSONArray("msgs");
+            if (msgs == null || msgs.length() == 0) return;
+            JSObject data = new JSObject();
+            data.put("msgs", msgs);
+            final AsagiBrainPlugin plugin = instance;
+            if (plugin != null && plugin.hasListeners("enlace-nuevos")) {
+                plugin.uiHandler.post(() -> plugin.notifyListeners("enlace-nuevos", data, true));
+            }
+            // Marcar como leido: borrar inbox despues de notificar
+            new File(ENLACE_INBOX).delete();
+        } catch (Exception ignored) {
+        }
+    }
+
+    @PluginMethod
+    public void enlaceLeer(PluginCall call) {
+        File f = new File(ENLACE_INBOX);
+        JSObject data = new JSObject();
+        if (!f.exists()) {
+            data.put("msgs", new JSONArray());
+            call.resolve(data);
+            return;
+        }
+        try (BufferedReader r = new BufferedReader(new FileReader(f))) {
+            StringBuilder sb = new StringBuilder();
+            String linea;
+            while ((linea = r.readLine()) != null) sb.append(linea);
+            JSONObject doc = new JSONObject(sb.toString());
+            data.put("msgs", doc.optJSONArray("msgs"));
+        } catch (Exception e) {
+            data.put("msgs", new JSONArray());
+            data.put("error", "no pude leer inbox");
+        }
+        call.resolve(data);
+    }
+
+    @PluginMethod
+    public void enlaceEscribir(PluginCall call) {
+        JSONArray msgs = call.getArray("msgs");
+        if (msgs == null) msgs = new JSONArray();
+        File dir = new File(ENLACE_DIR);
+        if (!dir.exists()) dir.mkdirs();
+        try (FileWriter w = new FileWriter(ENLACE_OUTBOX)) {
+            JSONObject doc = new JSONObject();
+            doc.put("msgs", msgs);
+            doc.put("ts", System.currentTimeMillis());
+            w.write(doc.toString());
+        } catch (IOException e) {
+            JSObject err = new JSObject();
+            err.put("error", "no pude escribir outbox");
+            call.resolve(err);
+            return;
+        }
+        JSObject data = new JSObject();
+        data.put("ok", true);
+        call.resolve(data);
     }
 
     @PluginMethod

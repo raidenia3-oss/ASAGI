@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v30';
+const CACHE_NAME = 'asagi-pwa-v31';
 const APP_SHELL = [
   './',
   './index.html',
@@ -30,6 +30,7 @@ const APP_SHELL = [
   './dictado.js',
   './pendientes.js',
   './notificar.js',
+  './enlace.js',
   './styles.css',
   './app.js',
   './manifest.webmanifest',
@@ -52,6 +53,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Solo la propia app (mismo origen) pasa por la cache. Todo lo externo
+  // (GitHub del enlace, DNS, monitor, noticias, IA) va SIEMPRE directo a la red:
+  // cachearlo devolvia respuestas viejas para siempre.
+  if (new URL(event.request.url).origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(event.request).then((cached) => {

@@ -701,6 +701,13 @@ chatForm.addEventListener('submit', (event) => {
   appendMessage('user', text);
   input.value = '';
 
+  // "dile a ARIA que ..." -> va por el enlace propio, sin gastar el cerebro.
+  const paraAria = window.AsagiEnlace && window.AsagiEnlace.esParaAria(text);
+  if (paraAria && window._asagiEnlaceEnviar) {
+    window._asagiEnlaceEnviar(paraAria);
+    return;
+  }
+
   // Intención de recordatorio: ASAGI lo anota él mismo y lo confirma hablando.
   if (window.AsagiPendientes && window.AsagiPendientes.esPendiente(text) && window._asagiAddPendiente) {
     const tarea = window._asagiAddPendiente(text);
@@ -2243,4 +2250,152 @@ if ('serviceWorker' in navigator) {
   try { on = localStorage.getItem('asagi-crt') === '1'; } catch (e) {}
   poner(on);
   if (box) box.addEventListener('change', function () { poner(box.checked); });
+})();
+
+// --- Enlace con ARIA: conexion propia, cifrada, sin cable ni mismo Wi-Fi ---
+(function initEnlace() {
+  const E = window.AsagiEnlace;
+  const $ = (id) => document.getElementById(id);
+  const off = $('enl-off'), on = $('enl-on'), info = $('enl-info'), estado = $('enl-estado');
+  const lista = $('enl-lista'), verCod = $('enl-codigo-ver');
+  if (!E || !off || !on) return;
+  const K_CFG = 'asagi-enlace-cfg', K_EST = 'asagi-enlace-estado';
+  const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+  const escribir = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  if (!E.disponible()) { if (info) info.textContent = 'Este WebView no trae cifrado (WebCrypto): el enlace no puede usarse aquí.'; return; }
+
+  const cli = E.crearCliente({
+    cfg: () => leer(K_CFG, {}), guardarCfg: (c) => escribir(K_CFG, c),
+    leerEstado: () => leer(K_EST, {}), guardarEstado: (e) => escribir(K_EST, e),
+  });
+  let ultimo = null;                       // ultimo resultado de sincronizar
+
+  function decir(t) { if (info) info.textContent = t || ''; }
+
+  function pintar() {
+    const v = cli.vinculado();
+    off.hidden = v; on.hidden = !v;
+    if (!v) return;
+    if (estado) {
+      let clase = '', txt = 'conectando…';
+      if (ultimo && ultimo.ok) {
+        const reciente = ultimo.vistoOtro && (ultimo.ahora - ultimo.vistoOtro) < 20 * 60 * 1000;
+        clase = reciente ? 'vivo' : '';
+        txt = 'Enlace activo · ARIA ' + E.hace(ultimo.vistoOtro, ultimo.ahora) +
+              (ultimo.enCola ? ' · ' + ultimo.enCola + ' en cola' : '');
+      } else if (ultimo) { clase = 'mal'; txt = ultimo.texto || 'sin conexión'; }
+      estado.innerHTML = '';
+      const p = document.createElement('span'); p.className = 'punto ' + clase;
+      estado.appendChild(p); estado.appendChild(document.createTextNode(txt));
+    }
+    if (lista) {
+      lista.innerHTML = '';
+      const rec = cli.recibidos().slice(-5).reverse();
+      for (const r of rec) {
+        const d = document.createElement('div'); d.className = 'enl-item';
+        const m = document.createElement('span'); m.className = 'enl-meta';
+        m.textContent = 'ARIA · ' + (r.tipo === 'pendiente' ? 'pendiente' : 'nota') + ' · ' + E.hace(r.ts, Date.now());
+        d.appendChild(m); d.appendChild(document.createTextNode(r.cuerpo));
+        lista.appendChild(d);
+      }
+    }
+  }
+
+  // Lo que llega de ARIA: los pendientes entran a tu lista (con su hora y su
+  // notificacion); las notas se avisan en pantalla y, solo con audifonos, en voz.
+  function procesar(nuevos) {
+    for (const n of nuevos || []) {
+      if (n.tipo === 'pendiente') {
+        const limpio = window._asagiAddPendiente ? window._asagiAddPendiente(n.cuerpo) : n.cuerpo;
+        if (window._asagiAviso) window._asagiAviso('ARIA te dejó un pendiente: ' + (limpio || n.cuerpo), false, '📡');
+      } else {
+        if (window._asagiAviso) window._asagiAviso('ARIA: ' + n.cuerpo, false, '📡');
+        try { if (window.asagiSpeakPrivado) window.asagiSpeakPrivado('ARIA dice: ' + n.cuerpo); } catch (e) {}
+      }
+    }
+  }
+
+  async function sincronizar() {
+    if (!cli.vinculado()) return null;
+    ultimo = await cli.sincronizar();
+    if (ultimo && ultimo.nuevos) procesar(ultimo.nuevos);
+    pintar();
+    return ultimo;
+  }
+
+  async function enviar(tipo, texto) {
+    const r = await cli.enviar(tipo, texto);
+    if (r.nuevos) procesar(r.nuevos);
+    if (r.ok) ultimo = { ok: true, vistoOtro: r.vistoOtro, ahora: r.ahora, enCola: 0 };
+    pintar();
+    return r;
+  }
+
+  // Desde el chat: "dile a ARIA que ..."
+  window._asagiEnlaceEnviar = async function (texto) {
+    if (!cli.vinculado()) {
+      appendMessage('bot', 'Aún no estoy enlazada con ARIA. Ábrelo en Estado → Enlace con ARIA.');
+      return;
+    }
+    const r = await enviar('nota', texto);
+    appendMessage('bot', r.ok ? '📡 Enviado a ARIA: ' + texto : '📡 ' + r.texto);
+  };
+
+  const token = $('enl-token'), codigo = $('enl-codigo'), msg = $('enl-msg');
+  const bCrear = $('enl-crear'), bUnir = $('enl-unir'), bEnviar = $('enl-enviar');
+  const bCopiar = $('enl-copiar'), bQuitar = $('enl-quitar');
+
+  if (bCrear) bCrear.addEventListener('click', async () => {
+    decir('Creando el buzón…');
+    const r = await cli.crear(token && token.value);
+    if (!r.ok) { decir(r.texto); return; }
+    if (token) token.value = '';
+    decir('Enlace creado. Toca "Ver código para ARIA" y pégalo en la PC.');
+    pintar(); sincronizar();
+  });
+  if (bUnir) bUnir.addEventListener('click', async () => {
+    decir('Buscando el buzón…');
+    const r = await cli.vincular(token && token.value, codigo && codigo.value);
+    decir(r.texto);
+    if (!r.ok) return;
+    if (token) token.value = ''; if (codigo) codigo.value = '';
+    pintar(); sincronizar();
+  });
+  async function mandarNota() {
+    const t = (msg && msg.value || '').trim(); if (!t) return;
+    msg.value = '';
+    const r = await enviar('nota', t);
+    decir(r.ok ? 'Nota enviada a ARIA.' : r.texto);
+  }
+  if (bEnviar) bEnviar.addEventListener('click', mandarNota);
+  if (msg) msg.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); mandarNota(); } });
+  if (bCopiar) bCopiar.addEventListener('click', async () => {
+    const c = leer(K_CFG, {});
+    if (!c.gist || !verCod) return;
+    if (!verCod.hidden) { verCod.hidden = true; verCod.textContent = ''; return; }
+    const cod = E.hacerCodigo(c.gist, c.clave);
+    verCod.textContent = cod; verCod.hidden = false;
+    try { await navigator.clipboard.writeText(cod); decir('Código copiado. En la PC: python enlace.py vincular CÓDIGO'); }
+    catch (e) { decir('Mantén pulsado el código para copiarlo. En la PC: python enlace.py vincular CÓDIGO'); }
+  });
+  let armado = 0;
+  if (bQuitar) bQuitar.addEventListener('click', () => {
+    if (Date.now() - armado > 4000) {
+      armado = Date.now(); bQuitar.textContent = '¿Seguro? Toca otra vez';
+      setTimeout(() => { if (armado && Date.now() - armado >= 4000) { armado = 0; bQuitar.textContent = 'Desvincular'; } }, 4100);
+      return;
+    }
+    try { localStorage.removeItem(K_CFG); localStorage.removeItem(K_EST); } catch (e) {}
+    armado = 0; bQuitar.textContent = 'Desvincular'; ultimo = null;
+    if (verCod) { verCod.hidden = true; verCod.textContent = ''; }
+    decir('Enlace quitado de este celular.'); pintar();
+  });
+
+  pintar();
+  // Sondeo: solo con la app a la vista (no gasta bateria ni datos en segundo plano).
+  setTimeout(sincronizar, 2500);
+  setInterval(() => { if (!document.hidden) sincronizar(); }, 45000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
+  window._asagiEnlace = { cli, sincronizar, enviar };      // para pruebas
 })();

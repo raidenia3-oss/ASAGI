@@ -1046,3 +1046,16 @@ button { cursor: pointer; }
 .aviso-modo { flex: 0 0 auto; font-size: 11px; color: var(--muted); }
 .aviso-x { flex: 0 0 auto; border: none; background: transparent; color: var(--muted);
   font-size: 15px; cursor: pointer; padding: 2px 4px; }
+
+/* ===== Enlace con ARIA ===== */
+.enl-estado { font-size: .82rem; margin-bottom: 10px; color: var(--text); }
+.enl-estado .punto { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
+  background: #64748b; vertical-align: middle; }
+.enl-estado .punto.vivo { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,.7); }
+.enl-estado .punto.mal { background: #f87171; }
+.enl-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.enl-item { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(255,255,255,.03); font-size: .82rem; word-break: break-word; }
+.enl-item .enl-meta { display: block; font-size: .68rem; color: var(--muted); margin-bottom: 2px; }
+.enl-codigo { padding: 10px; border-radius: 10px; border: 1px dashed var(--cyan); font-family: var(--mono);
+  font-size: .72rem; word-break: break-all; user-select: all; -webkit-user-select: all; margin-bottom: 8px; }

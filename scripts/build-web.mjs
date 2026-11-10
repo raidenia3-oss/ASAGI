@@ -30,6 +30,7 @@ const files = [
   'dictado.js',
   'pendientes.js',
   'notificar.js',
+  'enlace.js',
   'app.js',
   'styles.css',
   'sw.js',

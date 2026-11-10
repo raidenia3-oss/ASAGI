@@ -284,6 +284,39 @@
               Ve a qué resuelve un dominio (IPs, correo, nameservers, TXT) por DNS-over-HTTPS.
               100% pasivo: solo información pública, no escanea ni ataca.
             </small>
+
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+            <p>Enlace con ARIA · conexión propia</p>
+            <div id="enl-off">
+              <div class="mon-add">
+                <input id="enl-token" type="password" placeholder="token de GitHub (solo permiso gist)" autocomplete="off" spellcheck="false">
+              </div>
+              <div class="mon-add">
+                <button id="enl-crear" class="secondary" type="button">Crear enlace nuevo</button>
+              </div>
+              <div class="mon-add">
+                <input id="enl-codigo" type="text" placeholder="o pega el código ENL1-… que te dio ARIA" autocomplete="off" spellcheck="false">
+                <button id="enl-unir" class="secondary" type="button" style="width:auto;">Unirme</button>
+              </div>
+            </div>
+            <div id="enl-on" hidden>
+              <div id="enl-estado" class="enl-estado"></div>
+              <div class="mon-add">
+                <input id="enl-msg" type="text" placeholder="nota para ARIA" autocomplete="off">
+                <button id="enl-enviar" class="secondary" type="button" style="width:auto;">Enviar</button>
+              </div>
+              <div id="enl-lista" class="enl-lista"></div>
+              <div class="mon-add">
+                <button id="enl-copiar" class="secondary" type="button">Ver código para ARIA</button>
+                <button id="enl-quitar" class="secondary" type="button">Desvincular</button>
+              </div>
+              <div id="enl-codigo-ver" class="enl-codigo" hidden></div>
+            </div>
+            <div id="enl-info" class="recon-msg"></div>
+            <small style="display:block;margin-top:8px;opacity:.7;">
+              ASAGI y ARIA se hablan sin cable ni estar en el mismo Wi-Fi: las dos solo salen a internet y
+              se encuentran en un buzón privado tuyo. Todo viaja cifrado de extremo a extremo; GitHub solo ve bytes.
+            </small>
           </div>
         </section>
 
@@ -375,6 +408,7 @@
     <script src="dictado.js"></script>
     <script src="pendientes.js"></script>
     <script src="notificar.js"></script>
+    <script src="enlace.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

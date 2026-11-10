@@ -346,9 +346,11 @@ public class AsagiControlPlugin extends Plugin {
         for (String p : todos) if (!tiene(p)) falta.add(p);
         JSObject r = new JSObject();
         r.put("pedidos", falta.size());
-        if (!falta.isEmpty() && getActivity() != null) {
+        Context cx = getContext();
+        if (!falta.isEmpty() && cx instanceof android.app.Activity) {
+            final android.app.Activity act = (android.app.Activity) cx;
             final String[] arr = falta.toArray(new String[0]);
-            getActivity().runOnUiThread(() -> getActivity().requestPermissions(arr, 7301));
+            act.runOnUiThread(() -> act.requestPermissions(arr, 7301));
         }
         call.resolve(r);
     }

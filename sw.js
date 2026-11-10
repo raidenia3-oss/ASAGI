@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v37';
+const CACHE_NAME = 'asagi-pwa-v38';
 const APP_SHELL = [
   './',
   './index.html',
@@ -33,6 +33,7 @@ const APP_SHELL = [
   './notificar.js',
   './enlace-adb.js',
   './herramientas.js',
+  './bandeja.js',
   './discord.js',
   './styles.css',
   './app.js',

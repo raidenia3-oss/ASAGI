@@ -33,6 +33,7 @@ const files = [
   'notificar.js',
   'enlace-adb.js',
   'herramientas.js',
+  'bandeja.js',
   'discord.js',
   'app.js',
   'styles.css',

@@ -749,6 +749,25 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Bandeja (segundo cerebro local): archiva, revisa dudas, muestra prioridades.
+  const ban = window.AsagiBandeja && window.AsagiBandeja.parsear(text);
+  if (ban) {
+    const B = window.AsagiBandeja;
+    let est; try { est = B.deserializar(localStorage.getItem('asagi-bandeja')); } catch (e) { est = B.vacio(); }
+    let resp;
+    if (ban.tipo === 'guardar') {
+      const it = B.ingestar(est, ban.texto, 'yo');
+      resp = it.cubo === 'no-encaja' ? '📥 Guardado, pero no supe dónde va: queda en "No encaja". Dime "bandeja revisar".' : '📥 Guardado en ' + it.cubo + '.';
+    } else if (ban.tipo === 'mover') {
+      const dudas = B.porCubo(est)['no-encaja'];
+      const it = dudas[ban.n - 1];
+      resp = it && B.resolver(est, it.id, ban.cubo) ? '✔ Movido a ' + ban.cubo + '.' : 'No encuentro ese número en "No encaja".';
+    } else resp = B.formato(est, ban.tipo);
+    try { localStorage.setItem('asagi-bandeja', B.serializar(est)); } catch (e) {}
+    appendMessage('bot', resp);
+    return;
+  }
+
   // Intención de recordatorio: ASAGI lo anota él mismo y lo confirma hablando.
   if (window.AsagiPendientes && window.AsagiPendientes.esPendiente(text) && window._asagiAddPendiente) {
     const tarea = window._asagiAddPendiente(text);

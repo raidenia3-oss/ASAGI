@@ -31,6 +31,8 @@ const APP_SHELL = [
   './dictado.js',
   './pendientes.js',
   './notificar.js',
+  './herramientas.js',
+  './discord.js',
   './styles.css',
   './app.js',
   './manifest.webmanifest',

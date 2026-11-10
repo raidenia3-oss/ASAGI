@@ -7,11 +7,32 @@
     <!-- Ver las apps del telefono para el Launcher de ASAGI (app sideloaded). -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
 
+    <!-- WiFi y Bluetooth (herramientas de ASAGI). Ubicacion: Android la exige para ver redes. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <!-- Termux: ejecutar comandos (Termux debe tener allow-external-apps=true). -->
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+    <queries>
+        <package android:name="com.termux" />
+    </queries>
+
     <application android:hasCode="true">
         <receiver android:name=".BridgeEventReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="asagi.brain.event" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".TermuxResultReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="asagi.brain.termux.resultado" />
             </intent-filter>
         </receiver>
 

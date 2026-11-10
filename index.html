@@ -317,6 +317,33 @@
               ASAGI y ARIA se hablan sin cable ni estar en el mismo Wi-Fi: las dos solo salen a internet y
               se encuentran en un buzón privado tuyo. Todo viaja cifrado de extremo a extremo; GitHub solo ve bytes.
             </small>
+
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+            <p>Herramientas del celular · WiFi · Bluetooth · Termux · Nix</p>
+            <div class="mon-add">
+              <button id="herr-permisos" class="secondary" type="button">Dar permisos (WiFi, Bluetooth, Termux)</button>
+            </div>
+            <small style="display:block;opacity:.75;">
+              Escríbele a ASAGI en el chat: <b>wifi</b>, <b>wifi cerca</b>, <b>bluetooth</b>, <b>bluetooth cerca</b>,
+              <b>termux: ls</b>, <b>nix: cowsay hola</b>. Termux y Nix solo se ejecutan por órdenes tuyas escritas aquí.
+            </small>
+            <div class="mon-add">
+              <input id="herr-setup" type="text" readonly value="curl -fsSL https://raw.githubusercontent.com/raidenia3-oss/ASAGI/main/scripts/termux-setup.sh | bash">
+              <button id="herr-copiar" class="secondary" type="button" style="width:auto;">Copiar</button>
+            </div>
+            <small style="display:block;opacity:.7;">Pega esa línea UNA vez en Termux: activa el permiso externo e instala Nix.</small>
+
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;">
+            <p>Discord · ASAGI conversa en un canal</p>
+            <div class="mon-add"><input id="dc-token" type="password" placeholder="token del bot de Discord" autocomplete="off" spellcheck="false"></div>
+            <div class="mon-add"><input id="dc-canal" type="text" inputmode="numeric" placeholder="ID del canal" autocomplete="off"></div>
+            <div class="mon-add"><input id="dc-permitidos" type="text" placeholder="IDs de usuarios permitidos (opcional, separados por coma)" autocomplete="off"></div>
+            <div class="mon-add"><button id="dc-probar" class="secondary" type="button">Probar conexión</button></div>
+            <div id="dc-estado" class="recon-msg"></div>
+            <small style="display:block;margin-top:8px;opacity:.7;">
+              Se guarda solo al escribir. ASAGI contesta lo que empiece con <b>asagi …</b> o lo que mencione al bot.
+              ARIA usa el mismo canal (aria_discord.py). Discord nunca puede ejecutar herramientas.
+            </small>
           </div>
         </section>
 
@@ -410,6 +437,8 @@
     <script src="pendientes.js"></script>
     <script src="notificar.js"></script>
     <script src="enlace.js"></script>
+    <script src="herramientas.js"></script>
+    <script src="discord.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

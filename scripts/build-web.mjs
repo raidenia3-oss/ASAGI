@@ -32,6 +32,8 @@ const files = [
   'pendientes.js',
   'notificar.js',
   'enlace.js',
+  'herramientas.js',
+  'discord.js',
   'app.js',
   'styles.css',
   'sw.js',

@@ -18,6 +18,22 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import android.Manifest;
+import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Handler;
+import android.os.Looper;
+import androidx.core.content.ContextCompat;
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.List;
 
 /**
@@ -301,5 +317,301 @@ public class AsagiControlPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("ok", ok);
         call.resolve(r);
+    }
+
+    // ------------------------------------------------------------------
+    // Herramientas: WiFi, Bluetooth y Termux (las usa herramientas.js)
+    // ------------------------------------------------------------------
+
+    private boolean tiene(String permiso) {
+        return ContextCompat.checkSelfPermission(getContext(), permiso) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /** Pide de una vez los permisos de WiFi, Bluetooth y Termux que falten. */
+    @PluginMethod
+    public void pedirPermisosRadios(PluginCall call) {
+        ArrayList<String> falta = new ArrayList<>();
+        String[] todos;
+        if (Build.VERSION.SDK_INT >= 33) {
+            todos = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, "android.permission.NEARBY_WIFI_DEVICES",
+                    "android.permission.BLUETOOTH_CONNECT", "android.permission.BLUETOOTH_SCAN",
+                    "com.termux.permission.RUN_COMMAND"};
+        } else if (Build.VERSION.SDK_INT >= 31) {
+            todos = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                    "android.permission.BLUETOOTH_CONNECT", "android.permission.BLUETOOTH_SCAN",
+                    "com.termux.permission.RUN_COMMAND"};
+        } else {
+            todos = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, "com.termux.permission.RUN_COMMAND"};
+        }
+        for (String p : todos) if (!tiene(p)) falta.add(p);
+        JSObject r = new JSObject();
+        r.put("pedidos", falta.size());
+        if (!falta.isEmpty() && getActivity() != null) {
+            final String[] arr = falta.toArray(new String[0]);
+            getActivity().runOnUiThread(() -> getActivity().requestPermissions(arr, 7301));
+        }
+        call.resolve(r);
+    }
+
+    private static String seguridadWifi(String caps) {
+        if (caps == null) return "";
+        if (caps.contains("SAE") || caps.contains("WPA3")) return "WPA3";
+        if (caps.contains("WPA2")) return "WPA2";
+        if (caps.contains("WPA")) return "WPA";
+        if (caps.contains("WEP")) return "WEP";
+        return "abierta";
+    }
+
+    private JSObject armarWifi(WifiManager wm) {
+        JSObject r = new JSObject();
+        r.put("habilitado", wm.isWifiEnabled());
+        try {
+            WifiInfo wi = wm.getConnectionInfo();
+            if (wi != null && wi.getNetworkId() != -1) {
+                String ssid = wi.getSSID();
+                if (ssid != null) ssid = ssid.replace("\"", "");
+                if (ssid != null && ssid.contains("unknown ssid")) ssid = "";
+                JSObject c = new JSObject();
+                c.put("ssid", ssid == null ? "" : ssid);
+                c.put("rssi", wi.getRssi());
+                c.put("velocidad", wi.getLinkSpeed());
+                int ip = wi.getIpAddress();
+                c.put("ip", (ip & 0xff) + "." + ((ip >> 8) & 0xff) + "." + ((ip >> 16) & 0xff) + "." + ((ip >> 24) & 0xff));
+                r.put("conectado", c);
+            }
+        } catch (Throwable ignored) { }
+        JSArray redes = new JSArray();
+        try {
+            List<ScanResult> sr = wm.getScanResults();
+            if (sr != null) {
+                for (ScanResult x : sr) {
+                    if (x.SSID == null || x.SSID.isEmpty()) continue;
+                    JSObject o = new JSObject();
+                    o.put("ssid", x.SSID);
+                    o.put("rssi", x.level);
+                    o.put("seguridad", seguridadWifi(x.capabilities));
+                    redes.put(o);
+                }
+            }
+        } catch (Throwable ignored) { }
+        r.put("redes", redes);
+        return r;
+    }
+
+    @PluginMethod
+    public void wifiInfo(PluginCall call) {
+        Context ctx = getContext();
+        WifiManager wm = (WifiManager) ctx.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wm == null) {
+            JSObject r = new JSObject();
+            r.put("habilitado", false);
+            call.resolve(r);
+            return;
+        }
+        boolean perm = tiene(Manifest.permission.ACCESS_FINE_LOCATION)
+                && (Build.VERSION.SDK_INT < 33 || tiene("android.permission.NEARBY_WIFI_DEVICES"));
+        if (!perm) {
+            JSObject r = new JSObject();
+            r.put("habilitado", wm.isWifiEnabled());
+            r.put("sinPermiso", true);
+            call.resolve(r);
+            return;
+        }
+        boolean escanear = Boolean.TRUE.equals(call.getBoolean("escanear", false));
+        if (escanear && wm.isWifiEnabled()) {
+            try { wm.startScan(); } catch (Throwable ignored) { }
+            new Handler(Looper.getMainLooper()).postDelayed(() -> call.resolve(armarWifi(wm)), 3000);
+        } else {
+            call.resolve(armarWifi(wm));
+        }
+    }
+
+    private static String tipoBt(BluetoothDevice d) {
+        try {
+            BluetoothClass bc = d.getBluetoothClass();
+            if (bc == null) return "";
+            switch (bc.getMajorDeviceClass()) {
+                case BluetoothClass.Device.Major.AUDIO_VIDEO: return "audio";
+                case BluetoothClass.Device.Major.PHONE: return "teléfono";
+                case BluetoothClass.Device.Major.COMPUTER: return "computadora";
+                case BluetoothClass.Device.Major.WEARABLE: return "reloj/pulsera";
+                case BluetoothClass.Device.Major.PERIPHERAL: return "periférico";
+                default: return "";
+            }
+        } catch (Throwable t) { return ""; }
+    }
+
+    private String audioBtActivo() {
+        try {
+            AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            if (am != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+                    if (d.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP || d.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                        CharSequence n = d.getProductName();
+                        if (n != null) return n.toString();
+                    }
+                }
+            }
+        } catch (Throwable ignored) { }
+        return "";
+    }
+
+    private JSObject armarBt(BluetoothAdapter ad, JSArray cercanos, boolean escaneado) {
+        JSObject r = new JSObject();
+        r.put("disponible", true);
+        r.put("habilitado", ad.isEnabled());
+        JSArray vin = new JSArray();
+        String activo = audioBtActivo();
+        try {
+            for (BluetoothDevice d : ad.getBondedDevices()) {
+                JSObject o = new JSObject();
+                String n = d.getName();
+                o.put("nombre", n == null ? "" : n);
+                o.put("tipo", tipoBt(d));
+                o.put("conectado", n != null && !activo.isEmpty() && n.equals(activo));
+                vin.put(o);
+            }
+        } catch (Throwable ignored) { }
+        r.put("vinculados", vin);
+        r.put("cercanos", cercanos == null ? new JSArray() : cercanos);
+        r.put("escaneado", escaneado);
+        return r;
+    }
+
+    @PluginMethod
+    public void bluetoothInfo(PluginCall call) {
+        Context ctx = getContext();
+        BluetoothManager bm = (BluetoothManager) ctx.getSystemService(Context.BLUETOOTH_SERVICE);
+        final BluetoothAdapter ad = bm == null ? null : bm.getAdapter();
+        if (ad == null) {
+            JSObject r = new JSObject();
+            r.put("disponible", false);
+            call.resolve(r);
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_CONNECT")) {
+            JSObject r = new JSObject();
+            r.put("disponible", true);
+            r.put("habilitado", false);
+            r.put("sinPermiso", true);
+            call.resolve(r);
+            return;
+        }
+        boolean escanear = Boolean.TRUE.equals(call.getBoolean("escanear", false));
+        boolean puedeEscanear = Build.VERSION.SDK_INT < 31 || tiene("android.permission.BLUETOOTH_SCAN");
+        if (!escanear || !ad.isEnabled() || !puedeEscanear) {
+            call.resolve(armarBt(ad, null, false));
+            return;
+        }
+        final JSArray vistos = new JSArray();
+        final ArrayList<String> ya = new ArrayList<>();
+        final BroadcastReceiver rec = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context c, Intent i) {
+                if (!BluetoothDevice.ACTION_FOUND.equals(i.getAction())) return;
+                try {
+                    BluetoothDevice d = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    if (d == null) return;
+                    String n = d.getName();
+                    String clave = d.getAddress();
+                    if (clave == null || ya.contains(clave)) return;
+                    ya.add(clave);
+                    JSObject o = new JSObject();
+                    o.put("nombre", n == null ? "" : n);
+                    o.put("rssi", (int) i.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE));
+                    vistos.put(o);
+                } catch (Throwable ignored) { }
+            }
+        };
+        try {
+            IntentFilter f = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            if (Build.VERSION.SDK_INT >= 33) ctx.registerReceiver(rec, f, Context.RECEIVER_EXPORTED);
+            else ctx.registerReceiver(rec, f);
+            ad.startDiscovery();
+        } catch (Throwable t) {
+            call.resolve(armarBt(ad, null, false));
+            return;
+        }
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            try { ad.cancelDiscovery(); } catch (Throwable ignored) { }
+            try { ctx.unregisterReceiver(rec); } catch (Throwable ignored) { }
+            call.resolve(armarBt(ad, vistos, true));
+        }, 8000);
+    }
+
+    /**
+     * Ejecuta un comando en Termux y devuelve su salida. Requiere: Termux instalado,
+     * "allow-external-apps=true" en ~/.termux/termux.properties y el permiso de ASAGI.
+     * Solo lo llama la UI por orden escrita del usuario (herramientas.js).
+     */
+    @PluginMethod
+    public void termuxRun(PluginCall call) {
+        final String cmd = call.getString("cmd", "");
+        if (cmd == null || cmd.trim().isEmpty()) {
+            call.reject("comando vacío");
+            return;
+        }
+        final Context ctx = getContext();
+        try {
+            ctx.getPackageManager().getPackageInfo("com.termux", 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            JSObject r = new JSObject();
+            r.put("error", "Termux no está instalado.");
+            call.resolve(r);
+            return;
+        }
+        if (!tiene("com.termux.permission.RUN_COMMAND")) {
+            JSObject r = new JSObject();
+            r.put("sinPermiso", true);
+            r.put("error", "Falta el permiso para ejecutar comandos en Termux. Acéptalo y repite la orden.");
+            call.resolve(r);
+            return;
+        }
+        final int id = (int) (System.nanoTime() & 0x7fffffff);
+        final int timeout = call.getInt("timeoutMs", 30000);
+        final AtomicBoolean listo = new AtomicBoolean(false);
+
+        TermuxResultReceiver.PENDIENTES.put(id, (out, err, code, error) -> {
+            if (!listo.compareAndSet(false, true)) return;
+            JSObject r = new JSObject();
+            r.put("stdout", out == null ? "" : out);
+            r.put("stderr", err == null ? "" : err);
+            r.put("exitCode", code);
+            if (error != null) r.put("error", error);
+            call.resolve(r);
+        });
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (TermuxResultReceiver.PENDIENTES.remove(id) != null && listo.compareAndSet(false, true)) {
+                JSObject r = new JSObject();
+                r.put("error", "Termux no respondió a tiempo. ¿Está activado allow-external-apps=true?");
+                call.resolve(r);
+            }
+        }, timeout);
+
+        try {
+            Intent res = new Intent(TermuxResultReceiver.ACCION);
+            res.setPackage(ctx.getPackageName());
+            res.putExtra("asagi_id", id);
+            int flags = PendingIntent.FLAG_ONE_SHOT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+            PendingIntent pi = PendingIntent.getBroadcast(ctx, id, res, flags);
+            Intent i = new Intent();
+            i.setClassName("com.termux", "com.termux.app.RunCommandService");
+            i.setAction("com.termux.RUN_COMMAND");
+            i.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
+            i.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"-lc", cmd});
+            i.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+            i.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            i.putExtra("com.termux.RUN_COMMAND_PENDING_INTENT", pi);
+            if (Build.VERSION.SDK_INT >= 26) ctx.startForegroundService(i);
+            else ctx.startService(i);
+        } catch (Throwable t) {
+            TermuxResultReceiver.PENDIENTES.remove(id);
+            if (listo.compareAndSet(false, true)) {
+                JSObject r = new JSObject();
+                r.put("error", "No pude hablar con Termux (" + t.getClass().getSimpleName()
+                        + "). Corre el setup de Termux una vez (ver Ajustes) y reintenta.");
+                call.resolve(r);
+            }
+        }
     }
 }

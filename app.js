@@ -716,6 +716,14 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Herramientas del celular: wifi, bluetooth, termux:, nix: (solo por orden escrita aqui).
+  const herr = window.AsagiHerr && window.AsagiHerr.parsear(text);
+  if (herr) {
+    appendMessage('bot', herr.tipo === 'termux' || herr.tipo === 'nix' ? '⚙ Ejecutando…' : '🔎 Mirando…');
+    window.AsagiHerr.ejecutar(herr).then((t) => { if (t) appendMessage('bot', t); });
+    return;
+  }
+
   // Intención de recordatorio: ASAGI lo anota él mismo y lo confirma hablando.
   if (window.AsagiPendientes && window.AsagiPendientes.esPendiente(text) && window._asagiAddPendiente) {
     const tarea = window._asagiAddPendiente(text);
@@ -2479,4 +2487,99 @@ if ('serviceWorker' in navigator) {
   setTimeout(revisar, 3000);
   window.addEventListener('online', () => setTimeout(revisar, 1500));
   setInterval(() => { if (!document.hidden) revisar(); }, 120000);   // si fallo, reintenta solo
+})();
+
+// --- Herramientas (permisos) y Discord ---
+(function initHerramientasYDiscord() {
+  const $ = (id) => document.getElementById(id);
+  const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+  const escribir = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  // permisos + copiar linea de Termux
+  const bPerm = $('herr-permisos'), bCop = $('herr-copiar'), inSetup = $('herr-setup');
+  if (bPerm) bPerm.addEventListener('click', () => {
+    const p = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (p && p.pedirPermisosRadios) p.pedirPermisosRadios().catch(() => {});
+    else appendMessage('bot', 'Los permisos solo se piden dentro de la app instalada.');
+  });
+  if (bCop && inSetup) bCop.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(inSetup.value); bCop.textContent = 'Copiado ✓'; }
+    catch (e) { inSetup.select(); try { document.execCommand('copy'); bCop.textContent = 'Copiado ✓'; } catch (e2) {} }
+    setTimeout(() => { bCop.textContent = 'Copiar'; }, 1800);
+  });
+
+  // Respuesta de texto SIN tocar el chat (para Discord): mismo router que el asistente.
+  window._asagiResponderTexto = async function (prompt) {
+    const R = window.AsagiBrainRouter;
+    if (!R) return '';
+    const b = state.brain;
+    const brain = getBrainBridge();
+    const gk = (b.geminiKey || '').trim(), ak = (b.atriaKey || '').trim(), mk = (b.mistralKey || '').trim();
+    const router = new R.BrainRouter({
+      localFn: async (p) => {
+        if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
+          return await new Promise((resolve, reject) => {
+            brain.raw.streamReply(p, { onToken: () => {}, onDone: (t) => resolve(t || ''), onError: (m) => reject(new Error(m)) });
+          });
+        }
+        return '';
+      },
+      geminiFn: gk ? ((p) => R.geminiResponder(p, gk)) : null,
+      remotoFn: mk ? ((p) => R.mistralResponder(p, mk)) : (ak ? ((p) => R.atriaResponder(p, ak)) : null),
+      testFn: null, apiKey: gk, store: window.localStorage
+    });
+    const res = await router.responder(prompt);
+    return res && res.backend !== 'ninguno' ? (res.texto || '') : '';
+  };
+
+  // Discord
+  const D = window.AsagiDiscord;
+  const inTok = $('dc-token'), inCan = $('dc-canal'), inPer = $('dc-permitidos'), bProbar = $('dc-probar'), estado = $('dc-estado');
+  if (!D || !inTok || !inCan) return;
+  const K_CFG = 'asagi-discord-cfg', K_EST = 'asagi-discord-estado';
+  const cfg = () => leer(K_CFG, {});
+  function decir(t) { if (estado) estado.textContent = t || ''; }
+  { const c = cfg(); inTok.value = c.token || ''; inCan.value = c.canal || ''; if (inPer) inPer.value = (c.permitidos || []).join(','); }
+  let tG = null;
+  function guardar() {
+    const c = {
+      token: inTok.value.trim(), canal: inCan.value.replace(/\D/g, ''),
+      permitidos: inPer ? inPer.value.split(',').map((x) => x.replace(/\D/g, '')).filter(Boolean) : []
+    };
+    const antes = cfg();
+    escribir(K_CFG, c);
+    if (antes.token !== c.token || antes.canal !== c.canal) escribir(K_EST, {});   // otro canal/bot: empieza limpio
+  }
+  [inTok, inCan, inPer].forEach((el) => {
+    if (!el) return;
+    el.addEventListener('input', () => { clearTimeout(tG); tG = setTimeout(guardar, 400); });
+    el.addEventListener('change', guardar);
+    el.addEventListener('blur', guardar);
+  });
+  window.addEventListener('pagehide', guardar);
+
+  const cli = D.crearCliente({
+    cfg, guardarCfg: (c) => escribir(K_CFG, c), estado: () => leer(K_EST, {}), guardarEstado: (e) => escribir(K_EST, e)
+  });
+  if (bProbar) bProbar.addEventListener('click', async () => {
+    guardar(); decir('Probando…');
+    const r = await cli.verificar();
+    decir(r.texto);
+    if (r.ok) setTimeout(ciclo, 500);
+  });
+
+  let ocupado = false, esperaHasta = 0;
+  async function ciclo() {
+    if (ocupado || document.hidden || !cli.listo() || Date.now() < esperaHasta) return;
+    ocupado = true;
+    try {
+      const r = await cli.sincronizar((txt) => window._asagiResponderTexto(txt));
+      if (r.ok) { if (r.respondidos) decir('Discord: respondí ' + r.respondidos + ' mensaje(s).'); else if (estado && !estado.textContent) decir('Discord conectado.'); }
+      else { decir(r.texto || 'Discord sin conexión.'); if (r.espera) esperaHasta = Date.now() + r.espera; }
+    } catch (e) {} finally { ocupado = false; }
+  }
+  setTimeout(ciclo, 4000);
+  setInterval(ciclo, 20000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) ciclo(); });
+  window._asagiDiscord = { cli, ciclo };
 })();

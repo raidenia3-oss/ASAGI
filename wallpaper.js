@@ -114,6 +114,7 @@ function crearWallpaper(canvas, opts) {
     W = Math.max(1, r.width); H = Math.max(1, r.height);
     canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bgImg = null;
     const n = nParts();
     parts = [];
     for (let i = 0; i < n; i++) parts.push(nueva(i, W, H));
@@ -356,18 +357,63 @@ function crearWallpaper(canvas, opts) {
     }
   }
 
-  // ---- MODO imagen (tu propia foto) ----
+  // ---- MODO imagen INMERSIVO (tu propia foto con profundidad y vida) ----
+  // Capas: fondo borroso ampliado (se mueve mas) + foto (respira y se mueve menos) +
+  // bokeh flotante con los colores de la foto + brillo que barre. Si el telefono no da
+  // giroscopio, se mueve solo con una deriva suave. Sin recortar sujetos (no segmenta).
+  let bgImg = null, avg = [120, 140, 200], bokeh = [], ultimoTilt = 0;
+  function prepararImagen() {
+    if (!imgEl || !imgLista || W < 2) return;
+    try {
+      const ch = document.createElement('canvas'); ch.width = 24; ch.height = Math.max(8, Math.round(24 * H / W));
+      const cx = ch.getContext('2d'); cx.drawImage(imgEl, 0, 0, ch.width, ch.height);   // reducir = desenfoque barato
+      bgImg = ch;
+      const d = cx.getImageData(0, 0, ch.width, ch.height).data; let r = 0, g = 0, b = 0, n = 0;
+      for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+      avg = [Math.min(255, (r / n) * 1.25 + 30), Math.min(255, (g / n) * 1.25 + 30), Math.min(255, (b / n) * 1.25 + 30)];
+    } catch (e) { bgImg = null; }
+    bokeh = [];
+    for (let i = 0; i < 16; i++) bokeh.push({ x: Math.random() * W, y: Math.random() * H, r: 6 + Math.random() * 22, v: 0.15 + Math.random() * 0.4, f: Math.random() * 6.28, a: 0.05 + Math.random() * 0.12 });
+  }
   function dibImagen() {
     ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
     if (imgEl && imgLista) {
+      if (!bgImg) prepararImagen();
+      // sin giroscopio -> deriva suave propia
+      const sinGiro = (Date.now() - ultimoTilt) > 2500;
+      const tx = sinGiro ? Math.sin(t * 0.35) * 0.8 : tilt.x, ty = sinGiro ? Math.cos(t * 0.28) * 0.6 : tilt.y;
+      // 1) fondo borroso, grande, parallax fuerte
+      if (bgImg) {
+        try { ctx.imageSmoothingEnabled = true; ctx.drawImage(bgImg, -W * 0.12 + tx * 26, -H * 0.12 + ty * 26, W * 1.24, H * 1.24); } catch (e) {}
+        ctx.fillStyle = 'rgba(5,7,15,0.35)'; ctx.fillRect(0, 0, W, H);
+      }
+      // 2) la foto, respirando y con parallax suave
       const ir = imgEl.width / imgEl.height, cr = W / H;
       let dw, dh;
       if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
-      const dx = (W - dw) / 2 + tilt.x * 10, dy = (H - dh) / 2 + tilt.y * 10;
+      const z = 1.07 + Math.sin(t * 0.3) * 0.025;
+      dw *= z; dh *= z;
+      const dx = (W - dw) / 2 + tx * 12, dy = (H - dh) / 2 + ty * 12;
       try { ctx.drawImage(imgEl, dx, dy, dw, dh); } catch (e) {}
+      // 3) brillo que barre en diagonal
+      const bx = ((t * 0.06) % 1.6 - 0.3) * W;
+      const gl = ctx.createLinearGradient(bx - W * 0.25, 0, bx + W * 0.25, H * 0.6);
+      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.07)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
+      // 4) bokeh con los colores de la foto
+      ctx.globalCompositeOperation = 'lighter';
+      for (const q of bokeh) {
+        q.y -= q.v; q.f += 0.02; if (q.y < -q.r) { q.y = H + q.r; q.x = Math.random() * W; }
+        const px = q.x + Math.sin(q.f) * 10 + tx * (q.r * 0.8), al = q.a * (0.6 + 0.4 * Math.sin(q.f * 1.7));
+        const g2 = ctx.createRadialGradient(px, q.y, 0, px, q.y, q.r);
+        g2.addColorStop(0, 'rgba(' + (avg[0] | 0) + ',' + (avg[1] | 0) + ',' + (avg[2] | 0) + ',' + al + ')');
+        g2.addColorStop(1, 'rgba(' + (avg[0] | 0) + ',' + (avg[1] | 0) + ',' + (avg[2] | 0) + ',0)');
+        ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(px, q.y, q.r, 0, 6.2832); ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
       // velo para legibilidad del reloj/apps
       const v = ctx.createLinearGradient(0, 0, 0, H);
-      v.addColorStop(0, 'rgba(5,7,15,0.45)'); v.addColorStop(0.5, 'rgba(5,7,15,0.15)'); v.addColorStop(1, 'rgba(5,7,15,0.55)');
+      v.addColorStop(0, 'rgba(5,7,15,0.45)'); v.addColorStop(0.5, 'rgba(5,7,15,0.10)'); v.addColorStop(1, 'rgba(5,7,15,0.55)');
       ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     } else {
       ctx.fillStyle = 'rgba(200,210,230,0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
@@ -435,7 +481,7 @@ function crearWallpaper(canvas, opts) {
   function setImagen(src) {
     if (!src) { imgEl = null; imgLista = false; return; }
     imgLista = false; const im = new Image();
-    im.onload = function () { imgEl = im; imgLista = true; };
+    im.onload = function () { imgEl = im; imgLista = true; bgImg = null; };
     im.onerror = function () { imgEl = null; imgLista = false; };
     try { im.src = src; } catch (e) {}
   }
@@ -455,6 +501,7 @@ function crearWallpaper(canvas, opts) {
     const tx = Math.max(-1, Math.min(1, g / 28));
     const ty = Math.max(-1, Math.min(1, (b - 45) / 28));
     tilt.x += (tx - tilt.x) * 0.12; tilt.y += (ty - tilt.y) * 0.12;   // lerp
+    ultimoTilt = Date.now();
   }
 
   window.addEventListener('resize', resize);

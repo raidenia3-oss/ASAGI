@@ -96,7 +96,7 @@ public class AsagiBrainPlugin extends Plugin {
     private static final String KEY_TEXT = "text";
 
     // Enlaces por cable USB (adb-carpeta): buzones en almacenamiento privado de la app.
-    private static final String ENLACE_DIR = "/sdcard/Android/data/com.asagi.brain/files/enlace";
+    private static final String ENLACE_DIR = "/sdcard/Android/data/com.asagi.app/files/enlace";
     private static final String ENLACE_INBOX = ENLACE_DIR + "/inbox.json";
     private static final String ENLACE_OUTBOX = ENLACE_DIR + "/outbox.json";
     private static final long ENLACE_POLL_MS = 10000;
@@ -713,7 +713,7 @@ public class AsagiBrainPlugin extends Plugin {
             doc.put("msgs", msgs);
             doc.put("ts", System.currentTimeMillis());
             w.write(doc.toString());
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
             JSObject err = new JSObject();
             err.put("error", "no pude escribir outbox");
             call.resolve(err);

@@ -31,7 +31,7 @@ const files = [
   'dictado.js',
   'pendientes.js',
   'notificar.js',
-  'enlace.js',
+  'enlace-adb.js',
   'herramientas.js',
   'discord.js',
   'app.js',

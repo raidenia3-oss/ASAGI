@@ -265,9 +265,17 @@ function describeBrain() {
   const gk = val('brain-gemini-key') || (b.geminiKey || '');
   const ak = val('brain-atria-key') || (b.atriaKey || '');
 
+  const dl = window._asagiModelo;
   if (b.mode === 'local') {
     if (brain && brain.loaded) {
       return { detail: 'Local · modelo listo', alert: '' };
+    }
+    if (dl && dl.estado === 'descargando') {
+      const pct = dl.total ? Math.min(99, Math.floor(dl.bytes * 100 / dl.total)) : 0;
+      return { detail: 'Descargando modelo · ' + pct + '%', alert: '' };
+    }
+    if (dl && dl.estado === 'error') {
+      return { detail: 'Modelo: error al descargar', alert: 'No pude descargar el modelo (' + (dl.error || 'sin conexión') + '). Reintento solo cuando haya red.' };
     }
     // sin modelo local pero con key -> el router usa la nube, sin alarma
     if (gk || ak) {
@@ -2398,4 +2406,77 @@ if ('serviceWorker' in navigator) {
   setInterval(() => { if (!document.hidden) sincronizar(); }, 45000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
   window._asagiEnlace = { cli, sincronizar, enviar };      // para pruebas
+})();
+
+// --- Keys y ajustes del cerebro: se guardan SOLOS al escribir (sin "Aplicar") ---
+(function autoGuardarCerebro() {
+  const IDS = ['brain-url', 'brain-model', 'brain-key', 'brain-gemini-key', 'brain-atria-key', 'brain-mistral-key'];
+  const CAMPOS = ['remoteUrl', 'remoteModel', 'remoteKey', 'geminiKey', 'atriaKey', 'mistralKey'];
+  const K2 = 'asagi-keys-v1';            // copia aparte: si el estado principal se pierde, esta rescata
+  let sucio = false, t = null;
+  function guardar() {
+    try {
+      const c = readBrainControls();
+      CAMPOS.forEach((k) => { state.brain[k] = c[k] || ''; });
+      saveState();
+      const copia = {}; CAMPOS.forEach((k) => { copia[k] = state.brain[k]; });
+      localStorage.setItem(K2, JSON.stringify(copia));
+      sucio = false;
+    } catch (e) {}
+    try { refreshBrainStatus(); } catch (e) {}
+  }
+  // Rescate: estado vacio pero la copia tiene keys.
+  try {
+    const b = JSON.parse(localStorage.getItem(K2) || '{}');
+    let cambio = false;
+    CAMPOS.forEach((k) => { if (!state.brain[k] && typeof b[k] === 'string' && b[k]) { state.brain[k] = b[k]; cambio = true; } });
+    if (cambio) { saveState(); applyBrainControlsFromState(); try { refreshBrainStatus(); } catch (e) {} }
+  } catch (e) {}
+  IDS.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => { sucio = true; clearTimeout(t); t = setTimeout(guardar, 400); });
+    el.addEventListener('change', guardar);
+    el.addEventListener('blur', () => { if (sucio) guardar(); });
+    el.addEventListener('paste', () => { sucio = true; setTimeout(guardar, 50); });
+  });
+  window.addEventListener('pagehide', () => { if (sucio) guardar(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && sucio) guardar(); });
+})();
+
+// --- Modelo local: se descarga SOLO (Wi-Fi), con progreso y reintentos ---
+(function descargaAutomatica() {
+  const cap = window.Capacitor;
+  const plugin = cap && cap.Plugins ? cap.Plugins.AsagiBrain : null;
+  if (!plugin || typeof plugin.descargarModelo !== 'function') return;
+  const refrescar = () => { try { refreshBrainStatus(); } catch (e) {} };
+  let avisado = false;
+  plugin.addListener('descarga', (ev) => {
+    if (!ev) return;
+    window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '' };
+    refrescar();
+    if (ev.estado === 'listo' && !avisado) {
+      avisado = true;
+      if (window._asagiAviso) window._asagiAviso('Modelo local descargado: ASAGI ya funciona sin internet', false, '🧠');
+    }
+  });
+  function celular() {
+    try { const c = navigator.connection; return !!(c && (c.type === 'cellular' || c.saveData)); } catch (e) { return false; }
+  }
+  async function revisar() {
+    try {
+      const e = await plugin.estadoModelo();
+      if (e.listo) { window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' }; refrescar(); return; }
+      if (e.descargando) return;
+      if (celular()) {            // no gasta tus datos moviles sin que lo pidas
+        window._asagiModelo = { estado: 'espera', bytes: e.parcial, total: e.total, error: '' };
+        return;
+      }
+      await plugin.descargarModelo();
+    } catch (err) {}
+  }
+  window._asagiDescargarModelo = () => plugin.descargarModelo().catch(() => {});
+  setTimeout(revisar, 3000);
+  window.addEventListener('online', () => setTimeout(revisar, 1500));
+  setInterval(() => { if (!document.hidden) revisar(); }, 120000);   // si fallo, reintenta solo
 })();

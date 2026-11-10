@@ -495,6 +495,83 @@ public class AsagiBrainPlugin extends Plugin {
         }
     }
 
+    // --- Descarga del modelo (la usa la app web; ver ModelDownloader) ---
+
+    private final AtomicBoolean descargando = new AtomicBoolean(false);
+    private final AtomicBoolean descargaCancelada = new AtomicBoolean(false);
+
+    private static final String[] MODEL_URLS = new String[]{
+            MODEL_HTTP_URL,
+            "https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main"
+                    + "/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf"
+    };
+
+    private void avisarDescarga(String estado, long hecho, long total, String error) {
+        JSObject d = new JSObject();
+        d.put("estado", estado);
+        d.put("bytes", hecho);
+        d.put("total", total);
+        if (error != null) d.put("error", error);
+        notifyListeners("descarga", d, true);
+    }
+
+    @PluginMethod
+    public void estadoModelo(PluginCall call) {
+        File f = resolveModelFile();
+        File tmp = new File(f.getParentFile(), MODEL_FILENAME + ".part");
+        JSObject d = new JSObject();
+        d.put("listo", f.exists() && f.length() == MODEL_EXPECTED_BYTES);
+        d.put("parcial", tmp.exists() ? tmp.length() : 0L);
+        d.put("total", MODEL_EXPECTED_BYTES);
+        d.put("descargando", descargando.get());
+        call.resolve(d);
+    }
+
+    @PluginMethod
+    public void descargarModelo(PluginCall call) {
+        final File dest = resolveModelFile();
+        if (dest.exists() && dest.length() == MODEL_EXPECTED_BYTES) {
+            JSObject d = new JSObject();
+            d.put("estado", "listo");
+            call.resolve(d);
+            return;
+        }
+        if (!descargando.compareAndSet(false, true)) {
+            JSObject d = new JSObject();
+            d.put("estado", "descargando");
+            call.resolve(d);
+            return;
+        }
+        descargaCancelada.set(false);
+        final File tmp = new File(dest.getParentFile(), MODEL_FILENAME + ".part");
+        Thread hilo = new Thread(() -> {
+            try {
+                avisarDescarga("descargando", tmp.exists() ? tmp.length() : 0L, MODEL_EXPECTED_BYTES, null);
+                ModelDownloader.ejecutar(MODEL_URLS, tmp, dest, MODEL_EXPECTED_BYTES, MODEL_EXPECTED_SHA256,
+                        descargaCancelada, new ModelDownloader.Listener() {
+                            @Override public void onProgress(long hecho, long total) {
+                                avisarDescarga("descargando", hecho, total, null);
+                            }
+                            @Override public void onDone(File archivo) {
+                                try { downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME); }
+                                catch (Exception ignored) {}
+                                avisarDescarga("listo", archivo.length(), MODEL_EXPECTED_BYTES, null);
+                            }
+                            @Override public void onError(String mensaje) {
+                                avisarDescarga("error", tmp.exists() ? tmp.length() : 0L, MODEL_EXPECTED_BYTES, mensaje);
+                            }
+                        });
+            } finally {
+                descargando.set(false);
+            }
+        }, "asagi-descarga");
+        hilo.setDaemon(true);
+        hilo.start();
+        JSObject d = new JSObject();
+        d.put("estado", "descargando");
+        call.resolve(d);
+    }
+
     // --- API que consume la app web (window.Capacitor.Plugins.AsagiBrain) ---
 
     // Llamado desde el JNI (hilo de inferencia) por cada token ya válido en UTF-8.

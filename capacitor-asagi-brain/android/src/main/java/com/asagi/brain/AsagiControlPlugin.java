@@ -473,6 +473,8 @@ public class AsagiControlPlugin extends Plugin {
                 JSObject o = new JSObject();
                 String n = d.getName();
                 o.put("nombre", n == null ? "" : n);
+                o.put("mac", d.getAddress());
+                o.put("mio", true);      // vinculado = lo emparejaste tu en este celular
                 o.put("tipo", tipoBt(d));
                 o.put("conectado", n != null && !activo.isEmpty() && n.equals(activo));
                 vin.put(o);
@@ -511,6 +513,8 @@ public class AsagiControlPlugin extends Plugin {
         }
         final JSArray vistos = new JSArray();
         final ArrayList<String> ya = new ArrayList<>();
+        final java.util.HashSet<String> propios = new java.util.HashSet<>();
+        try { for (BluetoothDevice b : ad.getBondedDevices()) propios.add(b.getAddress()); } catch (Throwable ignored) { }
         final BroadcastReceiver rec = new BroadcastReceiver() {
             @Override
             public void onReceive(Context c, Intent i) {
@@ -524,6 +528,8 @@ public class AsagiControlPlugin extends Plugin {
                     ya.add(clave);
                     JSObject o = new JSObject();
                     o.put("nombre", n == null ? "" : n);
+                    o.put("mac", clave);
+                    o.put("mio", propios.contains(clave));     // si no esta vinculado, es ajeno
                     o.put("rssi", (int) i.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE));
                     vistos.put(o);
                 } catch (Throwable ignored) { }
@@ -660,48 +666,56 @@ public class AsagiControlPlugin extends Plugin {
     }
 
     /**
-     * Conecta (o empareja) un aparato Bluetooth por nombre. Vinculado: reconecta como
-     * los audifonos; si el sistema no deja, abre Ajustes y lo toca por texto con la
-     * Accesibilidad. No vinculado: pide el emparejamiento al sistema (un toque en "Vincular").
+     * Conecta un aparato Bluetooth. SOLO conecta lo que es tuyo:
+     *  - vinculado en este celular (lo emparejaste tu) = tuyo -> reconecta;
+     *  - no vinculado = ajeno -> nunca se empareja solo (silencioso=true) y, si lo pides
+     *    por nombre, solo si hay UN candidato y esta cerca (senal fuerte); si hay varios
+     *    parecidos o esta lejos (probablemente de otra persona) se niega y avisa.
+     * silencioso=true (reconexion automatica): sin abrir Ajustes ni mostrar nada.
      */
     @PluginMethod
     public void bluetoothConectar(PluginCall call) {
         final String nombre = call.getString("nombre", "");
         final String mac = call.getString("mac", "");
-        Context ctx = getContext();
+        final boolean silencioso = Boolean.TRUE.equals(call.getBoolean("silencioso", false));
+        final Context ctx = getContext();
         BluetoothManager bm = (BluetoothManager) ctx.getSystemService(Context.BLUETOOTH_SERVICE);
         final BluetoothAdapter ad = bm == null ? null : bm.getAdapter();
-        JSObject r = new JSObject();
+        final JSObject r = new JSObject();
         if (ad == null) { r.put("estado", "sinBluetooth"); call.resolve(r); return; }
         if (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_CONNECT")) {
             r.put("estado", "sinPermiso"); r.put("sinPermiso", true); call.resolve(r); return;
         }
         if (!ad.isEnabled()) {
-            // Encenderlo: el sistema lo pide con un dialogo de un toque.
-            try {
-                Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                ctx.startActivity(i);
-            } catch (Throwable ignored) { }
+            if (!silencioso) {
+                try {
+                    Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    ctx.startActivity(i);
+                } catch (Throwable ignored) { }
+            }
             r.put("estado", "encendiendo"); call.resolve(r); return;
         }
         final BluetoothDevice dev = buscarVinculado(ad, nombre, mac);
         if (dev == null) {
             r.put("estado", "noVinculado");
-            r.put("detalle", "No está vinculado todavía. Buscando para emparejarlo…");
-            // Buscar y emparejar el primero que coincida (el sistema muestra "Vincular").
-            if (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_SCAN")) { call.resolve(r); return; }
+            // Ajeno: jamas se empareja en modo automatico.
+            if (silencioso || (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_SCAN"))) {
+                call.resolve(r);
+                return;
+            }
             final String q = nombre.trim().toLowerCase();
-            final AtomicBoolean hecho = new AtomicBoolean(false);
+            final ArrayList<BluetoothDevice> coinc = new ArrayList<>();
+            final ArrayList<Integer> senal = new ArrayList<>();
             final BroadcastReceiver rec = new BroadcastReceiver() {
                 @Override public void onReceive(Context c, Intent i) {
                     try {
                         BluetoothDevice d = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                         String n = d == null || d.getName() == null ? "" : d.getName().toLowerCase();
-                        if (d != null && !q.isEmpty() && (n.contains(q) || q.contains(n) && !n.isEmpty()) && hecho.compareAndSet(false, true)) {
-                            ad.cancelDiscovery();
-                            d.createBond();
-                        }
+                        if (d == null || q.isEmpty() || n.isEmpty() || !(n.contains(q) || q.contains(n))) return;
+                        for (BluetoothDevice x : coinc) if (x.getAddress().equals(d.getAddress())) return;
+                        coinc.add(d);
+                        senal.add((int) i.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE));
                     } catch (Throwable ignored) { }
                 }
             };
@@ -714,18 +728,31 @@ public class AsagiControlPlugin extends Plugin {
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 try { ad.cancelDiscovery(); } catch (Throwable ignored) { }
                 try { ctx.unregisterReceiver(rec); } catch (Throwable ignored) { }
-                r.put("estado", hecho.get() ? "emparejando" : "noEncontrado");
+                if (coinc.isEmpty()) {
+                    r.put("estado", "noEncontrado");
+                } else if (coinc.size() > 1) {
+                    r.put("estado", "ambiguo");
+                    JSArray nombres = new JSArray();
+                    for (BluetoothDevice x : coinc) nombres.put(x.getName());
+                    r.put("candidatos", nombres);
+                } else if (senal.get(0) < -72) {
+                    r.put("estado", "muyLejos");      // senal debil: probablemente de otra persona
+                    r.put("rssi", senal.get(0));
+                    r.put("nombre", coinc.get(0).getName());
+                } else {
+                    try { coinc.get(0).createBond(); r.put("estado", "emparejando"); }
+                    catch (Throwable t) { r.put("estado", "error"); }
+                }
                 call.resolve(r);
             }, 9000);
             return;
         }
-        // Ya vinculado: reconectar.
+        // Vinculado = tuyo: reconectar.
         conectarPerfiles(ad, dev);
         final String nombreReal = dev.getName() == null ? nombre : dev.getName();
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             boolean conectado = nombreReal != null && !nombreReal.isEmpty() && nombreReal.equals(audioBtActivo());
-            if (!conectado) {
-                // Plan B: Ajustes > Bluetooth y tocar el nombre con la Accesibilidad.
+            if (!conectado && !silencioso) {
                 AsagiAccessibilityService svc = AsagiAccessibilityService.getInstance();
                 if (svc != null) {
                     try {
@@ -795,5 +822,47 @@ public class AsagiControlPlugin extends Plugin {
         JSObject r = new JSObject();
         r.put("ok", s != null && s.tapTexto(call.getString("texto", "")));
         call.resolve(r);
+    }
+
+    /** ¿Termux instalado, con permiso y respondiendo? (prueba real con un eco). */
+    @PluginMethod
+    public void termuxEstado(final PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            getContext().getPackageManager().getPackageInfo("com.termux", 0);
+            r.put("instalado", true);
+        } catch (PackageManager.NameNotFoundException e) {
+            r.put("instalado", false);
+        }
+        r.put("permiso", tiene("com.termux.permission.RUN_COMMAND"));
+        call.resolve(r);
+    }
+
+    /**
+     * Prepara Termux sin que escribas nada: copia al portapapeles la linea de
+     * instalacion, abre Termux y, si la Accesibilidad esta activa, intenta pegarla.
+     * (Termux solo acepta ordenes externas despues de que su ajuste se activa desde dentro.)
+     */
+    @PluginMethod
+    public void termuxPreparar(final PluginCall call) {
+        final Context ctx = getContext();
+        final String linea = call.getString("linea", "");
+        JSObject r = new JSObject();
+        try {
+            android.content.ClipboardManager cm = (android.content.ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) cm.setPrimaryClip(android.content.ClipData.newPlainText("asagi-termux", linea));
+            r.put("copiado", true);
+        } catch (Throwable t) { r.put("copiado", false); }
+        Intent i = ctx.getPackageManager().getLaunchIntentForPackage("com.termux");
+        if (i == null) { r.put("estado", "noInstalado"); call.resolve(r); return; }
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try { ctx.startActivity(i); } catch (Throwable t) { r.put("estado", "noAbrio"); call.resolve(r); return; }
+        final AsagiAccessibilityService svc = AsagiAccessibilityService.getInstance();
+        if (svc == null) { r.put("estado", "copiado"); call.resolve(r); return; }
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            boolean pego = svc.pegarEnFoco();
+            r.put("estado", pego ? "pegado" : "copiado");
+            call.resolve(r);
+        }, 2500);
     }
 }

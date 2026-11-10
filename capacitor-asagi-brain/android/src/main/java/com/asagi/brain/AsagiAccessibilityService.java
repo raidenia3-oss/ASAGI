@@ -99,6 +99,15 @@ public class AsagiAccessibilityService extends AccessibilityService {
         return false;
     }
 
+    /** Pega el portapapeles en el campo con foco (si la app lo permite). */
+    public boolean pegarEnFoco() {
+        AccessibilityNodeInfo root = getRootInActiveWindow();
+        if (root == null) return false;
+        AccessibilityNodeInfo f = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+        if (f == null) f = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY);
+        return f != null && f.performAction(AccessibilityNodeInfo.ACTION_PASTE);
+    }
+
     /** Toque en (x,y) de la pantalla. Requiere API 24+ (gestos). */
     public boolean tap(float x, float y) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {

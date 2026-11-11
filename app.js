@@ -901,6 +901,7 @@ renderBrainControls();
     try {
       const r = await L.emparejar(plugin);
       if (!r) return false;
+      if (r.rechazado) { if (avisar) appendMessage('bot', '⛔ ARIA no reconoce este celular (' + r.motivo + ').'); return false; }
       localStorage.setItem('asagi-lan-clave', r.clave);
       localStorage.setItem('asagi-lan-fuente', 'par');
       appendMessage('bot', '🔗 Emparejada con ' + r.nombre + ' por WiFi (código ' + r.codigo + ', el mismo que muestra la PC). Ya no hace falta el cable.');

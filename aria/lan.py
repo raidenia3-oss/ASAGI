@@ -16,6 +16,7 @@ Uso:  srv = Servidor(clave, al_recibir); srv.iniciar()   /  srv.detener()
 from __future__ import annotations
 
 import json
+import os
 import secrets
 import socket
 import threading
@@ -75,6 +76,56 @@ DH_P = int(
     "15728E5A8AACAA68FFFFFFFFFFFFFFFF", 16)
 DH_G = 2
 VENTANA_EMPAREJAR_S = 600            # tras arrancar ARIA, 10 min para (re)emparejar un celular
+
+
+# ---------------------------------------------------------------- ¿es MI celular?
+# .aria_mi_celular.json junto a este archivo. Campos (todos opcionales):
+#   {"androidId": "...", "modelo": "...", "fabricante": "...", "nombre": "..."}
+# - Si hay androidId: solo ese equipo (ID unico de Android para esta app).
+# - Si no, pero hay modelo/fabricante/nombre: deben coincidir los que esten puestos.
+# - Si el archivo no existe: el primer celular que se empareja queda registrado (como audifonos).
+ARCH_MI_CEL = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".aria_mi_celular.json")
+
+
+def _norm(x: Any) -> str:
+    return str(x or "").strip().lower()
+
+
+def mi_celular() -> Dict[str, Any]:
+    try:
+        with open(ARCH_MI_CEL, "r", encoding="utf-8") as f:
+            d = json.load(f)
+            return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def es_mi_celular(disp: Dict[str, Any]):
+    reg = mi_celular()
+    if not reg:
+        return True, "primera vez"
+    if reg.get("androidId"):
+        return (_norm(reg["androidId"]) == _norm(disp.get("androidId")), "ID de equipo distinto")
+    for k in ("modelo", "fabricante", "nombre"):
+        if reg.get(k) and _norm(reg[k]) not in _norm(disp.get(k)) and _norm(disp.get(k)) not in _norm(reg[k]):
+            return False, "%s distinto (%s)" % (k, disp.get(k) or "?")
+    return True, "coincide"
+
+
+def recordar_mi_celular(disp: Dict[str, Any]) -> None:
+    """Completa el registro con lo que el celular informó (sin borrar lo que puso Daniel)."""
+    reg = mi_celular()
+    cambio = False
+    for k in ("androidId", "modelo", "fabricante", "marca", "nombre", "android"):
+        if disp.get(k) and not reg.get(k):
+            reg[k] = str(disp[k])[:80]
+            cambio = True
+    if cambio:
+        try:
+            with open(ARCH_MI_CEL, "w", encoding="utf-8") as f:
+                json.dump(reg, f, ensure_ascii=False, indent=1)
+        except OSError:
+            pass
 
 
 def dh_par():
@@ -204,6 +255,10 @@ class Servidor:
             m = json.loads(texto)
             if m.get("t") != "emparejar" or not self.puede_emparejar():
                 return None
+            disp = m.get("disp") if isinstance(m.get("disp"), dict) else {}
+            ok, motivo = es_mi_celular(disp)
+            if not ok:
+                return json.dumps({"t": "rechazado", "motivo": motivo})
             A = int(str(m["A"]), 16)
             b, B = dh_par()
             clave, codigo = dh_clave(b, A)
@@ -211,6 +266,7 @@ class Servidor:
             return None
         self.claves = claves_de(clave)
         self.anti = Antirrepeticion()
+        recordar_mi_celular(disp)
         self.estado["emparejado"] = {"codigo": codigo, "nombre": str(m.get("nombre", "ASAGI"))[:40], "cuando": int(time.time())}
         if self.al_emparejar:
             try:

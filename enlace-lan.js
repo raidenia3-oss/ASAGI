@@ -32,11 +32,13 @@ async function dhClave(a, B) {
 // Pregunta en la red si hay una ARIA lista para emparejar. Devuelve { clave, codigo, host, tcp, nombre } o null.
 async function emparejar(plugin) {
   var P = plugin && plugin(); if (!P || !P.lanDescubrir) return null;
-  var k = dhPar();
-  var r; try { r = await P.lanDescubrir({ linea: JSON.stringify({ t: 'emparejar', A: k.A.toString(16), nombre: 'ASAGI' }), puerto: PUERTO_UDP, espera: 2500 }); } catch (e) { return null; }
+  var k = dhPar(), disp = {};
+  try { if (P.infoDispositivo) { var d = await P.infoDispositivo(); if (d && d.ok) disp = { fabricante: d.fabricante, marca: d.marca, modelo: d.modelo, nombre: d.nombre, android: d.android, androidId: d.androidId }; } } catch (e) {}
+  var r; try { r = await P.lanDescubrir({ linea: JSON.stringify({ t: 'emparejar', A: k.A.toString(16), nombre: 'ASAGI', disp: disp }), puerto: PUERTO_UDP, espera: 2500 }); } catch (e) { return null; }
   if (!r || !r.ok) return null;
   try {
     var m = JSON.parse(r.linea);
+    if (m.t === 'rechazado') return { rechazado: true, motivo: m.motivo || 'no es tu celular' };
     if (m.t !== 'emparejado' || !/^[0-9a-f]+$/i.test(m.B)) return null;
     var c = await dhClave(k.a, BigInt('0x' + m.B));
     return { clave: c.clave, codigo: c.codigo, host: r.host, tcp: m.tcp, nombre: m.nombre || 'ARIA' };

@@ -932,6 +932,27 @@ public class AsagiControlPlugin extends Plugin {
         } }).start();
     }
 
+    /** Identidad de este celular (para que ARIA sepa que es EL tuyo). */
+    @PluginMethod
+    public void infoDispositivo(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            android.content.ContentResolver cr = getContext().getContentResolver();
+            String nombre = null;
+            try { nombre = android.provider.Settings.Global.getString(cr, "device_name"); } catch (Throwable ignored) { }
+            if (nombre == null) try { nombre = android.provider.Settings.Secure.getString(cr, "bluetooth_name"); } catch (Throwable ignored) { }
+            r.put("ok", true);
+            r.put("fabricante", Build.MANUFACTURER);
+            r.put("marca", Build.BRAND);
+            r.put("modelo", Build.MODEL);
+            r.put("producto", Build.PRODUCT);
+            r.put("nombre", nombre == null ? "" : nombre);
+            r.put("android", Build.VERSION.RELEASE);
+            r.put("androidId", android.provider.Settings.Secure.getString(cr, android.provider.Settings.Secure.ANDROID_ID));
+        } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+        call.resolve(r);
+    }
+
     /** Lee la clave de enlace que la PC deja por adb en files/enlace/lan.key (nada que teclear). */
     @PluginMethod
     public void leerClaveLan(final PluginCall call) {

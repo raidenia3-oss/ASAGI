@@ -21,16 +21,48 @@ adb shell dumpsys package $P | grep -m1 versionName | sed 's/^ */- /' >> "$R"
 log "## Arranque"
 T0=$(date +%s)
 adb shell monkey -p $P -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-sleep 8;  foto 01_arranque_8s
-sleep 12; foto 02_arranque_20s; ui 20s
+sleep 4; foto 01_arranque_4s
+LISTO=""
+for i in $(seq 1 45); do
+  ui t; if grep -q "Busca una app" sim/ui_t.xml 2>/dev/null; then LISTO=$(( $(date +%s)-T0 )); break; fi; sleep 2
+done
+log "- Pantalla principal lista en: ${LISTO:-NO (mas de 90s)} s"
+foto 02_inicio; cp sim/ui_t.xml sim/ui_inicio.xml 2>/dev/null
 log "- PID: $(adb shell pidof $P || echo 'NO CORRE')"
 
+# centro de un nodo cuyo text/content-desc/hint coincide (regex) en el ultimo volcado
+centro(){ python3 - "$1" sim/ui_t.xml <<'PY'
+import re,sys
+x=open(sys.argv[2],encoding='utf-8',errors='ignore').read()
+for n in re.finditer(r'<node [^>]*>',x):
+    t=n.group(0)
+    if re.search(sys.argv[1],' '.join(re.findall(r'(?:text|content-desc|hint)="([^"]*)"',t)),re.I):
+        b=list(map(int,re.findall(r'\d+',re.search(r'bounds="([^"]+)"',t).group(1))))
+        print((b[0]+b[2])//2,(b[1]+b[3])//2);break
+PY
+}
+textos(){ ui t; python3 - sim/ui_t.xml <<'PY' | tail -n "${1:-14}" | sed 's/^/    /' >> "$R"
+import re,sys,html
+x=open(sys.argv[1],encoding='utf-8',errors='ignore').read()
+vis=[html.unescape(t) for t in re.findall(r' text="([^"]+)"',x)]
+print('\n'.join(v[:160] for v in vis))
+PY
+}
+di(){  # escribe en el chat de ASAGI y envia
+  ui t; c=$(centro "Busca una app|Escribe|mensaje|pregunta"); [ -z "$c" ] && { log "- (no encontre la caja de texto)"; return; }
+  adb shell input tap $c; sleep 1
+  adb shell input text "$(echo "$1" | sed 's/ /%s/g')"; adb shell input keyevent KEYCODE_ENTER; sleep "${2:-4}"
+  log "### Le digo: \"$1\""; foto "chat_$(echo "$1" | tr -cd 'a-z0-9' | cut -c1-16)"; textos
+}
+
 log "## Recorrido"
-W=$(adb shell wm size | grep -o '[0-9]*x[0-9]*' | tail -1); ANCHO=${W%x*}; ALTO=${W#*x}
-toca $((ANCHO/2)) $((ALTO/2)) 3; foto 03_toque_centro
-adb shell input swipe $((ANCHO/2)) $((ALTO*8/10)) $((ANCHO/2)) $((ALTO*2/10)) 300; sleep 3; foto 04_desliza_arriba; ui desliza
-adb shell input keyevent KEYCODE_BACK; sleep 2; foto 05_atras
-sleep 25; foto 06_45s
+di "hola asagi" 6
+di "bandeja" 3
+di "guarda en la bandeja: pagar luz hoy" 3
+di "prioridades" 3
+di "wifi" 4
+di "enlace pc" 8
+adb shell input keyevent KEYCODE_BACK; sleep 2; foto 09_atras
 log "- Sigue viva tras $(( $(date +%s)-T0 ))s: $(adb shell pidof $P >/dev/null && echo SI || echo NO)"
 
 log "## Registros"

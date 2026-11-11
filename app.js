@@ -1136,7 +1136,7 @@ if ('serviceWorker' in navigator) {
       });
 
       const cleanup = () => {
-        tokenHandle.then((handle) => handle.remove()).catch(() => {});
+        Promise.resolve(tokenHandle).then((h) => { if (h && h.remove) h.remove(); }).catch(() => {});
       };
 
       bridge

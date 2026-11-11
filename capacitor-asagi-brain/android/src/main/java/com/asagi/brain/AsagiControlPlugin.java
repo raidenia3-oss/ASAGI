@@ -66,6 +66,63 @@ public class AsagiControlPlugin extends Plugin {
 
     /** Lista las apps lanzables del telefono (para el Launcher de ASAGI). */
 
+    private static String firmaGenerica = null;
+
+    /** True si la app usa el icono por defecto de Android (el robot generico). */
+    private static boolean esIconoGenerico(ResolveInfo ri, PackageManager pm) {
+        try {
+            if (ri.activityInfo != null && ri.activityInfo.getIconResource() == 0
+                    && (ri.activityInfo.applicationInfo == null || ri.activityInfo.applicationInfo.icon == 0)) return true;
+            if (firmaGenerica == null) {
+                android.graphics.drawable.Drawable d = pm.getDefaultActivityIcon();
+                firmaGenerica = dibujarBase64(d, 24);
+            }
+            String mio = dibujarBase64(ri.loadIcon(pm), 24);
+            return mio != null && mio.equals(firmaGenerica);
+        } catch (Throwable e) { return false; }
+    }
+
+    private static String dibujarBase64(android.graphics.drawable.Drawable d, int s) {
+        try {
+            android.graphics.Bitmap bm = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas c = new android.graphics.Canvas(bm);
+            d.setBounds(0, 0, s, s); d.draw(c);
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            bm.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bo); bm.recycle();
+            return android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP);
+        } catch (Throwable e) { return null; }
+    }
+
+    /** Foto de perfil del dueño (contacto "Yo"). Pide el permiso de contactos una vez. */
+    @PluginMethod
+    public void fotoPerfil(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            if (!tiene("android.permission.READ_CONTACTS")) {
+                android.app.Activity act = (android.app.Activity) getContext();
+                androidx.core.app.ActivityCompat.requestPermissions(act, new String[] { "android.permission.READ_CONTACTS" }, 4471);
+                r.put("ok", false); r.put("error", "sinPermiso"); call.resolve(r); return;
+            }
+            android.database.Cursor cur = getContext().getContentResolver().query(
+                    android.provider.ContactsContract.Profile.CONTENT_URI,
+                    new String[] { android.provider.ContactsContract.Profile.PHOTO_URI, android.provider.ContactsContract.Profile.DISPLAY_NAME },
+                    null, null, null);
+            String uri = null, nombre = null;
+            if (cur != null) { if (cur.moveToFirst()) { uri = cur.getString(0); nombre = cur.getString(1); } cur.close(); }
+            if (uri == null) { r.put("ok", false); r.put("error", "sinFoto"); if (nombre != null) r.put("nombre", nombre); call.resolve(r); return; }
+            java.io.InputStream in = getContext().getContentResolver().openInputStream(android.net.Uri.parse(uri));
+            android.graphics.Bitmap bm = android.graphics.BitmapFactory.decodeStream(in); in.close();
+            int lado = Math.min(bm.getWidth(), bm.getHeight());
+            android.graphics.Bitmap sq = android.graphics.Bitmap.createBitmap(bm, (bm.getWidth() - lado) / 2, (bm.getHeight() - lado) / 2, lado, lado);
+            android.graphics.Bitmap sc = android.graphics.Bitmap.createScaledBitmap(sq, 256, 256, true);
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            sc.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, bo);
+            r.put("ok", true); r.put("foto", android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP));
+            if (nombre != null) r.put("nombre", nombre);
+        } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+        call.resolve(r);
+    }
+
     /** Icono real de la app como PNG 96x96 en base64 (lo pinta el launcher de ASAGI). */
     private static String iconoBase64(ResolveInfo ri, PackageManager pm) {
         try {
@@ -107,6 +164,7 @@ public class AsagiControlPlugin extends Plugin {
             o.put("package", pkg);
             String ic = iconoBase64(ri, pm);
             if (ic != null) o.put("icon", ic);
+            if (ic == null || esIconoGenerico(ri, pm)) o.put("generico", true);
             arr.put(o);
         }
         JSObject r = new JSObject();

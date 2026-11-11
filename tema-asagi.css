@@ -152,3 +152,6 @@ html, body { font-family: var(--sans); color: var(--papel); }
   background: rgba(226, 176, 74, 0.08); border: 1px solid rgba(226, 176, 74, 0.28);
 }
 #avatar-cv { width: 176px; height: 176px; }
+
+/* icono hecho con tu foto: ocupa todo el sello */
+.launcher-ico.con-foto img.foto { width: 100%; height: 100%; object-fit: cover; filter: none; }

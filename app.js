@@ -799,7 +799,7 @@ chatForm.addEventListener('submit', (event) => {
     })
     .finally(() => {
       showReplyStatus(null);
-      if (window._asagiAvatarEstado) { window._asagiAvatarEstado('feliz'); setTimeout(() => { if (window._asagiAvatar && window._asagiAvatar.estado === 'feliz') window._asagiAvatarEstado('reposo'); }, 2200); }
+      if (window._asagiAvatarEstado) { const _gesto = ['feliz', 'presumida', 'guino'][Math.floor(Math.random() * 3)]; window._asagiAvatarEstado(_gesto); setTimeout(() => { if (window._asagiAvatar && window._asagiAvatar.estado === _gesto) window._asagiAvatarEstado('reposo'); }, 2400); }
     });
 });
 
@@ -819,7 +819,7 @@ renderBrainControls();
   const cv = document.getElementById('avatar-cv');
   const lbl = document.getElementById('avatar-estado');
   if (!cv) return;
-  const NOM = { reposo: 'en reposo', escuchando: 'te escucho', pensando: 'pensando…', hablando: 'hablando', feliz: 'listo' };
+  const NOM = { reposo: 'en reposo', escuchando: 'te escucho', pensando: 'pensando…', hablando: 'hablando', feliz: 'listo', presumida: 'fácil', guino: 'hecho', seria: 'atenta' };
   let av = null;
   try { av = window.AsagiAvatar.crearAvatar(cv); } catch (e) { return; }
   window._asagiAvatar = av;
@@ -1410,7 +1410,10 @@ if ('serviceWorker' in navigator) {
   function tile(a) {
     const d = document.createElement('div'); d.className = 'launcher-app';
     const ico = document.createElement('div'); ico.className = 'launcher-ico';
-    if (a.icon) {
+    const foto = (a.generico || !a.icon) ? iconoConFoto(a) : null;
+    if (foto) {
+      const im = document.createElement('img'); im.alt = ''; im.className = 'foto'; im.src = foto; ico.appendChild(im); ico.classList.add('con-foto');
+    } else if (a.icon) {
       const im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.loading = 'lazy';
       im.src = 'data:image/png;base64,' + a.icon; ico.appendChild(im);
     } else {
@@ -1421,6 +1424,50 @@ if ('serviceWorker' in navigator) {
     d.appendChild(ico); d.appendChild(lbl);
     d.addEventListener('click', () => abrir(a));
     return d;
+  }
+
+  // --- Iconos para apps sin icono propio: con TU foto de perfil ---
+  // Fuente: foto del contacto "Yo" del celular (permiso de contactos, una vez); si no hay,
+  // la imagen que pusiste de fondo. Se recorta en sello, se oscurece abajo y lleva la
+  // inicial de la app en dorado + su hilo de color, para distinguirlas entre si.
+  let fotoBase = null, fotoImg = null; const iconCache = {};
+  try { fotoBase = localStorage.getItem('asagi-foto-perfil') || localStorage.getItem('asagi-wall-img'); } catch (e) {}
+  function cargarFoto(src) {
+    if (!src) return;
+    const im = new Image();
+    im.onload = () => { fotoImg = im; for (const k in iconCache) delete iconCache[k]; if (apps.length) { render(apps); renderFav(); } };
+    im.src = src.startsWith('data:') ? src : 'data:image/jpeg;base64,' + src;
+  }
+  cargarFoto(fotoBase);
+  async function pedirFoto() {
+    const c = C(); if (!c || !c.fotoPerfil) return;
+    try {
+      const r = await c.fotoPerfil();
+      if (r && r.ok && r.foto) { try { localStorage.setItem('asagi-foto-perfil', r.foto); } catch (e) {} cargarFoto(r.foto); }
+      else if (r && r.error === 'sinPermiso') setTimeout(pedirFoto, 15000);
+    } catch (e) {}
+  }
+  setTimeout(pedirFoto, 4000);
+  window._asagiFotoPerfil = (src) => { try { localStorage.setItem('asagi-foto-perfil', src); } catch (e) {} cargarFoto(src); };
+  function iconoConFoto(a) {
+    if (!fotoImg) return null;
+    if (iconCache[a.package]) return iconCache[a.package];
+    const S = 112, cv = document.createElement('canvas'); cv.width = cv.height = S;
+    const x = cv.getContext('2d');
+    const lado = Math.min(fotoImg.width, fotoImg.height);
+    // cada app ve un encuadre distinto de la foto (deterministico por nombre)
+    let h = 0; for (const ch of a.label) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const zoom = 1.15 + (h % 5) * 0.08, l2 = lado / zoom;
+    const ox = (fotoImg.width - l2) * ((h >> 3) % 100) / 100, oy = (fotoImg.height - l2) * ((h >> 9) % 60) / 100;
+    x.drawImage(fotoImg, ox, oy, l2, l2, 0, 0, S, S);
+    const g = x.createLinearGradient(0, S * 0.35, 0, S);
+    g.addColorStop(0, 'rgba(5,11,13,0)'); g.addColorStop(1, 'rgba(5,11,13,0.88)');
+    x.fillStyle = g; x.fillRect(0, 0, S, S);
+    x.fillStyle = L().colorTile(a.label); x.fillRect(S * 0.12, S - 14, S * 0.3, 3);
+    x.font = '700 44px "Shippori Mincho B1", Georgia, serif'; x.fillStyle = '#e2b04a';
+    x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 6;
+    x.fillText(L().inicial(a.label), S * 0.1, S - 22);
+    return (iconCache[a.package] = cv.toDataURL('image/png'));
   }
 
   function renderFav() {

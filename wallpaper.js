@@ -297,7 +297,7 @@ function crearWallpaper(canvas, opts) {
     ctx.fillStyle = g0; ctx.fillRect(0, 0, W, H);
     const tx = tilt.x, ty = tilt.y;
     // luna
-    const lx = W * 0.84 + tx * 6, ly = H * 0.36 + ty * 4, lr = Math.min(W, H) * 0.075;
+    const lx = W * 0.14 + tx * 6, ly = H * 0.135 + ty * 4, lr = Math.min(W, H) * 0.05;
     const gl = ctx.createRadialGradient(lx, ly, lr * 0.2, lx, ly, lr * 3.2);
     gl.addColorStop(0, 'rgba(226,176,74,0.20)'); gl.addColorStop(1, 'rgba(226,176,74,0)');
     ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(lx, ly, lr * 3.2, 0, 7); ctx.fill();

@@ -11,7 +11,7 @@
 
 'use strict';
 
-var ESTADOS = ['reposo', 'escuchando', 'pensando', 'hablando', 'feliz'];
+var ESTADOS = ['reposo', 'escuchando', 'pensando', 'hablando', 'feliz', 'presumida', 'guino', 'seria'];
 
 // Apertura de boca 0..1. Si habla, oscila como una voz (mezcla de senos para que
 // no sea un parpadeo mecanico); si no, cerrada. PURA.
@@ -98,12 +98,13 @@ function crearAvatar(canvas, opts) {
     var R = Math.min(W, H) * 0.36;
     var habla = estado === 'hablando' || hablandoFn();
     var piensa = estado === 'pensando', escucha = estado === 'escuchando', feliz = estado === 'feliz';
+    var presume = estado === 'presumida', guino = estado === 'guino', seria = estado === 'seria';
     // mirada: sigue el dedo; si no hay toque, deriva sola; al pensar mira arriba-derecha
     if (piensa) { miraObj.x = 0.55; miraObj.y = -0.6; }
     else if (Date.now() - ultimoToque > 4000) { miraObj.x = Math.sin(t / 2300) * 0.35; miraObj.y = Math.sin(t / 3100) * 0.18; }
     mira.x += (miraObj.x - mira.x) * 0.08; mira.y += (miraObj.y - mira.y) * 0.08;
     var respira = Math.sin(t / 1500) * R * 0.018;
-    var ladeo = (escucha ? 0.07 : 0) + Math.sin(t / 2700) * 0.015;
+    var ladeo = (escucha ? 0.07 : 0) + (presume ? -0.06 : 0) + (guino ? 0.05 : 0) + Math.sin(t / 2700) * 0.015;
 
     ctx.clearRect(0, 0, W, H);
     ctx.save();
@@ -151,14 +152,14 @@ function crearAvatar(canvas, opts) {
     // mejillas
     for (var sgn = -1; sgn <= 1; sgn += 2) {
       var gb = ctx.createRadialGradient(sgn * R * 0.42, R * 0.32, 0, sgn * R * 0.42, R * 0.32, R * 0.2);
-      gb.addColorStop(0, al(P.carmin, feliz ? 0.38 : 0.22)); gb.addColorStop(1, al(P.carmin, 0));
+      gb.addColorStop(0, al(P.carmin, (feliz || guino) ? 0.38 : (presume ? 0.3 : 0.22))); gb.addColorStop(1, al(P.carmin, 0));
       ctx.fillStyle = gb; ctx.beginPath(); ctx.arc(sgn * R * 0.42, R * 0.32, R * 0.2, 0, 7); ctx.fill();
     }
 
     // ojos
-    var ab = feliz ? 0 : (piensa ? 0.7 : parpadeo(t)) * (escucha ? 1.08 : 1);
+    var ab = feliz ? 0 : (piensa ? 0.7 : (presume ? 0.55 : (seria ? 0.8 : parpadeo(t)))) * (escucha ? 1.08 : 1);
     var ix = mira.x * R * 0.06, iy = mira.y * R * 0.05;
-    for (var lado = -1; lado <= 1; lado += 2) ojo(lado * R * 0.33, R * 0.06, lado, ab, ix, iy);
+    for (var lado = -1; lado <= 1; lado += 2) ojo(lado * R * 0.33, R * 0.06, lado, (guino && lado > 0) ? 0 : ab, ix, iy);
 
     // boca
     var apb = habla ? bocaApertura(t, true) : 0;
@@ -169,8 +170,10 @@ function crearAvatar(canvas, opts) {
       ctx.fillStyle = al(P.carmin, 0.8); ctx.beginPath(); ctx.ellipse(0, R * 0.05 + apb * R * 0.03, R * 0.04, R * 0.02 * apb + 0.5, 0, 0, 7); ctx.fill();
     } else {
       ctx.strokeStyle = '#8a3a4c'; ctx.lineWidth = R * 0.025;
-      var curva = feliz ? R * 0.07 : (piensa ? -R * 0.01 : R * 0.025);
-      ctx.beginPath(); ctx.moveTo(-R * 0.08, 0); ctx.quadraticCurveTo(0, curva, R * 0.08, 0); ctx.stroke();
+      ctx.beginPath();
+      if (presume || guino) { ctx.moveTo(-R * 0.08, R * 0.01); ctx.quadraticCurveTo(R * 0.02, R * 0.06, R * 0.1, -R * 0.035); }
+      else { var curva = feliz ? R * 0.07 : (piensa || seria ? -R * 0.005 : R * 0.025); ctx.moveTo(-R * 0.08, 0); ctx.quadraticCurveTo(0, curva, R * 0.08, 0); }
+      ctx.stroke();
     }
     ctx.restore();
 
@@ -198,10 +201,11 @@ function crearAvatar(canvas, opts) {
     }
     // cejas
     ctx.strokeStyle = al('#061416', 0.85); ctx.lineCap = 'round'; ctx.lineWidth = R * 0.035;
-    var cejaY = -R * 0.2 - (escucha ? R * 0.04 : 0) + (piensa ? -R * 0.02 : 0);
+    var cejaY = -R * 0.2 - (escucha ? R * 0.04 : 0) + (piensa ? -R * 0.02 : 0) + (seria ? R * 0.03 : 0);
     for (lado = -1; lado <= 1; lado += 2) {
-      ctx.beginPath(); ctx.moveTo(lado * R * 0.18, cejaY + R * 0.02);
-      ctx.quadraticCurveTo(lado * R * 0.33, cejaY - R * 0.05 - (piensa && lado > 0 ? R * 0.04 : 0), lado * R * 0.48, cejaY + R * 0.01); ctx.stroke();
+      var cy = cejaY - (presume && lado < 0 ? R * 0.06 : 0);
+      ctx.beginPath(); ctx.moveTo(lado * R * 0.18, cy + (seria ? R * 0.03 : R * 0.02));
+      ctx.quadraticCurveTo(lado * R * 0.33, cy - (seria ? R * 0.0 : R * 0.05) - (piensa && lado > 0 ? R * 0.04 : 0), lado * R * 0.48, cy + R * 0.01); ctx.stroke();
     }
 
     // horquilla dorada + borla carmesi (firma)
@@ -236,7 +240,7 @@ function crearAvatar(canvas, opts) {
     if (ab < 0.08) {               // cerrado / feliz: arco ^
       ctx.strokeStyle = P.tinta; ctx.lineWidth = R * 0.045; ctx.lineCap = 'round';
       ctx.beginPath();
-      if (estado === 'feliz') { ctx.moveTo(-w * 0.9, h * 0.15); ctx.quadraticCurveTo(0, -h * 0.55, w * 0.9, h * 0.15); }
+      if (estado === 'feliz' || estado === 'guino') { ctx.moveTo(-w * 0.9, h * 0.15); ctx.quadraticCurveTo(0, -h * 0.55, w * 0.9, h * 0.15); }
       else { ctx.moveTo(-w * 0.9, 0); ctx.quadraticCurveTo(0, h * 0.25, w * 0.9, 0); }
       ctx.stroke(); ctx.restore(); return;
     }

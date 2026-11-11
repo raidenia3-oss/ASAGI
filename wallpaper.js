@@ -17,7 +17,7 @@ const TEMAS = {
   rosa:    [[244, 114, 182], [251, 113, 133], [240, 171, 252], [248, 113, 113]],
   ambar:   [[251, 191, 36], [249, 115, 22], [253, 224, 71], [248, 113, 113]],
 };
-const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen', 'video'];
+const MODOS = ['tinta', 'constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen', 'video'];
 // Caracteres para la lluvia ASCII (katakana + dígitos + símbolos), look Matrix.
 const MATRIX_CHARS = 'ｱｶｻﾀﾅﾊﾏﾔﾗ0123456789:.=*+-<>¦|çﾘｸﾂﾇﾍﾐ'.split('');
 
@@ -71,7 +71,7 @@ function crearWallpaper(canvas, opts) {
   opts = opts || {};
   if (!canvas || !canvas.getContext) {
     return { start: function () {}, stop: function () {}, resize: function () {},
-      setModo: function () {}, setTema: function () {}, setVideo: function () {}, getModo: function () { return 'constelacion'; }, getTema: function () { return 'cian'; } };
+      setModo: function () {}, setTema: function () {}, setVideo: function () {}, getModo: function () { return 'tinta'; }, getTema: function () { return 'cian'; } };
   }
   const ctx = canvas.getContext('2d');
   let W = 1, H = 1, dpr = 1;
@@ -84,7 +84,7 @@ function crearWallpaper(canvas, opts) {
   let skyline = [];                       // silueta de ciudad (modo anime)
   let imgEl = null, imgLista = false;     // imagen propia (modo imagen)
   let t = 0, raf = null, corriendo = false, ultimo = 0, limpiado = false;
-  let modo = opts.modo || 'constelacion';
+  let modo = opts.modo || 'tinta';
   let tema = (opts.tema === 'auto' || TEMAS[opts.tema]) ? opts.tema : 'cian';
   const DIST = opts.dist || 118;
   const touch = { x: -999, y: -999, on: false };
@@ -287,6 +287,65 @@ function crearWallpaper(canvas, opts) {
     ctx.globalCompositeOperation = 'source-over'; vineta();
   }
 
+  // ---- MODO tinta (por defecto): montes en tinta asagi, niebla, luna dorada, motas ----
+  // Estilo sumi-e: 4 cordilleras de ruido con parallax por inclinacion, bruma que corre,
+  // una luna con aro dorado y motas de oro que suben. Se ve vivo sin distraer.
+  let motas = null;
+  function dibTinta() {
+    const g0 = ctx.createLinearGradient(0, 0, 0, H);
+    g0.addColorStop(0, '#071416'); g0.addColorStop(0.55, '#0b2226'); g0.addColorStop(1, '#050b0d');
+    ctx.fillStyle = g0; ctx.fillRect(0, 0, W, H);
+    const tx = tilt.x, ty = tilt.y;
+    // luna
+    const lx = W * 0.84 + tx * 6, ly = H * 0.36 + ty * 4, lr = Math.min(W, H) * 0.075;
+    const gl = ctx.createRadialGradient(lx, ly, lr * 0.2, lx, ly, lr * 3.2);
+    gl.addColorStop(0, 'rgba(226,176,74,0.20)'); gl.addColorStop(1, 'rgba(226,176,74,0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(lx, ly, lr * 3.2, 0, 7); ctx.fill();
+    const gm = ctx.createRadialGradient(lx - lr * 0.3, ly - lr * 0.3, lr * 0.1, lx, ly, lr);
+    gm.addColorStop(0, '#fbf2dc'); gm.addColorStop(1, '#e2c58a');
+    ctx.fillStyle = gm; ctx.beginPath(); ctx.arc(lx, ly, lr, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(226,176,74,0.45)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(lx, ly, lr * 1.35, 0, 7); ctx.stroke();
+    // cordilleras (de lejos a cerca)
+    const capas = [
+      { y: 0.48, a: 0.16, c: [24, 70, 76], k: 0.004, p: 4, al: 0.75 },
+      { y: 0.58, a: 0.14, c: [17, 52, 57], k: 0.006, p: 9, al: 0.85 },
+      { y: 0.70, a: 0.12, c: [11, 36, 40], k: 0.009, p: 16, al: 0.95 },
+      { y: 0.84, a: 0.10, c: [6, 20, 23], k: 0.013, p: 26, al: 1 }
+    ];
+    capas.forEach((cp, i) => {
+      const base = H * cp.y + ty * cp.p * 0.6, off = tx * cp.p;
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (let x = 0; x <= W + 8; x += 8) {
+        const n = ruido((x - off) * cp.k, i * 7.3, 0);
+        const n2 = ruido((x - off) * cp.k * 3.1, i * 3.1 + 2, 0);
+        ctx.lineTo(x, base - (n * 0.8 + n2 * 0.25) * H * cp.a);
+      }
+      ctx.lineTo(W, H); ctx.closePath();
+      const g = ctx.createLinearGradient(0, base - H * cp.a, 0, H);
+      g.addColorStop(0, 'rgba(' + cp.c.join(',') + ',' + cp.al + ')');
+      g.addColorStop(1, 'rgba(5,11,13,' + cp.al + ')');
+      ctx.fillStyle = g; ctx.fill();
+      // filo de luz asagi en la cresta mas cercana a la luna
+      if (i === 1) { ctx.strokeStyle = 'rgba(60,196,201,0.10)'; ctx.lineWidth = 1.2; ctx.stroke(); }
+      // bruma que corre entre capas
+      const by = base + H * 0.02, bw = W * 0.9;
+      const bx = ((t * (6 + i * 3)) % (W + bw)) - bw;
+      const gb = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+      gb.addColorStop(0, 'rgba(180,220,222,0)'); gb.addColorStop(0.5, 'rgba(180,220,222,' + (0.05 - i * 0.008) + ')'); gb.addColorStop(1, 'rgba(180,220,222,0)');
+      ctx.fillStyle = gb; ctx.fillRect(bx, by - H * 0.03, bw, H * 0.07);
+    });
+    // motas doradas que suben
+    if (!motas || motas.length === 0) { motas = []; for (let i = 0; i < 38; i++) motas.push({ x: Math.random() * W, y: Math.random() * H, v: 0.15 + Math.random() * 0.35, r: 0.6 + Math.random() * 1.6, f: Math.random() * 6.28 }); }
+    for (const m of motas) {
+      m.y -= m.v; m.f += 0.03; if (m.y < -4) { m.y = H + 4; m.x = Math.random() * W; }
+      const a = 0.35 + 0.35 * Math.sin(m.f);
+      ctx.fillStyle = 'rgba(226,176,74,' + a.toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(m.x + Math.sin(m.f) * 6 + tx * 10 * m.r, m.y, m.r, 0, 7); ctx.fill();
+    }
+    vineta();
+  }
+
   // ---- MODO ondas (anillos que nacen del toque; late solo) ----
   function dibOndas() {
     fondo(0.08); ctx.globalCompositeOperation = 'lighter';
@@ -484,6 +543,7 @@ function crearWallpaper(canvas, opts) {
   }
 
   function dibujar() {
+    if (modo === 'tinta') return dibTinta();
     if (modo === 'flujo') return dibFlujo();
     if (modo === 'aurora') return dibAurora();
     if (modo === 'ondas') return dibOndas();

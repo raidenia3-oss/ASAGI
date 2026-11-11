@@ -65,6 +65,22 @@ public class AsagiControlPlugin extends Plugin {
     }
 
     /** Lista las apps lanzables del telefono (para el Launcher de ASAGI). */
+
+    /** Icono real de la app como PNG 96x96 en base64 (lo pinta el launcher de ASAGI). */
+    private static String iconoBase64(ResolveInfo ri, PackageManager pm) {
+        try {
+            android.graphics.drawable.Drawable d = ri.loadIcon(pm);
+            int s = 96;
+            android.graphics.Bitmap bm = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas c = new android.graphics.Canvas(bm);
+            d.setBounds(0, 0, s, s); d.draw(c);
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            bm.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bo);
+            bm.recycle();
+            return android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP);
+        } catch (Throwable e) { return null; }
+    }
+
     @PluginMethod
     public void listApps(PluginCall call) {
         Context ctx = getContext();
@@ -89,6 +105,8 @@ public class AsagiControlPlugin extends Plugin {
                 o.put("label", pkg);
             }
             o.put("package", pkg);
+            String ic = iconoBase64(ri, pm);
+            if (ic != null) o.put("icon", ic);
             arr.put(o);
         }
         JSObject r = new JSObject();

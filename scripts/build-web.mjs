@@ -39,6 +39,7 @@ const files = [
   'discord.js',
   'app.js',
   'styles.css',
+  'tema-asagi.css',
   'sw.js',
   'manifest.webmanifest'
 ];

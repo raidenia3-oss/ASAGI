@@ -799,7 +799,7 @@ chatForm.addEventListener('submit', (event) => {
     })
     .finally(() => {
       showReplyStatus(null);
-      if (window._asagiAvatarEstado) window._asagiAvatarEstado('reposo');
+      if (window._asagiAvatarEstado) { window._asagiAvatarEstado('feliz'); setTimeout(() => { if (window._asagiAvatar && window._asagiAvatar.estado === 'feliz') window._asagiAvatarEstado('reposo'); }, 2200); }
     });
 });
 
@@ -819,7 +819,7 @@ renderBrainControls();
   const cv = document.getElementById('avatar-cv');
   const lbl = document.getElementById('avatar-estado');
   if (!cv) return;
-  const NOM = { reposo: 'en reposo', pensando: 'pensando…', hablando: 'hablando' };
+  const NOM = { reposo: 'en reposo', escuchando: 'te escucho', pensando: 'pensando…', hablando: 'hablando', feliz: 'listo' };
   let av = null;
   try { av = window.AsagiAvatar.crearAvatar(cv); } catch (e) { return; }
   window._asagiAvatar = av;
@@ -859,6 +859,7 @@ renderBrainControls();
     onEstado(e) {
       mic.classList.toggle('escuchando', e === 'escuchando');
       if (e === 'error') mic.classList.remove('escuchando');
+      if (window._asagiAvatarEstado) window._asagiAvatarEstado(e === 'escuchando' ? 'escuchando' : 'reposo');
     },
   });
   if (!dic) { mic.hidden = true; return; }
@@ -1409,8 +1410,13 @@ if ('serviceWorker' in navigator) {
   function tile(a) {
     const d = document.createElement('div'); d.className = 'launcher-app';
     const ico = document.createElement('div'); ico.className = 'launcher-ico';
-    ico.style.background = L().colorTile(a.label);
-    ico.textContent = L().inicial(a.label);
+    if (a.icon) {
+      const im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.loading = 'lazy';
+      im.src = 'data:image/png;base64,' + a.icon; ico.appendChild(im);
+    } else {
+      ico.classList.add('mono'); ico.style.setProperty('--hilo', L().colorTile(a.label));
+      ico.textContent = L().inicial(a.label);
+    }
     const lbl = document.createElement('div'); lbl.className = 'launcher-lbl'; lbl.textContent = a.label;
     d.appendChild(ico); d.appendChild(lbl);
     d.addEventListener('click', () => abrir(a));
@@ -1731,7 +1737,7 @@ if ('serviceWorker' in navigator) {
 (function () {
   const canvas = document.getElementById('launcher-wall');
   if (!canvas || !window.AsagiWallpaper) return;
-  let modo = 'constelacion', tema = 'cian', imagen = null;
+  let modo = 'tinta', tema = 'cian', imagen = null;
   try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; if (modo === 'imagen') imagen = localStorage.getItem('asagi-wall-img'); } catch (e) {}
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });
   window._asagiWall = wp;                 // el panel de personalización lo controla
@@ -1764,7 +1770,7 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia', video: 'Video / GIF' };
+  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia', video: 'Video / GIF' };
 
   // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
   function pedirImagen() {
@@ -1816,7 +1822,7 @@ if ('serviceWorker' in navigator) {
   (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
   const SW = { cian: '#37c2c7', violeta: '#e8c070', verde: '#e43162', rosa: '#eb668b', ambar: '#fbbf24',
     auto: 'conic-gradient(from 0deg, #37c2c7, #e8c070, #e43162, #fbbf24, #eb668b, #37c2c7)' };
-  function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'constelacion', t: w ? w.getTema() : 'cian' }; }
+  function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'tinta', t: w ? w.getTema() : 'cian' }; }
   function pintar() {
     const c = cur();
     rModos.innerHTML = ''; rTemas.innerHTML = '';

@@ -1,0 +1,154 @@
+/* =====================================================================
+   ASAGI · tema visual "Asagi-iro" (浅葱色)
+   Noche verde-tinta, verde azulado asagi, oro de horquilla, carmín de borla.
+   Display: Shippori Mincho B1 (mincho japonés, con mesura: reloj, nombres).
+   Texto:   Zen Kaku Gothic New.   Datos: JetBrains Mono.
+   Va DESPUÉS de styles.css: solo afina, no reescribe la estructura.
+   ===================================================================== */
+@font-face { font-family: "Shippori Mincho B1"; font-weight: 500; font-display: swap; src: url("assets/fonts/shippori-mincho-b1-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Shippori Mincho B1"; font-weight: 700; font-display: swap; src: url("assets/fonts/shippori-mincho-b1-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 400; font-display: swap; src: url("assets/fonts/zen-kaku-gothic-new-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 500; font-display: swap; src: url("assets/fonts/zen-kaku-gothic-new-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 700; font-display: swap; src: url("assets/fonts/zen-kaku-gothic-new-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 600; font-display: swap; src: url("assets/fonts/jetbrains-mono-latin-600-normal.woff2") format("woff2"); }
+
+:root {
+  --noche: #050b0d;
+  --laca: #0b1a1d;
+  --asagi: #3cc4c9;
+  --oro: #e2b04a;
+  --carmin: #e8507a;
+  --papel: #eaf4f2;
+  --niebla: #8fa8ab;
+  --display: "Shippori Mincho B1", "Noto Serif JP", Georgia, serif;
+  --sans: "Zen Kaku Gothic New", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+html, body { font-family: var(--sans); color: var(--papel); }
+
+/* ---------- Casa: reloj en mincho, grande y sereno ---------- */
+.launcher-clock {
+  font: 700 4.2rem/0.95 var(--display);
+  letter-spacing: 0.02em;
+  color: var(--papel);
+  text-shadow: 0 2px 30px rgba(226, 176, 74, 0.28);
+}
+#launcher-date, .launcher-date {
+  font: 500 0.72rem/1.4 var(--mono);
+  letter-spacing: 0.32em;
+  color: var(--oro);
+  text-transform: uppercase;
+}
+
+/* ---------- Iconos de apps: el icono real sobre un "sello" de vidrio ---------- */
+.launcher-ico {
+  width: 56px; height: 56px;
+  border-radius: 19px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(234, 244, 242, 0.10), rgba(11, 26, 29, 0.55)) !important;
+  border: 1px solid rgba(234, 244, 242, 0.10);
+  box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font: 700 1.35rem/1 var(--display) !important;
+  color: var(--papel) !important;
+}
+.launcher-ico img { width: 72%; height: 72%; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45)); }
+/* sin icono real: monograma en mincho sobre tinta con un hilo de color propio */
+.launcher-ico.mono::after {
+  content: ""; position: absolute; left: 22%; right: 22%; bottom: 9px; height: 2px; border-radius: 2px;
+  background: var(--hilo, var(--asagi)); opacity: 0.85;
+}
+.launcher-lbl { font: 500 0.68rem/1.25 var(--sans) !important; color: rgba(234, 244, 242, 0.86) !important; letter-spacing: 0.01em; }
+.launcher-app:active .launcher-ico { box-shadow: 0 0 0 2px var(--oro), 0 8px 20px -6px rgba(226, 176, 74, 0.5); }
+
+/* ---------- Cabecera del asistente: la cara manda ---------- */
+#avatar-cv { width: 200px; height: 200px; }
+.avatar-wrap { margin: 30px 0 2px; }
+.avatar-estado { font: 600 0.62rem/1 var(--mono); letter-spacing: 0.3em; color: var(--oro); opacity: 0.85; }
+#assistant .panel-header { border-bottom: 0; background: none; align-items: center; text-align: center; padding: 4px 16px 8px; }
+#assistant .panel-header .eyebrow { font: 500 0.6rem/1 var(--mono); letter-spacing: 0.34em; color: var(--niebla); }
+#assistant .panel-header h2 { font: 700 1.9rem/1.1 var(--display); letter-spacing: 0.06em; color: var(--papel); margin: 6px 0 0; }
+
+/* ---------- Chat: ASAGI escribe en el papel, tú en una cápsula ---------- */
+.chat { gap: 14px; padding: 12px 16px 18px; }
+.message { font: 400 0.98rem/1.6 var(--sans); animation: none; }
+.message.bot {
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  max-width: 92%;
+  padding: 2px 0 2px 16px;
+  position: relative;
+  color: var(--papel);
+  animation: entra-bot .35s cubic-bezier(.2, .7, .3, 1);
+}
+.message.bot::before {
+  content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--asagi), rgba(60, 196, 201, 0));
+}
+.message.bot::after {
+  content: "ASAGI"; position: absolute; left: 16px; top: -13px;
+  font: 600 0.52rem/1 var(--mono); letter-spacing: 0.3em; color: var(--oro); opacity: 0.8;
+}
+.message.user {
+  background: rgba(11, 26, 29, 0.72) !important;
+  color: var(--papel) !important;
+  font-weight: 400;
+  border: 1px solid rgba(226, 176, 74, 0.42);
+  border-radius: 20px 20px 6px 20px !important;
+  box-shadow: 0 10px 26px -18px rgba(226, 176, 74, 0.6) !important;
+  padding: 9px 15px;
+  animation: entra-user .3s cubic-bezier(.2, .7, .3, 1);
+}
+.msg-meta { color: var(--niebla); }
+.message.user .msg-meta { color: rgba(226, 176, 74, 0.75); }
+@keyframes entra-bot { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+@keyframes entra-user { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* ---------- Barra de escribir: una sola pieza de vidrio ---------- */
+.composer {
+  margin: 0 12px 12px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 26px;
+  background: rgba(11, 26, 29, 0.78);
+  border: 1px solid rgba(60, 196, 201, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  gap: 6px;
+}
+.composer input { background: none !important; border: 0 !important; box-shadow: none !important; font: 400 1rem var(--sans); color: var(--papel); padding: 10px 0; }
+.composer input:focus { outline: none; }
+.composer:focus-within { border-color: rgba(226, 176, 74, 0.6); }
+.composer button[type="submit"] {
+  width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 50%;
+  font-size: 0; color: transparent;
+  background: radial-gradient(circle at 35% 30%, #f4d58d, var(--oro) 60%, #b98523) !important;
+  box-shadow: 0 6px 16px -6px rgba(226, 176, 74, 0.8);
+  position: relative;
+}
+.composer button[type="submit"]::after {
+  content: ""; position: absolute; inset: 0; margin: auto; width: 16px; height: 16px;
+  background: #1a1206;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11.5 21 3l-8.5 18-2-7.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11.5 21 3l-8.5 18-2-7.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.mic-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 50% !important; background: rgba(60, 196, 201, 0.14) !important; border: 1px solid rgba(60, 196, 201, 0.35) !important; }
+
+/* ---------- Títulos de paneles en mincho ---------- */
+.panel h2 { font-family: var(--display); letter-spacing: 0.03em; }
+.eyebrow { font-family: var(--mono); color: var(--oro); }
+
+@media (prefers-reduced-motion: reduce) {
+  .message.bot, .message.user { animation: none; }
+}
+
+/* aviso del modelo: tarjeta compacta, no franja que se come el chat */
+#assistant .brain-alert {
+  margin: 4px 14px 2px; padding: 8px 12px; border-radius: 12px;
+  font: 400 0.74rem/1.45 var(--sans); color: #f3dfa9;
+  background: rgba(226, 176, 74, 0.08); border: 1px solid rgba(226, 176, 74, 0.28);
+}
+#avatar-cv { width: 176px; height: 176px; }

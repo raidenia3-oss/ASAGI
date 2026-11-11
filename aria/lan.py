@@ -256,17 +256,17 @@ ARCH_CLAVE = os.path.join(os.path.expanduser("~"), ".aria_lan_clave")
 
 
 def clave_guardada() -> str:
-    """Usa la clave del enlace ya hecho (ENL1) si existe; si no, la guardada con 'vincular'."""
-    try:
-        c = enlace.cfg().get("clave", "")
-        if c:
-            return c
-    except Exception:
-        pass
+    """Primero la clave que dejo el script de USB (la misma que recibe ASAGI); si no, la del enlace ENL1."""
     try:
         with open(ARCH_CLAVE, "r", encoding="utf-8") as f:
-            return f.read().strip()
+            c = f.read().strip()
+            if c:
+                return c
     except OSError:
+        pass
+    try:
+        return enlace.cfg().get("clave", "")
+    except Exception:
         return ""
 
 

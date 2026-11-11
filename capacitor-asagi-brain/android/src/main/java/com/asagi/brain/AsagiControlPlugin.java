@@ -932,6 +932,23 @@ public class AsagiControlPlugin extends Plugin {
         } }).start();
     }
 
+    /** Lee la clave de enlace que la PC deja por adb en files/enlace/lan.key (nada que teclear). */
+    @PluginMethod
+    public void leerClaveLan(final PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            java.io.File dir = getContext().getExternalFilesDir(null);
+            java.io.File f = new java.io.File(dir, "enlace/lan.key");
+            if (f.exists() && f.length() > 0 && f.length() < 200) {
+                java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(new java.io.FileInputStream(f), "UTF-8"));
+                String l = br.readLine(); br.close();
+                r.put("ok", l != null && l.trim().length() > 0);
+                r.put("clave", l == null ? "" : l.trim());
+            } else r.put("ok", false);
+        } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+        call.resolve(r);
+    }
+
     /** ¿Termux instalado, con permiso y respondiendo? (prueba real con un eco). */
     @PluginMethod
     public void termuxEstado(final PluginCall call) {

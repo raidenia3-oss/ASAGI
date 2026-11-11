@@ -867,6 +867,7 @@ renderBrainControls();
   const plugin = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null;
   function clave() {
     // Si ya hay enlace con ARIA se usa SU clave (cero pasos nuevos); si no, ASAGI crea una propia.
+    try { if (localStorage.getItem('asagi-lan-fuente') === 'pc') { const k0 = localStorage.getItem('asagi-lan-clave'); if (k0) return k0; } } catch (e) {}
     try {
       const c = JSON.parse(localStorage.getItem('asagi-enlace-cfg') || 'null');
       if (c && c.clave) return c.clave;
@@ -879,6 +880,18 @@ renderBrainControls();
   }
   const cli = L.crearCliente({ plugin: plugin, clave: clave });
   window._asagiLan = cli;
+  // La PC deja la clave por adb (files/enlace/lan.key): ASAGI la toma sola, sin teclear nada.
+  async function tomarClaveDePc() {
+    try {
+      const P = plugin(); if (!P || !P.leerClaveLan) return;
+      const r = await P.leerClaveLan();
+      if (r && r.ok && /^[a-z2-7]{16,64}$/i.test(r.clave)) {
+        if (localStorage.getItem('asagi-lan-clave') !== r.clave.toLowerCase()) localStorage.setItem('asagi-lan-clave', r.clave.toLowerCase());
+        localStorage.setItem('asagi-lan-fuente', 'pc');
+      }
+    } catch (e) {}
+  }
+  tomarClaveDePc(); setInterval(tomarClaveDePc, 60000);
   window._asagiLanEnviar = async function (texto) {
     const r = await cli.enviar({ t: 'nota', texto: texto });
     if (r.ok) { appendMessage('bot', '📡 ARIA lo recibió por ' + (r.via === 'wifi' ? 'WiFi' : 'Bluetooth') + ': ' + texto); return; }

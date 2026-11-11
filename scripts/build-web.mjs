@@ -34,6 +34,7 @@ const files = [
   'enlace-adb.js',
   'herramientas.js',
   'bandeja.js',
+  'enlace-lan.js',
   'discord.js',
   'app.js',
   'styles.css',

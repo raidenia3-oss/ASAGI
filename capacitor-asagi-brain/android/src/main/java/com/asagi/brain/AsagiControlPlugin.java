@@ -824,6 +824,114 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve(r);
     }
 
+    // ------------------------------------------------------------------ enlace directo con ARIA (WiFi / Bluetooth)
+    // La criptografia vive en JS (misma clave del enlace); aqui solo se mueven lineas de texto.
+
+    /** UDP: pregunta por broadcast quien responde. Devuelve la primera linea recibida y su origen. */
+    @PluginMethod
+    public void lanDescubrir(final PluginCall call) {
+        final String linea = call.getString("linea", "");
+        final int puerto = call.getInt("puerto", 47831);
+        final int espera = call.getInt("espera", 1500);
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            java.net.DatagramSocket s = null;
+            try {
+                s = new java.net.DatagramSocket();
+                s.setBroadcast(true); s.setSoTimeout(espera);
+                byte[] b = linea.getBytes("UTF-8");
+                java.util.LinkedHashSet<String> destinos = new java.util.LinkedHashSet<String>();
+                destinos.add("255.255.255.255");
+                try {
+                    WifiManager wm = (WifiManager) getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                    int ip = wm.getDhcpInfo().ipAddress, mask = wm.getDhcpInfo().netmask;
+                    int bc = (ip & mask) | ~mask;
+                    destinos.add((bc & 0xff) + "." + ((bc >> 8) & 0xff) + "." + ((bc >> 16) & 0xff) + "." + ((bc >> 24) & 0xff));
+                } catch (Throwable ignored) { }
+                String extra = call.getString("host", "");
+                if (extra != null && !extra.isEmpty()) destinos.add(extra);
+                for (String d : destinos) {
+                    try { s.send(new java.net.DatagramPacket(b, b.length, java.net.InetAddress.getByName(d), puerto)); } catch (Throwable ignored) { }
+                }
+                byte[] buf = new byte[4096];
+                java.net.DatagramPacket pk = new java.net.DatagramPacket(buf, buf.length);
+                s.receive(pk);
+                r.put("ok", true);
+                r.put("linea", new String(pk.getData(), 0, pk.getLength(), "UTF-8"));
+                r.put("host", pk.getAddress().getHostAddress());
+            } catch (java.net.SocketTimeoutException e) {
+                r.put("ok", false); r.put("error", "sinRespuesta");
+            } catch (Throwable e) {
+                r.put("ok", false); r.put("error", String.valueOf(e.getMessage()));
+            } finally { if (s != null) s.close(); }
+            call.resolve(r);
+        } }).start();
+    }
+
+    /** TCP: manda una linea y devuelve la linea de respuesta. */
+    @PluginMethod
+    public void lanEnviar(final PluginCall call) {
+        final String host = call.getString("host", "");
+        final int puerto = call.getInt("puerto", 47832);
+        final String linea = call.getString("linea", "");
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            try {
+                java.net.Socket so = new java.net.Socket();
+                so.connect(new java.net.InetSocketAddress(host, puerto), 4000);
+                so.setSoTimeout(8000);
+                try { r = lineaPorSocket(so.getInputStream(), so.getOutputStream(), linea); } finally { so.close(); }
+            } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+            call.resolve(r);
+        } }).start();
+    }
+
+    private JSObject lineaPorSocket(java.io.InputStream in, java.io.OutputStream out, String linea) throws java.io.IOException {
+        JSObject r = new JSObject();
+        out.write((linea + "\n").getBytes("UTF-8")); out.flush();
+        java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+        int c;
+        while (bo.size() < 65536 && (c = in.read()) != -1) { if (c == '\n') break; bo.write(c); }
+        if (bo.size() == 0) { r.put("ok", false); r.put("error", "sinRespuesta"); return r; }
+        r.put("ok", true); r.put("linea", bo.toString("UTF-8"));
+        return r;
+    }
+
+    /**
+     * Bluetooth RFCOMM: SOLO a dispositivos ya vinculados (los tuyos). Prueba cada uno por el canal
+     * indicado y se queda con el que contesta una linea valida. Nunca empareja ni toca ajenos.
+     */
+    @PluginMethod
+    public void btEnviar(final PluginCall call) {
+        final String linea = call.getString("linea", "");
+        final int canal = call.getInt("canal", 4);
+        final String mac = call.getString("mac", "");
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            r.put("ok", false); r.put("error", "sinBluetooth");
+            try {
+                BluetoothManager bm = (BluetoothManager) getContext().getSystemService(Context.BLUETOOTH_SERVICE);
+                BluetoothAdapter ad = bm == null ? null : bm.getAdapter();
+                if (ad == null || !ad.isEnabled()) { call.resolve(r); return; }
+                if (Build.VERSION.SDK_INT >= 31 && !tiene("android.permission.BLUETOOTH_CONNECT")) { r.put("error", "sinPermiso"); call.resolve(r); return; }
+                try { ad.cancelDiscovery(); } catch (Throwable ignored) { }
+                for (BluetoothDevice d : ad.getBondedDevices()) {
+                    if (mac != null && !mac.isEmpty() && !mac.equalsIgnoreCase(d.getAddress())) continue;
+                    android.bluetooth.BluetoothSocket so = null;
+                    try {
+                        Method m = d.getClass().getMethod("createRfcommSocket", new Class[] { int.class });
+                        so = (android.bluetooth.BluetoothSocket) m.invoke(d, Integer.valueOf(canal));
+                        so.connect();
+                        JSObject x = lineaPorSocket(so.getInputStream(), so.getOutputStream(), linea);
+                        if (x.optBoolean("ok", false)) { x.put("mac", d.getAddress()); call.resolve(x); return; }
+                    } catch (Throwable ignored) {
+                    } finally { try { if (so != null) so.close(); } catch (Throwable ignored) { } }
+                }
+            } catch (Throwable e) { r.put("error", String.valueOf(e.getMessage())); }
+            call.resolve(r);
+        } }).start();
+    }
+
     /** ¿Termux instalado, con permiso y respondiendo? (prueba real con un eco). */
     @PluginMethod
     public void termuxEstado(final PluginCall call) {

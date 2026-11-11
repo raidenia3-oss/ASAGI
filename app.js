@@ -728,8 +728,16 @@ chatForm.addEventListener('submit', (event) => {
 
   // "dile a ARIA que ..." -> va por el enlace propio, sin gastar el cerebro.
   const paraAria = window.AsagiEnlace && window.AsagiEnlace.esParaAria(text);
+  if (paraAria && window._asagiLanEnviar) {
+    window._asagiLanEnviar(paraAria);          // WiFi/Bluetooth directo; si no hay camino, cae al buzón cifrado
+    return;
+  }
   if (paraAria && window._asagiEnlaceEnviar) {
     window._asagiEnlaceEnviar(paraAria);
+    return;
+  }
+  if (/^\s*(enlace pc|conecta(?:te)? (?:con|a) (?:la )?pc|conecta(?:te)? (?:con|a) aria)\s*$/i.test(text) && window._asagiLanEstado) {
+    window._asagiLanEstado();
     return;
   }
 
@@ -851,6 +859,40 @@ renderBrainControls();
   });
   if (!dic) { mic.hidden = true; return; }
   mic.addEventListener('click', function () { dic.alternar(); });
+})();
+
+// --- Enlace directo con ARIA (WiFi / Bluetooth), sin internet ni tokens ---
+(function initEnlaceLan() {
+  const L = window.AsagiLan; if (!L) return;
+  const plugin = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null;
+  function clave() {
+    // Si ya hay enlace con ARIA se usa SU clave (cero pasos nuevos); si no, ASAGI crea una propia.
+    try {
+      const c = JSON.parse(localStorage.getItem('asagi-enlace-cfg') || 'null');
+      if (c && c.clave) return c.clave;
+    } catch (e) {}
+    try {
+      let k = localStorage.getItem('asagi-lan-clave');
+      if (!k && window.AsagiEnlace && window.AsagiEnlace.disponible()) { k = L.nuevaClaveLan(); localStorage.setItem('asagi-lan-clave', k); }
+      return k || '';
+    } catch (e) { return ''; }
+  }
+  const cli = L.crearCliente({ plugin: plugin, clave: clave });
+  window._asagiLan = cli;
+  window._asagiLanEnviar = async function (texto) {
+    const r = await cli.enviar({ t: 'nota', texto: texto });
+    if (r.ok) { appendMessage('bot', '📡 ARIA lo recibió por ' + (r.via === 'wifi' ? 'WiFi' : 'Bluetooth') + ': ' + texto); return; }
+    if (window._asagiEnlaceEnviar) { await window._asagiEnlaceEnviar(texto); return; }
+    appendMessage('bot', '📡 No encuentro a ARIA por WiFi ni Bluetooth. ¿Está abierta en la PC y en la misma red? Di "enlace pc" para ver cómo vincular.');
+  };
+  window._asagiLanEstado = async function () {
+    appendMessage('bot', '🔎 Buscando a ARIA en la red…');
+    const d = await cli.buscar();
+    const cod = L.codigoLan(clave());
+    appendMessage('bot', d
+      ? '✅ ARIA está en tu red (' + d.host + '). Hablamos cifrado por WiFi.'
+      : '⚠ No respondió. En la PC corre una sola vez: python lan.py vincular ' + cod + '  (después se conectan solas por WiFi o Bluetooth).');
+  };
 })();
 
 // --- Pendientes: recordatorios locales (con captura por voz) ---

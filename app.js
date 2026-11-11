@@ -725,6 +725,11 @@ chatForm.addEventListener('submit', (event) => {
 
   appendMessage('user', text);
   input.value = '';
+  if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
+  if (/^\s*(nivel|mi nivel|tu nivel|niveles|cu[aá]nto has aprendido|qu[eé] nivel tienes)\s*\??\s*$/i.test(text) && window.AsagiNiveles) {
+    appendMessage('bot', window.AsagiNiveles.formato(window.AsagiNiveles.actual()));
+    return;
+  }
 
   // "dile a ARIA que ..." -> va por el enlace propio, sin gastar el cerebro.
   const paraAria = window.AsagiEnlace && window.AsagiEnlace.esParaAria(text);
@@ -757,6 +762,7 @@ chatForm.addEventListener('submit', (event) => {
       } catch (e) {}
     }
     appendMessage('bot', herr.tipo === 'termux' || herr.tipo === 'nix' ? '⚙ Ejecutando…' : '🔎 Mirando…');
+    if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', String(herr.tipo).split('-')[0]);
     window.AsagiHerr.ejecutar(herr).then((t) => { if (t) appendMessage('bot', t); });
     return;
   }
@@ -866,6 +872,30 @@ renderBrainControls();
   mic.addEventListener('click', function () { dic.alternar(); });
 })();
 
+// --- Niveles de aprendizaje: chip bajo el nombre + aviso al subir ---
+(function initNiveles() {
+  const N = window.AsagiNiveles; if (!N) return;
+  const txt = document.getElementById('nivel-txt'), bar = document.getElementById('nivel-bar');
+  let previo = null;
+  try { previo = parseInt(localStorage.getItem('asagi-nivel-visto') || '0', 10) || 0; } catch (e) { previo = 0; }
+  function pintar() {
+    const e = N.actual();
+    if (txt) txt.textContent = 'NV ' + e.nivel + ' · ' + e.nombre;
+    if (bar) bar.style.width = Math.round(e.progreso * 100) + '%';
+    if (e.nivel > previo) {
+      if (previo > 0) {
+        appendMessage('bot', '✨ Subí a nivel ' + e.nivel + ': ' + e.nombre + '. ' + e.lema + ' Ahora: ' + e.abre);
+        if (window._asagiAvatarEstado) { window._asagiAvatarEstado('presumida'); setTimeout(() => window._asagiAvatarEstado('reposo'), 2600); }
+      }
+      previo = e.nivel; try { localStorage.setItem('asagi-nivel-visto', String(e.nivel)); } catch (x) {}
+    }
+  }
+  window._asagiNivelPintar = pintar;
+  pintar(); setInterval(pintar, 15000);
+  const chip = document.getElementById('nivel-chip');
+  if (chip) chip.addEventListener('click', () => appendMessage('bot', N.formato(N.actual())));
+})();
+
 // --- Actualizaciones sin desinstalar ---
 (function initActualizador() {
   const U = window.AsagiActualizador; if (!U) return;
@@ -953,6 +983,7 @@ renderBrainControls();
   window._asagiLanEnviar = async function (texto) {
     const r = await cli.enviar({ t: 'nota', texto: texto });
     if (r.ok) {
+      if (window.AsagiNiveles) window.AsagiNiveles.registrar('enlace');
       const d = cli.estado().destino;
       const via = r.via === 'bluetooth' ? 'Bluetooth' : (d && d.por === 'usb' ? 'cable USB' : 'WiFi');
       appendMessage('bot', r.resp && r.resp.respuesta ? '🖥 ARIA (' + via + '): ' + r.resp.respuesta : '📡 ARIA lo recibió por ' + via + ': ' + texto);

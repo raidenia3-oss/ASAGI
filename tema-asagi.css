@@ -155,3 +155,10 @@ html, body { font-family: var(--sans); color: var(--papel); }
 
 /* icono hecho con tu foto: ocupa todo el sello */
 .launcher-ico.con-foto img.foto { width: 100%; height: 100%; object-fit: cover; filter: none; }
+
+/* nivel de aprendizaje bajo el nombre */
+.nivel-chip { margin: 8px auto 0; display: inline-flex; flex-direction: column; align-items: center; gap: 5px;
+  background: none; border: 0; padding: 2px 8px; cursor: pointer; width: auto; box-shadow: none; }
+.nivel-chip span { font: 600 0.6rem/1 var(--mono); letter-spacing: 0.28em; color: var(--oro); }
+.nivel-chip i { display: block; width: 120px; height: 3px; border-radius: 3px; background: rgba(226, 176, 74, 0.18); overflow: hidden; }
+.nivel-chip b { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--asagi), var(--oro)); transition: width .6s ease; }

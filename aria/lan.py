@@ -46,6 +46,23 @@ def sellar(claves, de: str, carga: Dict[str, Any]) -> str:
                       separators=(",", ":"))
 
 
+def ips_locales() -> List[str]:
+    """IPv4 de esta PC en redes privadas (para que el celular, vía Bluetooth, sepa dónde llamar por WiFi)."""
+    ips: List[str] = []
+    try:
+        t = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        t.connect(("10.255.255.255", 1)); ips.append(t.getsockname()[0]); t.close()
+    except OSError:
+        pass
+    try:
+        for ip in socket.gethostbyname_ex(socket.gethostname())[2]:
+            if ip not in ips:
+                ips.append(ip)
+    except OSError:
+        pass
+    return [i for i in ips if not i.startswith("127.") and not i.startswith("169.254.")][:6]
+
+
 class Antirrepeticion:
     def __init__(self) -> None:
         self._vistos: Dict[str, int] = {}
@@ -106,7 +123,7 @@ class Servidor:
                 break
             c = abrir(self.claves, datos.decode("utf-8", "ignore"), self.anti)
             if c and c.get("t") == "hola":
-                resp = sellar(self.claves, YO, {"t": "aqui", "tcp": self.pt, "nombre": self.nombre})
+                resp = sellar(self.claves, YO, self._aqui())
                 try:
                     s.sendto(resp.encode(), dir_)
                 except OSError:
@@ -127,6 +144,9 @@ class Servidor:
             threading.Thread(target=self._atender, args=(con,), daemon=True).start()
 
     # ------------------------------------------------------------ comun
+    def _aqui(self) -> Dict[str, Any]:
+        return {"t": "aqui", "tcp": self.pt, "nombre": self.nombre, "ips": ips_locales()}
+
     def _atender(self, con: socket.socket) -> None:
         try:
             con.settimeout(10.0)
@@ -142,6 +162,9 @@ class Servidor:
                     if c is None:
                         return              # ajeno o alterado: se corta sin decir nada
                     self.estado["ultimo"] = int(time.time())
+                    if c.get("t") == "hola":          # por TCP o Bluetooth: dice donde esta en el WiFi
+                        con.sendall((sellar(self.claves, YO, self._aqui()) + "\n").encode())
+                        continue
                     try:
                         r = self.al_recibir(c) or {"ok": True}
                     except Exception as e:  # el manejador nunca tumba el enlace

@@ -40,15 +40,33 @@ function crearCliente(o) {
     } catch (e) { return null; }
   }
 
-  async function buscar() {
-    var P = o.plugin(); if (!P || !P.lanDescubrir) return null;
+  // Fase 1 (WiFi puro): broadcast UDP. Fase 2 (COMBINADO): si el router bloquea el broadcast,
+  // se le pregunta por Bluetooth y ARIA contesta en que IP del WiFi esta; se verifica por TCP.
+  async function verificar(host, puerto) {
+    var P = o.plugin(); if (!P || !P.lanEnviar) return null;
     var linea = await sellar('asagi', { t: 'hola' }); if (!linea) return null;
-    var r; try { r = await P.lanDescubrir({ linea: linea, puerto: PUERTO_UDP, espera: 1500 }); } catch (e) { return null; }
-    if (!r || !r.ok) return null;
-    var c = await abrir(r.linea, 'aria');
-    if (!c || c.t !== 'aqui') return null;                 // ajeno o respuesta falsa: se ignora
-    destino = { host: r.host, puerto: c.tcp, nombre: c.nombre || 'ARIA' };
-    return destino;
+    var r; try { r = await P.lanEnviar({ host: host, puerto: puerto, linea: linea }); } catch (e) { return null; }
+    var c = r && r.ok ? await abrir(r.linea, 'aria') : null;
+    return c && c.t === 'aqui' ? c : null;
+  }
+  async function buscar() {
+    var P = o.plugin(); if (!P) return null;
+    var linea = await sellar('asagi', { t: 'hola' }); if (!linea) return null;
+    if (P.lanDescubrir) {
+      var r; try { r = await P.lanDescubrir({ linea: linea, puerto: PUERTO_UDP, espera: 1500 }); } catch (e) { r = null; }
+      var c = r && r.ok ? await abrir(r.linea, 'aria') : null;
+      if (c && c.t === 'aqui') { destino = { host: r.host, puerto: c.tcp, nombre: c.nombre || 'ARIA', por: 'broadcast' }; return destino; }
+    }
+    if (P.btEnviar) {                                      // combinado: Bluetooth te dice la IP, WiFi lleva los datos
+      var b; try { b = await P.btEnviar({ linea: linea, canal: CANAL_BT }); } catch (e) { b = null; }
+      var cb = b && b.ok ? await abrir(b.linea, 'aria') : null;
+      if (cb && cb.t === 'aqui' && Array.isArray(cb.ips)) {
+        for (var i = 0; i < cb.ips.length; i++) {
+          if (await verificar(cb.ips[i], cb.tcp)) { destino = { host: cb.ips[i], puerto: cb.tcp, nombre: cb.nombre || 'ARIA', por: 'bluetooth' }; return destino; }
+        }
+      }
+    }
+    return null;
   }
 
   async function porWifi(carga) {
@@ -81,7 +99,7 @@ function crearCliente(o) {
     return { ok: false, motivo: 'sinCamino' };
   }
 
-  return { enviar: enviar, buscar: buscar, estado: function () { return { destino: destino, via: ultimaVia }; } };
+  return { enviar: enviar, buscar: buscar, verificar: verificar, estado: function () { return { destino: destino, via: ultimaVia }; } };
 }
 
 var API = { SAL_LAN: SAL_LAN, nuevaClaveLan: nuevaClaveLan, codigoLan: codigoLan, parsearCodigoLan: parsearCodigoLan, crearCliente: crearCliente };

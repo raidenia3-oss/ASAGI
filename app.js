@@ -149,7 +149,7 @@ function renderMessages() {
     bubble.appendChild(textEl);
 
     const metaEl = document.createElement('div');
-    metaEl.className = 'message meta';
+    metaEl.className = 'msg-meta';
     metaEl.textContent = message.time;
     bubble.appendChild(metaEl);
 
@@ -440,7 +440,7 @@ async function startBotStreaming(userText) {
           const last = chat.querySelector('.message.bot:last-child');
           if (last) {
             const tag = document.createElement('div');
-            tag.className = 'message meta';
+            tag.className = 'msg-meta';
             tag.textContent = 'backend: ' + backend + (res && res.degradado ? ' (degradado)' : '');
             last.appendChild(tag);
           }
@@ -498,7 +498,7 @@ function streamLocalReply(userText, brain) {
     bubble.appendChild(textEl);
 
     const meta = document.createElement('div');
-    meta.className = 'message meta';
+    meta.className = 'msg-meta';
     meta.textContent = 'escribiendo…';
     bubble.appendChild(meta);
 
@@ -593,7 +593,7 @@ function streamRemoteReply(userText, cfg) {
       textEl.textContent = '';
       bubble.appendChild(textEl);
       const meta = document.createElement('div');
-      meta.className = 'message meta';
+      meta.className = 'msg-meta';
       meta.textContent = 'escribiendo…';
       bubble.appendChild(meta);
       chat.appendChild(bubble);
@@ -1661,7 +1661,7 @@ if ('serviceWorker' in navigator) {
     }
     function draw() {
       raf = requestAnimationFrame(draw); tt += 0.03;
-      g.clearRect(0, 0, W, H); g.fillStyle = 'rgba(5,8,16,0.5)'; g.fillRect(0, 0, W, H);
+      g.clearRect(0, 0, W, H); g.fillStyle = 'rgba(7, 12, 14,0.5)'; g.fillRect(0, 0, W, H);
       const cx = W / 2, cy = H / 2;
       const ws = (estado && estado.workers) || [];
       const n = Math.max(ws.length, 1);
@@ -1675,7 +1675,7 @@ if ('serviceWorker' in navigator) {
         const ang = (i / n) * Math.PI * 2 - Math.PI / 2;
         const R = Math.min(W, H) * 0.36 * (1 - pull);
         const bx = cx + Math.cos(ang) * R, by = cy + Math.sin(ang) * R;
-        g.strokeStyle = 'rgba(120,150,190,' + (0.22 - pull * 0.12).toFixed(2) + ')'; g.lineWidth = 1;
+        g.strokeStyle = 'rgba(57, 195, 200,' + (0.22 - pull * 0.12).toFixed(2) + ')'; g.lineWidth = 1;
         g.beginPath(); g.moveTo(cx, cy); g.lineTo(bx, by); g.stroke();
         if (w.estado === 'trabajando') {
           const fp = (tt * 0.6 + i * 0.3) % 1;                 // pulso viaja núcleo->bot
@@ -1698,23 +1698,23 @@ if ('serviceWorker' in navigator) {
           g.strokeStyle = '#eaffea'; g.lineWidth = 1.6; g.beginPath();
           g.moveTo(bx - 2.4, by); g.lineTo(bx - 0.6, by + 2); g.lineTo(bx + 2.6, by - 2.4); g.stroke(); g.lineWidth = 1;
         }
-        g.fillStyle = 'rgba(220,235,255,0.75)'; g.font = '8px monospace'; g.textAlign = 'center';
+        g.fillStyle = 'rgba(135, 219, 222,0.75)'; g.font = '8px monospace'; g.textAlign = 'center';
         g.fillText(w.nombre.slice(0, 7), bx, by + 15);
       });
       // destello de completado: anillo que se expande una vez al converger
       if (convT > 0.02 && convT < 0.6) {
         const rr = easeOut(convT / 0.6) * Math.min(W, H) * 0.42;
-        g.strokeStyle = 'rgba(56,189,248,' + (0.5 * (1 - convT / 0.6)).toFixed(2) + ')';
+        g.strokeStyle = 'rgba(55, 194, 199,' + (0.5 * (1 - convT / 0.6)).toFixed(2) + ')';
         g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1;
       }
       // núcleo ASAGI
       const pulse = 0.7 + 0.3 * Math.sin(tt * 2);
       const grd = g.createRadialGradient(cx, cy, 0, cx, cy, 20);
-      grd.addColorStop(0, 'rgba(56,189,248,' + (0.9 * pulse).toFixed(2) + ')');
-      grd.addColorStop(1, 'rgba(56,189,248,0)');
+      grd.addColorStop(0, 'rgba(55, 194, 199,' + (0.9 * pulse).toFixed(2) + ')');
+      grd.addColorStop(1, 'rgba(55, 194, 199,0)');
       g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, 20, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#eaf6ff'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = 'rgba(220,235,255,0.9)'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
+      g.fillStyle = '#8ddddf'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(135, 219, 222,0.9)'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
       g.fillText('ASAGI', cx, cy + 3);
     }
     function run() { const ab = document.getElementById('grok'); if (ab && ab.classList.contains('open')) { if (!raf) { size(); draw(); } } else if (raf) { cancelAnimationFrame(raf); raf = null; } }
@@ -1736,8 +1736,8 @@ if ('serviceWorker' in navigator) {
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });
   window._asagiWall = wp;                 // el panel de personalización lo controla
   // Acento dinámico: la UI (pestañas, botones) sigue el color del fondo (Material You / Niagara).
-  const ACC = { cian: ['#38bdf8', 'rgba(56,189,248,.4)'], violeta: ['#a78bfa', 'rgba(167,139,250,.4)'],
-    verde: ['#2dd4bf', 'rgba(45,212,191,.4)'], rosa: ['#f472b6', 'rgba(244,114,182,.4)'], ambar: ['#fbbf24', 'rgba(251,191,36,.4)'] };
+  const ACC = { cian: ['#37c2c7', 'rgba(55, 194, 199,.4)'], violeta: ['#e8c070', 'rgba(232, 192, 112,.4)'],
+    verde: ['#e43162', 'rgba(228, 49, 98,.4)'], rosa: ['#eb668b', 'rgba(235, 102, 139,.4)'], ambar: ['#fbbf24', 'rgba(251, 191, 36,.4)'] };
   window._asagiAccento = function (t) {
     let key = t;
     if (t === 'auto') { const h = new Date().getHours(); key = h < 6 ? 'violeta' : h < 12 ? 'cian' : h < 18 ? 'verde' : h < 21 ? 'ambar' : 'rosa'; }
@@ -1814,8 +1814,8 @@ if ('serviceWorker' in navigator) {
   }
   window._asagiPedirVideo = pedirVideo;
   (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
-  const SW = { cian: '#38bdf8', violeta: '#a78bfa', verde: '#2dd4bf', rosa: '#f472b6', ambar: '#fbbf24',
-    auto: 'conic-gradient(from 0deg, #38bdf8, #a78bfa, #2dd4bf, #fbbf24, #f472b6, #38bdf8)' };
+  const SW = { cian: '#37c2c7', violeta: '#e8c070', verde: '#e43162', rosa: '#eb668b', ambar: '#fbbf24',
+    auto: 'conic-gradient(from 0deg, #37c2c7, #e8c070, #e43162, #fbbf24, #eb668b, #37c2c7)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'constelacion', t: w ? w.getTema() : 'cian' }; }
   function pintar() {
     const c = cur();
@@ -1918,7 +1918,7 @@ if ('serviceWorker' in navigator) {
     if (tint) {
       const c = cfg.calidez / 100;
       if (c > 0) { tint.style.background = '#ff9838'; tint.style.opacity = (c * 0.9).toFixed(2); }
-      else if (c < 0) { tint.style.background = '#3aa0ff'; tint.style.opacity = (-c * 0.9).toFixed(2); }
+      else if (c < 0) { tint.style.background = '#3ac4c9'; tint.style.opacity = (-c * 0.9).toFixed(2); }
       else { tint.style.opacity = 0; }
     }
     if (vig) vig.style.opacity = (cfg.vineta / 100).toFixed(2);
@@ -2105,7 +2105,7 @@ if ('serviceWorker' in navigator) {
     if (!iw || !ih) return null;
     const cv = document.createElement('canvas'); cv.width = TW; cv.height = TH;
     const g = cv.getContext('2d');
-    g.fillStyle = '#05070f'; g.fillRect(0, 0, TW, TH);
+    g.fillStyle = '#060c0e'; g.fillRect(0, 0, TW, TH);
     const z = cfg.zoom / 100;
     let scale = cfg.ajuste === 'contain' ? Math.min(TW / iw, TH / ih) : Math.max(TW / iw, TH / ih);
     scale *= z;
@@ -2118,9 +2118,9 @@ if ('serviceWorker' in navigator) {
     g.filter = 'none';
     // tinte de calidez
     const c = cfg.calidez / 100;
-    if (c !== 0) { g.globalCompositeOperation = 'soft-light'; g.fillStyle = c > 0 ? 'rgba(255,152,56,' + (Math.abs(c) * 0.9) + ')' : 'rgba(58,160,255,' + (Math.abs(c) * 0.9) + ')'; g.fillRect(0, 0, TW, TH); g.globalCompositeOperation = 'source-over'; }
+    if (c !== 0) { g.globalCompositeOperation = 'soft-light'; g.fillStyle = c > 0 ? 'rgba(255, 152, 56,' + (Math.abs(c) * 0.9) + ')' : 'rgba(58, 196, 201,' + (Math.abs(c) * 0.9) + ')'; g.fillRect(0, 0, TW, TH); g.globalCompositeOperation = 'source-over'; }
     // viñeta
-    if (cfg.vineta > 0) { const gr = g.createRadialGradient(TW / 2, TH / 2, Math.min(TW, TH) * 0.3, TW / 2, TH / 2, Math.max(TW, TH) * 0.72); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,' + (cfg.vineta / 100) + ')'); g.fillStyle = gr; g.fillRect(0, 0, TW, TH); }
+    if (cfg.vineta > 0) { const gr = g.createRadialGradient(TW / 2, TH / 2, Math.min(TW, TH) * 0.3, TW / 2, TH / 2, Math.max(TW, TH) * 0.72); gr.addColorStop(0, 'rgba(0, 0, 0,0)'); gr.addColorStop(1, 'rgba(0, 0, 0,' + (cfg.vineta / 100) + ')'); g.fillStyle = gr; g.fillRect(0, 0, TW, TH); }
     return cv;
   }
   const btnExport = document.getElementById('wf-exportar');

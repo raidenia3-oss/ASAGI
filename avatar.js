@@ -45,8 +45,8 @@ function orbita(tms, i, n, radio) {
 function _leerColor() {
   try {
     var c = getComputedStyle(document.documentElement).getPropertyValue('--cyan');
-    return (c && c.trim()) || '#38bdf8';
-  } catch (e) { return '#38bdf8'; }
+    return (c && c.trim()) || '#37c2c7';
+  } catch (e) { return '#37c2c7'; }
 }
 
 function _hex(c) {
@@ -106,8 +106,8 @@ function crearAvatar(canvas, opts) {
 
     // visor / cabeza (capsula redondeada con gradiente)
     var gg = ctx.createLinearGradient(0, -R, 0, R);
-    gg.addColorStop(0, 'rgba(10,22,34,0.96)');
-    gg.addColorStop(1, 'rgba(4,10,18,0.96)');
+    gg.addColorStop(0, 'rgba(14, 26, 30,0.96)');
+    gg.addColorStop(1, 'rgba(7, 13, 15,0.96)');
     ctx.fillStyle = gg;
     ctx.strokeStyle = rgba(0.85);
     ctx.lineWidth = Math.max(1.5, R * 0.03);

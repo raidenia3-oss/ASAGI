@@ -58,8 +58,12 @@ jobs:
           name: asagi-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
-      - name: Preparar asagi.apk
-        run: cp android/app/build/outputs/apk/debug/*.apk asagi.apk
+      - name: Preparar asagi.apk + version.json
+        run: |
+          cp android/app/build/outputs/apk/debug/*.apk asagi.apk
+          FIRMA=$(keytool -printcert -jarfile asagi.apk | grep -m1 SHA256: | awk '{print $2}')
+          printf '{"build":%s,"sha":"%s","fecha":"%s","bytes":%s,"firma":"%s"}\n' "$GITHUB_RUN_NUMBER" "${GITHUB_SHA::7}" "$(date -u +%FT%TZ)" "$(stat -c%s asagi.apk)" "$FIRMA" > version.json
+          cat version.json
       - name: Publicar en la Release "latest"
         uses: softprops/action-gh-release@v3
         with:
@@ -67,4 +71,6 @@ jobs:
           prerelease: true
           overwrite_files: true
           fail_on_unmatched_files: true
-          files: asagi.apk
+          files: |
+            asagi.apk
+            version.json

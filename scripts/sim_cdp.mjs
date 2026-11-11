@@ -46,6 +46,7 @@ async function di(texto, espera = 5000) {
   }
   out(`- **Tú:** ${texto}\n  **ASAGI:** ${(r || '(sin respuesta en ' + espera / 1000 + ' s)').replace(/\n+/g, ' ').slice(0, 400)}`);
 }
+out(`- Actualizador: ${await ev("window.AsagiActualizador?AsagiActualizador.revisar().then(d=>d.accion+' — '+d.motivo+' | instalada: '+JSON.stringify(d.instalada&&{build:d.instalada.build,firma:(d.instalada.firma||'').slice(0,11)})+' | remota: '+JSON.stringify(d.remota&&{build:d.remota.build,firma:(d.remota.firma||'').slice(0,11)})):'no cargado'")}`);
 await di('hola asagi', 15000);
 await di('bandeja');
 await di('guarda en la bandeja: pagar luz hoy');

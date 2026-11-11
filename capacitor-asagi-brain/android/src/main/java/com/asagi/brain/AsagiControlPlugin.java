@@ -932,6 +932,89 @@ public class AsagiControlPlugin extends Plugin {
         } }).start();
     }
 
+    // ------------------------------------------------------------------ actualizaciones sin desinstalar
+
+    private static String sha256Firma(android.content.pm.PackageInfo pi) {
+        try {
+            android.content.pm.Signature[] sigs;
+            if (Build.VERSION.SDK_INT >= 28 && pi.signingInfo != null) sigs = pi.signingInfo.getApkContentsSigners();
+            else sigs = pi.signatures;
+            if (sigs == null || sigs.length == 0) return "";
+            byte[] d = java.security.MessageDigest.getInstance("SHA-256").digest(sigs[0].toByteArray());
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < d.length; i++) { if (i > 0) sb.append(':'); sb.append(String.format("%02X", d[i])); }
+            return sb.toString();
+        } catch (Throwable e) { return ""; }
+    }
+
+    /** Version instalada + huella de la firma (para saber si un APK nuevo se puede instalar encima). */
+    @PluginMethod
+    public void versionApp(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            android.content.pm.PackageManager pm = getContext().getPackageManager();
+            int fl = Build.VERSION.SDK_INT >= 28 ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES : android.content.pm.PackageManager.GET_SIGNATURES;
+            android.content.pm.PackageInfo pi = pm.getPackageInfo(getContext().getPackageName(), fl);
+            long code = Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode;
+            r.put("ok", true); r.put("build", code); r.put("nombre", pi.versionName); r.put("firma", sha256Firma(pi));
+            r.put("puedeInstalar", Build.VERSION.SDK_INT < 26 || pm.canRequestPackageInstalls());
+        } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+        call.resolve(r);
+    }
+
+    /** Baja el APK (sigue redirecciones de GitHub) y abre el instalador de Android: se instala ENCIMA. */
+    @PluginMethod
+    public void instalarApk(final PluginCall call) {
+        final String url = call.getString("url", "");
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            try {
+                android.content.pm.PackageManager pm = getContext().getPackageManager();
+                if (Build.VERSION.SDK_INT >= 26 && !pm.canRequestPackageInstalls()) {
+                    Intent ps = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            android.net.Uri.parse("package:" + getContext().getPackageName()));
+                    ps.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(ps);
+                    r.put("ok", false); r.put("error", "permisoInstalar"); call.resolve(r); return;
+                }
+                java.io.File dir = new java.io.File(getContext().getCacheDir(), "upd"); dir.mkdirs();
+                java.io.File apk = new java.io.File(dir, "asagi.apk");
+                String u = url; java.net.HttpURLConnection c = null;
+                for (int i = 0; i < 6; i++) {
+                    c = (java.net.HttpURLConnection) new java.net.URL(u).openConnection();
+                    c.setInstanceFollowRedirects(false); c.setConnectTimeout(20000); c.setReadTimeout(60000);
+                    c.setRequestProperty("User-Agent", "ASAGI-actualizador");
+                    int code = c.getResponseCode();
+                    if (code >= 300 && code < 400) { u = new java.net.URL(new java.net.URL(u), c.getHeaderField("Location")).toString(); c.disconnect(); continue; }
+                    if (code != 200) throw new java.io.IOException("servidor respondio " + code);
+                    break;
+                }
+                long total = c.getContentLengthLong(), hecho = 0, aviso = 0;
+                java.io.InputStream in = c.getInputStream(); java.io.FileOutputStream out = new java.io.FileOutputStream(apk);
+                byte[] b = new byte[65536]; int n;
+                while ((n = in.read(b)) != -1) {
+                    out.write(b, 0, n); hecho += n;
+                    if (System.currentTimeMillis() - aviso > 500) { aviso = System.currentTimeMillis(); JSObject ev = new JSObject(); ev.put("hecho", hecho); ev.put("total", total); notifyListeners("actualizacion", ev); }
+                }
+                out.close(); in.close(); c.disconnect();
+                // misma firma? si no, Android rechazaria la instalacion encima
+                int fl = Build.VERSION.SDK_INT >= 28 ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES : android.content.pm.PackageManager.GET_SIGNATURES;
+                android.content.pm.PackageInfo nuevo = pm.getPackageArchiveInfo(apk.getAbsolutePath(), fl);
+                android.content.pm.PackageInfo actual = pm.getPackageInfo(getContext().getPackageName(), fl);
+                if (nuevo == null) throw new java.io.IOException("el APK llego danado");
+                String fN = sha256Firma(nuevo), fA = sha256Firma(actual);
+                if (!fN.isEmpty() && !fA.isEmpty() && !fN.equals(fA)) { r.put("ok", false); r.put("error", "firmaDistinta"); call.resolve(r); return; }
+                android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setDataAndType(uri, "application/vnd.android.package-archive");
+                it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(it);
+                r.put("ok", true);
+            } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+            call.resolve(r);
+        } }).start();
+    }
+
     /** Identidad de este celular (para que ARIA sepa que es EL tuyo). */
     @PluginMethod
     public void infoDispositivo(PluginCall call) {

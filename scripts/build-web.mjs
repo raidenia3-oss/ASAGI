@@ -35,6 +35,7 @@ const files = [
   'herramientas.js',
   'bandeja.js',
   'enlace-lan.js',
+  'actualizador.js',
   'discord.js',
   'app.js',
   'styles.css',

@@ -736,6 +736,10 @@ chatForm.addEventListener('submit', (event) => {
     window._asagiEnlaceEnviar(paraAria);
     return;
   }
+  if (/^\s*(actualiza(?:te)?|actualizar|busca actualizaci[oó]n|versi[oó]n)\s*$/i.test(text) && window._asagiActualizar) {
+    window._asagiActualizar(true);
+    return;
+  }
   if (/^\s*(enlace pc|conecta(?:te)? (?:con|a) (?:la )?pc|conecta(?:te)? (?:con|a) aria)\s*$/i.test(text) && window._asagiLanEstado) {
     window._asagiLanEstado();
     return;
@@ -859,6 +863,40 @@ renderBrainControls();
   });
   if (!dic) { mic.hidden = true; return; }
   mic.addEventListener('click', function () { dic.alternar(); });
+})();
+
+// --- Actualizaciones sin desinstalar ---
+(function initActualizador() {
+  const U = window.AsagiActualizador; if (!U) return;
+  let avisado = 0;
+  async function ciclo(desdeChat) {
+    const d = await U.revisar();
+    if (d.accion === 'actualizar') {
+      const wifi = !(navigator.connection && navigator.connection.type === 'cellular');
+      if (!desdeChat && (!wifi || avisado === d.remota.build)) return d;
+      avisado = d.remota.build;
+      appendMessage('bot', '⬆ Hay una ASAGI nueva (' + d.motivo + '). La bajo y Android te pedirá "Actualizar": tus datos y el modelo se quedan.');
+      const r = await U.instalar();
+      if (!r.ok && r.error === 'permisoInstalar') { try { localStorage.setItem('asagi-upd-pendiente', '1'); } catch (e) {} appendMessage('bot', '⚙ Android necesita que permitas "Instalar apps desconocidas" para ASAGI (una sola vez). Activa el interruptor y vuelve: lo reintento solo.'); }
+      else if (!r.ok && r.error === 'firmaDistinta') appendMessage('bot', '⚠ Esta versión vino firmada con otra llave y Android no la instala encima. Conéctame por cable y corre ASAGI_CONECTAR.bat: migra tus datos solo.');
+      else if (!r.ok) appendMessage('bot', '⚠ No pude actualizar: ' + r.error);
+    } else if (desdeChat) {
+      appendMessage('bot', d.accion === 'firmaDistinta'
+        ? '⚠ Hay versión nueva pero con otra firma: hace falta una migración por cable (ASAGI_CONECTAR.bat, conserva tus datos).'
+        : 'ℹ ' + d.motivo + '.');
+    }
+    return d;
+  }
+  window._asagiActualizar = ciclo;
+  try {
+    const P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (P && P.addListener) P.addListener('actualizacion', (e) => {
+      if (e && e.total > 0) { const st = document.getElementById('brain-hint'); if (st) { st.hidden = false; st.textContent = 'Bajando ASAGI nueva ' + Math.round(e.hecho * 100 / e.total) + '%'; } }
+    });
+  } catch (e) {}
+  setTimeout(() => ciclo(false), 45000);
+  setInterval(() => ciclo(false), 6 * 3600 * 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && localStorage.getItem('asagi-upd-pendiente')) { localStorage.removeItem('asagi-upd-pendiente'); ciclo(true); } });
 })();
 
 // --- Enlace directo con ARIA (WiFi / Bluetooth), sin internet ni tokens ---

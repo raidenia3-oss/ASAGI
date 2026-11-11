@@ -894,7 +894,12 @@ renderBrainControls();
   tomarClaveDePc(); setInterval(tomarClaveDePc, 60000);
   window._asagiLanEnviar = async function (texto) {
     const r = await cli.enviar({ t: 'nota', texto: texto });
-    if (r.ok) { const d = cli.estado().destino; appendMessage('bot', '📡 ARIA lo recibió por ' + (r.via === 'bluetooth' ? 'Bluetooth' : (d && d.por === 'usb' ? 'cable USB' : 'WiFi')) + ': ' + texto); return; }
+    if (r.ok) {
+      const d = cli.estado().destino;
+      const via = r.via === 'bluetooth' ? 'Bluetooth' : (d && d.por === 'usb' ? 'cable USB' : 'WiFi');
+      appendMessage('bot', r.resp && r.resp.respuesta ? '🖥 ARIA (' + via + '): ' + r.resp.respuesta : '📡 ARIA lo recibió por ' + via + ': ' + texto);
+      return;
+    }
     if (window._asagiEnlaceEnviar) { await window._asagiEnlaceEnviar(texto); return; }
     appendMessage('bot', '📡 No encuentro a ARIA por WiFi ni Bluetooth. ¿Está abierta en la PC y en la misma red? Di "enlace pc" para ver cómo vincular.');
   };

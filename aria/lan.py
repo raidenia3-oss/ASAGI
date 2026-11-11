@@ -63,6 +63,14 @@ def ips_locales() -> List[str]:
     return [i for i in ips if not i.startswith("127.") and not i.startswith("169.254.")][:6]
 
 
+def _exclusivo(s: socket.socket) -> None:
+    """Windows: un solo dueño del puerto (si ARIA ya escucha, otro proceso falla limpio). Linux: reuse."""
+    if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)  # type: ignore[attr-defined]
+    else:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+
 class Antirrepeticion:
     def __init__(self) -> None:
         self._vistos: Dict[str, int] = {}
@@ -112,7 +120,7 @@ class Servidor:
     # ------------------------------------------------------------ WiFi
     def _udp(self) -> None:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        _exclusivo(s)
         s.bind(("", self.pu)); s.settimeout(1.0); self._socks.append(s)
         while self._activo.is_set():
             try:
@@ -131,7 +139,7 @@ class Servidor:
 
     def _tcp(self) -> None:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        _exclusivo(s)
         s.bind(("", self.pt)); s.listen(4); s.settimeout(1.0); self._socks.append(s)
         self.estado["wifi"] = True
         while self._activo.is_set():

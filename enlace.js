@@ -268,6 +268,12 @@ function crearCliente(o) {
     return !!(c.token && c.gist && c.clave);
   }
 
+  // ---------- ping: chequeo ligero sin I/O al celular ----------
+  function ping() {
+    return Promise.resolve({ ok: true, vinculado: vinculado(),
+      texto: vinculado() ? "Buzon de enlace configurado." : "Buzon de enlace no configurado." });
+  }
+
   // Crea el buzon (gist privado) y devuelve el codigo para pegar en ARIA.
   async function crear(token) {
     token = String(token || '').trim();
@@ -383,7 +389,7 @@ function crearCliente(o) {
 
 var API = {
   VERSION: VERSION, YO: YO, OTRO: OTRO, ARCHIVO: ARCHIVO, MAX_MSGS: MAX_MSGS, MAX_EDAD_MS: MAX_EDAD_MS,
-  disponible: disponible, nuevaClave: nuevaClave, hacerCodigo: hacerCodigo, parsearCodigo: parsearCodigo,
+  disponible: disponible, ping: ping, vinculado: vinculado, nuevaClave: nuevaClave, hacerCodigo: hacerCodigo, parsearCodigo: parsearCodigo,
   docNuevo: docNuevo, docValido: docValido, nuevoId: nuevoId, fusionar: fusionar, entrantes: entrantes,
   hace: hace, esParaAria: esParaAria, explicar: explicar,
   derivar: derivar, cifrar: cifrar, descifrar: descifrar, crearCliente: crearCliente,

@@ -63,6 +63,38 @@ def ips_locales() -> List[str]:
     return [i for i in ips if not i.startswith("127.") and not i.startswith("169.254.")][:6]
 
 
+# ---------------------------------------------------------------- emparejar sin cable (como audifonos)
+# Diffie-Hellman (RFC 3526, grupo 14, 2048 bits) con la biblioteca estandar. Los dos lados
+# calculan la MISMA clave sin que viaje por la red. Codigo de 6 cifras para comprobar a ojo.
+DH_P = int(
+    "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DD"
+    "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED"
+    "EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F"
+    "83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B"
+    "E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA0510"
+    "15728E5A8AACAA68FFFFFFFFFFFFFFFF", 16)
+DH_G = 2
+VENTANA_EMPAREJAR_S = 600            # tras arrancar ARIA, 10 min para (re)emparejar un celular
+
+
+def dh_par():
+    a = secrets.randbits(256) | 1
+    return a, pow(DH_G, a, DH_P)
+
+
+def dh_clave(privado: int, publico_otro: int):
+    """Devuelve (clave_enlace, codigo_6_cifras) a partir del secreto compartido."""
+    import base64
+    import hashlib
+    if not (1 < publico_otro < DH_P - 1):
+        raise ValueError("publico invalido")
+    sec = pow(publico_otro, privado, DH_P).to_bytes(256, "big")
+    h = hashlib.sha256(b"asagi-aria-par1" + sec).digest()
+    clave = base64.b32encode(h[:15]).decode().lower()
+    codigo = "%06d" % (int.from_bytes(hashlib.sha256(b"sas" + sec).digest()[:4], "big") % 1000000)
+    return clave, codigo
+
+
 def _exclusivo(s: socket.socket) -> None:
     """Windows: un solo dueño del puerto (si ARIA ya escucha, otro proceso falla limpio). Linux: reuse."""
     if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
@@ -107,8 +139,10 @@ class Servidor:
     def __init__(self, clave: str, al_recibir: Callable[[Dict[str, Any]], Dict[str, Any]],
                  nombre: str = "ARIA", puerto_udp: int = PUERTO_UDP, puerto_tcp: int = PUERTO_TCP,
                  usar_bluetooth: bool = True) -> None:
-        self.claves = claves_de(clave)
+        self.claves = claves_de(clave) if clave else None
         self.al_recibir = al_recibir
+        self.inicio = time.time()
+        self.al_emparejar: Optional[Callable[[str, str], None]] = None   # (clave, codigo) -> guardar
         self.nombre = nombre
         self.pu, self.pt = puerto_udp, puerto_tcp
         self.usar_bt = usar_bluetooth
@@ -129,7 +163,16 @@ class Servidor:
                 continue
             except OSError:
                 break
-            c = abrir(self.claves, datos.decode("utf-8", "ignore"), self.anti)
+            texto = datos.decode("utf-8", "ignore")
+            if '"emparejar"' in texto:
+                r = self._emparejar(texto)
+                if r:
+                    try:
+                        s.sendto(r.encode(), dir_)
+                    except OSError:
+                        pass
+                continue
+            c = abrir(self.claves, texto, self.anti) if self.claves else None
             if c and c.get("t") == "hola":
                 resp = sellar(self.claves, YO, self._aqui())
                 try:
@@ -152,6 +195,30 @@ class Servidor:
             threading.Thread(target=self._atender, args=(con,), daemon=True).start()
 
     # ------------------------------------------------------------ comun
+    def puede_emparejar(self) -> bool:
+        return self.claves is None or (time.time() - self.inicio) < VENTANA_EMPAREJAR_S
+
+    def _emparejar(self, texto: str) -> Optional[str]:
+        """Celular nuevo en la red: si ARIA esta en ventana de emparejar, crean la clave juntos."""
+        try:
+            m = json.loads(texto)
+            if m.get("t") != "emparejar" or not self.puede_emparejar():
+                return None
+            A = int(str(m["A"]), 16)
+            b, B = dh_par()
+            clave, codigo = dh_clave(b, A)
+        except Exception:
+            return None
+        self.claves = claves_de(clave)
+        self.anti = Antirrepeticion()
+        self.estado["emparejado"] = {"codigo": codigo, "nombre": str(m.get("nombre", "ASAGI"))[:40], "cuando": int(time.time())}
+        if self.al_emparejar:
+            try:
+                self.al_emparejar(clave, codigo)
+            except Exception:
+                pass
+        return json.dumps({"t": "emparejado", "B": format(B, "x"), "tcp": self.pt, "nombre": self.nombre, "ips": ips_locales()})
+
     def _aqui(self) -> Dict[str, Any]:
         return {"t": "aqui", "tcp": self.pt, "nombre": self.nombre, "ips": ips_locales()}
 
@@ -263,6 +330,11 @@ import os
 ARCH_CLAVE = os.path.join(os.path.expanduser("~"), ".aria_lan_clave")
 
 
+def guardar_clave(clave: str) -> None:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".aria_lan_clave"), "w", encoding="utf-8") as f:
+        f.write(clave)
+
+
 def clave_guardada() -> str:
     """1) .aria_lan_clave junto a este archivo, 2) la del script USB en el home, 3) la del enlace ENL1."""
     try:
@@ -302,14 +374,18 @@ def _main(argv: List[str]) -> int:
     if cmd == "escuchar":
         clave = clave_guardada()
         if not clave:
-            print("Falta vincular: python lan.py vincular LAN1-xxxx")
-            return 2
+            print("Sin clave aun: abre ASAGI con WiFi y se emparejan solas.")
 
         def al_recibir(c: Dict[str, Any]) -> Dict[str, Any]:
             print("[ASAGI]", c.get("t"), c.get("texto", ""))
             return {"ok": True, "recibido": True}
 
         srv = Servidor(clave, al_recibir)
+
+        def _par(k: str, cod: str) -> None:
+            guardar_clave(k)
+            print("Emparejada con ASAGI. Codigo:", cod)
+        srv.al_emparejar = _par
         est = srv.iniciar()
         print("ARIA escuchando. WiFi:", est["wifi"], "| Bluetooth:", est["bluetooth"], "(Ctrl+C para salir)")
         try:

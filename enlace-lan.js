@@ -9,6 +9,40 @@ var PUERTO_UDP = 47831, CANAL_BT = 4;
 
 function _E() { return (typeof window !== 'undefined' && window.AsagiEnlace) || (typeof require !== 'undefined' ? require('./enlace.js') : null); }
 
+// ---- Emparejar sin cable (Diffie-Hellman RFC 3526 grupo 14; igual que aria/lan.py) ----
+var DH_P = BigInt('0x' +
+  'FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DD' +
+  'EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED' +
+  'EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F' +
+  '83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B' +
+  'E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA0510' +
+  '15728E5A8AACAA68FFFFFFFFFFFFFFFF');
+function _modpow(b, e, m) { var r = 1n; b %= m; while (e > 0n) { if (e & 1n) r = r * b % m; b = b * b % m; e >>= 1n; } return r; }
+function _aBytes(n, len) { var h = n.toString(16); h = '0'.repeat(len * 2 - h.length) + h; var u = new Uint8Array(len); for (var i = 0; i < len; i++) u[i] = parseInt(h.substr(i * 2, 2), 16); return u; }
+function _b32(u) { var A = 'abcdefghijklmnopqrstuvwxyz234567', bits = 0, v = 0, o = ''; for (var i = 0; i < u.length; i++) { v = (v << 8) | u[i]; bits += 8; while (bits >= 5) { o += A[(v >>> (bits - 5)) & 31]; bits -= 5; } } if (bits > 0) o += A[(v << (5 - bits)) & 31]; return o; }
+async function _sha(pref, u) { var t = new TextEncoder().encode(pref), x = new Uint8Array(t.length + u.length); x.set(t); x.set(u, t.length); return new Uint8Array(await crypto.subtle.digest('SHA-256', x)); }
+function dhPar() { var r = crypto.getRandomValues(new Uint8Array(32)), a = 0n; for (var i = 0; i < 32; i++) a = (a << 8n) | BigInt(r[i]); a |= 1n; return { a: a, A: _modpow(2n, a, DH_P) }; }
+async function dhClave(a, B) {
+  if (!(B > 1n && B < DH_P - 1n)) throw new Error('publico invalido');
+  var sec = _aBytes(_modpow(B, a, DH_P), 256);
+  var h = await _sha('asagi-aria-par1', sec), s2 = await _sha('sas', sec);
+  var n = ((s2[0] << 24) >>> 0) + (s2[1] << 16) + (s2[2] << 8) + s2[3];
+  return { clave: _b32(h.slice(0, 15)), codigo: String(n % 1000000).padStart(6, '0') };
+}
+// Pregunta en la red si hay una ARIA lista para emparejar. Devuelve { clave, codigo, host, tcp, nombre } o null.
+async function emparejar(plugin) {
+  var P = plugin && plugin(); if (!P || !P.lanDescubrir) return null;
+  var k = dhPar();
+  var r; try { r = await P.lanDescubrir({ linea: JSON.stringify({ t: 'emparejar', A: k.A.toString(16), nombre: 'ASAGI' }), puerto: PUERTO_UDP, espera: 2500 }); } catch (e) { return null; }
+  if (!r || !r.ok) return null;
+  try {
+    var m = JSON.parse(r.linea);
+    if (m.t !== 'emparejado' || !/^[0-9a-f]+$/i.test(m.B)) return null;
+    var c = await dhClave(k.a, BigInt('0x' + m.B));
+    return { clave: c.clave, codigo: c.codigo, host: r.host, tcp: m.tcp, nombre: m.nombre || 'ARIA' };
+  } catch (e) { return null; }
+}
+
 function nuevaClaveLan() { return _E().nuevaClave(); }
 function codigoLan(clave) { return 'LAN1-' + clave; }
 function parsearCodigoLan(t) {
@@ -105,7 +139,7 @@ function crearCliente(o) {
   return { enviar: enviar, buscar: buscar, verificar: verificar, estado: function () { return { destino: destino, via: ultimaVia }; } };
 }
 
-var API = { SAL_LAN: SAL_LAN, nuevaClaveLan: nuevaClaveLan, codigoLan: codigoLan, parsearCodigoLan: parsearCodigoLan, crearCliente: crearCliente };
+var API = { SAL_LAN: SAL_LAN, emparejar: emparejar, dhPar: dhPar, dhClave: dhClave, nuevaClaveLan: nuevaClaveLan, codigoLan: codigoLan, parsearCodigoLan: parsearCodigoLan, crearCliente: crearCliente };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLan = API;
 })();

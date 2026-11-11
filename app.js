@@ -867,7 +867,7 @@ renderBrainControls();
   const plugin = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl) || null;
   function clave() {
     // Si ya hay enlace con ARIA se usa SU clave (cero pasos nuevos); si no, ASAGI crea una propia.
-    try { if (localStorage.getItem('asagi-lan-fuente') === 'pc') { const k0 = localStorage.getItem('asagi-lan-clave'); if (k0) return k0; } } catch (e) {}
+    try { if (['pc', 'par'].indexOf(localStorage.getItem('asagi-lan-fuente')) >= 0) { const k0 = localStorage.getItem('asagi-lan-clave'); if (k0) return k0; } } catch (e) {}
     try {
       const c = JSON.parse(localStorage.getItem('asagi-enlace-cfg') || 'null');
       if (c && c.clave) return c.clave;
@@ -891,7 +891,25 @@ renderBrainControls();
       }
     } catch (e) {}
   }
-  tomarClaveDePc(); setInterval(tomarClaveDePc, 60000);
+  // Sin cable: si aún no hay clave de ARIA, se emparejan solas por WiFi (como audífonos).
+  let emparejando = false;
+  async function emparejarSolo(avisar) {
+    if (emparejando) return false;
+    const f = localStorage.getItem('asagi-lan-fuente');
+    if (!avisar && (f === 'pc' || f === 'par')) return false;
+    emparejando = true;
+    try {
+      const r = await L.emparejar(plugin);
+      if (!r) return false;
+      localStorage.setItem('asagi-lan-clave', r.clave);
+      localStorage.setItem('asagi-lan-fuente', 'par');
+      appendMessage('bot', '🔗 Emparejada con ' + r.nombre + ' por WiFi (código ' + r.codigo + ', el mismo que muestra la PC). Ya no hace falta el cable.');
+      return true;
+    } finally { emparejando = false; }
+  }
+  window._asagiEmparejar = emparejarSolo;
+  async function cicloClave() { await tomarClaveDePc(); await emparejarSolo(false); }
+  cicloClave(); setInterval(cicloClave, 60000);
   window._asagiLanEnviar = async function (texto) {
     const r = await cli.enviar({ t: 'nota', texto: texto });
     if (r.ok) {
@@ -905,11 +923,11 @@ renderBrainControls();
   };
   window._asagiLanEstado = async function () {
     appendMessage('bot', '🔎 Buscando a ARIA en la red…');
-    const d = await cli.buscar();
-    const cod = L.codigoLan(clave());
+    let d = await cli.buscar();
+    if (!d && await emparejarSolo(true)) d = await cli.buscar();
     appendMessage('bot', d
       ? '✅ ARIA conectada por ' + (d.por === 'usb' ? 'cable USB' : d.por === 'bluetooth' ? 'Bluetooth→WiFi' : 'WiFi') + ' (' + d.host + ').'
-      : '⚠ No respondió. En la PC corre una sola vez: python lan.py vincular ' + cod + '  (después se conectan solas por WiFi o Bluetooth).');
+      : '⚠ ARIA no respondió. Revisa que esté abierta en la PC y que el celular esté en el mismo WiFi.');
   };
 })();
 

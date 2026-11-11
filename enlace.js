@@ -383,13 +383,13 @@ function crearCliente(o) {
     return { ok: true, texto: 'Enviado a ARIA.', nuevos: r.nuevos, vistoOtro: r.vistoOtro, ahora: r.ahora };
   }
 
-  return { vinculado: vinculado, crear: crear, vincular: vincular, encolar: encolar,
+  return { vinculado: vinculado, ping: ping, crear: crear, vincular: vincular, encolar: encolar,
            sincronizar: sincronizar, enviar: enviar, recibidos: function () { return estadoLocal().recibidos; } };
 }
 
 var API = {
   VERSION: VERSION, YO: YO, OTRO: OTRO, ARCHIVO: ARCHIVO, MAX_MSGS: MAX_MSGS, MAX_EDAD_MS: MAX_EDAD_MS,
-  disponible: disponible, ping: ping, vinculado: vinculado, nuevaClave: nuevaClave, hacerCodigo: hacerCodigo, parsearCodigo: parsearCodigo,
+  disponible: disponible, nuevaClave: nuevaClave, hacerCodigo: hacerCodigo, parsearCodigo: parsearCodigo,
   docNuevo: docNuevo, docValido: docValido, nuevoId: nuevoId, fusionar: fusionar, entrantes: entrantes,
   hace: hace, esParaAria: esParaAria, explicar: explicar,
   derivar: derivar, cifrar: cifrar, descifrar: descifrar, crearCliente: crearCliente,

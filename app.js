@@ -894,7 +894,7 @@ renderBrainControls();
   tomarClaveDePc(); setInterval(tomarClaveDePc, 60000);
   window._asagiLanEnviar = async function (texto) {
     const r = await cli.enviar({ t: 'nota', texto: texto });
-    if (r.ok) { appendMessage('bot', '📡 ARIA lo recibió por ' + (r.via === 'wifi' ? 'WiFi' : 'Bluetooth') + ': ' + texto); return; }
+    if (r.ok) { const d = cli.estado().destino; appendMessage('bot', '📡 ARIA lo recibió por ' + (r.via === 'bluetooth' ? 'Bluetooth' : (d && d.por === 'usb' ? 'cable USB' : 'WiFi')) + ': ' + texto); return; }
     if (window._asagiEnlaceEnviar) { await window._asagiEnlaceEnviar(texto); return; }
     appendMessage('bot', '📡 No encuentro a ARIA por WiFi ni Bluetooth. ¿Está abierta en la PC y en la misma red? Di "enlace pc" para ver cómo vincular.');
   };
@@ -903,7 +903,7 @@ renderBrainControls();
     const d = await cli.buscar();
     const cod = L.codigoLan(clave());
     appendMessage('bot', d
-      ? '✅ ARIA está en tu red (' + d.host + '). Hablamos cifrado por WiFi.'
+      ? '✅ ARIA conectada por ' + (d.por === 'usb' ? 'cable USB' : d.por === 'bluetooth' ? 'Bluetooth→WiFi' : 'WiFi') + ' (' + d.host + ').'
       : '⚠ No respondió. En la PC corre una sola vez: python lan.py vincular ' + cod + '  (después se conectan solas por WiFi o Bluetooth).');
   };
 })();

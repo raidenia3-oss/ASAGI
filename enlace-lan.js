@@ -57,6 +57,9 @@ function crearCliente(o) {
       var c = r && r.ok ? await abrir(r.linea, 'aria') : null;
       if (c && c.t === 'aqui') { destino = { host: r.host, puerto: c.tcp, nombre: c.nombre || 'ARIA', por: 'broadcast' }; return destino; }
     }
+    // Cable USB: la PC hace "adb reverse", asi 127.0.0.1 del celular llega a ARIA aunque el WiFi falle.
+    var usb = await verificar('127.0.0.1', 47832);
+    if (usb) { destino = { host: '127.0.0.1', puerto: 47832, nombre: usb.nombre || 'ARIA', por: 'usb' }; return destino; }
     if (P.btEnviar) {                                      // combinado: Bluetooth te dice la IP, WiFi lleva los datos
       var b; try { b = await P.btEnviar({ linea: linea, canal: CANAL_BT }); } catch (e) { b = null; }
       var cb = b && b.ok ? await abrir(b.linea, 'aria') : null;

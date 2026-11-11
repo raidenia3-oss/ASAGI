@@ -256,7 +256,16 @@ ARCH_CLAVE = os.path.join(os.path.expanduser("~"), ".aria_lan_clave")
 
 
 def clave_guardada() -> str:
-    """Primero la clave que dejo el script de USB (la misma que recibe ASAGI); si no, la del enlace ENL1."""
+    """1) .aria_lan_clave junto a este archivo, 2) la del script USB en el home, 3) la del enlace ENL1."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".aria_lan_clave"), "r", encoding="utf-8") as f:
+            c = f.read().strip().lower()
+            if c.startswith("lan1-"):
+                c = c[5:]
+            if c:
+                return c
+    except OSError:
+        pass
     try:
         with open(ARCH_CLAVE, "r", encoding="utf-8") as f:
             c = f.read().strip()

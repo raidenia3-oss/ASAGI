@@ -5,7 +5,7 @@ mkdir -p sim/capturas
 R=sim/REPORTE.md
 log(){ echo "$*" | tee -a "$R"; }
 foto(){ adb exec-out screencap -p > "sim/capturas/$1.png"; log "- captura: capturas/$1.png"; }
-ui(){ adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb pull /sdcard/ui.xml "sim/ui_$1.xml" >/dev/null 2>&1; }
+ui(){ timeout 20 adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1; adb pull /sdcard/ui.xml "sim/ui_$1.xml" >/dev/null 2>&1; }
 toca(){ adb shell input tap "$1" "$2"; sleep "${3:-2}"; }
 
 echo "# Simulacion ASAGI ($(date -u +%F' '%T) UTC)" > "$R"
@@ -18,9 +18,6 @@ for perm in POST_NOTIFICATIONS ACCESS_FINE_LOCATION BLUETOOTH_CONNECT BLUETOOTH_
 done
 adb shell dumpsys package $P | grep -m1 versionName | sed 's/^ */- /' >> "$R"
 
-# Modo manos: en el emulador se puede activar la Accesibilidad por adb (en un celular real lo activa Daniel una vez)
-adb shell settings put secure enabled_accessibility_services $P/com.asagi.brain.AsagiAccessibilityService >/dev/null 2>&1
-adb shell settings put secure accessibility_enabled 1 >/dev/null 2>&1
 adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher >/dev/null 2>&1
 adb shell settings put global anr_show_background 0 >/dev/null 2>&1
 log "## Arranque"
@@ -38,6 +35,11 @@ log "- PID: $(adb shell pidof $P || echo 'NO CORRE')"
 log "## Recorrido"
 PID=$(adb shell pidof $P | tr -d '\r')
 adb forward tcp:9222 localabstract:webview_devtools_remote_$PID >/dev/null
+# Modo manos: en el emulador la Accesibilidad se activa por adb (en el celular real la activa Daniel una vez).
+# Va DESPUES de los uiautomator dump: con un servicio de accesibilidad activo, uiautomator se puede colgar.
+adb shell settings put secure enabled_accessibility_services $P/com.asagi.brain.AsagiAccessibilityService >/dev/null 2>&1
+adb shell settings put secure accessibility_enabled 1 >/dev/null 2>&1
+sleep 3
 timeout 240 node scripts/sim_cdp.mjs 9222 >> "$R" 2>&1 || log "- (DevTools fallo, ver arriba)"
 foto 08_tras_chat
 adb shell input keyevent KEYCODE_BACK; sleep 2; foto 09_atras

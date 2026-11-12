@@ -1094,6 +1094,7 @@ renderBrainControls();
     if (a.tipo === 'noche') msg = pen.length ? '🌙 Cierre del día: quedaron ' + pen.length + ' pendiente(s): ' + pen.slice(0, 3).map((x) => x.texto).join(' · ') + '. ¿Los paso a mañana?' : '🌙 Cerraste el día sin pendientes.';
     vistos[a.tipo] = a.hoy; try { localStorage.setItem('asagi-avisos-vistos', JSON.stringify(vistos)); } catch (x) {}
     if (msg) appendMessage('bot', msg);
+    if (abriendoChat && window._asagiTacticaDelDia) window._asagiTacticaDelDia();
   }
   window._asagiProactivo = proactivo;
   setTimeout(() => proactivo(false), 8000); setInterval(() => proactivo(false), 30 * 60000);
@@ -2900,8 +2901,9 @@ if ('serviceWorker' in navigator) {
 (function () {
   const P = window.AsagiPersonajes; if (!P) return;
   let lista = [];
-  const listo = P.cargar('personajes/').then((l) => {
-    lista = l;
+  const extras = () => { try { return JSON.parse(localStorage.getItem('asagi-personajes-extra') || '[]'); } catch (e) { return []; } };
+  const unir = (...ls) => { const v = {}; ls.flat().forEach((p) => { if (p && p.nombre && !v[P.slug(p.nombre)]) v[P.slug(p.nombre)] = p; }); return Object.values(v); };
+  const aprenderLista = (l) => {
     try {
       if (!window._asagiMem && window.AsagiMemoria) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
       const firma = l.map((p) => p.id + ':' + p.tacticas.length).join(',');
@@ -2909,12 +2911,46 @@ if ('serviceWorker' in navigator) {
         P.aprender(l, window._asagiMem); localStorage.setItem('asagi-personajes-aprendidos', firma);
       }
     } catch (e) {}
-    return l;
-  }).catch(() => []);
+  };
+  const guardarExtra = (p) => { const x = extras().filter((e) => P.slug(e.nombre) !== P.slug(p.nombre)); x.push(p); try { localStorage.setItem('asagi-personajes-extra', JSON.stringify(x.slice(-15))); } catch (e) {} };
+  // Automático: 1) los del APK, 2) los nuevos del repo (sin actualizar la app), 3) los que aprendió ella o ARIA.
+  const listo = P.cargar('personajes/').then(async (l) => {
+    let remotos = [];
+    try { remotos = await P.cargar(P.REMOTO); } catch (e) {}
+    let deAria = [];
+    try { const cli = window._asagiLan; if (cli) { const r = await cli.enviar({ t: 'personajes' }); if (r && r.ok && r.resp && r.resp.lista) deAria = r.resp.lista; } } catch (e) {}
+    deAria.forEach(guardarExtra);
+    lista = unir(remotos, l, extras());
+    aprenderLista(lista);
+    return lista;
+  }).catch(() => (lista = extras()));
+  window._asagiPersonajesListo = listo;
+  // crear uno nuevo: investiga, lo aprende y se lo pasa a ARIA
+  const crearNuevo = async (nombre, silencioso) => {
+    if (!silencioso) appendMessage('bot', '🎭 Voy a estudiar a «' + nombre + '»…');
+    try {
+      const r = await P.crear(nombre, pensar);
+      if (r.ok) {
+        guardarExtra(r.p); lista = unir(lista, [r.p]); aprenderLista(lista);
+        try { if (window._asagiLan) window._asagiLan.enviar({ t: 'personaje', p: r.p }); } catch (e) {}
+      }
+      appendMessage('bot', '🎭 ' + r.msg);
+    } catch (e) { appendMessage('bot', '🎭 No pude estudiar a «' + nombre + '» (' + (e.message || e) + '). Necesito internet y un cerebro (key o el modelo del celular).'); }
+  };
+  window._asagiCrearPersonaje = crearNuevo;
+  // táctica del día: sola, una vez al día al abrir el chat
+  window._asagiTacticaDelDia = async function () {
+    const hoy = new Date().toDateString();
+    if (localStorage.getItem('asagi-tactica-dia') === hoy) return;
+    await listo; const x = P.delDia(lista, new Date()); if (!x) return;
+    localStorage.setItem('asagi-tactica-dia', hoy);
+    appendMessage('bot', '☀️ Táctica del día\n' + P.textoTactica(x.p, x.t));
+  };
   const pensar = async (p) => { if (!window._asagiPensar) throw new Error('sin cerebro'); const r = await window._asagiPensar(p); if (!r || !String(r).trim()) throw new Error('vacío'); return String(r).trim(); };
   window._asagiPersonajesCmd = async function (o) {
     await listo;
     if (o.tipo === 'lista') { appendMessage('bot', P.textoLista(lista)); return; }
+    if (o.tipo === 'crear') { crearNuevo(o.quien); return; }
     if (o.tipo === 'dia') { const x = P.delDia(lista, new Date()); appendMessage('bot', x ? P.textoTactica(x.p, x.t) : P.textoLista(lista)); return; }
     if (o.tipo === 'leeme') {
       const msgs = state.messages.filter((m) => m.sender === 'user').slice(-12).map((m) => ({ texto: m.text, cuando: m.time }));

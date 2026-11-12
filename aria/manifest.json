@@ -1,0 +1,103 @@
+{
+ "archivos": {
+  "app_automator.py": {
+   "previos": [],
+   "sha256": "a0ca51e7eab828295e4f110031d7c5cb2d39433edaa975b971b2136746f54e7f"
+  },
+  "aria_actualizador.py": {
+   "previos": [],
+   "sha256": "c77115bdeed9782f8288428e1eec593a448d6ecac7bd43566b4c4d5f16880149"
+  },
+  "aria_mcp.py": {
+   "previos": [],
+   "sha256": "6761b0c9e0a994f04be37cd8bf7d7e9ee39fdec4eee1cd279f10ea7174facd74"
+  },
+  "aria_va_core.py": {
+   "previos": [
+    "40dfa214fc0bc2aa18074d0ecd7b1fce07f92426ee0539e943d63616a9e1e277",
+    "3b53aa7cc056aac6cae2e51070be6b35b55b008aa11cc238c7a3ffa3f55c7201",
+    "cfe960ad5ed9326dd77bed3b6fe124faceeb1c378322cbb9c0021f72a01e9404",
+    "1aec11f8219e2e7399b271e2e51c823b69c6bb97873e4510e3cf76a2ea41767c"
+   ],
+   "sha256": "166ebc9cf33f85b28cf2facdb649ca45b36cad582de27e813218f24d050c3214"
+  },
+  "bots_agenda.py": {
+   "previos": [
+    "844df1d3956aeb6c6d6ea8ec56187f59c89a0a78a1c427353334e734345d1e70",
+    "8d9520e3ddc28c20468610a34727742c1392bd017aa11aa6aed218e7823d8610"
+   ],
+   "sha256": "5c81ffbcb288cd8f1b2adb0028f62a3f38dc2826eba16aa3c34f7a02dd35252e"
+  },
+  "componentes.py": {
+   "previos": [
+    "265bbcbc7fb95349b34b2b75c9ee80f8031ef39930c12e9aaf7f9ab829ad3d52"
+   ],
+   "sha256": "ddedd55def47fe589cd24a3022db725ea39bf6936c7d0ea1e705dfe0f23f1f48"
+  },
+  "ensenar.py": {
+   "previos": [],
+   "sha256": "c342df0c3f7ba428915b44596eb1964ec6c019b989216696ce02f610f3de62a6"
+  },
+  "informe.py": {
+   "previos": [],
+   "sha256": "78ef98fd39feb1bda8af1a06c150283347a8e747a78554fff4deb5c3edc87a39"
+  },
+  "manos_pc.py": {
+   "previos": [],
+   "sha256": "a37bf3c2ef3add9fb2f758a2d54c128612fd401bfedbe31d16fbe1fd37aacb82"
+  },
+  "mapa.py": {
+   "previos": [],
+   "sha256": "3426f07e7947a57a2946bccb55d18376f928464d59ab22a36870608bb3ef72ab"
+  },
+  "personajes.py": {
+   "previos": [
+    "f05fd3635fc17170c813d2925c732e4ac035ee7c9f6e1304436bd1fa3f54ce69"
+   ],
+   "sha256": "8a83cfa6ec1539ae21bd16da90ce8a1b6a39ba4519a838140dbf647010a5552e"
+  },
+  "personajes/README.md": {
+   "previos": [],
+   "sha256": "9c1b2acfda3ef4e4b978303965d0fa8abb11c1094e5e84b11ad7b82f1d19346c"
+  },
+  "personajes/barney-stinson.json": {
+   "previos": [],
+   "sha256": "546efc7b2bc70c662d3cbffa460027527a9366a5cb3d377c793043000256d566"
+  },
+  "personajes/indice.json": {
+   "previos": [],
+   "sha256": "37d38fe71997fdad673ebdf50f61b5a6dced73a9ae5c7709b5c21ff58ea0cf5e"
+  },
+  "personajes/patrick-jane.json": {
+   "previos": [],
+   "sha256": "0a6c5ba667b97fe1475611a176af1e0f7c00ac77da2dc7e81d82c0fb221d5c6b"
+  },
+  "recuerdos.py": {
+   "previos": [],
+   "sha256": "5f87e6bba4401271aadc86f96456dfbb56a543fc39aca638016a9dadfc7bd708"
+  },
+  "ui/mascota.py": {
+   "previos": [],
+   "sha256": "288441e0c82f53f3ca6d94ba15ca55e6e80f35ddb7c8c4636b5b70076589eaed"
+  },
+  "ui/rostro_aria.py": {
+   "previos": [],
+   "sha256": "c946f14d9f0986306ef30b87624632b0f84b48c3f76ce7759805471a3d39e292"
+  },
+  "ui_shell.py": {
+   "previos": [
+    "d59d0f2ae123806bc276c419e12336646805a658f789d259b80ce486bf5fd1b0",
+    "28cab8c11167629d975f5ca2b171b69924361e22e4a62c628f9485bb93e3012d",
+    "a4dc8575701246e1a6a2637b09f3e793c060841b6be49c7a40f7f7e003964914",
+    "430d2820f8b89b47ce7f85197bad9ab281ada97ec1375591ca9f64f83bdeec14",
+    "f3c61477090a0a4fd03a5273b416bb4a32ac86a519ce2020dd33730fe6422702"
+   ],
+   "sha256": "6aba95d91b50d7ef80835c811262e0e2dee9f1d45d74acf89ac07fa40dff15c2"
+  },
+  "voz_local.py": {
+   "previos": [],
+   "sha256": "376f693efb9d581ac02050ad42e707486dce9b680966b6366ff917391e1e2ff4"
+  }
+ },
+ "version": 1
+}

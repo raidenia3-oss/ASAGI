@@ -27,6 +27,7 @@ function parsear(texto) {
   if ((m = n.match(/^(?:tacticas|trucos|tecnicas)\s+de\s+(.{3,40})$/))) return { tipo: 'tacticas', quien: m[1] };
   if ((m = t.match(/^\s*(?:que|qué)\s+har[ií]a\s+([^:,]{3,40}?)\s*(?:[:,]|en|si|con)\s+([\s\S]{3,})$/i))) return { tipo: 'haria', quien: m[1], situacion: m[2].trim() };
   if ((m = t.match(/^\s*(?:como|cómo)\s+lo\s+har[ií]a\s+([^:,]{3,40}?)\s*[:,]?\s*([\s\S]*)$/i))) return { tipo: 'haria', quien: m[1], situacion: m[2].trim() || 'esto' };
+  if ((m = t.match(/^\s*(?:aprende|estudia|aprender)\s+(?:del|de|al|a)\s+personaje\s+(.{2,60})$|^\s*nuevo personaje\s*:?\s*(.{2,60})$/i))) return { tipo: 'crear', quien: (m[1] || m[2]).trim() };
   if (/^(?:tactica|truco|tecnica) del dia$/.test(n)) return { tipo: 'dia' };
   if ((m = n.match(/^(?:entrename|entrenarme|ensename|enseñame) (?:como|a ser como|las tacticas de) (.{3,40})$/))) return { tipo: 'entrena', quien: m[1] };
   if (/^(?:leeme|lee me|como me ves|que notas de mi|leeme como jane)\??$/.test(n)) return { tipo: 'leeme' };
@@ -101,10 +102,44 @@ function leer(msgs, ahora) {
   return { ok: true, texto: '🔍 Te leo como Jane (por cómo escribes, no por adivinar): ' + obs.join('; ') + '. ¿Acerté? Si no, dime y ajusto mi lectura.' };
 }
 
-var API = { parsear: parsear, buscar: buscar, relevantes: relevantes, textoLista: textoLista, textoTacticas: textoTacticas, textoTactica: textoTactica,
+// ---- personajes nuevos, solos (Wikipedia + el cerebro que haya) ----
+var PROMPT_NUEVO = 'Con este texto sobre el personaje %N, devuelve SOLO un JSON con este formato: {"de":"<obra y años>",' +
+  '"esencia":"<2 frases>","como_trabaja":["<5 a 7 frases: cómo piensa y actúa>"],"tacticas":[{"nombre":"","que_es":"",' +
+  '"como":"<pasos concretos para hacerlo como él>","cuando":"<situaciones de la vida real de Daniel>","senales":"","practica":"<ejercicio para hoy>"}]} ' +
+  'con 6 a 10 tácticas tal como las usa el personaje. En español.\n\nTexto:\n%T';
+function slug(t) { return _n(t).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'personaje'; }
+function desdeJson(nombre, txt, fuente) {
+  var m = String(txt || '').match(/\{[\s\S]*\}/); if (!m) return null;
+  var d; try { d = JSON.parse(m[0]); } catch (e) { return null; }
+  var tac = (d.tacticas || []).filter(function (t) { return t && t.nombre && t.como; }).slice(0, 10);
+  if (tac.length < 3) return null;
+  tac.forEach(function (t) { ['que_es', 'cuando', 'senales', 'practica'].forEach(function (k) { t[k] = String(t[k] || ''); }); });
+  var partes = nombre.split(' ');
+  return { id: slug(nombre), nombre: nombre, apodo: partes.length > 1 ? partes[partes.length - 1] : nombre, de: String(d.de || ''), esencia: String(d.esencia || ''),
+           como_trabaja: (d.como_trabaja || []).map(String).slice(0, 8), tacticas: tac, fuente: fuente, creado: Date.now() };
+}
+// ¿El artículo de Wikipedia es de un personaje de ficción? PURO.
+function esPersonaje(texto) { return /\b(es un|es una|fue un|fue una)\s+personaje\b|personaje (?:ficticio|de ficcion|ficcional|principal|protagonista)/.test(_n(String(texto || '').slice(0, 1500))); }
+async function crear(nombre, pensar, fetchFn) {
+  fetchFn = fetchFn || fetch;
+  var API_W = 'https://es.wikipedia.org/w/api.php?format=json&origin=*&';
+  var s = await (await fetchFn(API_W + 'action=query&list=search&srlimit=1&srsearch=' + encodeURIComponent(nombre + ' personaje'))).json();
+  var hit = s && s.query && s.query.search && s.query.search[0];
+  if (!hit) return { ok: false, msg: 'No encontré a «' + nombre + '» en Wikipedia.' };
+  var p = await (await fetchFn(API_W + 'action=query&prop=extracts&explaintext=1&redirects=1&titles=' + encodeURIComponent(hit.title))).json();
+  var pages = (p && p.query && p.query.pages) || {}, k = Object.keys(pages)[0], txt = k ? (pages[k].extract || '') : '';
+  if (!txt) return { ok: false, msg: 'No pude leer sobre ' + hit.title + '.' };
+  var resp = await pensar(PROMPT_NUEVO.replace('%N', hit.title).replace('%T', txt.slice(0, 7000)));
+  var per = desdeJson(hit.title, resp, 'Wikipedia: ' + hit.title + ' + análisis');
+  return per ? { ok: true, p: per, msg: 'Aprendí de ' + per.nombre + ': ' + per.tacticas.length + ' tácticas. Prueba «qué haría ' + per.apodo + ': …».' }
+             : { ok: false, msg: 'Leí sobre ' + hit.title + ' pero no logré sacar sus tácticas; prueba otra vez.' };
+}
+
+var API = { parsear: parsear, slug: slug, desdeJson: desdeJson, esPersonaje: esPersonaje, crear: crear, buscar: buscar, relevantes: relevantes, textoLista: textoLista, textoTacticas: textoTacticas, textoTactica: textoTactica,
             delDia: delDia, promptHaria: promptHaria, aprender: aprender, leer: leer, palabras: palabras };
 
 // carga de la carpeta (en el navegador/app)
+API.REMOTO = 'https://raw.githubusercontent.com/raidenia3-oss/ASAGI/main/personajes/';
 API.cargar = async function (base, fetchFn) {
   base = base || 'personajes/'; fetchFn = fetchFn || fetch;
   var idx = await (await fetchFn(base + 'indice.json')).json();

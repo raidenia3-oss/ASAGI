@@ -114,7 +114,14 @@ async function hacer(p, driver, opts) {
     var lec = null; try { lec = await driver.leer(); } catch (e) {}
     if (lec && esBanca(lec.app)) return { ok: false, motivo: 'estás en una app de banca/pagos: me detengo', parar: true };
   }
-  if (p.a === 'tocar') return driver.tocar(p.texto);
+  if (p.a === 'tocar') {
+    var t = await driver.tocar(p.texto);
+    for (var k = 0; k < 4 && !(t && t.ok); k++) {   // no está a la vista: baja la lista y reintenta
+      await driver.desplazar('abajo'); await driver.dormir(600);
+      t = await driver.tocar(p.texto);
+    }
+    return t && t.ok ? t : { ok: false, motivo: 'no encontré «' + p.texto + '» en pantalla' };
+  }
   if (p.a === 'escribir') return driver.escribir(p.texto);
   if (p.a === 'global') return driver.global(p.g);
   if (p.a === 'desplazar') return driver.desplazar(p.dir);

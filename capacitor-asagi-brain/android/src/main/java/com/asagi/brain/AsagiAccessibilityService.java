@@ -245,16 +245,28 @@ public class AsagiAccessibilityService extends AccessibilityService {
         return performGlobalAction(a);
     }
 
-    /** Desplaza el primer elemento desplazable (abajo = adelante). */
+    /** Desplaza la lista PRINCIPAL (la desplazable mas grande); si la app no responde, desliza con el dedo. */
     public boolean desplazar(boolean abajo) {
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null) return false;
         java.util.List<AccessibilityNodeInfo> todos = new java.util.ArrayList<>();
         juntar(root, todos, 0);
+        AccessibilityNodeInfo mejor = null; long area = 0;
+        android.graphics.Rect r = new android.graphics.Rect();
         for (AccessibilityNodeInfo n : todos) {
-            if (n.isScrollable() && n.isVisibleToUser()
-                    && n.performAction(abajo ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) return true;
+            if (!n.isScrollable() || !n.isVisibleToUser()) continue;
+            n.getBoundsInScreen(r);
+            long a = (long) r.width() * r.height();
+            if (a > area) { area = a; mejor = n; }
         }
-        return false;
+        if (mejor != null && mejor.performAction(abajo ? AccessibilityNodeInfo.ACTION_SCROLL_FORWARD : AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) return true;
+        // plan B: gesto de deslizar en el centro de la pantalla (o de la lista)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return false;
+        if (mejor != null) mejor.getBoundsInScreen(r); else root.getBoundsInScreen(r);
+        float x = r.centerX(), y1 = r.top + r.height() * (abajo ? 0.75f : 0.3f), y2 = r.top + r.height() * (abajo ? 0.3f : 0.75f);
+        Path path = new Path(); path.moveTo(x, y1); path.lineTo(x, y2);
+        GestureDescription.Builder b = new GestureDescription.Builder();
+        b.addStroke(new GestureDescription.StrokeDescription(path, 0, 350));
+        return dispatchGesture(b.build(), null, null);
     }
 }

@@ -38,6 +38,7 @@ const files = [
   'actualizador.js',
   'niveles.js',
   'manos.js',
+  'vistas.js',
   'discord.js',
   'app.js',
   'styles.css',

@@ -791,6 +791,26 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Vistas: buscar en bandeja/memoria con filtros, guardar búsquedas, tendencias (idea "Discovery").
+  const vis = window.AsagiVistas && window.AsagiVistas.parsear(text);
+  if (vis) {
+    const V = window.AsagiVistas, B = window.AsagiBandeja;
+    let est; try { est = B.deserializar(localStorage.getItem('asagi-bandeja')); } catch (e) { est = B ? B.vacio() : { items: [] }; }
+    let guardadas; try { guardadas = JSON.parse(localStorage.getItem('asagi-vistas') || '{}'); } catch (e) { guardadas = {}; }
+    const mem = () => { try { return (window._asagiMem && window._asagiMem.todos) ? window._asagiMem.todos() : []; } catch (e) { return []; } };
+    const correr = (consulta, titulo) => { const f = V.parsearFiltros(consulta); if (/\bmemoria\b/i.test(consulta)) f.memoria = true; return V.formatoResultados(V.filtrar(est.items, f, Date.now(), mem()), f, titulo); };
+    let resp;
+    if (vis.tipo === 'buscar') resp = V.formatoResultados(V.filtrar(est.items, vis.filtros, Date.now(), mem()), vis.filtros);
+    else if (vis.tipo === 'guardar') { guardadas[vis.nombre] = vis.consulta; resp = '💾 Vista «' + vis.nombre + '» guardada. Ábrela con: vista ' + vis.nombre + '\n\n' + correr(vis.consulta, vis.nombre); }
+    else if (vis.tipo === 'ver') resp = guardadas[vis.nombre] ? correr(guardadas[vis.nombre], vis.nombre) : 'No tengo la vista «' + vis.nombre + '». Di «vistas» para verlas.';
+    else if (vis.tipo === 'borrar') { resp = guardadas[vis.nombre] ? '🗑 Vista «' + vis.nombre + '» borrada.' : 'No tengo esa vista.'; delete guardadas[vis.nombre]; }
+    else if (vis.tipo === 'listar') { const k = Object.keys(guardadas); resp = k.length ? '💾 Tus vistas:\n' + k.map((n) => '· ' + n + ' — ' + guardadas[n]).join('\n') : 'Aún no guardaste vistas. Ej: guarda vista pagos: factura pago cubo:urgente pendientes'; }
+    else if (vis.tipo === 'tendencias') resp = V.formatoTendencias(V.tendencias(est.items.concat(mem().map((n) => ({ texto: n.texto, cuando: (n.ts || 0) * 1000 }))), Date.now(), 7));
+    try { localStorage.setItem('asagi-vistas', JSON.stringify(guardadas)); } catch (e) {}
+    appendMessage('bot', resp);
+    return;
+  }
+
   // Bandeja (segundo cerebro local): archiva, revisa dudas, muestra prioridades.
   const ban = window.AsagiBandeja && window.AsagiBandeja.parsear(text);
   if (ban) {

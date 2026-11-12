@@ -134,6 +134,7 @@ function setActiveSection(sectionName) {
   const aCasa = !sectionName || sectionName === 'launcher' || sectionName === 'home';
   overlays.forEach((o) => o.classList.toggle('open', !aCasa && o.dataset.panel === sectionName));
   try { if (window._asagiWallUpd) setTimeout(window._asagiWallUpd, 30); } catch (e) {}
+  if (sectionName === 'assistant' && window._asagiProactivo) setTimeout(() => window._asagiProactivo(true), 400);
   saveState();
 }
 
@@ -727,7 +728,7 @@ chatForm.addEventListener('submit', (event) => {
   input.value = '';
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   if (/^\s*(nivel|mi nivel|tu nivel|niveles|cu[aá]nto has aprendido|qu[eé] nivel tienes)\s*\??\s*$/i.test(text) && window.AsagiNiveles) {
-    appendMessage('bot', window.AsagiNiveles.formato(window.AsagiNiveles.actual()));
+    appendMessage('bot', window._asagiNivelTexto ? window._asagiNivelTexto() : window.AsagiNiveles.formato(window.AsagiNiveles.actual()));
     return;
   }
 
@@ -805,7 +806,7 @@ chatForm.addEventListener('submit', (event) => {
     })
     .finally(() => {
       showReplyStatus(null);
-      if (window._asagiAvatarEstado) { const _gesto = ['feliz', 'presumida', 'guino'][Math.floor(Math.random() * 3)]; window._asagiAvatarEstado(_gesto); setTimeout(() => { if (window._asagiAvatar && window._asagiAvatar.estado === _gesto) window._asagiAvatarEstado('reposo'); }, 2400); }
+      if (window._asagiAvatarEstado) { const _gp = window.AsagiNiveles ? window.AsagiNiveles.gestosPermitidos(window.AsagiNiveles.actual().nivel) : ['feliz']; const _gesto = _gp[Math.floor(Math.random() * _gp.length)]; window._asagiAvatarEstado(_gesto); setTimeout(() => { if (window._asagiAvatar && window._asagiAvatar.estado === _gesto) window._asagiAvatarEstado('reposo'); }, 2400); }
     });
 });
 
@@ -892,8 +893,57 @@ renderBrainControls();
   }
   window._asagiNivelPintar = pintar;
   pintar(); setInterval(pintar, 15000);
+
+  // Contarle el nivel a ARIA por el enlace directo y guardar el suyo (cada 10 min o al subir).
+  let ultimoEnvio = 0, nivelEnviado = 0;
+  async function compartir(forzar) {
+    const cli = window._asagiLan; if (!cli) return null;
+    const e = N.actual();
+    if (!forzar && e.nivel === nivelEnviado && Date.now() - ultimoEnvio < 600000) return null;
+    let r = null;
+    try { r = await cli.enviar({ t: 'nivel', nivel: e.nivel, nombre: e.nombre, puntaje: e.puntaje, progreso: e.progreso }); } catch (x) { r = null; }
+    if (r && r.ok) {
+      ultimoEnvio = Date.now(); nivelEnviado = e.nivel;
+      if (r.resp && r.resp.aria) { try { localStorage.setItem('asagi-nivel-aria', JSON.stringify(r.resp.aria)); } catch (x) {} }
+    }
+    return r;
+  }
+  window._asagiNivelCompartir = compartir;
+
+  // Desbloqueos reales: avisos proactivos segun nivel (una vez al dia cada uno).
+  function pendientesHoy() {
+    let l = []; try { l = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'); } catch (x) {}
+    const fin = new Date(); fin.setHours(23, 59, 59, 999);
+    return (Array.isArray(l) ? l : []).filter((x) => x && !x.hecho && (!x.cuando || x.cuando <= fin.getTime()));
+  }
+  function urgentes() {
+    const B = window.AsagiBandeja; if (!B) return [];
+    let est; try { est = B.deserializar(localStorage.getItem('asagi-bandeja')); } catch (x) { return []; }
+    return B.atencion(est).filter((it) => it.cubo === 'urgente');
+  }
+  function proactivo(abriendoChat) {
+    let vistos = {}; try { vistos = JSON.parse(localStorage.getItem('asagi-avisos-vistos') || '{}'); } catch (x) {}
+    const a = N.avisoProactivo(N.actual().nivel, new Date(), vistos, abriendoChat);
+    if (!a) return;
+    const urg = urgentes(), pen = pendientesHoy();
+    let msg = null;
+    if (a.tipo === 'urgente' && urg.length) msg = '⏰ Lo urgente de tu bandeja: ' + urg.slice(0, 3).map((x) => x.texto).join(' · ');
+    if (a.tipo === 'manana' && (urg.length || pen.length)) msg = '☀ Para hoy: ' + (pen.length ? pen.length + ' pendiente(s) — ' + pen.slice(0, 3).map((x) => x.texto).join(' · ') : 'sin pendientes') + (urg.length ? '. Urgente: ' + urg[0].texto : '') + '.';
+    if (a.tipo === 'noche') msg = pen.length ? '🌙 Cierre del día: quedaron ' + pen.length + ' pendiente(s): ' + pen.slice(0, 3).map((x) => x.texto).join(' · ') + '. ¿Los paso a mañana?' : '🌙 Cerraste el día sin pendientes.';
+    vistos[a.tipo] = a.hoy; try { localStorage.setItem('asagi-avisos-vistos', JSON.stringify(vistos)); } catch (x) {}
+    if (msg) appendMessage('bot', msg);
+  }
+  window._asagiProactivo = proactivo;
+  setTimeout(() => proactivo(false), 8000); setInterval(() => proactivo(false), 30 * 60000);
+  setTimeout(() => compartir(true), 20000); setInterval(() => compartir(false), 120000);
+
   const chip = document.getElementById('nivel-chip');
-  if (chip) chip.addEventListener('click', () => appendMessage('bot', N.formato(N.actual())));
+  function conAria() {
+    let a = null; try { a = JSON.parse(localStorage.getItem('asagi-nivel-aria') || 'null'); } catch (x) {}
+    return N.formato(N.actual()) + (a ? '\nARIA va en nivel ' + a.nivel + ' · ' + a.nombre + ' (' + a.puntaje + ' pts).' : '\nARIA: aún no me contó su nivel (necesito el enlace por WiFi).');
+  }
+  window._asagiNivelTexto = conAria;
+  if (chip) chip.addEventListener('click', () => appendMessage('bot', conAria()));
 })();
 
 // --- Actualizaciones sin desinstalar ---

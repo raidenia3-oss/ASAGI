@@ -13,11 +13,11 @@
 
 var ETAPAS = [
   { min: 0,   nombre: 'SEMILLA',    lema: 'Recién despierta.',              abre: 'Chat, bandeja y recordatorios.' },
-  { min: 25,  nombre: 'BROTE',      lema: 'Te va conociendo.',              abre: 'Recuerda tus temas y te los trae.' },
-  { min: 70,  nombre: 'APRENDIZ',   lema: 'Ordena tu día sin que se lo pidas.', abre: 'Prioridades proactivas.' },
-  { min: 150, nombre: 'COMPAÑERA',  lema: 'Sabe cómo trabajas.',            abre: 'Gestos y respuestas con más carácter.' },
-  { min: 300, nombre: 'CONFIDENTE', lema: 'Anticipa lo que vas a necesitar.', abre: 'Sugerencias según tu hora y lugar.' },
-  { min: 600, nombre: 'ASAGI PLENA', lema: 'Mente propia, a tu lado.',      abre: 'Todo desbloqueado.' }
+  { min: 25,  nombre: 'BROTE',      lema: 'Te va conociendo.',              abre: 'Al abrir el chat te recuerda lo urgente de la bandeja.' },
+  { min: 70,  nombre: 'APRENDIZ',   lema: 'Ordena tu día sin que se lo pidas.', abre: 'Resumen de la mañana: pendientes de hoy y urgentes.' },
+  { min: 150, nombre: 'COMPAÑERA',  lema: 'Sabe cómo trabajas.',            abre: 'Gestos con carácter: presumida y guiño.' },
+  { min: 300, nombre: 'CONFIDENTE', lema: 'Anticipa lo que vas a necesitar.', abre: 'Cierre del día por la noche: lo que quedó pendiente.' },
+  { min: 600, nombre: 'ASAGI PLENA', lema: 'Mente propia, a tu lado.',      abre: 'Todo lo anterior, sin límites de frecuencia.' }
 ];
 
 // Puntaje desde estadisticas reales. PURO.
@@ -94,7 +94,21 @@ function formato(e) {
     '.\nEn este nivel: ' + e.abre;
 }
 
-var API = { ETAPAS: ETAPAS, puntaje: puntaje, etapa: etapa, recoger: recoger, registrar: registrar, actual: actual, formato: formato };
+// Que aviso proactivo toca ahora segun nivel, hora y lo ya mostrado hoy. PURO.
+// vistos = { 'urgente': 'YYYY-MM-DD', 'manana': ..., 'noche': ... }
+function avisoProactivo(nivel, fecha, vistos, abriendoChat) {
+  var hoy = fecha.getFullYear() + '-' + (fecha.getMonth() + 1) + '-' + fecha.getDate();
+  var h = fecha.getHours(); vistos = vistos || {};
+  var ilimitado = nivel >= 6;
+  function libre(k) { return ilimitado || vistos[k] !== hoy; }
+  if (nivel >= 5 && h >= 20 && libre('noche')) return { tipo: 'noche', hoy: hoy };
+  if (nivel >= 3 && h >= 5 && h < 12 && libre('manana')) return { tipo: 'manana', hoy: hoy };
+  if (nivel >= 2 && abriendoChat && libre('urgente')) return { tipo: 'urgente', hoy: hoy };
+  return null;
+}
+function gestosPermitidos(nivel) { return nivel >= 4 ? ['feliz', 'presumida', 'guino'] : ['feliz']; }
+
+var API = { avisoProactivo: avisoProactivo, gestosPermitidos: gestosPermitidos, ETAPAS: ETAPAS, puntaje: puntaje, etapa: etapa, recoger: recoger, registrar: registrar, actual: actual, formato: formato };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiNiveles = API;
 })();

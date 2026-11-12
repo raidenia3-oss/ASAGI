@@ -41,6 +41,7 @@ const files = [
   'vistas.js',
   'estudia.js',
   'citas.js',
+  'personajes.js',
   'piensa.js',
   'discord.js',
   'app.js',
@@ -57,5 +58,6 @@ for (const file of files) {
   cpSync(file, `dist/${file}`);
 }
 cpSync('assets', 'dist/assets', { recursive: true });
+cpSync('personajes', 'dist/personajes', { recursive: true });   // personajes de los que aprende (JSON)
 
 console.log('Web estática compilada en dist/');

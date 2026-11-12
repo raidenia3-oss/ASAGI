@@ -837,6 +837,10 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Personajes (carpeta personajes/): tácticas de Patrick Jane, Barney Stinson y los que agregues.
+  const per = window.AsagiPersonajes && window.AsagiPersonajes.parsear(text);
+  if (per && window._asagiPersonajesCmd) { window._asagiPersonajesCmd(per); return; }
+
   // Citas: cita con ASAGI y práctica de citas (citas.js).
   if (window.AsagiCitas && window._asagiCitas && window._asagiCitas(text)) return;
 
@@ -2890,6 +2894,45 @@ if ('serviceWorker' in navigator) {
   }
   btn.addEventListener('click', analizar);
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
+})();
+
+// --- Personajes: carga la carpeta, lo aprende (memoria) y responde sus órdenes ---
+(function () {
+  const P = window.AsagiPersonajes; if (!P) return;
+  let lista = [];
+  const listo = P.cargar('personajes/').then((l) => {
+    lista = l;
+    try {
+      if (!window._asagiMem && window.AsagiMemoria) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+      const firma = l.map((p) => p.id + ':' + p.tacticas.length).join(',');
+      if (window._asagiMem && localStorage.getItem('asagi-personajes-aprendidos') !== firma) {
+        P.aprender(l, window._asagiMem); localStorage.setItem('asagi-personajes-aprendidos', firma);
+      }
+    } catch (e) {}
+    return l;
+  }).catch(() => []);
+  const pensar = async (p) => { if (!window._asagiPensar) throw new Error('sin cerebro'); const r = await window._asagiPensar(p); if (!r || !String(r).trim()) throw new Error('vacío'); return String(r).trim(); };
+  window._asagiPersonajesCmd = async function (o) {
+    await listo;
+    if (o.tipo === 'lista') { appendMessage('bot', P.textoLista(lista)); return; }
+    if (o.tipo === 'dia') { const x = P.delDia(lista, new Date()); appendMessage('bot', x ? P.textoTactica(x.p, x.t) : P.textoLista(lista)); return; }
+    if (o.tipo === 'leeme') {
+      const msgs = state.messages.filter((m) => m.sender === 'user').slice(-12).map((m) => ({ texto: m.text, cuando: m.time }));
+      appendMessage('bot', P.leer(msgs.slice(0, -1), new Date()).texto);   // sin contar el propio «léeme»
+      return;
+    }
+    const p = P.buscar(lista, o.quien);
+    if (!p) { appendMessage('bot', '🎭 No tengo a «' + o.quien + '» en mi carpeta de personajes. ' + P.textoLista(lista).split('\n')[0]); return; }
+    if (o.tipo === 'tacticas') { appendMessage('bot', P.textoTacticas(p)); return; }
+    if (o.tipo === 'entrena') { const t = p.tacticas[Math.floor(Math.random() * p.tacticas.length)]; appendMessage('bot', P.textoTactica(p, t) + '\n\nHazlo hoy y luego cuéntame cómo te fue.'); return; }
+    if (o.tipo === 'haria') {
+      const ts = P.relevantes(p, o.situacion, 2);
+      appendMessage('bot', '🎭 Pensando como ' + (p.apodo || p.nombre.split(' ')[0]) + '…');
+      pensar(P.promptHaria(p, ts, o.situacion))
+        .then((r) => appendMessage('bot', '🎭 ' + (p.apodo || p.nombre.split(' ')[0]) + ' haría esto:\n' + r))
+        .catch(() => appendMessage('bot', ts.map((t) => P.textoTactica(p, t)).join('\n\n')));
+    }
+  };
 })();
 
 // --- Citas (cita con ASAGI + práctica de citas) ---

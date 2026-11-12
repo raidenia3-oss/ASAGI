@@ -237,3 +237,4 @@ html, body { font-family: var(--sans); color: var(--papel); }
   #assistant:not(.conversando) .avatar-wrap { display: none; }
 }
 #assistant.conversando .panel-header { min-height: 70px !important; }
+.avatar-wrap { margin-top: 56px; }  /* que el botón ⌄ no tape la cara */

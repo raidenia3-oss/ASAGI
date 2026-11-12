@@ -2817,13 +2817,16 @@ if ('serviceWorker' in navigator) {
     }
     return null;
   }
-  if (home) window.AsagiGestos.crear(home, function (dir, info) {
+  // escucha en todo el documento: en el celular el dedo puede caer sobre capas encima de la casa
+  // (fondo animado, rejilla de apps) y antes el gesto no llegaba a #launcher.
+  if (home) window.AsagiGestos.crear(document, function (dir, info) {
     if (hayOverlay()) return;
+    if (info && info.target && info.target.closest && info.target.closest('input, textarea, .panel.overlay')) return;
     const sc = desplazable(info && info.target);
     const abajoDePantalla = info && info.sy > window.innerHeight * 0.78;
     if (dir === 'arriba' && (!sc || abajoDePantalla || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4)) setActiveSection('assistant');
     else if (dir === 'abajo' && (!sc || sc.scrollTop <= 2)) setActiveSection('status');
-  }, { umbral: 70 });
+  }, { umbral: 70, maxMs: 1200 });
   // cerrar overlays con el gesto natural (asistente/grok: abajo; status: arriba)
   document.querySelectorAll('.panel.overlay').forEach(function (ov) {
     const cerrarDir = ov.classList.contains('from-top') ? 'arriba' : 'abajo';

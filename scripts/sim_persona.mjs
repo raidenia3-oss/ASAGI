@@ -84,7 +84,7 @@ await revisar('Casa', 'p01_casa');
 
 // 2. Deslizar hacia arriba como un dedo para hablar con ASAGI
 await ev(`(() => { window.__toques = []; ['touchstart','touchmove','touchend','touchcancel','pointerdown','pointercancel'].forEach((t) =>
-  document.addEventListener(t, (e) => { const p = (e.changedTouches && e.changedTouches[0]) || e; if (window.__toques.length < 40) window.__toques.push(t + '@' + Math.round(p.clientY)); }, { capture: true, passive: true })); return 1; })()`);
+  document.addEventListener(t, (e) => { const p = (e.changedTouches && e.changedTouches[0]) || e; if (window.__toques.length < 40) window.__toques.push(t + '@' + Math.round(p.clientY) + '/' + (performance.now() | 0) + 'ms/' + ((e.target && (e.target.id || e.target.className)) || '?').toString().slice(0, 16)); }, { capture: true, passive: true })); return 1; })()`);
 adb(`shell input swipe ${SW / 2} ${Math.round(SH * 0.9)} ${SW / 2} ${Math.round(SH * 0.35)} 250`);
 await sleep(1200);
 const enChat = await ev("document.getElementById('assistant').classList.contains('open')");
@@ -102,7 +102,9 @@ for (const [id, nombre] of [['status', 'Estado (deslizar hacia abajo)'], ['pendi
 await ev("setActiveSection('launcher')");
 adb('shell settings put system accelerometer_rotation 0'); adb('shell settings put system user_rotation 1');
 await sleep(2500);
-await revisar('Casa girada (horizontal)', 'p07_horizontal');
+await sleep(1500); const giro = await ev('innerWidth > innerHeight');
+out(`- Girar el celular: ${giro ? 'la app giró (no debería: es la pantalla de inicio)' : 'se queda vertical como un launcher ✓'}`);
+await revisar('Casa con el celular girado', 'p07_horizontal');
 adb('shell settings put system user_rotation 0'); await sleep(1500);
 
 // (al final: en el emulador de CI, abrir el teclado a veces tumba el emulador)

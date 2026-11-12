@@ -40,6 +40,7 @@ const files = [
   'manos.js',
   'vistas.js',
   'estudia.js',
+  'citas.js',
   'piensa.js',
   'discord.js',
   'app.js',

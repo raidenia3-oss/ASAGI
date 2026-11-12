@@ -837,6 +837,9 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Citas: cita con ASAGI y práctica de citas (citas.js).
+  if (window.AsagiCitas && window._asagiCitas && window._asagiCitas(text)) return;
+
   // Repaso en curso: la siguiente respuesta de Daniel se corrige.
   try {
     const qz = JSON.parse(localStorage.getItem('asagi-quiz') || 'null');
@@ -2887,6 +2890,95 @@ if ('serviceWorker' in navigator) {
   }
   btn.addEventListener('click', analizar);
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
+})();
+
+// --- Citas (cita con ASAGI + práctica de citas) ---
+(function () {
+  const C = () => window.AsagiCitas;
+  const leer = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+  const guardar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  const gesto = (g) => { try { if (window._asagiAvatarEstado) window._asagiAvatarEstado(g); } catch (e) {} };
+  const pensar = async (p) => { if (!window._asagiPensar) throw new Error('sin cerebro'); const r = await window._asagiPensar(p); if (!r || !String(r).trim()) throw new Error('vacío'); return String(r).trim(); };
+  const gustos = () => { try { return (window._asagiMem ? window._asagiMem.todos() : []).filter((n) => n && n.tema === 'preferencia').map((n) => n.texto); } catch (e) { return []; } };
+
+  // devuelve true si el mensaje era de citas (y ya respondió)
+  window._asagiCitas = function (text) {
+    const K = C(); const o = K.parsear(text);
+    const cita = leer('asagi-cita', null), prac = leer('asagi-practica', null), prop = leer('asagi-cita-propuesta', null);
+    const hist = leer('asagi-citas-hist', []);
+
+    if (o && o.tipo === 'recuerdos') {
+      appendMessage('bot', hist.length ? '💗 Nuestras citas:\n' + hist.slice(-8).reverse().map((h) => '· ' + new Date(h.fecha).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }) + ' — ' + h.plan + ' (' + h.min + ' min)' + (h.momento ? ': «' + h.momento.slice(0, 60) + '»' : '')).join('\n')
+        : '💗 Aún no tuvimos ninguna cita. ¿Tengamos una?');
+      return true;
+    }
+    if (o && o.tipo === 'cita' && !cita) {
+      const planes = K.proponer(new Date(), gustos(), hist.slice(-3).map((h) => h.id));
+      guardar('asagi-cita-propuesta', planes.map((p) => p.id));
+      appendMessage('bot', K.textoPropuesta(planes, hist.length ? hist[hist.length - 1].plan : ''));
+      gesto('feliz');
+      return true;
+    }
+    if (o && o.tipo === 'elegir' && prop && !cita) {
+      const plan = K.PLANES.find((p) => p.id === prop[o.n - 1]);
+      if (!plan) return false;
+      guardar('asagi-cita-propuesta', null);
+      guardar('asagi-cita', { id: plan.id, inicio: Date.now(), turnos: 0, momento: '' });
+      setActiveSection('assistant');
+      appendMessage('bot', '💗 ¡' + plan.nombre + '! ' + plan.guia + '\n\nPara empezar: ' + plan.temas[0]);
+      gesto('guino');
+      if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', 'cita');
+      return true;
+    }
+    if (o && o.tipo === 'fin_cita' && cita) {
+      const plan = K.PLANES.find((p) => p.id === cita.id) || K.PLANES[0];
+      const c2 = Object.assign({}, cita, { plan: plan });
+      appendMessage('bot', K.cierre(c2, Date.now()));
+      const min = Math.max(1, Math.round((Date.now() - cita.inicio) / 60000));
+      hist.push({ id: plan.id, plan: plan.nombre, fecha: Date.now(), min: min, turnos: cita.turnos, momento: cita.momento });
+      guardar('asagi-citas-hist', hist.slice(-50));
+      try { if (window._asagiMem) window._asagiMem.aprender('Cita con Daniel: ' + plan.nombre + ', ' + min + ' min' + (cita.momento ? '. Me contó: ' + cita.momento.slice(0, 160) : ''), 'cita', 'citas'); } catch (e) {}
+      guardar('asagi-cita', null);
+      gesto('feliz');
+      return true;
+    }
+    if (o && o.tipo === 'practica' && !prac) {
+      const esc = K.escenario();
+      guardar('asagi-practica', { esc: esc, puntajes: [] });
+      appendMessage('bot', '🎯 Práctica de cita. Estás en ' + esc.lugar + '.\n' + esc.apertura + '\n\n(Escríbele como lo harías en la vida real. Te doy un consejo después de cada mensaje. «termina la práctica» para ver tu puntaje.)');
+      return true;
+    }
+    if (o && o.tipo === 'fin_practica' && prac) {
+      appendMessage('bot', K.resumenPractica(prac));
+      try { if (window._asagiMem) window._asagiMem.aprender('Práctica de cita en ' + prac.esc.lugar + ': ' + K.resumenPractica(prac).split('\n')[1], 'practica de citas', 'citas'); } catch (e) {}
+      guardar('asagi-practica', null);
+      return true;
+    }
+
+    // mensajes normales dentro de una práctica: personaje + consejo
+    if (prac && !o) {
+      const ev = K.evaluar(text, prac.esc.mood);
+      prac.puntajes.push(ev.puntaje); guardar('asagi-practica', prac);
+      const consejo = '💡 ' + Math.round(ev.puntaje * 100) + '/100 · ' + ev.feedback[0] + (ev.puntaje < 0.75 ? '\nMejor así: «' + ev.sugerencia + '»' : '');
+      pensar(K.promptPersonaje(prac.esc, text, ev.puntaje)).catch(() => K.reaccion(prac.esc.mood, ev.puntaje))
+        .then((r) => appendMessage('bot', '🗨 ' + r + '\n\n' + consejo));
+      return true;
+    }
+    // mensajes normales dentro de una cita: ASAGI en modo cita
+    if (cita && !o) {
+      const plan = K.PLANES.find((p) => p.id === cita.id) || K.PLANES[0];
+      cita.turnos = (cita.turnos || 0) + 1;
+      cita.momento = K.mejorMomento(cita.momento, text);
+      guardar('asagi-cita', cita);
+      const tema = K.temaParaTurno(plan, cita.turnos);
+      const ctx = window.AsagiPiensa ? window.AsagiPiensa.armarContexto(text, { persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '', daniel: gustos().slice(0, 4) }) : '';
+      pensar(ctx + '\n\n' + K.promptCita(plan, (Date.now() - cita.inicio) / 60000, tema) + '\n\nDaniel: ' + text + '\nASAGI:')
+        .catch(() => (cita.turnos % 3 === 0 ? '¡Me encanta escucharte! Oye… ' + tema : ['Jaja, me gusta cómo lo cuentas.', 'Qué bonito eso, de verdad.', 'Mmm, cuéntame más 😊'][cita.turnos % 3]))
+        .then((r) => { appendMessage('bot', r); if (cita.turnos % 4 === 0) gesto('feliz'); });
+      return true;
+    }
+    return false;
+  };
 })();
 
 // al abrir el teclado (la app se achica) o tocar la barra de escribir: mostrar lo último del chat

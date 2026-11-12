@@ -134,8 +134,19 @@ async function desplegarV2(tarea, ejecutar, opts) {
     const ini = ahora();
     on({ tipo: 'inicio', id: p.bot.id });
     try {
-      const txt = await _conTiempo(ejecutar(p.bot.rol + ctx + '\n\nTu parte: ' + p.subtarea + REGLA_ACCION, p.bot), opts.timeoutMs || 45000);
-      const tr = { id: p.bot.id, nombre: p.bot.nombre, ok: true, ms: Math.round(ahora() - ini), texto: limpiarAcciones(txt), acciones: extraerAcciones(txt) };
+      const prompt = p.bot.rol + ctx + '\n\nTu parte: ' + p.subtarea + REGLA_ACCION;
+      let txt, intentos = 0;
+      for (;;) {                                  // un reintento si falla rápido (red, 429); el tiempo agotado no se reintenta
+        intentos++;
+        try { txt = await _conTiempo(ejecutar(prompt, p.bot), opts.timeoutMs || 45000); break; }
+        catch (e) {
+          if (intentos > (opts.reintentos == null ? 1 : opts.reintentos) || /tiempo agotado|sin cerebro/.test(String(e && e.message))) throw e;
+          on({ tipo: 'reintento', id: p.bot.id, error: String(e && e.message || e) });
+          await new Promise((r) => setTimeout(r, opts.esperaReintento == null ? 1200 : opts.esperaReintento));
+        }
+      }
+      if (!String(txt || '').trim()) throw new Error('respuesta vacía');
+      const tr = { id: p.bot.id, nombre: p.bot.nombre, ok: true, ms: Math.round(ahora() - ini), texto: limpiarAcciones(txt), acciones: extraerAcciones(txt), intentos: intentos };
       on({ tipo: 'fin', traza: tr });
       return tr;
     } catch (e) {
@@ -167,23 +178,51 @@ async function desplegarV2(tarea, ejecutar, opts) {
       on({ tipo: 'fin', traza: { id: 'critico', nombre: 'Crítico', ok: true, ms: Math.round(ahora() - ini) } });
     } catch (e) { on({ tipo: 'fin', traza: { id: 'critico', nombre: 'Crítico', ok: false, ms: Math.round(ahora() - ini) } }); }
   }
+  // REVISIÓN: si el Crítico encontró algo, el Sintetizador corrige UNA vez (bucle cerrado, no infinito).
+  let revisada = false;
+  const critOk = /^\s*ok\.?\s*$/i.test(critica);
+  if (final && critica && !critOk && opts.revisar !== false) {
+    on({ tipo: 'inicio', id: 'revision' });
+    const ini = ahora();
+    try {
+      const corr = await _conTiempo(ejecutar('Eres el Sintetizador. Corrige tu respuesta aplicando SOLO las observaciones del Crítico que sean válidas. ' +
+        'Si algo no se puede verificar, dilo en la respuesta. Devuelve la respuesta final completa.\n\nTarea: ' + tarea +
+        '\n\nRespuesta:\n' + final + '\n\nCrítico:\n' + critica, { id: 'revision', nombre: 'Revisión' }), opts.timeoutMs || 45000);
+      if (String(corr || '').trim()) { final = String(corr).trim(); revisada = true; }
+      on({ tipo: 'fin', traza: { id: 'revision', nombre: 'Revisión', ok: revisada, ms: Math.round(ahora() - ini) } });
+    } catch (e) { on({ tipo: 'fin', traza: { id: 'revision', nombre: 'Revisión', ok: false, ms: Math.round(ahora() - ini) } }); }
+  }
   const acciones = [].concat.apply([], trazas.map((x) => x.acciones));
   const res = { tarea: tarea, final: limpiarAcciones(final), critica: /^\s*ok\.?\s*$/i.test(critica) ? '' : String(critica || '').trim(),
-                acciones: acciones, trazas: trazas, ms: Math.round(ahora() - t0), cuando: Date.now() };
+                acciones: acciones, trazas: trazas, ms: Math.round(ahora() - t0), cuando: Date.now(), revisada: revisada };
   on({ tipo: 'listo', resultado: res });
   return res;
 }
 
 // Historial de despliegues (trazas) para revisar qué falló. PURO sobre el store.
+function leerTrazas(store) { try { return JSON.parse(store.getItem('asagi-bots-trazas') || '[]'); } catch (e) { return []; } }
+
+// Resumen de salud de los bots (observabilidad): tasa de éxito y tiempo medio por bot. PURO.
+function salud(trazas) {
+  const m = {};
+  (trazas || []).forEach((d) => (d.bots || []).forEach((b) => {
+    const k = b.n; m[k] = m[k] || { n: k, total: 0, ok: 0, ms: 0 };
+    m[k].total++; if (b.ok) { m[k].ok++; m[k].ms += b.ms || 0; }
+  }));
+  return Object.keys(m).map((k) => ({ n: k, total: m[k].total, exito: m[k].ok / m[k].total, msMedio: m[k].ok ? Math.round(m[k].ms / m[k].ok) : 0 }))
+    .sort((a, b) => a.exito - b.exito);
+}
+
 function guardarTraza(store, res) {
   try {
     const l = JSON.parse(store.getItem('asagi-bots-trazas') || '[]');
-    l.unshift({ tarea: res.tarea, ms: res.ms, cuando: res.cuando, bots: res.trazas.map((t) => ({ n: t.nombre, ok: t.ok, ms: t.ms, e: t.error || '' })) });
+    l.unshift({ tarea: res.tarea, ms: res.ms, cuando: res.cuando, revisada: !!res.revisada, final: String(res.final || '').slice(0, 1200),
+                bots: res.trazas.map((t) => ({ id: t.id, n: t.nombre, ok: t.ok, ms: t.ms, e: t.error || '', i: t.intentos || 1 })) });
     store.setItem('asagi-bots-trazas', JSON.stringify(l.slice(0, 20)));
   } catch (e) {}
 }
 
-const API = { BOTS, botPorId, elegirBots, promptDe, desplegar, planificar, desplegarV2, extraerAcciones, limpiarAcciones, guardarTraza };
+const API = { BOTS, botPorId, elegirBots, promptDe, desplegar, planificar, desplegarV2, extraerAcciones, limpiarAcciones, guardarTraza, leerTrazas, salud };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiBots = API;
 

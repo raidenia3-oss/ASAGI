@@ -55,5 +55,18 @@ await di('wifi', 8000);
 await di('bluetooth', 8000);
 await di('enlace pc', 12000);
 await di('dile a ARIA hola', 15000);
+// Modo manos: ASAGI usa otra app (Ajustes) por Accesibilidad y vuelve.
+out(`- Accesibilidad activa: ${await ev("Capacitor.Plugins.AsagiControl.isEnabled().then(r=>r.enabled)")}`);
+{
+  const antes = await ev("document.querySelectorAll('.message.bot').length");
+  await ev(`(()=>{const i=document.getElementById('message-input');i.value='manos: abre Settings, espera 3, baja, espera a que aparezca System, atrás';i.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('chat-form').requestSubmit();return 1})()`);
+  let fin = '';
+  for (let k = 0; k < 120 && !fin; k++) {
+    await sleep(500);
+    fin = await ev(`[...document.querySelectorAll('.message.bot')].slice(${antes}).map(m=>m.innerText.trim()).filter(t=>/^🖐 (Listo|Paré|Falló|Para usar|El modo)/.test(t)).join(' ')`);
+  }
+  out(`- **Tú:** manos: abre Settings, espera 3, baja, espera a que aparezca System, atrás\n  **ASAGI:** ${(fin || '(sin resultado en 60 s)').replace(/\n+/g, ' ').slice(0, 400)}`);
+}
+out(`- Lectura de pantalla (manosLeer): ${await ev("Capacitor.Plugins.AsagiControl.manosLeer({max:15}).then(r=>r.app+' · '+r.nodos.length+' elementos: '+r.nodos.slice(0,6).map(n=>n.t||n.d).join(' | ')).catch(e=>'error '+e.message)")}`);
 out(`- Errores JS durante la prueba: ${errores.length}${errores.length ? '\n' + [...new Set(errores)].slice(0, 15).map((e) => '    ' + e).join('\n') : ''}`);
 ws.close(); process.exit(0);

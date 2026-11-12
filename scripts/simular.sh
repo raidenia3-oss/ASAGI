@@ -18,6 +18,9 @@ for perm in POST_NOTIFICATIONS ACCESS_FINE_LOCATION BLUETOOTH_CONNECT BLUETOOTH_
 done
 adb shell dumpsys package $P | grep -m1 versionName | sed 's/^ */- /' >> "$R"
 
+# Modo manos: en el emulador se puede activar la Accesibilidad por adb (en un celular real lo activa Daniel una vez)
+adb shell settings put secure enabled_accessibility_services $P/com.asagi.brain.AsagiAccessibilityService >/dev/null 2>&1
+adb shell settings put secure accessibility_enabled 1 >/dev/null 2>&1
 adb shell pm disable-user --user 0 com.google.android.apps.nexuslauncher >/dev/null 2>&1
 adb shell settings put global anr_show_background 0 >/dev/null 2>&1
 log "## Arranque"

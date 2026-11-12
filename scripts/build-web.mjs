@@ -37,6 +37,7 @@ const files = [
   'enlace-lan.js',
   'actualizador.js',
   'niveles.js',
+  'manos.js',
   'discord.js',
   'app.js',
   'styles.css',

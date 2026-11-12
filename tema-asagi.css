@@ -174,3 +174,11 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .enj-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .enj-acciones button { width: auto; font-size: .75rem; padding: 7px 10px; }
 .enj-card.fallo { border-color: rgba(239, 68, 68, 0.6) !important; }
+.enj-aportes { margin-top: 10px; font: 400 0.82rem/1.5 var(--sans); color: var(--niebla); }
+.enj-aportes summary { cursor: pointer; font: 600 0.62rem/1.6 var(--mono); letter-spacing: .14em; color: var(--asagi); text-transform: uppercase; }
+.enj-aportes p { margin: 8px 0 0; white-space: pre-wrap; color: var(--papel); }
+.enj-aportes p b { color: var(--oro); font-weight: 600; }
+.enj-aportes button { margin-top: 6px; width: auto; font-size: .72rem; padding: 5px 9px; }
+.enj-salud { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.enj-salud span { font: 500 0.66rem/1 var(--mono); padding: 5px 8px; border-radius: 999px; border: 1px solid rgba(60,196,201,.35); color: var(--asagi); }
+.enj-salud span.mal { border-color: rgba(232,80,122,.5); color: var(--carmin); }

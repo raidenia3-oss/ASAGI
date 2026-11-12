@@ -376,9 +376,8 @@ function appendMessage(sender, text) {
   try {
     if (window.AsagiMemoria) {
       if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
-      if (text && text.trim()) {
-        window._asagiMem.aprender(text.trim(), sender === 'user' ? 'daniel' : 'asagi', 'chat');
-      }
+      const r = window.AsagiMemoria.valeRecordar ? window.AsagiMemoria.valeRecordar(text, sender) : null;
+      if (r) window._asagiMem.aprender(r.texto, r.tema, 'chat');   // solo lo que vale la pena, no todo el chat
     }
   } catch (e) { /* memoria es best-effort */ }
   // voz: habla las respuestas del bot (si esta activada y el sigilo lo permite).
@@ -729,6 +728,21 @@ chatForm.addEventListener('submit', (event) => {
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   if (/^\s*(nivel|mi nivel|tu nivel|niveles|cu[aá]nto has aprendido|qu[eé] nivel tienes)\s*\??\s*$/i.test(text) && window.AsagiNiveles) {
     appendMessage('bot', window._asagiNivelTexto ? window._asagiNivelTexto() : window.AsagiNiveles.formato(window.AsagiNiveles.actual()));
+    return;
+  }
+
+  // "manos: ..." -> ASAGI usa otras apps por ti (Accesibilidad). "para" la detiene.
+  if (/^\s*(para|detente|stop)\s*(manos)?\s*!?\s*$/i.test(text) && window._asagiManosActivo) {
+    window._asagiManosParar = true; appendMessage('bot', '🖐 Me detengo.'); return;
+  }
+  const mManos = text.match(/^\s*(?:manos|hazlo t[uú]|usa el cel(?:ular)?)\s*[:,]\s*(.{3,})$/i);
+  if (mManos && window._asagiManos) { window._asagiManos(mManos[1]); return; }
+
+  // "equipo: <tarea>" desde el chat: despliega los bots y trae la conclusión aquí.
+  const mEq = text.match(/^\s*(?:equipo|enjambre|bots)\s*[:,]\s*(.{4,})$/i);
+  if (mEq && window._asagiDesplegar) {
+    appendMessage('bot', '🤖 Despliego al equipo… (míralo en vivo en la Sala de control)');
+    window._asagiDesplegar(mEq[1], { alChat: true });
     return;
   }
 
@@ -1321,6 +1335,55 @@ if ('serviceWorker' in navigator) {
 
   window.asagiApps = construir();
 
+  // --- Modo manos: el driver real sobre el servicio de Accesibilidad ---
+  let appsCache = null;
+  const driverManos = {
+    leer: async () => { const r = await plugin().manosLeer({ max: 80 }); return { app: r.app, nodos: r.nodos || [] }; },
+    tocar: (t) => plugin().manosTocar({ texto: t }),
+    escribir: (t) => plugin().manosEscribir({ texto: t }),
+    global: (g) => plugin().manosGlobal({ accion: g }),
+    desplazar: (d) => plugin().manosDesplazar({ dir: d }),
+    abrir: async (nombre) => {
+      try { if (!appsCache) appsCache = ((await plugin().listApps()) || {}).apps || []; } catch (e) { appsCache = []; }
+      const pkg = window.AsagiManos.resolverApp(nombre, appsCache);
+      if (!pkg) return { ok: false, motivo: 'no encuentro la app «' + nombre + '»' };
+      if (window.AsagiManos.esBanca(pkg)) return { ok: false, motivo: 'no opero apps de banca o pagos', parar: true };
+      await plugin().openApp({ package: pkg }); return { ok: true };
+    },
+    dormir: (ms) => new Promise((r) => setTimeout(r, ms)),
+  };
+  window._asagiManos = async function (orden) {
+    const C = plugin(), M = window.AsagiManos;
+    if (!C || !M || !C.manosLeer) { appendMessage('bot', '🖐 El modo manos funciona en la app instalada (APK), no en el navegador.'); return; }
+    let on = false; try { on = !!(await C.isEnabled()).enabled; } catch (e) {}
+    if (!on) {
+      appendMessage('bot', '🖐 Para usar otras apps necesito el permiso de Accesibilidad. Te abro Ajustes: entra en «Apps instaladas» → ASAGI → actívalo, y vuelve a pedírmelo. (Android no deja que una app se lo dé sola.)');
+      try { await C.openSettings(); } catch (e) {}
+      return;
+    }
+    if (window._asagiManosActivo) { appendMessage('bot', '🖐 Ya estoy haciendo algo; di «para» para cortarlo.'); return; }
+    window._asagiManosActivo = true; window._asagiManosParar = false;
+    const opts = {
+      confirmar: async (p) => window.confirm('ASAGI va a tocar «' + p.texto + '». Eso no se puede deshacer. ¿Sigo?'),
+      cancelado: () => window._asagiManosParar,
+    };
+    try {
+      const lista = M.pasos(orden);
+      let r;
+      if (lista) {
+        appendMessage('bot', '🖐 ' + lista.length + ' pasos: ' + lista.map(M.describir).join(' → '));
+        r = await M.ejecutar(lista, driverManos, opts);
+      } else {
+        appendMessage('bot', '🖐 Lo hago mirando la pantalla paso a paso (di «para» si quieres cortarlo).');
+        r = await M.agente(orden, driverManos, window._asagiPensar || (async () => '{"accion":"imposible","resumen":"sin cerebro"}'), opts);
+      }
+      if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', 'manos');
+      setTimeout(() => { appendMessage('bot', M.formato(r)); }, 300);
+    } catch (e) {
+      appendMessage('bot', '🖐 Falló: ' + (e && e.message ? e.message : e));
+    } finally { window._asagiManosActivo = false; }
+  };
+
   const elStatus = document.getElementById('acc-status');
   const elToggle = document.getElementById('acc-toggle');
   const elCheck = document.getElementById('acc-check');
@@ -1785,12 +1848,23 @@ if ('serviceWorker' in navigator) {
     box.innerHTML = '<div class="enj-final-h">Respuesta del equipo <small>' + (res.ms / 1000).toFixed(1) + ' s · ' +
       res.trazas.length + ' bots' + (fallos.length ? ' · ' + fallos.length + ' fallaron' : '') + '</small></div>' +
       '<div class="enj-final-txt">' + esc(res.final || 'Ningún bot pudo pensar: pon una key (Gemini/Mistral/Atria) en Ajustes o abre ARIA en la PC — sin key, los bots piensan con ARIA por WiFi/Bluetooth.') + '</div>' +
-      (res.critica ? '<div class="enj-critica"><b>Crítico</b> ' + esc(res.critica) + '</div>' : '') +
+      (res.critica ? '<div class="enj-critica"><b>' + (res.revisada ? 'Crítico · ya corregido' : 'Crítico') + '</b> ' + esc(res.critica) + '</div>' : '') +
+      (res.trazas.some((t) => t.ok) ? '<details class="enj-aportes"><summary>Ver lo que dijo cada bot</summary>' +
+        res.trazas.map((t) => '<p><b>' + esc(t.nombre) + '</b> <small>' + (t.ms / 1000).toFixed(1) + ' s' + (t.intentos > 1 ? ' · ' + t.intentos + ' intentos' : '') + '</small><br>' +
+          esc(t.ok ? t.texto : 'Falló: ' + t.error) + '</p>').join('') + '</details>' : '') +
       '<div class="enj-acciones"></div>';
     const acc = box.querySelector('.enj-acciones');
     const chat = document.createElement('button'); chat.type = 'button'; chat.className = 'secondary'; chat.textContent = 'Llevar al chat';
     chat.addEventListener('click', () => { appendMessage('bot', '🤖 Equipo · ' + res.tarea + '\n\n' + res.final); setActiveSection('assistant'); });
     if (res.final) acc.appendChild(chat);
+    if (fallos.length) {
+      const re = document.createElement('button'); re.type = 'button'; re.className = 'secondary'; re.textContent = '↻ Reintentar';
+      re.addEventListener('click', () => desplegar(res.tarea));
+      acc.appendChild(re);
+    }
+    const hi = document.createElement('button'); hi.type = 'button'; hi.className = 'secondary'; hi.textContent = 'Historial';
+    hi.addEventListener('click', () => pintarHistorial(box));
+    acc.appendChild(hi);
     res.acciones.forEach((a) => {
       const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'secondary';
       bt.textContent = (a.tipo === 'bandeja' ? '📥 ' : '⏰ ') + a.texto.slice(0, 40);
@@ -1806,10 +1880,25 @@ if ('serviceWorker' in navigator) {
     });
   }
 
-  function desplegar() {
+  function pintarHistorial(box) {
+    const B = window.AsagiBots, esc = (t) => String(t || '').replace(/</g, '&lt;');
+    const l = B.leerTrazas(window.localStorage), sal = B.salud(l);
+    const f = (ms) => new Date(ms).toLocaleString('es-PE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    box.hidden = false;
+    box.innerHTML = '<div class="enj-final-h">Historial del equipo <small>' + l.length + ' despliegues</small></div>' +
+      (sal.length ? '<div class="enj-salud">' + sal.map((x) => '<span class="' + (x.exito < 0.7 ? 'mal' : '') + '">' + esc(x.n) + ' ' +
+        Math.round(x.exito * 100) + '%' + (x.msMedio ? ' · ' + (x.msMedio / 1000).toFixed(1) + ' s' : '') + '</span>').join('') + '</div>' : '') +
+      (l.length ? l.map((d, i) => '<details class="enj-aportes"><summary>' + f(d.cuando) + ' · ' + esc(d.tarea.slice(0, 50)) + ' ' +
+        d.bots.map((b) => b.ok ? '✓' : '✗').join('') + '</summary><p>' + esc(d.final || '(sin respuesta)') + '</p>' +
+        '<button type="button" class="secondary" data-i="' + i + '">↻ Repetir</button></details>').join('') : '<p class="enj-final-txt">Aún no hay despliegues.</p>');
+    box.querySelectorAll('button[data-i]').forEach((b) => b.addEventListener('click', () => desplegar(l[+b.dataset.i].tarea)));
+  }
+
+  function desplegar(tareaDada, opciones) {
     if (!window.AsagiBots || !window.AsagiEnjambre || !input) return;
-    const tarea = input.value.trim(); if (!tarea) return;
-    input.value = '';
+    opciones = opciones || {};
+    const tarea = (typeof tareaDada === 'string' ? tareaDada : input.value).trim(); if (!tarea) return;
+    if (typeof tareaDada !== 'string') input.value = '';
     const B = window.AsagiBots;
     const plan = B.planificar(tarea, 4);
     estado = window.AsagiEnjambre.crearTrabajo(plan.map((p) => p.bot), tarea);
@@ -1828,7 +1917,9 @@ if ('serviceWorker' in navigator) {
       max: 4, contexto: contextoMemoria(tarea), timeoutMs: 45000,
       onEvento(ev) {
         if (ev.tipo === 'plan') ev.plan.forEach((p) => feedLinea('Supervisor', '#e2b04a', p.nombre + ' → ' + p.subtarea.slice(0, 70)));
-        if (ev.tipo === 'inicio' && (ev.id === 'sintetizador' || ev.id === 'critico')) feedLinea(ev.id === 'critico' ? 'Crítico' : 'Sintetizador', '#e8507a', 'revisando…');
+        if (ev.tipo === 'inicio' && (ev.id === 'sintetizador' || ev.id === 'critico' || ev.id === 'revision'))
+          feedLinea({ critico: 'Crítico', sintetizador: 'Sintetizador', revision: 'Revisión' }[ev.id], '#e8507a', ev.id === 'revision' ? 'corrigiendo según el Crítico…' : 'revisando…');
+        if (ev.tipo === 'reintento') feedLinea((B.botPorId(ev.id) || {}).nombre || ev.id, '#e2b04a', '↻ reintentando (' + String(ev.error).slice(0, 40) + ')');
         if (ev.tipo === 'fin') {
           const tr = ev.traza, tj = tarjetas[tr.id];
           if (estado) estado.workers.forEach((w) => { if (w.id === tr.id) { w.realHecho = true; w.real = true; } });
@@ -1842,11 +1933,19 @@ if ('serviceWorker' in navigator) {
       if (estado) estado.workers.forEach((w) => { w.realHecho = true; });
       B.guardarTraza(window.localStorage, res);
       pintarFinal(res);
+      // memoria como ciclo: se guarda la CONCLUSIÓN del equipo (no cada aporte), con su tarea
+      try {
+        if (res.final && window._asagiMem) window._asagiMem.aprender(('Equipo · ' + res.tarea + ': ' + res.final).slice(0, 600), 'equipo', 'bots');
+      } catch (e) {}
+      if (opciones.alChat) appendMessage('bot', res.final ? '🤖 Equipo · ' + res.tarea + '\n\n' + res.final + (res.critica && !res.revisada ? '\n\n— Crítico: ' + res.critica : '')
+        : '🤖 El equipo no pudo pensar: pon una key en Ajustes o abre ARIA en la PC.');
       setTimeout(() => { if (timer && estado && estado.hecho) { clearInterval(timer); timer = null; } }, 3000);
     }).catch(() => {});
   }
-  if (go) go.addEventListener('click', desplegar);
+  if (go) go.addEventListener('click', () => desplegar());
   if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') desplegar(); });
+  window._asagiDesplegar = desplegar;
+  window._asagiPensar = (p) => ejecutarBot(p, { id: 'manos', nombre: 'Manos' });
 
   // --- Grafo del enjambre: núcleo ASAGI central + bots en círculo + pulsos ---
   (function graph() {

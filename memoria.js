@@ -91,7 +91,28 @@ class Memoria {
   }
 }
 
-const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE };
+// --- memoria como ciclo: decidir QUÉ vale la pena recordar (no todo el chat). PURO. ---
+// Devuelve { texto, tema } o null. Guarda datos de Daniel (quién es, qué prefiere, qué tiene, fechas)
+// y lo que pide recordar; descarta saludos, órdenes, preguntas sueltas y lo que dice ASAGI.
+const _SALUDO = /^(hola|buenas|buenos dias|buenas tardes|buenas noches|gracias|ok|okey|vale|si|no|jaja+|xd|perfecto|listo|dale|chao|adios)\b[\s!.?]*$/;
+const _ORDEN = /^(abre|cierra|pon|activa|desactiva|busca|wifi|bluetooth|termux|nix|actualiza|nivel|equipo|bots|enlace|dile a aria|traduce|calcula)\b/;
+function _n(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim(); }
+function valeRecordar(texto, quien) {
+  const crudo = String(texto || '').trim();
+  const t = _n(crudo);
+  if (quien !== 'user' || t.length < 10 || t.length > 600) return null;
+  if (_SALUDO.test(t) || _ORDEN.test(t)) return null;
+  const pide = t.match(/^(?:recuerda|recuerdalo|acuerdate|no olvides|anota|apunta)(?:\s+que)?\s*[:,]?\s+(.{4,})$/);
+  if (pide) return { texto: crudo.slice(crudo.length - pide[1].length).trim(), tema: 'pedido' };
+  if (/\b(me gusta|me encanta|no me gusta|odio|prefiero|mi favorit|siempre uso|nunca uso)\b/.test(t)) return { texto: crudo, tema: 'preferencia' };
+  if (/\b(soy|me llamo|vivo en|trabajo en|trabajo de|estudio|tengo|mi (?:novia|novio|esposa|mama|papa|hermano|hermana|hijo|hija|jefe|perro|gato|pc|celular|carro|casa|cumpleanos|correo|horario|examen)|mis \w+ son)\b/.test(t)
+      && !/\?\s*$/.test(t)) return { texto: crudo, tema: 'dato' };
+  if (/\b(\d{1,2} de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)|el (?:lunes|martes|miercoles|jueves|viernes|sabado|domingo))\b/.test(t)
+      && !/\?\s*$/.test(t)) return { texto: crudo, tema: 'fecha' };
+  return null;
+}
+
+const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE, valeRecordar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiMemoria = API;
 

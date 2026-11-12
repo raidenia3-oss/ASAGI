@@ -283,6 +283,56 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve(r);
     }
 
+    // ---------------- Modo manos (agente de pantalla) ----------------
+    private AsagiAccessibilityService manos(PluginCall call) {
+        AsagiAccessibilityService s = AsagiAccessibilityService.getInstance();
+        if (s == null) call.reject("accesibilidad no activada");
+        return s;
+    }
+
+    @PluginMethod
+    public void manosLeer(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("app", s.paqueteActual());
+        try { r.put("nodos", new com.getcapacitor.JSArray(s.leerNodos(call.getInt("max", 80)).toString())); }
+        catch (org.json.JSONException e) { r.put("nodos", new com.getcapacitor.JSArray()); }
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosTocar(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("ok", s.tocarElemento(call.getString("texto", "")));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosEscribir(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        String res = s.escribirSeguro(call.getString("texto", ""));
+        JSObject r = new JSObject();
+        r.put("ok", "ok".equals(res)); r.put("motivo", res);
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosGlobal(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("ok", s.global(call.getString("accion", "")));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosDesplazar(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("ok", s.desplazar(!"arriba".equals(call.getString("dir", "abajo"))));
+        call.resolve(r);
+    }
+
     /** ¿Hay audifonos (cable/BT/USB) conectados? Para el modo sigilo de la voz. */
     @PluginMethod
     public void headsetConnected(PluginCall call) {

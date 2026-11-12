@@ -84,7 +84,7 @@
           const res = await fn(prompt);
           const texto = (res && typeof res === 'object') ? (res.text || res.texto || '') : String(res || '');
           if(!texto) throw new Error('vacío');
-          return { texto: texto, backend: (res && res.backend) || chain[i], degradado: degradado || i > 0 };
+          return { texto: texto, backend: (res && res.backend) || chain[i], degradado: degradado };   // degradado solo si un cerebro de verdad falló
         } catch(e){ degradado = true; }
       }
       // sin ningún cerebro disponible -> respuesta de prueba o eco, marcado honesto

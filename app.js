@@ -399,8 +399,25 @@ function appendMessage(sender, text) {
 
 // Recupera lo que ASAGI aprendió que sea relevante a la pregunta y lo entrega
 // como contexto para el cerebro (RAG: informar con lo aprendido, citando fuente).
+// Lo que ASAGI sabe que viene al caso, separado en "de Daniel" y "estudiado". 
+function saberPara(q) {
+  const out = { daniel: [], saber: [] };
+  try {
+    if (!window.AsagiMemoria || !q || !q.trim()) return out;
+    if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+    const PERSONAL = { dato: 1, preferencia: 1, pedido: 1, fecha: 1, daniel: 1 };
+    window._asagiMem.buscar(q, 10).forEach((n) => {
+      if (!n || n.tema === 'chat' || n.tema === 'asagi') return;
+      if (PERSONAL[n.tema]) { if (out.daniel.length < 5) out.daniel.push(n.texto); }
+      else if (out.saber.length < 6) out.saber.push({ texto: n.texto, fuente: n.fuente && n.fuente !== 'chat' ? n.fuente : '' });
+    });
+  } catch (e) {}
+  return out;
+}
+// Contexto para los cerebros que ya traen su personalidad (modelo del celular, remoto con stream).
 function ctxMemoria(q) {
   try {
+    if (window.AsagiPiensa) { const s = saberPara(q); return window.AsagiPiensa.armarContexto(q, { daniel: s.daniel, saber: s.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular }); }
     if (!window.AsagiMemoria || !q || !q.trim()) return '';
     if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
     const hits = window._asagiMem.buscar(q, 5).filter((n) => n && n.tema !== 'chat');
@@ -410,6 +427,18 @@ function ctxMemoria(q) {
       'finanzas aclara que es información, no un consejo de inversión:\n' + lineas.join('\n');
   } catch (e) { return ''; }
 }
+
+// El modelo del celular como función prompt -> texto ('' si no está cargado). Lo usan el chat, los bots y las manos.
+function localResponder(p) {
+  const brain = getBrainBridge();
+  if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
+    return new Promise((resolve, reject) => {
+      brain.raw.streamReply(p, { onToken: () => {}, onDone: (text) => resolve(text || ''), onError: (msg) => reject(new Error(msg)) });
+    });
+  }
+  return Promise.resolve('');
+}
+window._asagiLocal = localResponder;
 
 async function startBotStreaming(userText) {
   const b = readBrainControls();
@@ -428,14 +457,7 @@ async function startBotStreaming(userText) {
       const mk = (state.brain.mistralKey || b.mistralKey || '').trim();
       const router = new BrainRouter({
         // modelo nativo si de verdad está cargado; si no, '' para que el router pase al siguiente cerebro
-        localFn: async (p) => {
-          if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
-            return await new Promise((resolve, reject) => {
-              brain.raw.streamReply(p, { onToken: () => {}, onDone: (text) => resolve(text || ''), onError: (msg) => reject(new Error(msg)) });
-            });
-          }
-          return '';
-        },
+        localFn: localResponder,
         geminiFn: gk ? ((p) => geminiResponder(p, gk)) : null,
         // remoto: Mistral si hay key (fuerte en código), si no Atria
         remotoFn: mk ? ((p) => mistralResponder(p, mk)) : (ak ? ((p) => atriaResponder(p, ak)) : null),
@@ -443,9 +465,22 @@ async function startBotStreaming(userText) {
         apiKey: gk,
         store: window.localStorage
       });
-      return router.responder(userText).then((res) => {
+      // Razonamiento mejorado: contexto real (persona, fecha, cuentas exactas, lo que sabe) y,
+      // si la pregunta es difícil y hay un cerebro fuerte, plan -> respuesta -> revisión.
+      let ultimo = null;
+      const pedir = (p) => router.responder(p).then((r) => { ultimo = r; if (r && r.backend === 'prueba') throw new Error('sin cerebro'); return (r && (r.texto || r.text)) || ''; });
+      const P = window.AsagiPiensa, sab = saberPara(userText);
+      let pen = null;
+      if (P) {
+        try {
+          pen = await P.pensar(userText, pedir, { fuerte: !!(gk || ak || mk), persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '',
+            daniel: sab.daniel, saber: sab.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular });
+        } catch (e) { pen = null; }
+      }
+      const res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
+      {
         const texto = (res && (res.texto || res.text)) ? (res.texto || res.text) : createBotReply(userText);
-        const backend = (res && res.backend) ? res.backend : 'local';
+        const backend = ((res && res.backend) ? res.backend : 'local') + (pen && pen.pasos && pen.pasos.length > 1 ? ' · pensé: ' + pen.pasos.join(' → ') : '');
         appendMessage('bot', texto);
         try {
           const last = chat.querySelector('.message.bot:last-child');
@@ -457,7 +492,7 @@ async function startBotStreaming(userText) {
           }
         } catch (e) {}
         return;
-      });
+      }
     }
 
     // Modo local con motor nativo realmente cargado.
@@ -800,6 +835,72 @@ chatForm.addEventListener('submit', (event) => {
     if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', String(herr.tipo).split('-')[0]);
     window.AsagiHerr.ejecutar(herr).then((t) => { if (t) appendMessage('bot', t); });
     return;
+  }
+
+  // Repaso en curso: la siguiente respuesta de Daniel se corrige.
+  try {
+    const qz = JSON.parse(localStorage.getItem('asagi-quiz') || 'null');
+    if (qz && window.AsagiEstudia && !/^\s*(?:para|basta|ya no|salir)\b/i.test(text) && !window.AsagiEstudia.parsear(text)) {
+      localStorage.removeItem('asagi-quiz');
+      const bien = window.AsagiEstudia.corregir(text, qz.respuesta);
+      const fallos = JSON.parse(localStorage.getItem('asagi-quiz-fallos') || '{}');
+      if (!bien) { fallos[qz.respuesta] = (fallos[qz.respuesta] || 0) + 1; localStorage.setItem('asagi-quiz-fallos', JSON.stringify(fallos)); }
+      appendMessage('bot', (bien ? '✅ ¡Exacto!' : '❌ Era «' + qz.respuesta + '».') + '\n' + qz.completo + '\n\nOtra: «pregúntame de ' + qz.tema + '».');
+      return;
+    }
+    if (qz && /^\s*(?:para|basta|ya no|salir)\b/i.test(text)) { localStorage.removeItem('asagi-quiz'); appendMessage('bot', 'Listo, paramos el repaso.'); return; }
+  } catch (e) {}
+
+  // Aprender sobre cualquier tema (Wikipedia o un texto tuyo), ver lo aprendido y repasar.
+  const est = window.AsagiEstudia && window.AsagiEstudia.parsear(text);
+  if (est && window.AsagiMemoria) {
+    const E = window.AsagiEstudia;
+    if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+    const M = window._asagiMem;
+    const temaDe = (t) => E._n(t).replace(/^(el|la|los|las|un|una)\s+/, '').slice(0, 40);
+    const delTema = (tema) => { const k = E.claves(tema); return M.todos().filter((n) => n && n.tema && n.tema !== 'chat' && (temaDe(n.tema) === temaDe(tema) || (k.length && k.every((w) => E._n(n.tema + ' ' + n.texto).indexOf(w) >= 0)))); };
+    if (est.tipo === 'web') {
+      appendMessage('bot', '📚 Voy a leer sobre «' + est.tema + '»…');
+      E.deWikipedia(est.tema).then((w) => {
+        if (!w) { appendMessage('bot', '📚 No encontré «' + est.tema + '» en Wikipedia. Pégame un texto con «aprende de ' + est.tema + ': …».'); return; }
+        const ap = E.apuntes(w.texto, est.tema, 10);
+        let nuevos = 0; ap.forEach((a) => { if (M.aprender(a, temaDe(est.tema), 'Wikipedia: ' + w.titulo)) nuevos++; });
+        if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', 'estudiar');
+        appendMessage('bot', '📚 Aprendí ' + nuevos + ' cosas nuevas de «' + w.titulo + '» (Wikipedia):\n' + ap.slice(0, 5).map((a) => '• ' + a).join('\n') +
+          (ap.length > 5 ? '\n… y ' + (ap.length - 5) + ' más.' : '') + '\n\nYa lo uso al responderte. Repasa con «pregúntame de ' + est.tema + '».');
+      }).catch(() => appendMessage('bot', '📚 No pude leer Wikipedia (¿sin internet?). Pégame el texto con «aprende de ' + est.tema + ': …».'));
+      return;
+    }
+    if (est.tipo === 'texto') {
+      const tema = est.tema || (E.claves(est.texto).sort((a, b) => est.texto.split(a).length - est.texto.split(b).length).pop() || 'general');
+      const ap = E.apuntes(est.texto, tema, 12);
+      let nuevos = 0; ap.forEach((a) => { if (M.aprender(a, temaDe(tema), 'texto tuyo')) nuevos++; });
+      appendMessage('bot', ap.length ? '📚 Saqué ' + ap.length + ' apuntes de tu texto (' + nuevos + ' nuevos) sobre «' + tema + '»:\n' + ap.slice(0, 6).map((a) => '• ' + a).join('\n')
+        : '📚 No encontré frases con datos claros en ese texto. ¿Me pasas uno con definiciones, fechas o cifras?');
+      return;
+    }
+    if (est.tipo === 'saber') {
+      const l = delTema(est.tema);
+      appendMessage('bot', l.length ? '📚 De «' + est.tema + '» sé ' + l.length + ' cosas:\n' + l.slice(0, 10).map((n) => '• ' + n.texto + (n.fuente ? ' (' + n.fuente + ')' : '')).join('\n')
+        : '📚 Aún no sé de «' + est.tema + '». Dime «aprende sobre ' + est.tema + '».');
+      return;
+    }
+    if (est.tipo === 'temas') {
+      const c = {}; M.todos().forEach((n) => { if (n && n.tema && !{ chat: 1, daniel: 1, asagi: 1, dato: 1, preferencia: 1, pedido: 1, fecha: 1 }[n.tema]) c[n.tema] = (c[n.tema] || 0) + 1; });
+      const k = Object.keys(c).sort((a, b) => c[b] - c[a]);
+      appendMessage('bot', k.length ? '📚 Temas que estudié: ' + k.slice(0, 20).map((t) => t + ' (' + c[t] + ')').join(' · ') : '📚 Aún no estudié nada. Prueba «aprende sobre la célula».');
+      return;
+    }
+    if (est.tipo === 'quiz') {
+      const fallos = JSON.parse(localStorage.getItem('asagi-quiz-fallos') || '{}');
+      const cands = delTema(est.tema).map((n) => ({ n: n, q: E.preguntaDe(n.texto) })).filter((x) => x.q);
+      if (!cands.length) { appendMessage('bot', '📚 No tengo apuntes de «' + est.tema + '» para preguntarte. Dime «aprende sobre ' + est.tema + '».'); return; }
+      cands.sort((a, b) => (fallos[b.q.respuesta] || 0) - (fallos[a.q.respuesta] || 0) || Math.random() - 0.5);   // primero lo que fallaste
+      const x = cands[0];
+      localStorage.setItem('asagi-quiz', JSON.stringify({ tema: est.tema, respuesta: x.q.respuesta, completo: x.n.texto }));
+      appendMessage('bot', '🧠 Completa:\n' + x.q.pregunta + '\n\n(escribe tu respuesta, o «para»)');
+      return;
+    }
   }
 
   // Vistas: buscar en bandeja/memoria con filtros, guardar búsquedas, tendencias (idea "Discovery").
@@ -1810,7 +1911,8 @@ if ('serviceWorker' in navigator) {
     if (!R) return '(cerebro no disponible)';
     const gk = val('brain-gemini-key'), ak = val('brain-atria-key'), mk = val('brain-mistral-key');
     if (!gk && !ak && !mk) {
-      // Sin key: el bot piensa con ARIA en la PC (enlace WiFi/Bluetooth). Sin enlace, falla limpio.
+      // Sin key: primero el modelo del celular (funciona sin la PC); si no está, ARIA por WiFi/Bluetooth.
+      try { const loc = await localResponder(prompt); if (loc && loc.trim()) return loc; } catch (e) {}
       const cli = window._asagiLan;
       if (cli) {
         const r = await cli.enviar({ t: 'bot', bot: bot ? bot.nombre : 'Bot', prompt: prompt });

@@ -39,6 +39,8 @@ const files = [
   'niveles.js',
   'manos.js',
   'vistas.js',
+  'estudia.js',
+  'piensa.js',
   'discord.js',
   'app.js',
   'styles.css',

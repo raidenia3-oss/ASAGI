@@ -83,13 +83,30 @@ out(`- Márgenes: el reloj empieza a ${barras.relojTop}px del borde de la app; e
 await revisar('Casa', 'p01_casa');
 
 // 2. Deslizar hacia arriba como un dedo para hablar con ASAGI
+await ev(`(() => { window.__toques = []; ['touchstart','touchmove','touchend','touchcancel','pointerdown','pointercancel'].forEach((t) =>
+  document.addEventListener(t, (e) => { const p = (e.changedTouches && e.changedTouches[0]) || e; if (window.__toques.length < 40) window.__toques.push(t + '@' + Math.round(p.clientY)); }, { capture: true, passive: true })); return 1; })()`);
 adb(`shell input swipe ${SW / 2} ${Math.round(SH * 0.9)} ${SW / 2} ${Math.round(SH * 0.35)} 250`);
 await sleep(1200);
 const enChat = await ev("document.getElementById('assistant').classList.contains('open')");
 out(`- Deslizar hacia arriba abre el chat: ${enChat ? 'sí ✓' : 'NO ✗ (lo abro a mano)'}`);
-if (!enChat) await ev("setActiveSection('assistant')");
+if (!enChat) { out('    · toques que llegaron a la página: ' + ((await ev("(window.__toques||[]).filter((t,i,a)=>!t.startsWith('touchmove')||i===a.findIndex(x=>x.startsWith('touchmove'))).join(' ')")) || 'ninguno')); await ev("setActiveSection('assistant')"); }
 await revisar('Chat', 'p02_chat');
 
+// 5. Las otras pantallas
+for (const [id, nombre] of [['status', 'Estado (deslizar hacia abajo)'], ['pendientes', 'Pendientes'], ['grok', 'Sala de control']]) {
+  await ev(`setActiveSection('${id}')`);
+  await revisar(nombre, 'p06_' + id);
+}
+
+// 6. Girar el celular
+await ev("setActiveSection('launcher')");
+adb('shell settings put system accelerometer_rotation 0'); adb('shell settings put system user_rotation 1');
+await sleep(2500);
+await revisar('Casa girada (horizontal)', 'p07_horizontal');
+adb('shell settings put system user_rotation 0'); await sleep(1500);
+
+// (al final: en el emulador de CI, abrir el teclado a veces tumba el emulador)
+await ev("setActiveSection('assistant')"); await sleep(800);
 // 3. Tocar la barra de escribir: sale el teclado; la barra tiene que seguir a la vista
 await toque('#message-input');
 await sleep(1800);
@@ -113,18 +130,5 @@ adb('shell input keyevent KEYCODE_BACK'); await sleep(1200);
 const tras = await ev("(document.querySelector('.panel.overlay.open')||{id:'launcher (casa)'}).id");
 out(`- Dos veces Atrás: estoy en «${tras}» y la app ${adb('shell pidof com.asagi.app').trim() ? 'sigue abierta ✓' : 'SE CERRÓ ✗'}`);
 foto('p05_atras');
-
-// 5. Las otras pantallas
-for (const [id, nombre] of [['status', 'Estado (deslizar hacia abajo)'], ['pendientes', 'Pendientes'], ['grok', 'Sala de control']]) {
-  await ev(`setActiveSection('${id}')`);
-  await revisar(nombre, 'p06_' + id);
-}
-
-// 6. Girar el celular
-await ev("setActiveSection('launcher')");
-adb('shell settings put system accelerometer_rotation 0'); adb('shell settings put system user_rotation 1');
-await sleep(2500);
-await revisar('Casa girada (horizontal)', 'p07_horizontal');
-adb('shell settings put system user_rotation 0'); await sleep(1500);
 
 ws.close(); process.exit(0);

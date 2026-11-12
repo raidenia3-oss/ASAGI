@@ -230,3 +230,10 @@ html, body { font-family: var(--sans); color: var(--papel); }
 #assistant.conversando .panel-brain { grid-column: 1; grid-row: 2; width: auto !important; }
 #assistant.conversando #reset-chat { grid-column: 2; grid-row: 2; align-self: center; }
 #assistant.conversando .nivel-chip { align-items: flex-start; }
+/* con el teclado abierto (poca altura): fuera todo lo que no sea la conversación */
+@media (max-height: 640px) {
+  #assistant.conversando .panel-brain, #assistant.conversando #reset-chat, #assistant .brain-alert { display: none !important; }
+  #assistant.conversando .panel-header { padding-top: 4px !important; padding-bottom: 2px !important; }
+  #assistant:not(.conversando) .avatar-wrap { display: none; }
+}
+#assistant.conversando .panel-header { min-height: 70px !important; }

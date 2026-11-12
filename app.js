@@ -2787,6 +2787,16 @@ if ('serviceWorker' in navigator) {
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
 })();
 
+// al abrir el teclado (la app se achica) o tocar la barra de escribir: mostrar lo último del chat
+(function () {
+  const c = document.getElementById('chat'), inp = document.getElementById('message-input');
+  if (!c) return;
+  const alFinal = () => { c.scrollTop = c.scrollHeight; };
+  let alto = window.innerHeight;
+  window.addEventListener('resize', () => { if (window.innerHeight < alto) setTimeout(alFinal, 60); alto = window.innerHeight; });
+  if (inp) inp.addEventListener('focus', () => setTimeout(alFinal, 350));
+})();
+
 // tocar el aviso del modelo lo despliega entero (en conversación se ve recortado a 2 líneas)
 (function () { const a = document.getElementById('brain-alert'); if (a) a.addEventListener('click', () => a.classList.toggle('abierta')); })();
 

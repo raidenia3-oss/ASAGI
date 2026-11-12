@@ -199,6 +199,58 @@ async function desplegarV2(tarea, ejecutar, opts) {
   return res;
 }
 
+// ===================== Variantes en paralelo + juez (como los "muchos candidatos de diseño" de Astra) =====================
+const ENFOQUES = [
+  ['Directo', 'Da la solución más simple y práctica que funcione hoy.'],
+  ['Riguroso', 'Da la solución más segura y verificable; señala supuestos.'],
+  ['Creativo', 'Da una solución distinta y ambiciosa que otros no propondrían.'],
+  ['Económico', 'Da la solución más barata en dinero y tiempo.'],
+];
+
+// Elige la mejor variante a partir de la respuesta del juez. PURO.
+function leerJuicio(txt, n) {
+  const m = String(txt || '').match(/\{[\s\S]*?\}/);
+  if (m) {
+    try {
+      const o = JSON.parse(m[0]); const k = parseInt(o.mejor, 10);
+      if (k >= 1 && k <= n) return { mejor: k, porque: String(o.porque || o.por_que || o.razon || '') };
+    } catch (e) {}
+  }
+  const d = String(txt || '').match(/\b(?:variante|opci[oó]n|candidat[oa])?\s*#?([1-9])\b/i);
+  if (d && +d[1] >= 1 && +d[1] <= n) return { mejor: +d[1], porque: String(txt).slice(0, 200) };
+  return { mejor: 1, porque: 'el juez no decidió; muestro la primera' };
+}
+
+async function desplegarVariantes(tarea, ejecutar, opts) {
+  opts = opts || {};
+  const n = Math.max(2, Math.min(4, opts.n || 3));
+  const on = typeof opts.onEvento === 'function' ? opts.onEvento : function () {};
+  const t0 = Date.now();
+  const cands = await Promise.all(ENFOQUES.slice(0, n).map(async ([nombre, guia], i) => {
+    on({ tipo: 'inicio', id: 'v' + (i + 1), nombre: nombre });
+    try {
+      const txt = await _conTiempo(ejecutar('Eres el candidato ' + nombre + '. ' + guia + '\n\nTarea: ' + tarea, { id: 'v' + (i + 1), nombre: nombre }), opts.timeoutMs || 45000);
+      const c = { i: i + 1, nombre: nombre, ok: !!String(txt || '').trim(), texto: String(txt || '').trim() };
+      on({ tipo: 'fin', traza: { id: 'v' + (i + 1), nombre: nombre, ok: c.ok, ms: Date.now() - t0 } });
+      return c;
+    } catch (e) {
+      on({ tipo: 'fin', traza: { id: 'v' + (i + 1), nombre: nombre, ok: false, ms: Date.now() - t0, error: String(e.message || e) } });
+      return { i: i + 1, nombre: nombre, ok: false, texto: '', error: String(e.message || e) };
+    }
+  }));
+  const buenos = cands.filter((c) => c.ok);
+  if (!buenos.length) return { tarea, mejor: null, candidatos: cands, porque: 'ningún candidato respondió', ms: Date.now() - t0 };
+  if (buenos.length === 1) return { tarea, mejor: buenos[0], candidatos: cands, porque: 'solo uno respondió', ms: Date.now() - t0 };
+  let juicio;
+  try {
+    const j = await _conTiempo(ejecutar('Eres el Juez. Elige la MEJOR variante para Daniel según: que resuelva la tarea, que sea correcta y que se pueda hacer. ' +
+      'Responde SOLO {"mejor":<número>,"porque":"<una línea>"}.\n\nTarea: ' + tarea + '\n\n' +
+      buenos.map((c, k) => 'Variante ' + (k + 1) + ' (' + c.nombre + '):\n' + c.texto).join('\n\n'), { id: 'juez', nombre: 'Juez' }), 30000);
+    juicio = leerJuicio(j, buenos.length);
+  } catch (e) { juicio = { mejor: 1, porque: 'el juez no respondió' }; }
+  return { tarea, mejor: buenos[juicio.mejor - 1], candidatos: cands, porque: juicio.porque, ms: Date.now() - t0 };
+}
+
 // Historial de despliegues (trazas) para revisar qué falló. PURO sobre el store.
 function leerTrazas(store) { try { return JSON.parse(store.getItem('asagi-bots-trazas') || '[]'); } catch (e) { return []; } }
 
@@ -222,7 +274,7 @@ function guardarTraza(store, res) {
   } catch (e) {}
 }
 
-const API = { BOTS, botPorId, elegirBots, promptDe, desplegar, planificar, desplegarV2, extraerAcciones, limpiarAcciones, guardarTraza, leerTrazas, salud };
+const API = { BOTS, botPorId, elegirBots, promptDe, desplegar, planificar, desplegarV2, extraerAcciones, limpiarAcciones, guardarTraza, leerTrazas, salud, desplegarVariantes, leerJuicio, ENFOQUES };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiBots = API;
 

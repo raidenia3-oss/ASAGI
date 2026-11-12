@@ -738,6 +738,15 @@ chatForm.addEventListener('submit', (event) => {
   const mManos = text.match(/^\s*(?:manos|hazlo t[uú]|usa el cel(?:ular)?)\s*[:,]\s*(.{3,})$/i);
   if (mManos && window._asagiManos) { window._asagiManos(mManos[1]); return; }
 
+  // "variantes: <tarea>" -> 3 candidatos en paralelo (directo, riguroso, creativo) y un juez elige.
+  const mVar = text.match(/^\s*(?:variantes|opciones|candidatos|([2-4])\s+opciones)\s*[:,]\s*(.{4,})$/i);
+  if (mVar && window._asagiVariantes) { window._asagiVariantes(mVar[2], mVar[1] ? +mVar[1] : 3); return; }
+
+  // "¿qué agentes tengo activos?" -> lo que trabaja ahora en ASAGI y en ARIA (y lo dice en voz alta si la voz está activa).
+  if (/^\s*[¿]?\s*(qu[eé] (?:agentes|bots) (?:tengo |hay |est[aá]n )?(?:activos|trabajando|corriendo)|estado de (?:los )?(?:agentes|bots)|mis agentes)\s*\??\s*$/i.test(text) && window._asagiEstadoAgentes) {
+    window._asagiEstadoAgentes(); return;
+  }
+
   // "equipo: <tarea>" desde el chat: despliega los bots y trae la conclusión aquí.
   const mEq = text.match(/^\s*(?:equipo|enjambre|bots)\s*[:,]\s*(.{4,})$/i);
   if (mEq && window._asagiDesplegar) {
@@ -1340,6 +1349,7 @@ if ('serviceWorker' in navigator) {
   const driverManos = {
     leer: async () => { const r = await plugin().manosLeer({ max: 80 }); return { app: r.app, nodos: r.nodos || [] }; },
     tocar: (t) => plugin().manosTocar({ texto: t }),
+    tocarXY: (x, y) => plugin().tap({ x: x, y: y }),
     escribir: (t) => plugin().manosEscribir({ texto: t }),
     global: (g) => plugin().manosGlobal({ accion: g }),
     desplazar: (d) => plugin().manosDesplazar({ dir: d }),
@@ -1894,6 +1904,29 @@ if ('serviceWorker' in navigator) {
     box.querySelectorAll('button[data-i]').forEach((b) => b.addEventListener('click', () => desplegar(l[+b.dataset.i].tarea)));
   }
 
+  window._asagiEstadoAgentes = async function () {
+    const partes = [];
+    const enj = estado && !estado.hecho ? (estado.workers || []).filter((w) => w.estado !== 'listo').map((w) => w.nombre) : [];
+    if (enj.length) partes.push('Equipo trabajando en «' + estado.tarea + '»: ' + enj.join(', '));
+    if (window._asagiTrabajando) partes.push(window._asagiTrabajando + ' tarea(s) de variantes en curso');
+    if (window._asagiManosActivo) partes.push('Modo manos usando el celular');
+    let aria = '';
+    const cli = window._asagiLan;
+    if (cli) {
+      try {
+        const r = await cli.enviar({ t: 'estado' });
+        if (r && r.ok && r.resp && r.resp.estado) {
+          const e = r.resp.estado;
+          aria = 'ARIA (PC): ' + (e.activos ? e.activos + ' bot(s) programado(s)' : 'sin bots programados') +
+            (e.proximo ? '; el próximo: ' + e.proximo : '') + (e.ocupada ? '; ahora está pensando' : '');
+        }
+      } catch (x) {}
+    }
+    const txt = (partes.length ? '🤖 Activos ahora: ' + partes.length + '.\n' + partes.map((p) => '· ' + p).join('\n') : '🤖 En ASAGI no hay agentes trabajando ahora.') +
+      '\n' + (aria || 'ARIA: no la alcanzo (¿abierta y en el mismo WiFi?).');
+    appendMessage('bot', txt);
+  };
+
   function desplegar(tareaDada, opciones) {
     if (!window.AsagiBots || !window.AsagiEnjambre || !input) return;
     opciones = opciones || {};
@@ -1946,6 +1979,17 @@ if ('serviceWorker' in navigator) {
   if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') desplegar(); });
   window._asagiDesplegar = desplegar;
   window._asagiPensar = (p) => ejecutarBot(p, { id: 'manos', nombre: 'Manos' });
+  window._asagiVariantes = async function (tarea, n) {
+    appendMessage('bot', '🎲 Pido ' + n + ' variantes en paralelo y un juez elige…');
+    window._asagiTrabajando = (window._asagiTrabajando || 0) + 1;
+    try {
+      const r = await window.AsagiBots.desplegarVariantes(tarea, ejecutarBot, { n: n });
+      if (!r.mejor) { appendMessage('bot', '🎲 Ningún candidato pudo pensar: pon una key en Ajustes o abre ARIA en la PC.'); return; }
+      const otros = r.candidatos.filter((c) => c.ok && c !== r.mejor).map((c) => '— ' + c.nombre + ': ' + c.texto.split('\n')[0].slice(0, 140));
+      appendMessage('bot', '🎲 Gana «' + r.mejor.nombre + '» (' + r.porque + ')\n\n' + r.mejor.texto + (otros.length ? '\n\nLas otras:\n' + otros.join('\n') : ''));
+      try { if (window._asagiMem) window._asagiMem.aprender(('Variantes · ' + tarea + ': ' + r.mejor.texto).slice(0, 600), 'equipo', 'bots'); } catch (e) {}
+    } finally { window._asagiTrabajando--; }
+  };
 
   // --- Grafo del enjambre: núcleo ASAGI central + bots en círculo + pulsos ---
   (function graph() {

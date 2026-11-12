@@ -81,8 +81,9 @@ function leerDecision(txt) {
       var o = JSON.parse(j[0]); var a = _n(o.accion || o.action || '');
       if (a === 'listo' || a === 'fin' || a === 'done') return { a: 'listo', resumen: String(o.resumen || o.texto || '') };
       if (a === 'abrir') return { a: 'abrir', app: String(o.app || o.texto || '') };
-      if (a === 'tocar') return { a: 'tocar', texto: String(o.texto || o.elemento || '') };
-      if (a === 'escribir') return { a: 'escribir', texto: String(o.texto || '') };
+      var ref = o.ref != null ? parseInt(String(o.ref).replace(/\D/g, ''), 10) : NaN;
+      if (a === 'tocar') return isNaN(ref) ? { a: 'tocar', texto: String(o.texto || o.elemento || '') } : { a: 'tocar', ref: ref, texto: String(o.texto || '') };
+      if (a === 'escribir') return isNaN(ref) ? { a: 'escribir', texto: String(o.texto || '') } : { a: 'escribir', ref: ref, texto: String(o.texto || '') };
       if (a === 'atras' || a === 'inicio' || a === 'recientes') return { a: 'global', g: a };
       if (a === 'desplazar') return { a: 'desplazar', dir: _n(o.dir || 'abajo') === 'arriba' ? 'arriba' : 'abajo' };
       if (a === 'esperar') return { a: 'esperar', s: 2 };
@@ -94,10 +95,17 @@ function leerDecision(txt) {
 }
 
 var REGLAS_AGENTE = 'Controlas un celular Android por Daniel. Ves la lista de elementos de la pantalla. ' +
-  'Responde SOLO un JSON con UNA acción: {"accion":"tocar","texto":"<texto exacto de un elemento>"} | ' +
-  '{"accion":"escribir","texto":"..."} | {"accion":"abrir","app":"<nombre>"} | {"accion":"atras"} | {"accion":"inicio"} | ' +
+  'Cada elemento tiene un número (ref). Responde SOLO un JSON con UNA acción: {"accion":"tocar","ref":<número>} | ' +
+  '{"accion":"escribir","ref":<número del campo>,"texto":"..."} | {"accion":"abrir","app":"<nombre>"} | {"accion":"atras"} | {"accion":"inicio"} | ' +
   '{"accion":"desplazar","dir":"abajo|arriba"} | {"accion":"esperar"} | {"accion":"listo","resumen":"<qué lograste>"} | ' +
-  '{"accion":"imposible","resumen":"<por qué>"}. Nunca escribas claves ni datos de tarjetas. Si el objetivo ya se cumplió, responde listo.';
+  '{"accion":"imposible","resumen":"<por qué>"}. Nunca escribas claves ni datos de tarjetas. Si el objetivo ya se cumplió, responde listo. ' +
+  'Usa SOLO números de la pantalla actual; tras cada acción verás la pantalla nueva: si dice (sin cambio), prueba otra cosa.';
+
+// Ref -> nodo de la lectura con la que decidió el modelo (agent-desktop: un ref vale solo para SU vista). PURO.
+function nodoPorRef(lec, ref) {
+  var l = (lec && lec.nodos) || [];
+  return (ref >= 0 && ref < Math.min(l.length, 60)) ? l[ref] : null;
+}
 
 // ------------------------------------------------------------------ ejecución
 // driver: { leer()->{app,nodos}, tocar(t)->{ok}, escribir(t)->{ok,motivo}, global(g), desplazar(dir), abrir(nombre)->{ok,motivo}, dormir(ms) }
@@ -113,6 +121,19 @@ async function hacer(p, driver, opts) {
   if (p.a !== 'abrir' && p.a !== 'esperar') {
     var lec = null; try { lec = await driver.leer(); } catch (e) {}
     if (lec && esBanca(lec.app)) return { ok: false, motivo: 'estás en una app de banca/pagos: me detengo', parar: true };
+  }
+  if (p.ref != null && (p.a === 'tocar' || p.a === 'escribir')) {
+    var nd = nodoPorRef(opts.vista, p.ref);
+    if (!nd) return { ok: false, motivo: 'el ref ' + p.ref + ' no existe en esta pantalla' };
+    if (p.a === 'tocar') {
+      p.texto = p.texto || nd.t || nd.d || '';
+      if (riesgoso({ a: 'tocar', texto: (nd.t || '') + ' ' + (nd.d || '') }) && !(await (opts.confirmar ? opts.confirmar({ texto: nd.t || nd.d }) : Promise.resolve(false))))
+        return { ok: false, motivo: 'no confirmaste «' + (nd.t || nd.d) + '»', parar: true };
+      return driver.tocarXY ? driver.tocarXY(nd.x, nd.y) : driver.tocar(nd.t || nd.d);
+    }
+    if (nd.clave) return { ok: false, motivo: 'es un campo de clave: no escribo ahí', parar: true };
+    if (driver.tocarXY) { await driver.tocarXY(nd.x, nd.y); await driver.dormir(300); }
+    return driver.escribir(p.texto);
   }
   if (p.a === 'tocar') {
     var t = await driver.tocar(p.texto);
@@ -138,7 +159,7 @@ async function hacer(p, driver, opts) {
 }
 
 function describir(p) {
-  return { abrir: 'abrir ' + p.app, tocar: 'tocar «' + p.texto + '»', escribir: 'escribir «' + String(p.texto).slice(0, 30) + '»',
+  return { abrir: 'abrir ' + p.app, tocar: 'tocar «' + (p.texto || ('#' + p.ref)) + '»', escribir: 'escribir «' + String(p.texto).slice(0, 30) + '»',
            global: p.g, desplazar: 'desplazar ' + p.dir, esperar: 'esperar ' + p.s + ' s', esperarTexto: 'esperar «' + p.texto + '»' }[p.a] || p.a;
 }
 
@@ -171,11 +192,16 @@ async function agente(objetivo, driver, pensar, opts) {
     if (!p) return { ok: false, hechos: hist, motivo: 'no entendí qué hacer' };
     if (p.a === 'listo') return { ok: true, hechos: hist, resumen: p.resumen };
     if (p.a === 'imposible') return { ok: false, hechos: hist, motivo: p.resumen || 'no se puede' };
-    var r; try { r = await hacer(p, driver, opts); } catch (e) { r = { ok: false, motivo: String(e.message || e) }; }
+    var r; try { r = await hacer(p, driver, Object.assign({}, opts, { vista: lec })); } catch (e) { r = { ok: false, motivo: String(e.message || e) }; }
     if (opts.alPaso) opts.alPaso(p, r);
-    hist.push(describir(p) + (r && r.ok ? '' : ' (falló: ' + ((r && r.motivo) || '?') + ')'));
-    if (r && r.parar) return { ok: false, hechos: hist, motivo: r.motivo };
+    if (r && r.parar) { hist.push(describir(p) + ' (falló: ' + r.motivo + ')'); return { ok: false, hechos: hist, motivo: r.motivo }; }
     await driver.dormir(p.a === 'abrir' ? 1800 : 800);
+    // verificar (observar -> actuar -> observar): ¿cambió algo?
+    var nota = '';
+    if (r && r.ok && p.a !== 'esperar') {
+      try { var desp = describirPantalla(await driver.leer()); if (desp === vista) nota = ' (sin cambio)'; } catch (e) {}
+    }
+    hist.push(describir(p) + (r && r.ok ? nota : ' (falló: ' + ((r && r.motivo) || '?') + ')'));
   }
   return { ok: false, hechos: hist, motivo: 'llegué al tope de ' + max + ' pasos' };
 }
@@ -185,7 +211,7 @@ function formato(r) {
     (r.hechos && r.hechos.length ? '\nHice: ' + r.hechos.join(' → ') : '');
 }
 
-var API = { paso: paso, pasos: pasos, riesgoso: riesgoso, esBanca: esBanca, resolverApp: resolverApp, describirPantalla: describirPantalla,
+var API = { paso: paso, pasos: pasos, riesgoso: riesgoso, esBanca: esBanca, resolverApp: resolverApp, describirPantalla: describirPantalla, nodoPorRef: nodoPorRef,
             leerDecision: leerDecision, hacer: hacer, ejecutar: ejecutar, agente: agente, formato: formato, describir: describir, REGLAS_AGENTE: REGLAS_AGENTE };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiManos = API;

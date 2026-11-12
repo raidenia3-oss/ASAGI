@@ -145,6 +145,11 @@ function setActiveSection(sectionName) {
 }
 
 function renderMessages() {
+  // con conversación empezada, la cabecera se compacta para dar espacio al chat
+  try {
+    const asis = document.getElementById('assistant');
+    if (asis) asis.classList.toggle('conversando', state.messages.some((m) => m.sender === 'user'));
+  } catch (e) {}
   chat.innerHTML = '';
 
   state.messages.forEach((message) => {
@@ -2782,6 +2787,9 @@ if ('serviceWorker' in navigator) {
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') analizar(); });
 })();
 
+// tocar el aviso del modelo lo despliega entero (en conversación se ve recortado a 2 líneas)
+(function () { const a = document.getElementById('brain-alert'); if (a) a.addEventListener('click', () => a.classList.toggle('abierta')); })();
+
 // Gestos del núcleo: en la casa, deslizar ARRIBA = Asistente, ABAJO = Status.
 // Con un overlay abierto, deslizar en sentido de cierre = volver a la casa.
 (function () {
@@ -2789,16 +2797,33 @@ if ('serviceWorker' in navigator) {
   const home = document.getElementById('launcher');
   function hayOverlay() { return document.querySelector('.panel.overlay.open'); }
   // gestos en la casa (no en la barra de búsqueda, para no estorbar al escribir)
-  if (home) window.AsagiGestos.crear(home, function (dir) {
+  // Si el dedo está desplazando la lista de apps, el gesto es para la lista: solo abre el chat
+  // cuando la lista ya llegó al final (o el dedo empezó abajo, en la zona de "desliza…"), y Status
+  // cuando está arriba del todo. Así se puede bajar por las apps sin que se abra el chat.
+  function desplazable(t) {
+    for (let e = t; e && e !== document.body; e = e.parentElement) {
+      const s = getComputedStyle(e);
+      if (/(auto|scroll)/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 2) return e;
+    }
+    return null;
+  }
+  if (home) window.AsagiGestos.crear(home, function (dir, info) {
     if (hayOverlay()) return;
-    if (dir === 'arriba') setActiveSection('assistant');
-    else if (dir === 'abajo') setActiveSection('status');
+    const sc = desplazable(info && info.target);
+    const abajoDePantalla = info && info.sy > window.innerHeight * 0.78;
+    if (dir === 'arriba' && (!sc || abajoDePantalla || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4)) setActiveSection('assistant');
+    else if (dir === 'abajo' && (!sc || sc.scrollTop <= 2)) setActiveSection('status');
   }, { umbral: 70 });
   // cerrar overlays con el gesto natural (asistente/grok: abajo; status: arriba)
   document.querySelectorAll('.panel.overlay').forEach(function (ov) {
     const cerrarDir = ov.classList.contains('from-top') ? 'arriba' : 'abajo';
-    window.AsagiGestos.crear(ov, function (dir) {
-      if (ov.classList.contains('open') && dir === cerrarDir) setActiveSection('launcher');
+    window.AsagiGestos.crear(ov, function (dir, info) {
+      if (!ov.classList.contains('open') || dir !== cerrarDir) return;
+      // si el dedo estaba leyendo una lista (chat, pendientes…), solo cierra cuando la lista ya está en su borde
+      const sc = desplazable(info && info.target);
+      if (sc && (cerrarDir === 'abajo' ? sc.scrollTop > 2 : sc.scrollTop + sc.clientHeight < sc.scrollHeight - 4)) return;
+      if (info && info.target && info.target.closest && info.target.closest('input, textarea')) return;
+      setActiveSection('launcher');
     }, { umbral: 80 });
   });
 })();

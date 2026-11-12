@@ -26,22 +26,29 @@ function mover(lista, actual, dir) {
 function crear(el, onSwipe, opts) {
   opts = opts || {};
   if (!el) return { destruir: function () {} };
-  let sx = 0, sy = 0, st = 0;
+  let sx = 0, sy = 0, st = 0, lx = 0, ly = 0, dentro = null, activo = false;
   function start(e) {
     const p = (e.touches && e.touches[0]) || e;
-    sx = p.clientX; sy = p.clientY; st = Date.now();
+    sx = lx = p.clientX; sy = ly = p.clientY; st = Date.now(); dentro = e.target; activo = true;
   }
+  function move(e) { const p = (e.touches && e.touches[0]) || e; lx = p.clientX; ly = p.clientY; }
+  // Cuando el dedo además desplaza una lista, Android/Chrome cancela el toque (touchcancel) en vez de
+  // terminarlo: antes el gesto se perdía. Ahora se usa la última posición del dedo.
   function end(e) {
-    const p = (e.changedTouches && e.changedTouches[0]) || e;
-    const dx = p.clientX - sx, dy = p.clientY - sy;
+    if (!activo) return; activo = false;
+    const p = (e.changedTouches && e.changedTouches[0]) || null;
+    const x = p ? p.clientX : lx, y = p ? p.clientY : ly;
+    const dx = x - sx, dy = y - sy;
     const dt = Date.now() - st;
     if (dt > (opts.maxMs || 800)) return;            // muy lento, no es swipe
     const dir = direccion(dx, dy, opts.umbral);
-    if (dir) { try { onSwipe(dir, { dx: dx, dy: dy }); } catch (e2) {} }
+    if (dir) { try { onSwipe(dir, { dx: dx, dy: dy, sy: sy, target: dentro }); } catch (e2) {} }
   }
   el.addEventListener('touchstart', start, { passive: true });
+  el.addEventListener('touchmove', move, { passive: true });
   el.addEventListener('touchend', end, { passive: true });
-  return { destruir: function () { el.removeEventListener('touchstart', start); el.removeEventListener('touchend', end); } };
+  el.addEventListener('touchcancel', end, { passive: true });
+  return { destruir: function () { el.removeEventListener('touchstart', start); el.removeEventListener('touchmove', move); el.removeEventListener('touchend', end); el.removeEventListener('touchcancel', end); } };
 }
 
 const API = { direccion, mover, crear };

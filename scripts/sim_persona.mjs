@@ -22,7 +22,9 @@ const ws = new WebSocket(await conectar());
 await new Promise((r, j) => { ws.onopen = r; ws.onerror = j; });
 let n = 0; const pend = new Map();
 ws.onmessage = (m) => { const d = JSON.parse(m.data); if (pend.has(d.id)) { pend.get(d.id)(d); pend.delete(d.id); } };
-const cdp = (method, params = {}) => new Promise((r) => { const id = ++n; pend.set(id, r); ws.send(JSON.stringify({ id, method, params })); });
+// cada llamada a DevTools con tiempo límite: si algo se cuelga, el recorrido sigue (antes se quedaba esperando para siempre)
+const cdp = (method, params = {}) => new Promise((r) => { const id = ++n; const to = setTimeout(() => { pend.delete(id); r({}); }, 6000);
+  pend.set(id, (d) => { clearTimeout(to); r(d); }); ws.send(JSON.stringify({ id, method, params })); });
 const ev = async (expr) => { const r = await cdp('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); return r.result?.result?.value ?? null; };
 
 // Revisión de la pantalla actual (corre dentro de ASAGI).
@@ -52,13 +54,18 @@ async function revisar(etiqueta, nfoto) {
   out(`- **${etiqueta}** (${r.W}×${r.H} css, pantalla ${r.panel}) — ${r.prob.length ? r.prob.length + ' detalle(s):' : 'sin problemas ✓'}`);
   r.prob.forEach((p) => out('    · ' + p));
 }
-const toque = async (sel) => {               // un dedo de verdad sobre el elemento (eventos táctiles)
-  const c = await ev(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+const toque = async (sel) => {               // un toque: clic de DevTools; si no sale el teclado, un dedo de verdad (adb)
+  const c = await ev(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const r = e.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, H: innerHeight, dpr: devicePixelRatio }; })()`);
   if (!c) return false;
-  await cdp('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: c.x, y: c.y }] });
-  await cdp('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', x: c.x, y: c.y, button: 'left', clickCount: 1 });
   await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', x: c.x, y: c.y, button: 'left', clickCount: 1 });
+  await sleep(1200);
+  if (!/mInputShown=true|mIsInputViewShown=true/.test(adb('shell dumpsys input_method'))) {
+    const navInset = Math.round(24 * c.dpr);                      // barra de gestos de Android 15 (~24 dp)
+    const y = Math.round(SH - navInset - (c.H - c.y) * c.dpr);
+    adb(`shell input tap ${Math.round(c.x * c.dpr)} ${y}`);
+  }
   return true;
 };
 

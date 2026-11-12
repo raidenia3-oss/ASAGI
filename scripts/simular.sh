@@ -24,12 +24,8 @@ log "## Arranque"
 T0=$(date +%s)
 adb shell monkey -p $P -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 sleep 4; foto 01_arranque_4s
-LISTO=""
-for i in $(seq 1 45); do
-  ui t; if grep -q "Busca una app" sim/ui_t.xml 2>/dev/null; then LISTO=$(( $(date +%s)-T0 )); break; fi; sleep 2
-done
-log "- Pantalla principal lista en: ${LISTO:-NO (mas de 90s)} s"
-foto 02_inicio; cp sim/ui_t.xml sim/ui_inicio.xml 2>/dev/null
+sleep 8      # el arranque real se mide por DevTools (abajo); uiautomator se cuelga con WebViews
+foto 02_inicio
 log "- PID: $(adb shell pidof $P || echo 'NO CORRE')"
 
 log "## Recorrido"
@@ -40,8 +36,8 @@ adb forward tcp:9222 localabstract:webview_devtools_remote_$PID >/dev/null
 adb shell settings put secure enabled_accessibility_services $P/com.asagi.brain.AsagiAccessibilityService >/dev/null 2>&1
 adb shell settings put secure accessibility_enabled 1 >/dev/null 2>&1
 sleep 3
-timeout 240 node scripts/sim_cdp.mjs 9222 >> "$R" 2>&1 || log "- (DevTools fallo, ver arriba)"
 timeout 300 node scripts/sim_persona.mjs 9222 >> "$R" 2>&1 || log "- (recorrido como persona falló, ver arriba)"
+timeout 240 node scripts/sim_cdp.mjs 9222 >> "$R" 2>&1 || log "- (DevTools fallo, ver arriba)"
 foto 08_tras_chat
 adb shell input keyevent KEYCODE_BACK; sleep 2; foto 09_atras
 log "- Sigue viva tras $(( $(date +%s)-T0 ))s: $(adb shell pidof $P >/dev/null && echo SI || echo NO)"

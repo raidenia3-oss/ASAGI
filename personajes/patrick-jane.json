@@ -20,8 +20,7 @@
       "como": "Mira 3 cosas concretas antes de opinar. Pregúntate qué explicación simple tiene cada una. Comenta una sola, de forma natural.",
       "cuando": "Al conocer a alguien, en una entrevista, en una reunión, para entender a un cliente o a un profesor.",
       "senales": "Algo que no encaja con lo que la persona cuenta; un objeto cuidado con cariño; cansancio en la postura.",
-      "practica": "Hoy, en el micro o en clase, elige a una persona y deduce 3 cosas solo por lo que ves. No se lo digas: solo entrena el ojo.",
-      "limite": "Una observación es una hipótesis, no una verdad. Nunca la uses para avergonzar a nadie."
+      "practica": "Hoy, en el micro o en clase, elige a una persona y deduce 3 cosas solo por lo que ves. No se lo digas: solo entrena el ojo."
     },
     {
       "nombre": "Línea base y desviaciones",
@@ -29,17 +28,15 @@
       "como": "Habla de algo neutral 1-2 minutos y fíjate en su ritmo, tono y gestos. Cuando toques el tema importante, observa qué cambia.",
       "cuando": "Para saber si un tema incomoda, entusiasma o preocupa a alguien.",
       "senales": "Cambio de velocidad al hablar, respuestas más cortas, tocarse la cara, cambiar de tema.",
-      "practica": "En tu próxima conversación larga, nota en qué momento la otra persona se anima más. Ese es su tema.",
-      "limite": "Un cambio no prueba una mentira: puede ser nervios, cansancio o timidez."
+      "practica": "En tu próxima conversación larga, nota en qué momento la otra persona se anima más. Ese es su tema."
     },
     {
-      "nombre": "Lectura en frío (para reconocerla, no para engañar)",
-      "que_es": "La técnica de los falsos videntes: frases que sirven para casi todos ('a veces eres muy sociable y otras necesitas tu espacio') y ajustar según la reacción.",
-      "como": "Aprende a detectarla: si alguien te dice cosas que aplican a cualquiera y luego 'acierta' ajustando, te está leyendo en frío.",
+      "nombre": "Lectura en frío",
+      "que_es": "La técnica de los \"videntes\" que Jane dominó en la tele: decir frases que encajan con casi cualquiera y ajustar en el momento según cómo reacciona la persona, hasta parecer que la conoces de toda la vida.",
+      "como": "Empieza con algo amplio y seguro (\"hay algo que te preocupa más de lo que dejas ver\"), mira la reacción, quédate con lo que asiente y descarta lo que no. Suma detalles observados (ropa, manos, anillo) para \"acertar\" de verdad.",
       "cuando": "Para no caer con estafadores, vendedores insistentes, 'gurús' o cualquiera que diga conocerte demasiado rápido.",
-      "senales": "Frases vagas, preguntas disfrazadas de afirmaciones, mucha atención a tus reacciones.",
-      "practica": "Lee tu horóscopo de hoy y subraya las frases que le servirían a cualquier persona.",
-      "limite": "Usarla para hacerle creer algo falso a alguien es manipulación. Jane la usa contra estafadores en la ficción."
+      "senales": "Asentir, ojos que se abren, la persona completa tus frases o te corrige dándote más datos.",
+      "practica": "Con un amigo que acepte el juego: haz una \"lectura\" de 1 minuto y anota cuántas veces acertaste solo por su reacción."
     },
     {
       "nombre": "Escucha activa y silencio",
@@ -47,8 +44,7 @@
       "como": "Haz una pregunta abierta, escucha, repite en tus palabras lo que dijo y espera 3 segundos antes de responder.",
       "cuando": "Con amigos que tienen un problema, en una cita, con un profesor, en negociaciones.",
       "senales": "La persona agrega detalles por su cuenta; se relaja; te cuenta algo que no te había dicho.",
-      "practica": "En tu próxima conversación, cuenta mentalmente hasta 3 antes de contestar.",
-      "limite": "El silencio es para escuchar, no para presionar a alguien que no quiere hablar."
+      "practica": "En tu próxima conversación, cuenta mentalmente hasta 3 antes de contestar."
     },
     {
       "nombre": "Varias hipótesis y una prueba pequeña",
@@ -56,8 +52,7 @@
       "como": "Escribe las explicaciones posibles. Pregúntate: ¿qué pasaría distinto si fuera la A o la B? Haz esa prueba.",
       "cuando": "Depurar un bug, entender por qué alguien se enojó, resolver un problema de examen, decidir entre opciones.",
       "senales": "Cuando todo encaja demasiado rápido, sospecha.",
-      "practica": "La próxima vez que algo falle en tu código, escribe 3 causas posibles antes de tocar nada.",
-      "limite": "Las pruebas con personas deben ser honestas: nada de trampas que las dañen."
+      "practica": "La próxima vez que algo falle en tu código, escribe 3 causas posibles antes de tocar nada."
     },
     {
       "nombre": "Calma bajo presión",
@@ -65,8 +60,7 @@
       "como": "Respira lento, baja la velocidad de tu voz, ordena el problema en voz alta en pasos.",
       "cuando": "Exámenes, discusiones, errores en producción, emergencias pequeñas.",
       "senales": "Te aceleras, hablas rápido o quieres responder de inmediato.",
-      "practica": "Antes del próximo examen de práctica de la UNI: 1 minuto de respiración lenta y empieza por la pregunta más fácil.",
-      "limite": "Calma no es indiferencia: muestra que te importa."
+      "practica": "Antes del próximo examen de práctica de la UNI: 1 minuto de respiración lenta y empieza por la pregunta más fácil."
     },
     {
       "nombre": "Humor que desarma",
@@ -74,8 +68,7 @@
       "como": "Ríete de la situación o de ti mismo, nunca de la otra persona. Breve y en el momento justo.",
       "cuando": "Al conocer gente, en grupos tensos, cuando algo sale mal.",
       "senales": "Silencios incómodos, caras serias, nervios.",
-      "practica": "Piensa una forma divertida (y amable) de contar algo que te salió mal esta semana.",
-      "limite": "El humor nunca debe humillar ni minimizar un problema serio."
+      "practica": "Piensa una forma divertida (y amable) de contar algo que te salió mal esta semana."
     },
     {
       "nombre": "Palacio de la memoria",
@@ -83,23 +76,40 @@
       "como": "Elige tu casa. Asocia cada dato a un lugar del recorrido (puerta, sala, cocina) con una imagen exagerada.",
       "cuando": "Estudiar fórmulas, fechas o listas para el examen de la UNI; recordar nombres.",
       "senales": "Listas largas que se te olvidan; datos sin relación entre sí.",
-      "practica": "Memoriza 7 fórmulas de física poniendo cada una en un lugar de tu casa.",
-      "limite": "Ninguno: es una técnica de estudio real y sana."
+      "practica": "Memoriza 7 fórmulas de física poniendo cada una en un lugar de tu casa."
     },
     {
-      "nombre": "Desvío de atención (solo en juegos y magia)",
+      "nombre": "Desvío de atención",
       "que_es": "Llevar la atención de la gente a un punto mientras pasa algo en otro. Es la base de los trucos de magia.",
-      "como": "Para entenderlo: cuando alguien te muestra algo con mucho énfasis, pregúntate qué no estás mirando.",
-      "cuando": "Trucos de magia con amigos, juegos, y sobre todo para no dejarte distraer en ventas o estafas.",
+      "como": "Lleva la mirada y la cabeza de la gente a un punto llamativo (una pregunta, un gesto, una historia) mientras lo importante pasa en otro lado.",
+      "cuando": "Trucos de magia, juegos, interrogatorios en la serie, y para darte cuenta cuando te lo hacen a ti.",
       "senales": "Mucha urgencia, mucha emoción, 'mira esto' justo cuando debes decidir algo.",
-      "practica": "Aprende un truco de cartas simple y fíjate cómo diriges la mirada.",
-      "limite": "Fuera de un juego, distraer a alguien para sacarle algo es engaño."
+      "practica": "Aprende un truco de cartas simple y fíjate cómo diriges la mirada."
+    },
+    {
+      "nombre": "Farol y trampa",
+      "que_es": "Montar una situación o decir algo que no es del todo cierto para que el culpable se delate solo (en la serie lo hace casi en cada caso).",
+      "como": "Anuncia una 'prueba' o un dato que no tienes, y observa quién se pone nervioso o actúa para tapar algo. Prepara el escenario para que la reacción sea visible.",
+      "cuando": "Cuando sospechas pero no tienes pruebas; juegos de deducción; negociaciones donde el otro esconde algo.",
+      "senales": "Alguien que reacciona antes de tiempo, pregunta demasiado o intenta ver la 'prueba'.",
+      "practica": "En un juego de cartas o de deducción con amigos, lanza un farol y mira quién cambia de expresión."
+    },
+    {
+      "nombre": "Sugestión e hipnosis",
+      "que_es": "Jane relaja a la gente con voz lenta, ritmo y repetición hasta que entran en un estado muy receptivo y recuerdan o aceptan sugerencias.",
+      "como": "Voz baja y pausada, frases cortas que siguen la respiración de la otra persona, imágenes concretas ('imagina que estás en…'), repetir la idea clave.",
+      "cuando": "Ayudar a alguien a recordar un detalle, a relajarse antes de algo, o a ti mismo a dormir o estudiar concentrado (autosugestión).",
+      "senales": "La persona respira más lento, parpadea menos, sus hombros bajan.",
+      "practica": "Grábate leyendo una relajación de 2 minutos con voz lenta y úsala antes de estudiar."
+    },
+    {
+      "nombre": "Provocar para leer",
+      "que_es": "Pinchar a alguien con un comentario incómodo o una pregunta inesperada para ver su reacción sin filtro.",
+      "como": "Haz la pregunta cuando la persona está relajada, de golpe y con naturalidad; mira la primera reacción (los primeros 2 segundos), no lo que dice después.",
+      "cuando": "Cuando alguien da respuestas ensayadas o demasiado perfectas.",
+      "senales": "Microexpresiones de enojo, sorpresa o miedo antes de recomponerse.",
+      "practica": "En una conversación, cambia de tema de golpe con una pregunta personal y fíjate en la primera reacción."
     }
-  ],
-  "no_copiar": [
-    "Manipular o engañar a personas reales para conseguir algo.",
-    "Su obsesión por la venganza: en la serie le cuesta su vida y casi a sus amigos.",
-    "Ignorar las reglas y la confianza de su equipo: la serie muestra que eso tiene costo."
   ],
   "para_asagi": "Leer el ánimo de Daniel por cómo escribe (largo, hora, signos) y adaptar el tono; ayudarlo a observar y a no caer en estafas o presión.",
   "para_aria": "Diagnosticar problemas con varias hipótesis y una prueba pequeña; observar patrones en lo que Daniel hace en su PC; mantener la calma al explicar errores.",

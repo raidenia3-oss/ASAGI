@@ -1,11 +1,11 @@
 ;(function () {
 // ASAGI - Aprender de personajes (carpeta personajes/): cómo piensan, sus tácticas y cómo trabajan.
 // Cada personaje es un JSON con: esencia, como_trabaja, tacticas[{nombre, que_es, como, cuando, senales,
-// practica, limite}], no_copiar, para_asagi, para_aria. Para sumar otro: copia un JSON y agrégalo a indice.json.
+// practica}], para_asagi, para_aria. Para sumar otro: copia un JSON y agrégalo a indice.json.
 //
 //   personajes                         -> quiénes son y qué aprende de cada uno
 //   tácticas de patrick jane           -> la lista de sus tácticas
-//   qué haría barney: <situación>      -> consejo con SUS tácticas aplicadas a tu caso (honesto, sin manipular)
+//   qué haría barney: <situación>      -> consejo con SUS tácticas aplicadas a tu caso, en su estilo
 //   táctica del día                    -> una táctica y un ejercicio para hoy
 //   léeme / cómo me ves                -> ASAGI te "lee" como Jane, por cómo estás escribiendo
 // Todo lo que decide es PURO; cargar() lee la carpeta y aprender() lo mete a la memoria.
@@ -50,10 +50,10 @@ function textoLista(lista) {
 }
 function textoTacticas(p) {
   return '🎭 Tácticas de ' + p.nombre + ':\n' + p.tacticas.map(function (t, i) { return (i + 1) + '. ' + t.nombre + ' — ' + t.que_es; }).join('\n') +
-    '\n\nLo que NO copio de ' + p.nombre.split(' ')[0] + ': ' + (p.no_copiar || []).join(' · ');
+    '';
 }
 function textoTactica(p, t) {
-  return '🎭 ' + p.nombre + ' · ' + t.nombre + '\n' + t.que_es + '\nCómo: ' + t.como + '\nEjercicio: ' + t.practica + '\nOjo: ' + t.limite;
+  return '🎭 ' + p.nombre + ' · ' + t.nombre + '\n' + t.que_es + '\nCómo: ' + t.como + '\nEjercicio: ' + t.practica + (t.limite ? '\nOjo: ' + t.limite : '');
 }
 function delDia(lista, fecha) {
   var todas = []; (lista || []).forEach(function (p) { p.tacticas.forEach(function (t) { todas.push({ p: p, t: t }); }); });
@@ -64,16 +64,16 @@ function delDia(lista, fecha) {
 
 function promptHaria(p, ts, situacion) {
   return 'Eres ASAGI. Daniel te pide pensar como ' + p.nombre + ' (' + p.de + '): ' + p.esencia + '\n' +
-    'Tácticas que aplican:\n' + ts.map(function (t) { return '- ' + t.nombre + ': ' + t.como + ' (límite: ' + t.limite + ')'; }).join('\n') +
-    '\nNo copies de él: ' + (p.no_copiar || []).join('; ') + '.\n\nSituación de Daniel: ' + situacion +
-    '\n\nDa un consejo concreto en 3-5 pasos con el estilo de ' + p.nombre.split(' ')[0] + ' (puedes sonar como él), pero siempre honesto y sin manipular a nadie. Termina con una frase corta para que Daniel la use.';
+    'Tácticas que aplican:\n' + ts.map(function (t) { return '- ' + t.nombre + ': ' + t.como; }).join('\n') +
+    '\n\nSituación de Daniel: ' + situacion +
+    '\n\nDa un consejo concreto en 3-5 pasos como lo haría ' + (p.apodo || p.nombre.split(' ')[0]) + ' de verdad, sonando como él. Termina con una frase corta para que Daniel la use.';
 }
 
 // Memoria: cada táctica como un recuerdo con tema y fuente (una sola vez por versión). PURO salvo M.
 function aprender(lista, M) {
   var n = 0;
   (lista || []).forEach(function (p) {
-    p.tacticas.forEach(function (t) { if (M.aprender(p.nombre + ' · ' + t.nombre + ': ' + t.que_es + ' Cómo: ' + t.como + ' Límite: ' + t.limite, 'personaje ' + _n(p.nombre), 'personajes/' + p.id)) n++; });
+    p.tacticas.forEach(function (t) { if (M.aprender(p.nombre + ' · ' + t.nombre + ': ' + t.que_es + ' Cómo: ' + t.como + (t.limite ? ' Límite: ' + t.limite : ''), 'personaje ' + _n(p.nombre), 'personajes/' + p.id)) n++; });
     (p.como_trabaja || []).forEach(function (c) { if (M.aprender(p.nombre + ' trabaja así: ' + c, 'personaje ' + _n(p.nombre), 'personajes/' + p.id)) n++; });
   });
   return n;

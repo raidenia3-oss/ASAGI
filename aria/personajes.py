@@ -2,13 +2,13 @@
 """ARIA - Aprender de personajes (carpeta personajes/): sus tácticas y cómo trabajan.
 
 Mismo formato que ASAGI (los JSON se comparten): cada personaje tiene esencia, como_trabaja,
-tacticas[{nombre, que_es, como, cuando, senales, practica, limite}], no_copiar, para_aria.
+tacticas[{nombre, que_es, como, cuando, senales, practica}], para_aria.
 Para sumar otro: copia un JSON, cambia el contenido y agrégalo a personajes/indice.json.
 
 Chat:
   personajes                        -> de quién aprende
   tácticas de jane                  -> sus tácticas
-  qué haría barney: <situación>     -> consejo con SUS tácticas aplicadas a tu caso (honesto, sin manipular)
+  qué haría barney: <situación>     -> consejo con SUS tácticas aplicadas a tu caso, en su estilo
   táctica del día                   -> una táctica + ejercicio
   entréname como jane               -> un ejercicio de una de sus tácticas
 Además, cuando lo que preguntas encaja con una táctica, ARIA la tiene presente al responder (contexto()).
@@ -108,13 +108,12 @@ def texto_lista(lista):
 
 
 def texto_tacticas(p):
-    return "Tácticas de %s:\n%s\n\nLo que NO copio: %s" % (
-        p["nombre"], "\n".join("%d. %s — %s" % (i, t["nombre"], t["que_es"]) for i, t in enumerate(p["tacticas"], 1)),
-        " · ".join(p.get("no_copiar", [])))
+    return "Tácticas de %s:\n%s" % (
+        p["nombre"], "\n".join("%d. %s — %s" % (i, t["nombre"], t["que_es"]) for i, t in enumerate(p["tacticas"], 1)))
 
 
 def texto_tactica(p, t):
-    return "%s · %s\n%s\nCómo: %s\nEjercicio: %s\nOjo: %s" % (p["nombre"], t["nombre"], t["que_es"], t["como"], t["practica"], t["limite"])
+    return "%s · %s\n%s\nCómo: %s\nEjercicio: %s" % (p["nombre"], t["nombre"], t["que_es"], t["como"], t["practica"])
 
 
 def del_dia(lista, fecha=None):
@@ -126,12 +125,11 @@ def del_dia(lista, fecha=None):
 
 
 def prompt_haria(p, ts, situacion):
-    return ("Daniel te pide pensar como %s (%s): %s\nTácticas que aplican:\n%s\nNo copies de él: %s.\n\nSituación de Daniel: %s\n\n"
-            "Da un consejo concreto en 3-5 pasos con el estilo de %s, pero siempre honesto y sin manipular a nadie. "
+    return ("Daniel te pide pensar como %s (%s): %s\nTácticas que aplican:\n%s\n\nSituación de Daniel: %s\n\n"
+            "Da un consejo concreto en 3-5 pasos como lo haría %s de verdad, sonando como él. "
             "Termina con una frase corta para que Daniel la use.") % (
         p["nombre"], p.get("de", ""), p.get("esencia", ""),
-        "\n".join("- %s: %s (límite: %s)" % (t["nombre"], t["como"], t["limite"]) for t in ts),
-        "; ".join(p.get("no_copiar", [])), situacion, p.get("apodo") or p["nombre"])
+        "\n".join("- %s: %s" % (t["nombre"], t["como"]) for t in ts), situacion, p.get("apodo") or p["nombre"])
 
 
 def contexto(mensaje, lista=None, minimo=2):
@@ -151,7 +149,7 @@ def contexto(mensaje, lista=None, minimo=2):
         return ""
     mejores.sort(key=lambda x: -x[0])
     s, p, t = mejores[0]
-    return "Táctica que puede servir (de %s, %s): %s. Úsala solo si viene al caso y con honestidad." % (p["nombre"], t["nombre"], t["como"])
+    return "Táctica que puede servir (de %s, %s): %s" % (p["nombre"], t["nombre"], t["como"])
 
 
 def manejar(texto, pensar=None, lista=None):

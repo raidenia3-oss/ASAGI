@@ -162,3 +162,15 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .nivel-chip span { font: 600 0.6rem/1 var(--mono); letter-spacing: 0.28em; color: var(--oro); }
 .nivel-chip i { display: block; width: 120px; height: 3px; border-radius: 3px; background: rgba(226, 176, 74, 0.18); overflow: hidden; }
 .nivel-chip b { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--asagi), var(--oro)); transition: width .6s ease; }
+
+/* resultado del equipo de bots */
+.enj-final { margin: 10px 14px; padding: 14px 16px; border-radius: 16px; background: rgba(11, 26, 29, 0.82);
+  border: 1px solid rgba(226, 176, 74, 0.35); }
+.enj-final-h { font: 700 1.05rem/1.2 var(--display); color: var(--papel); margin-bottom: 8px; }
+.enj-final-h small { display: block; margin-top: 3px; font: 500 0.6rem/1 var(--mono); letter-spacing: .14em; color: var(--oro); }
+.enj-final-txt { font: 400 0.92rem/1.6 var(--sans); color: var(--papel); white-space: pre-wrap; }
+.enj-critica { margin-top: 10px; padding: 8px 10px; border-left: 2px solid var(--carmin); font: 400 0.8rem/1.5 var(--sans); color: #f3c9d6; white-space: pre-wrap; }
+.enj-critica b { font: 600 0.58rem/1 var(--mono); letter-spacing: .2em; color: var(--carmin); margin-right: 6px; }
+.enj-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.enj-acciones button { width: auto; font-size: .75rem; padding: 7px 10px; }
+.enj-card.fallo { border-color: rgba(239, 68, 68, 0.6) !important; }

@@ -1068,6 +1068,7 @@ renderBrainControls();
   let lista = [];
 
   function cargar() { try { lista = P.deserializar(localStorage.getItem(CLAVE)); } catch (e) { lista = []; } }
+  window._asagiPendAgregar = function (t) { cargar(); lista = P.agregar(lista, t); guardar(); try { pintar(); } catch (e) {} };
   function guardar() {
     try { localStorage.setItem(CLAVE, P.serializar(lista)); } catch (e) {}
     // Notificaciones nativas: avisan aunque la app este cerrada. Sin plugin
@@ -1704,6 +1705,15 @@ if ('serviceWorker' in navigator) {
     const R = window.AsagiBrainRouter;
     if (!R) return '(cerebro no disponible)';
     const gk = val('brain-gemini-key'), ak = val('brain-atria-key'), mk = val('brain-mistral-key');
+    if (!gk && !ak && !mk) {
+      // Sin key: el bot piensa con ARIA en la PC (enlace WiFi/Bluetooth). Sin enlace, falla limpio.
+      const cli = window._asagiLan;
+      if (cli) {
+        const r = await cli.enviar({ t: 'bot', bot: bot ? bot.nombre : 'Bot', prompt: prompt });
+        if (r && r.ok && r.resp && r.resp.respuesta) return r.resp.respuesta;
+      }
+      throw new Error('sin cerebro');
+    }
     const esProg = bot && bot.id === 'programador';       // el Programador prefiere Mistral (código)
     const router = new R.BrainRouter({
       geminiFn: gk ? ((p) => R.geminiResponder(p, gk)) : null,
@@ -1756,26 +1766,83 @@ if ('serviceWorker' in navigator) {
     pintarFeed();
   }
 
+  function feedLinea(nombre, color, txt) {
+    if (!estado) return;
+    estado = Object.assign({}, estado, { feed: estado.feed.concat({ bot: nombre, color: color || '#e2b04a', txt: txt, t: estado.t }) });
+  }
+  function contextoMemoria(tarea) {
+    try {
+      if (!window._asagiMem && window.AsagiMemoria) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+      const r = window._asagiMem && window._asagiMem.buscar ? window._asagiMem.buscar(tarea, 4) : [];
+      return (r || []).map((x) => '- ' + (x.texto || x)).join('\n').slice(0, 700);
+    } catch (e) { return ''; }
+  }
+  function pintarFinal(res) {
+    const box = document.getElementById('enj-final'); if (!box) return;
+    box.hidden = false;
+    const esc = (t) => String(t || '').replace(/</g, '&lt;');
+    const fallos = res.trazas.filter((t) => !t.ok);
+    box.innerHTML = '<div class="enj-final-h">Respuesta del equipo <small>' + (res.ms / 1000).toFixed(1) + ' s · ' +
+      res.trazas.length + ' bots' + (fallos.length ? ' · ' + fallos.length + ' fallaron' : '') + '</small></div>' +
+      '<div class="enj-final-txt">' + esc(res.final || 'Ningún bot pudo pensar: pon una key (Gemini/Mistral/Atria) en Ajustes o abre ARIA en la PC — sin key, los bots piensan con ARIA por WiFi/Bluetooth.') + '</div>' +
+      (res.critica ? '<div class="enj-critica"><b>Crítico</b> ' + esc(res.critica) + '</div>' : '') +
+      '<div class="enj-acciones"></div>';
+    const acc = box.querySelector('.enj-acciones');
+    const chat = document.createElement('button'); chat.type = 'button'; chat.className = 'secondary'; chat.textContent = 'Llevar al chat';
+    chat.addEventListener('click', () => { appendMessage('bot', '🤖 Equipo · ' + res.tarea + '\n\n' + res.final); setActiveSection('assistant'); });
+    if (res.final) acc.appendChild(chat);
+    res.acciones.forEach((a) => {
+      const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'secondary';
+      bt.textContent = (a.tipo === 'bandeja' ? '📥 ' : '⏰ ') + a.texto.slice(0, 40);
+      bt.addEventListener('click', () => {
+        if (a.tipo === 'bandeja' && window.AsagiBandeja) {
+          const B = window.AsagiBandeja; let est; try { est = B.deserializar(localStorage.getItem('asagi-bandeja')); } catch (e) { est = B.vacio(); }
+          B.ingestar(est, a.texto, 'yo'); try { localStorage.setItem('asagi-bandeja', B.serializar(est)); } catch (e) {}
+        } else if (window.AsagiPendientes && window._asagiPendAgregar) { window._asagiPendAgregar(a.texto); }
+        else { appendMessage('bot', 'Anotado: ' + a.texto); }
+        bt.disabled = true; bt.textContent = '✓ ' + a.texto.slice(0, 40);
+      });
+      acc.appendChild(bt);
+    });
+  }
+
   function desplegar() {
     if (!window.AsagiBots || !window.AsagiEnjambre || !input) return;
     const tarea = input.value.trim(); if (!tarea) return;
     input.value = '';
-    const bots = window.AsagiBots.elegirBots(tarea, 4);
-    estado = window.AsagiEnjambre.crearTrabajo(bots, tarea);
+    const B = window.AsagiBots;
+    const plan = B.planificar(tarea, 4);
+    estado = window.AsagiEnjambre.crearTrabajo(plan.map((p) => p.bot), tarea);
+    estado.workers.forEach((w) => { w.real = true; w.realHecho = false; });
     feedVistos = 0; if (feed) feed.innerHTML = '';
+    const fin = document.getElementById('enj-final'); if (fin) { fin.hidden = true; fin.innerHTML = ''; }
     for (const k in tarjetas) delete tarjetas[k];
     if (cont) { cont.innerHTML = ''; for (const w of estado.workers) cont.appendChild(tarjeta(w)); }
     if (timer) clearInterval(timer);
     timer = setInterval(() => {
       estado = window.AsagiEnjambre.tick(estado, 1);
       pintar();
-      if (estado.hecho) { clearInterval(timer); timer = null; }
     }, 110);
-    // En paralelo: el cerebro resuelve de verdad y el resultado aparece en cada tarjeta.
-    window.AsagiBots.desplegar(tarea, ejecutarBot, { max: bots.length }).then((res) => {
-      for (const r of res) {
-        const tj = tarjetas[r.bot.id]; if (tj && tj.resEl) { tj.resEl.hidden = false; tj.resEl.textContent = r.texto; }
+    if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', 'bots');
+    B.desplegarV2(tarea, ejecutarBot, {
+      max: 4, contexto: contextoMemoria(tarea), timeoutMs: 45000,
+      onEvento(ev) {
+        if (ev.tipo === 'plan') ev.plan.forEach((p) => feedLinea('Supervisor', '#e2b04a', p.nombre + ' → ' + p.subtarea.slice(0, 70)));
+        if (ev.tipo === 'inicio' && (ev.id === 'sintetizador' || ev.id === 'critico')) feedLinea(ev.id === 'critico' ? 'Crítico' : 'Sintetizador', '#e8507a', 'revisando…');
+        if (ev.tipo === 'fin') {
+          const tr = ev.traza, tj = tarjetas[tr.id];
+          if (estado) estado.workers.forEach((w) => { if (w.id === tr.id) { w.realHecho = true; w.real = true; } });
+          feedLinea(tr.nombre, tr.ok ? '#3cc4c9' : '#ef4444', (tr.ok ? '✓ ' : '✗ ') + (tr.ms / 1000).toFixed(1) + ' s' + (tr.ok ? '' : ' · ' + tr.error));
+          if (tj && tj.resEl) { tj.resEl.hidden = false; tj.resEl.textContent = tr.ok ? (tr.texto || '').slice(0, 600) : 'Falló: ' + tr.error; }
+          if (tj && !tr.ok) tj.card.classList.add('fallo');
+        }
+        pintar();
       }
+    }).then((res) => {
+      if (estado) estado.workers.forEach((w) => { w.realHecho = true; });
+      B.guardarTraza(window.localStorage, res);
+      pintarFinal(res);
+      setTimeout(() => { if (timer && estado && estado.hecho) { clearInterval(timer); timer = null; } }, 3000);
     }).catch(() => {});
   }
   if (go) go.addEventListener('click', desplegar);

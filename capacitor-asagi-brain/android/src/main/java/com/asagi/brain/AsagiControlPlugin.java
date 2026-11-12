@@ -950,12 +950,13 @@ public class AsagiControlPlugin extends Plugin {
         final String host = call.getString("host", "");
         final int puerto = call.getInt("puerto", 47832);
         final String linea = call.getString("linea", "");
+        final int espera = Math.max(2000, Math.min(60000, call.getInt("esperaMs", 8000)));   // los bots que piensan con ARIA esperan mas
         new Thread(new Runnable() { public void run() {
             JSObject r = new JSObject();
             try {
                 java.net.Socket so = new java.net.Socket();
                 so.connect(new java.net.InetSocketAddress(host, puerto), 4000);
-                so.setSoTimeout(8000);
+                so.setSoTimeout(espera);
                 try { r = lineaPorSocket(so.getInputStream(), so.getOutputStream(), linea); } finally { so.close(); }
             } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
             call.resolve(r);

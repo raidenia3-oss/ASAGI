@@ -11,9 +11,15 @@ const _DIAS = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
 function _n(x) { return x < 10 ? '0' + x : '' + x; }
 
 // Reloj: {hora, fecha} desde un Date. Puro.
+// Hora en formato de 12 horas (como el reloj del celular en Perú): "10:49" + "p. m.". Puro.
+function hora12(d = new Date()) {
+  const h = d.getHours() % 12 || 12;
+  return { hora: h + ':' + _n(d.getMinutes()), ampm: d.getHours() < 12 ? 'a. m.' : 'p. m.' };
+}
 function reloj(d = new Date()) {
+  const h = hora12(d);
   return {
-    hora: _n(d.getHours()) + ':' + _n(d.getMinutes()),
+    hora: h.hora, ampm: h.ampm,
     fecha: _DIAS[d.getDay()] + ', ' + d.getDate() + ' ' + _MESES[d.getMonth()],
   };
 }
@@ -57,7 +63,7 @@ function masUsadas(apps, counts, n = 8) {
     .slice(0, n);
 }
 
-const API = { reloj, ordenar, filtrar, colorTile, inicial, masUsadas };
+const API = { reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
 

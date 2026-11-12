@@ -29,7 +29,7 @@ jobs:
       - name: Emulador + simulacion
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 35          # Android 15+: borde a borde obligatorio, como el HONOR con Android 16
           target: google_apis
           arch: x86_64
           profile: pixel_6

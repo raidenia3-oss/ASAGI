@@ -29,7 +29,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 
 /* ---------- Casa: reloj en mincho, grande y sereno ---------- */
 .launcher-clock {
-  font: 700 4.2rem/0.95 var(--display);
+  font: 700 3.8rem/0.95 var(--display);
   letter-spacing: 0.02em;
   color: var(--papel);
   text-shadow: 0 2px 30px rgba(226, 176, 74, 0.28);
@@ -182,3 +182,19 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .enj-salud { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
 .enj-salud span { font: 500 0.66rem/1 var(--mono); padding: 5px 8px; border-radius: 999px; border: 1px solid rgba(60,196,201,.35); color: var(--asagi); }
 .enj-salud span.mal { border-color: rgba(232,80,122,.5); color: var(--carmin); }
+/* reloj de 12 h: "10:49" grande y "p. m." chico al lado */
+.clock-ampm { font: 600 0.9rem/1 var(--mono); letter-spacing: 0.12em; color: var(--oro); margin-left: 0.35em; vertical-align: 0.35em; text-transform: lowercase; }
+
+/* ---------- Ergonomía (revisión "como persona" en el emulador) ---------- */
+/* todo lo que se toca mide al menos 44 px: dedo, no cursor */
+.ov-back { min-width: 64px !important; min-height: 44px !important; }
+#pend-open, #reset-chat, .enj-acciones button, .enj-aportes button { min-height: 44px; }
+.nivel-chip { min-height: 44px; justify-content: center; }
+/* contador de pendientes: si está en 0 no se muestra (antes salía un "0" rojo) */
+.pend-count[hidden] { display: none !important; }
+/* letras de adorno: nunca menos de 11 px para que se lean en el celular */
+.home-hint, .avatar-estado, #assistant .panel-header .eyebrow, .nivel-chip span, .eyebrow,
+.enj-stat span, .enj-stat small, .enj-live, .brain-badge, .mode-chip, .msg-meta { font-size: max(11px, 0.7rem) !important; }
+/* la etiqueta "ASAGI" de cada respuesta no se pega a la tarjeta de arriba */
+.message.bot { margin-top: 10px; }
+.radio-group label span, .brain-hint, .brain-status, #brain-status { font-size: max(11.5px, 0.72rem) !important; }

@@ -113,7 +113,7 @@ function etiquetaCuando(cuando, base) {
   if (!cuando) return '';
   var d = new Date(cuando);
   var b = (base instanceof Date) ? new Date(base.getTime()) : new Date(base || Date.now());
-  var hhmm = _dosDig(d.getHours()) + ':' + _dosDig(d.getMinutes());
+  var hhmm = (d.getHours() % 12 || 12) + ':' + _dosDig(d.getMinutes()) + (d.getHours() < 12 ? ' a. m.' : ' p. m.');
   var d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   var b0 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
   var dias = Math.round((d0 - b0) / 86400000);

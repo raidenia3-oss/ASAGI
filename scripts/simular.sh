@@ -41,6 +41,7 @@ adb shell settings put secure enabled_accessibility_services $P/com.asagi.brain.
 adb shell settings put secure accessibility_enabled 1 >/dev/null 2>&1
 sleep 3
 timeout 240 node scripts/sim_cdp.mjs 9222 >> "$R" 2>&1 || log "- (DevTools fallo, ver arriba)"
+timeout 300 node scripts/sim_persona.mjs 9222 >> "$R" 2>&1 || log "- (recorrido como persona falló, ver arriba)"
 foto 08_tras_chat
 adb shell input keyevent KEYCODE_BACK; sleep 2; foto 09_atras
 log "- Sigue viva tras $(( $(date +%s)-T0 ))s: $(adb shell pidof $P >/dev/null && echo SI || echo NO)"

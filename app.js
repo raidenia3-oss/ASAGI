@@ -1,3 +1,9 @@
+// Hora en 12 h ("10:49 p. m."), igual que el reloj del celular, sin depender del idioma del sistema.
+function horaCorta(d) {
+  d = d || new Date();
+  const h = d.getHours() % 12 || 12, m = d.getMinutes();
+  return h + ':' + (m < 10 ? '0' : '') + m + (d.getHours() < 12 ? ' a. m.' : ' p. m.');
+}
 const STORAGE_KEY = 'asagi-state-v2';
 
 // Identificador estable aunque crypto.randomUUID no exista (contexto no seguro).
@@ -15,7 +21,7 @@ const defaultState = {
       id: uid(),
       sender: 'bot',
       text: 'Hola. Soy ASAGI. ¿En qué puedo ayudarte hoy?',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: horaCorta()
     }
   ],
   brain: {
@@ -93,7 +99,7 @@ function ensureWelcomeMessage() {
     id: uid(),
     sender: 'bot',
     text: defaultState.messages[0].text,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    time: horaCorta()
   });
   saveState();
 }
@@ -366,7 +372,7 @@ function appendMessage(sender, text) {
     id: uid(),
     sender,
     text,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    time: horaCorta()
   };
 
   state.messages.push(message);
@@ -511,7 +517,7 @@ function streamLocalReply(userText, brain) {
 
     function finishText(finalText) {
       textEl.textContent = finalText;
-      meta.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      meta.textContent = horaCorta();
       const message = {
         id: botId,
         sender: 'bot',
@@ -613,7 +619,7 @@ function streamRemoteReply(userText, cfg) {
     function commitBubble(finalText) {
       if (!lastBubble) return;
       lastBubble.textEl.textContent = finalText;
-      lastBubble.meta.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      lastBubble.meta.textContent = horaCorta();
       const message = {
         id: uid(),
         sender: 'bot',
@@ -1571,7 +1577,7 @@ if ('serviceWorker' in navigator) {
   function tick() {
     if (!L()) return;
     const r = L().reloj();
-    if (clockEl) clockEl.textContent = r.hora;
+    if (clockEl) clockEl.innerHTML = r.hora + (r.ampm ? '<small class="clock-ampm">' + r.ampm + '</small>' : '');
     if (dateEl) dateEl.textContent = r.fecha;
   }
   tick(); setInterval(tick, 20000);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v59';
+const CACHE_NAME = 'asagi-pwa-v60';
 const APP_SHELL = [
   './',
   './index.html',

@@ -775,6 +775,35 @@ if _QT:
                     else "Uso mi fondo propio (%s). Escribe «fondo» para poner el tuyo." % self.toggles["fondo"], "aria")
             return True
 
+        def _cmd_rollercoin(self, t):
+            """«conecta rollercoin»: login con Google en Chrome normal; ARIA no ve contraseñas."""
+            try:
+                import rollercoin_google as _rg
+            except Exception:
+                return False
+            acc = _rg.manejar(t)
+            if not acc:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if acc == "conectar":
+                self._linea("Te abro Chrome en RollerCoin. Toca «Log in With Google», entra con tu cuenta "
+                            "y luego CIERRA esa ventana: yo reviso que quedó la sesión. No veo ni guardo contraseñas.", "aria")
+            else:
+                self._linea("Reviso la sesión de RollerCoin…", "sys")
+            import threading as _th
+
+            def _hilo():
+                try:
+                    r = _rg.conectar(esperar=True) if acc == "conectar" else _rg.estado()
+                    txt = r.get("texto") or ("No pude: %s" % r.get("error", r.get("status")))
+                except Exception as exc:
+                    txt = "No pude revisar RollerCoin: %s" % exc
+                cola = getattr(self, "_bots_cola", None)
+                if cola is not None:
+                    cola.put("🎮 " + txt)
+            _th.Thread(target=_hilo, daemon=True).start()
+            return True
+
         def _poner_fondo(self, ruta):
             import fondo_foto as _ff
             try:
@@ -1166,6 +1195,8 @@ if _QT:
             if _re.match(r"^(?:mascota|modo mascota)$", t.strip(), _re.I):
                 self.entrada.clear(); self._toggle("mascota"); return
             if self._cmd_fondo(t):
+                return
+            if self._cmd_rollercoin(t):
                 return
             if self._worker is not None and self._worker.isRunning():
                 return

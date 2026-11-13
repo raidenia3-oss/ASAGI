@@ -813,7 +813,7 @@ if _QT:
             try:
                 import correo as _co
                 m = _co.metodos()
-                if m["api"] or m["imap"]:
+                if m["api"] or m["imap"] or m.get("web"):
                     self._correo_revisar(silencioso=True)
             except Exception:
                 pass
@@ -848,8 +848,8 @@ if _QT:
                 self._correo_revisar()
             else:
                 m = _co.metodos(); u = _co.ultimo()
-                self._linea("Correo · API: %s · IMAP: %s · web: usa la sesión de Google del perfil de ARIA.%s" % (
-                    "sí" if m["api"] else "no", "sí" if m["imap"] else "no",
+                self._linea("Correo · API: %s · IMAP: %s · web (sesión de Google): %s.%s" % (
+                    "sí" if m["api"] else "no", "sí" if m["imap"] else "no", "sí" if m.get("web") else "no",
                     ("\nÚltima revisión: %d correos." % u["n"]) if u else ""), "aria")
             return True
 

@@ -326,6 +326,8 @@ def leer_web(maximo=25):
         from playwright.sync_api import sync_playwright
     except Exception:
         return None
+    if not os.path.isdir(_rg.PERFIL):        # sin «conecta rollercoin» no hay sesión de Google: no crear un perfil vacío
+        return None
     try:
         with sync_playwright() as p:
             ctx = _rg.abrir_contexto(p, headless=True)
@@ -349,7 +351,12 @@ def leer_web(maximo=25):
 
 # ---------------- orquestación ----------------
 def metodos():
-    return {"api": bool(cliente() and os.path.isfile(TOKEN)), "imap": os.path.isfile(IMAP_CRED)}
+    try:
+        import rollercoin_google as _rg
+        web = os.path.isdir(_rg.PERFIL)
+    except Exception:
+        web = False
+    return {"api": bool(cliente() and os.path.isfile(TOKEN)), "imap": os.path.isfile(IMAP_CRED), "web": web}
 
 
 def leer(horas=24, maximo=40):

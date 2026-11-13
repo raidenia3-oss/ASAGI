@@ -1538,6 +1538,14 @@ class LocalSkills:
             {"id": "rollercoin_play", "name": "Jugar RollerCoin", "category": "automatizacion"},
             {"id": "rollercoin_daily", "name": "RollerCoin diario", "category": "automatizacion"},
             {"id": "rollercoin_sched", "name": "Programar RollerCoin", "category": "automatizacion"},
+            {"id": "rollercoin_engine", "name": "Motor RollerCoin (jugar+estudiar)", "category": "automatizacion"},
+            {"id": "rollercoin_schedule", "name": "Horario RollerCoin", "category": "automatizacion"},
+            {"id": "rollercoin_sigilo", "name": "Nivel de sigilo RollerCoin", "category": "automatizacion"},
+            {"id": "rollercoin_reporte", "name": "Reporte de estudio RollerCoin", "category": "automatizacion"},
+            {"id": "google_link", "name": "Vincular cuenta Google", "category": "red"},
+            {"id": "gmail_code", "name": "Codigo Gmail 2FA", "category": "red"},
+            {"id": "rollercoin_login_grabado", "name": "Login RollerCoin grabado", "category": "automatizacion"},
+            {"id": "rollercoin_sesiones", "name": "Sesiones grabadas RollerCoin", "category": "automatizacion"},
             {"id": "aria_browser", "name": "Navegador ARIA", "category": "navegador"},
             {"id": "aria_activities", "name": "Actividades (reels/minijuegos)", "category": "automatizacion"},
             {"id": "social_analysis", "name": "Analisis social", "category": "social"},
@@ -1620,6 +1628,22 @@ class LocalSkills:
             return self._rollercoin_daily(params)
         if skill_id == "rollercoin_sched":
             return self._rollercoin_sched(params)
+        if skill_id == "rollercoin_engine":
+            return self._rollercoin_engine(params)
+        if skill_id == "rollercoin_schedule":
+            return self._rollercoin_schedule(params)
+        if skill_id == "rollercoin_sigilo":
+            return self._rollercoin_sigilo(params)
+        if skill_id == "rollercoin_reporte":
+            return self._rollercoin_reporte(params)
+        if skill_id == "google_link":
+            return self._google_link(params)
+        if skill_id == "gmail_code":
+            return self._gmail_code(params)
+        if skill_id == "rollercoin_login_grabado":
+            return self._rollercoin_login_grabado(params)
+        if skill_id == "rollercoin_sesiones":
+            return self._rollercoin_sesiones(params)
         if skill_id == "aria_browser":
             return self._aria_browser(params)
         if skill_id == "aria_activities":
@@ -2076,6 +2100,192 @@ class LocalSkills:
         if action == "estado":
             return estado()
         return iniciar(params.get("hora", 15))
+
+    def _rollercoin_engine(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from rollercoin_engine import (
+                jugar, jugar_todos_juegos, listar_juegos, explorar,
+                estado_motor, resumen_estudio, listar_juegos_estudio,
+            )
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "play_all")
+        if action == "play_all":
+            return jugar_todos_juegos(
+                duration_per_game=params.get("duration_per_game"),
+                headless=params.get("headless", True),
+                stealth_level=params.get("stealth_level", 2),
+            )
+        if action == "play":
+            return jugar(
+                action="play",
+                url=params.get("url", "https://rollercoin.com/game/choose_game"),
+                headless=params.get("headless", True),
+                duration=params.get("duration", 10),
+                stealth_level=params.get("stealth_level", 2),
+            )
+        if action == "explore":
+            return explorar(
+                url=params.get("url", "https://rollercoin.com"),
+                headless=params.get("headless", True),
+                stealth_level=params.get("stealth_level", 2),
+            )
+        if action == "list_games":
+            return listar_juegos(
+                headless=params.get("headless", True),
+                stealth_level=params.get("stealth_level", 2),
+            )
+        if action == "estado":
+            return estado_motor()
+        if action == "resumen":
+            return resumen_estudio()
+        if action == "juegos":
+            return {"juegos": listar_juegos_estudio()}
+        return {"status": "error", "error": "acción desconocida: %s" % action}
+
+    def _rollercoin_schedule(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from rollercoin_schedule import (
+                iniciar, detener, estado, configurar_franjas, configurar_sigilo,
+            )
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "estado")
+        if action == "iniciar":
+            return iniciar(
+                franjas=params.get("franjas"),
+                activo=params.get("activo", True),
+                nivel_sigilo_inicial=params.get("nivel_sigilo_inicial", 2),
+                subir_sigilo_despues_de_sesiones=params.get("subir_sigilo_despues_de_sesiones", 5),
+            )
+        if action == "detener":
+            return detener()
+        if action == "estado":
+            return estado()
+        if action == "configurar_franjas":
+            return configurar_franjas(params.get("franjas", []))
+        if action == "configurar_sigilo":
+            return configurar_sigilo(params.get("nivel", 2))
+        return {"status": "error", "error": "acción desconocida: %s" % action}
+
+    def _rollercoin_sigilo(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from rollercoin_engine import (
+                subir_nivel_sigilo, obtener_config_sigilo, estado_motor,
+            )
+            from rollercoin_schedule import configurar_sigilo, estado
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "configurar")
+        if action == "configurar":
+            return configurar_sigilo(params.get("nivel", 2))
+        if action == "subir":
+            nivel_actual = int(estado().get("nivel_sigilo_actual", 2))
+            nuevo = subir_nivel_sigilo(nivel_actual)
+            return configurar_sigilo(nuevo)
+        if action == "config":
+            return {"config": obtener_config_sigilo(params.get("nivel", 2))}
+        if action == "estado":
+            return estado()
+        return {"status": "error", "error": "acción desconocida: %s" % action}
+
+    def _rollercoin_reporte(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from rollercoin_engine import (
+                estado_motor, resumen_estudio, listar_juegos_estudio,
+            )
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        return {
+            "motor": estado_motor(),
+            "resumen": resumen_estudio(),
+            "juegos_top": listar_juegos_estudio()[:10],
+            "generado": datetime.now().isoformat(),
+        }
+
+    def _google_link(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from google_link import (
+                solicitar_codigo, esperar_token, obtener_info_usuario,
+                estado_vinculacion, configurar_client_id,
+            )
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "estado")
+        if action == "configurar_client_id":
+            return configurar_client_id(params.get("client_id", ""))
+        if action == "solicitar_codigo":
+            return solicitar_codigo(params.get("client_id"))
+        if action == "esperar_token":
+            return esperar_token(
+                params.get("device_code", ""),
+                params.get("client_id"),
+                params.get("max_espera", 900),
+            )
+        if action == "info_usuario":
+            return obtener_info_usuario(params.get("access_token", ""))
+        if action == "estado":
+            return estado_vinculacion()
+        return {"status": "error", "error": "acción desconocida: %s" % action}
+
+    def _gmail_code(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from gmail_code import (
+                buscar_codigos_rollercoin, esperar_codigo_rollercoin,
+                estado_gmail, conectar,
+            )
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "estado")
+        if action == "buscar_codigos":
+            return buscar_codigos_rollercoin(
+                params.get("email", ""),
+                params.get("app_password", ""),
+                params.get("desde_ts", 0),
+                params.get("limite", 10),
+            )
+        if action == "esperar_codigo":
+            return esperar_codigo_rollercoin(
+                params.get("email", ""),
+                params.get("app_password", ""),
+                params.get("timeout_s", 120),
+                params.get("intervalo_s", 10),
+            )
+        if action == "estado":
+            return estado_gmail()
+        return {"status": "error", "error": "acción desconocida: %s" % action}
+
+    def _rollercoin_login_grabado(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from rollercoin_daily import login, daily_run
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "login")
+        if action == "login":
+            return login(
+                headless=params.get("headless", True),
+                grabar=params.get("grabar", True),
+                usar_gmail=params.get("usar_gmail", False),
+            )
+        if action == "daily":
+            return daily_run(
+                headless=params.get("headless", True),
+                grabar=params.get("grabar", True),
+                usar_gmail=params.get("usar_gmail", False),
+            )
+        return {"status": "error", "error": "acción desconocida: %s" % action}
+
+    def _rollercoin_sesiones(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            from rollercoin_daily import listar_sesiones_grabadas, estado_grabaciones
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+        action = params.get("action", "estado")
+        if action == "listar":
+            return {"sesiones": listar_sesiones_grabadas()}
+        if action == "estado":
+            return estado_grabaciones()
+        return {"status": "error", "error": "acción desconocida: %s" % action}
 
     def _discord_memory(self, params: Dict[str, Any]) -> Dict[str, Any]:
         try:

@@ -3,6 +3,8 @@
 // Uso: node scripts/sim_cdp.mjs <puerto> >> sim/REPORTE.md
 const PORT = process.argv[2] || '9222';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+import { execSync } from 'node:child_process';
+const adb = (c) => { try { return execSync('adb ' + c, { encoding: 'utf8', timeout: 15000 }); } catch (e) { return ''; } };
 async function conectar() {
   for (let i = 0; i < 30; i++) {
     try {
@@ -51,8 +53,15 @@ await di('hola asagi', 15000);
 await di('bandeja');
 await di('guarda en la bandeja: pagar luz hoy');
 await di('prioridades');
-await di('wifi', 8000);
-await di('bluetooth', 8000);
+await di('wifi', 25000);
+await di('bluetooth', 25000);
+// Sin cerebro: lo cotidiano que ASAGI resuelve sola (intents reales de Android).
+for (const t of ['qué hora es', 'cuánto es 15% de 230', 'cuánta batería tengo', 'pon una alarma a las 7', 'temporizador de 1 minuto',
+                 'abre Settings', 'enciende la linterna', 'apaga la linterna', 'qué puedes hacer', 'cuéntame un chiste']) {
+  await di(t, 8000);
+  if (/alarma|temporizador|abre/.test(t)) { adb('shell input keyevent KEYCODE_BACK'); await sleep(1500);
+    adb('shell am start -n com.asagi.app/.MainActivity'); await sleep(2000); }
+}
 await di('enlace pc', 12000);
 await di('dile a ARIA hola', 15000);
 // Modo manos: ASAGI usa otra app (Ajustes) por Accesibilidad y vuelve.

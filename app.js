@@ -357,34 +357,25 @@ function refreshBrainStatus() {
   }
 }
 
+function ctxSinCerebro() {
+  const C = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+  let pend = []; try { pend = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'); } catch (e) {}
+  return {
+    ahora: new Date(),
+    calcular: window.AsagiPalette && window.AsagiPalette.calcular,
+    apps: window._asagiAppsLista ? window._asagiAppsLista() : [],
+    abrirApp: (a) => (window._asagiAbrirAppObj ? window._asagiAbrirAppObj(a) : null),
+    accion: C && C.accion ? (o) => C.accion(o) : null,
+    pendientes: Array.isArray(pend) ? pend : []
+  };
+}
+
 function createBotReply(messageText) {
-  const lower = messageText.toLowerCase();
-
-  if (lower.includes('hola') || lower.includes('buenas') || lower.includes('saludo')) {
-    return '¡Hola! Estoy listo para ayudarte. ¿Quieres revisar el estado, abrir el launcher o comenzar con una tarea?';
-  }
-
-  if (lower.includes('launcher') || lower.includes('abrir launcher')) {
-    return 'El launcher todavía está vacío, pero está preparado para recibir accesos rápidos y comandos futuros.';
-  }
-
-  if (lower.includes('status') || lower.includes('estado')) {
-    return 'El módulo de estado está en preparación. Aún no hay indicadores activos, pero la estructura ya está lista.';
-  }
-
-  if (lower.includes('grok')) {
-    return 'Grok queda reservado para futuras integraciones y exploración de contexto. La sección está preparada.';
-  }
-
-  if (lower.includes('memoria') || lower.includes('guardar')) {
-    return 'La memoria local ya está activa en el navegador. Los mensajes se guardan automáticamente en tu dispositivo.';
-  }
-
-  if (lower.includes('ayuda')) {
-    return 'Puedo ayudarte con la navegación del proyecto, el estado de cada sección o con la lógica del asistente. También puedo responder a mensajes simples.';
-  }
-
-  return 'He recibido tu mensaje. La lógica del asistente sigue en desarrollo y esta respuesta es un placeholder funcional para la etapa actual del proyecto.';
+  // Respuesta de reserva SIN cerebro (síncrona). Lo útil de verdad lo hace AsagiSinCerebro (ver startBotStreaming).
+  const n = String(messageText || '').toLowerCase();
+  if (/^\s*(hola|holi|hey|buenas|que tal|qué tal)\b/.test(n)) return '¡Hola, Daniel! Sin cerebro conectado igual te ayudo con lo cotidiano: di «qué puedes hacer».';
+  return window.AsagiSinCerebro ? window.AsagiSinCerebro.noEntendi(messageText) :
+    'Eso necesita mi cerebro y ahora no tengo ninguno conectado. Di «qué puedes hacer».';
 }
 
 function appendMessage(sender, text) {
@@ -492,7 +483,15 @@ async function startBotStreaming(userText) {
             daniel: sab.daniel, saber: sab.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular });
         } catch (e) { pen = null; }
       }
-      const res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
+      let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
+      // sin ningún cerebro: lo que ASAGI sabe hacer sola (charla corta, chistes, ayuda, búsquedas…) en vez de la respuesta de prueba
+      if (res && res.backend === 'prueba' && window.AsagiSinCerebro) {
+        try {
+          const sc = await window.AsagiSinCerebro.responder(userText, ctxSinCerebro());
+          if (sc && sc.reescribir) { window._asagiReescribir = sc.reescribir; chatForm.requestSubmit(); return; }
+          res = { texto: (sc && sc.texto) || createBotReply(userText), backend: 'ASAGI sin cerebro' };
+        } catch (e) {}
+      }
       {
         const texto = (res && (res.texto || res.text)) ? (res.texto || res.text) : createBotReply(userText);
         const backend = ((res && res.backend) ? res.backend : 'local') + (pen && pen.pasos && pen.pasos.length > 1 ? ' · pensé: ' + pen.pasos.join(' → ') : '');
@@ -780,16 +779,31 @@ if (brainModeRemote) {
 
 chatForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  const text = input.value.trim();
+  const reesc = window._asagiReescribir; window._asagiReescribir = null;
+  const text = reesc || input.value.trim();
 
   if (!text) return;
 
-  appendMessage('user', text);
+  if (!reesc) appendMessage('user', text);
   input.value = '';
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   if (/^\s*(nivel|mi nivel|tu nivel|niveles|cu[aá]nto has aprendido|qu[eé] nivel tienes)\s*\??\s*$/i.test(text) && window.AsagiNiveles) {
     appendMessage('bot', window._asagiNivelTexto ? window._asagiNivelTexto() : window.AsagiNiveles.formato(window.AsagiNiveles.actual()));
     return;
+  }
+
+  // Lo cotidiano lo resuelve ASAGI sola, con o sin cerebro (hora, cuentas, alarmas, abrir apps, batería, hoy…).
+  {
+    const SC = window.AsagiSinCerebro, o = SC && SC.entender(text);
+    const DIRECTO = { hora: 1, fecha: 1, cuenta: 1, alarma: 1, temporizador: 1, enfoque: 1, marcar: 1, abrir: 1, bateria: 1, hoy: 1, reescribir: 1, uni: 1, panel: 1 };
+    if (o && DIRECTO[o.tipo]) {
+      SC.responder(text, ctxSinCerebro()).then((r) => {
+        if (r && r.reescribir) { window._asagiReescribir = r.reescribir; chatForm.requestSubmit(); return; }
+        if (r && r.texto) appendMessage('bot', r.texto);
+        else startBotStreaming(text);
+      }).catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
+      return;
+    }
   }
 
   // "manos: ..." -> ASAGI usa otras apps por ti (Accesibilidad). "para" la detiene.
@@ -848,7 +862,11 @@ chatForm.addEventListener('submit', (event) => {
     }
     appendMessage('bot', herr.tipo === 'termux' || herr.tipo === 'nix' ? '⚙ Ejecutando…' : '🔎 Mirando…');
     if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', String(herr.tipo).split('-')[0]);
-    window.AsagiHerr.ejecutar(herr).then((t) => { if (t) appendMessage('bot', t); });
+    // si la herramienta se queda colgada (permiso sin responder, radio apagada) avisar en vez de quedar en «Mirando…»
+    let listo = false;
+    const avisoT = setTimeout(() => { if (!listo) appendMessage('bot', '⌛ Está tardando. Si Android te pidió un permiso (ubicación o dispositivos cercanos), acéptalo; si está apagado, enciéndelo y repite.'); }, 20000);
+    Promise.resolve(window.AsagiHerr.ejecutar(herr)).then((t) => { listo = true; clearTimeout(avisoT); if (t) appendMessage('bot', t); })
+      .catch((e) => { listo = true; clearTimeout(avisoT); appendMessage('bot', '⚠ No pude: ' + ((e && e.message) || e)); });
     return;
   }
 
@@ -1765,6 +1783,8 @@ if ('serviceWorker' in navigator) {
   }
   tick(); setInterval(tick, 20000);
 
+  window._asagiAppsLista = () => apps;
+  window._asagiAbrirAppObj = (a) => abrir(a);
   function abrir(a) {
     const c = counts(); c[a.package] = (c[a.package] || 0) + 1; guardarCounts(c);
     const plugin = C(); if (plugin && plugin.openApp) plugin.openApp({ package: a.package });

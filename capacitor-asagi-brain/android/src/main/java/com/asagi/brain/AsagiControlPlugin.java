@@ -252,6 +252,110 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Acciones del sistema por intent (lista cerrada): alarma, temporizador, marcar, buscar, url, bateria.
+     *  Sin permisos peligrosos: SET_ALARM es normal y ACTION_DIAL solo abre el marcador (no llama). */
+    @PluginMethod
+    public void accion(PluginCall call) {
+        String tipo = call.getString("tipo", "");
+        Context ctx = getContext();
+        JSObject r = new JSObject();
+        try {
+            Intent i = null;
+            switch (tipo == null ? "" : tipo) {
+                case "alarma": {
+                    i = new Intent(android.provider.AlarmClock.ACTION_SET_ALARM);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_HOUR, call.getInt("hora", 7));
+                    i.putExtra(android.provider.AlarmClock.EXTRA_MINUTES, call.getInt("minuto", 0));
+                    String msg = call.getString("mensaje", "");
+                    if (msg != null && !msg.isEmpty()) i.putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, msg);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, call.getBoolean("silenciosa", true));
+                    break;
+                }
+                case "temporizador": {
+                    i = new Intent(android.provider.AlarmClock.ACTION_SET_TIMER);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_LENGTH, Math.max(1, call.getInt("segundos", 60)));
+                    String msg = call.getString("mensaje", "");
+                    if (msg != null && !msg.isEmpty()) i.putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, msg);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, call.getBoolean("silenciosa", true));
+                    break;
+                }
+                case "marcar": {
+                    String num = call.getString("numero", "");
+                    i = new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + (num == null ? "" : num.replaceAll("[^0-9+*#]", ""))));
+                    break;
+                }
+                case "contactos": {
+                    i = new Intent(Intent.ACTION_VIEW, android.provider.ContactsContract.Contacts.CONTENT_URI);
+                    break;
+                }
+                case "buscar": {
+                    i = new Intent(Intent.ACTION_WEB_SEARCH);
+                    i.putExtra(android.app.SearchManager.QUERY, call.getString("texto", ""));
+                    break;
+                }
+                case "url": {
+                    String u = call.getString("url", "");
+                    if (u == null || !(u.startsWith("https://") || u.startsWith("http://"))) { call.reject("url invalida"); return; }
+                    i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u));
+                    break;
+                }
+                case "linterna": {
+                    android.hardware.camera2.CameraManager cm = (android.hardware.camera2.CameraManager) ctx.getSystemService(Context.CAMERA_SERVICE);
+                    boolean on = call.getBoolean("encender", true);
+                    boolean hecho = false;
+                    for (String id : cm.getCameraIdList()) {
+                        Boolean flash = cm.getCameraCharacteristics(id).get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                        if (flash != null && flash) { cm.setTorchMode(id, on); hecho = true; break; }
+                    }
+                    r.put("ok", hecho);
+                    if (!hecho) r.put("error", "este celular no tiene linterna");
+                    call.resolve(r);
+                    return;
+                }
+                case "panel": {
+                    String que = call.getString("que", "");
+                    String a;
+                    switch (que == null ? "" : que) {
+                        case "wifi": a = Build.VERSION.SDK_INT >= 29 ? Settings.Panel.ACTION_WIFI : Settings.ACTION_WIFI_SETTINGS; break;
+                        case "bluetooth": a = Settings.ACTION_BLUETOOTH_SETTINGS; break;
+                        case "datos": a = Build.VERSION.SDK_INT >= 29 ? Settings.Panel.ACTION_INTERNET_CONNECTIVITY : Settings.ACTION_DATA_ROAMING_SETTINGS; break;
+                        case "modo avion": a = Settings.ACTION_AIRPLANE_MODE_SETTINGS; break;
+                        case "ubicacion": a = Settings.ACTION_LOCATION_SOURCE_SETTINGS; break;
+                        default: a = Settings.ACTION_SETTINGS;
+                    }
+                    i = new Intent(a);
+                    break;
+                }
+                case "bateria": {
+                    Intent b = ctx.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    int nivel = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1);
+                    int escala = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1);
+                    int est = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
+                    int temp = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1);
+                    r.put("ok", nivel >= 0 && escala > 0);
+                    r.put("porcentaje", (nivel >= 0 && escala > 0) ? Math.round(nivel * 100f / escala) : -1);
+                    r.put("cargando", est == android.os.BatteryManager.BATTERY_STATUS_CHARGING || est == android.os.BatteryManager.BATTERY_STATUS_FULL);
+                    r.put("temperatura", temp > 0 ? temp / 10.0 : -1);
+                    call.resolve(r);
+                    return;
+                }
+                default:
+                    call.reject("accion desconocida: " + tipo);
+                    return;
+            }
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (i.resolveActivity(ctx.getPackageManager()) == null && !"marcar".equals(tipo)) {
+                r.put("ok", false); r.put("error", "ninguna app del celular acepta esto");
+                call.resolve(r); return;
+            }
+            ctx.startActivity(i);
+            r.put("ok", true);
+        } catch (Throwable e) {
+            r.put("ok", false); r.put("error", String.valueOf(e.getMessage()));
+        }
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void readScreen(PluginCall call) {
         AsagiAccessibilityService s = AsagiAccessibilityService.getInstance();

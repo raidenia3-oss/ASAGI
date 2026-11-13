@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Ver las apps del telefono para el Launcher de ASAGI (app sideloaded). -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <!-- Poner alarmas y temporizadores en el Reloj de Android («pon una alarma a las 7»). -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <!-- WiFi y Bluetooth (herramientas de ASAGI). Ubicacion: Android la exige para ver redes. -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />

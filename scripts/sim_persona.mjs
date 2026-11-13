@@ -75,10 +75,15 @@ const SW = +tam[1], SH = +tam[2];
 await ev("setActiveSection && setActiveSection('launcher')");
 
 // 1. Casa: hora en 12 h y nada debajo de las barras
-const reloj = await ev("(document.getElementById('launcher-clock')||{}).innerText||''");
+// la WebView puede tardar en pintar tras instalar: esperar a que exista el reloj (hasta 60 s)
+let reloj = '';
+for (let i = 0; i < 30 && !reloj; i++) {
+  reloj = (await ev("(document.getElementById('launcher-clock')||{}).innerText||''")) || '';
+  if (!reloj) { await sleep(2000); await ev("setActiveSection && setActiveSection('launcher')"); }
+}
 out(`- Reloj de la casa: «${reloj.replace(/\n/g, ' ')}» → ${/^(1[0-2]|[1-9]):[0-5]\d\s*(a|p)\.\s?m\./i.test(reloj.replace(/\n/g, ' ')) ? '12 h ✓' : 'NO está en 12 h ✗'}`);
 const barras = await ev(`(() => { const h = document.getElementById('launcher-clock'), b = document.querySelector('.launcher-hint, #launcher-hint, [class*=desliza]') || [...document.querySelectorAll('#launcher *')].filter(e=>/desliza/i.test(e.innerText||'')).pop();
-  return { relojTop: h ? Math.round(h.getBoundingClientRect().top) : null, abajo: b ? Math.round(b.getBoundingClientRect().bottom) : null, H: innerHeight }; })()`);
+  return { relojTop: h ? Math.round(h.getBoundingClientRect().top) : null, abajo: b ? Math.round(b.getBoundingClientRect().bottom) : null, H: innerHeight }; })()`) || {};
 out(`- Márgenes: el reloj empieza a ${barras.relojTop}px del borde de la app; el texto de abajo termina a ${barras.H - barras.abajo}px del final (la app ya no pasa por debajo de la barra de estado ni de los botones porque Android le reserva ese espacio).`);
 await revisar('Casa', 'p01_casa');
 

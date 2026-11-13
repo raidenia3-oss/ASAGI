@@ -42,6 +42,7 @@ const files = [
   'estudia.js',
   'citas.js',
   'personajes.js',
+  'sin-cerebro.js',
   'piensa.js',
   'discord.js',
   'app.js',

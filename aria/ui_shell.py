@@ -786,8 +786,9 @@ if _QT:
                 return False
             self.entrada.clear(); self._linea(t, "user")
             if acc == "conectar":
-                self._linea("Te abro Chrome en RollerCoin. Toca «Log in With Google», entra con tu cuenta "
-                            "y luego CIERRA esa ventana: yo reviso que quedó la sesión. No veo ni guardo contraseñas.", "aria")
+                self._linea("Te abro Chrome en RollerCoin. Toca «Log in With Google» y entra con tu cuenta. "
+                            "Yo nunca cierro tus ventanas: cuando tú cierres esa, reviso que quedó la sesión. "
+                            "No veo ni guardo contraseñas.", "aria")
             else:
                 self._linea("Reviso la sesión de RollerCoin…", "sys")
             import threading as _th

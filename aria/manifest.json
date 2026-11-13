@@ -1,12 +1,20 @@
 {
  "archivos": {
   "app_automator.py": {
-   "previos": [],
-   "sha256": "a0ca51e7eab828295e4f110031d7c5cb2d39433edaa975b971b2136746f54e7f"
+   "previos": [
+    "a0ca51e7eab828295e4f110031d7c5cb2d39433edaa975b971b2136746f54e7f"
+   ],
+   "sha256": "793c5526185e10d0064d967fd7c49c09fd478f9e8a707e368f8e6d1ca27ff908"
   },
   "aria_actualizador.py": {
    "previos": [],
    "sha256": "c77115bdeed9782f8288428e1eec593a448d6ecac7bd43566b4c4d5f16880149"
+  },
+  "aria_browser.py": {
+   "previos": [
+    "c59025233c13073597c679b9c646f1106cb265972569dee1d0fe3a5368a6cce6"
+   ],
+   "sha256": "7038c311546af74957ca24ecc6c2f661b53b6dea0a903592b00923c138d35c83"
   },
   "aria_mcp.py": {
    "previos": [],
@@ -113,9 +121,10 @@
     "6a3deb7df058bd5b2dfcd91cf43182bc5f7ca3869d8967829a162853ffd3c80e",
     "228357a05cdc383f952fe34707559e397455e56a221e79119ba95ecb38512b98",
     "49750588c760eb7ace1329ac1ef77047d5d9c81f1d1da920aa57b3372b0cb090",
-    "604e28a3d42f2aea28b6abc53b0036d673db9fd4ab5c48dbdc04afab142c43af"
+    "604e28a3d42f2aea28b6abc53b0036d673db9fd4ab5c48dbdc04afab142c43af",
+    "c4df375ddae174cf8d7d379530d16061e5a4c836266a1e5c3177615c14105f2a"
    ],
-   "sha256": "c4df375ddae174cf8d7d379530d16061e5a4c836266a1e5c3177615c14105f2a"
+   "sha256": "52040b00031a01a2d287277f9c5e35f1021df8049701b6a4108aafc1ec5a84d3"
   },
   "voz_local.py": {
    "previos": [],

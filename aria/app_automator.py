@@ -113,11 +113,37 @@ def drag(x1, y1, x2, y2, duration=0.3):
     return {"status": "ok", "from": [x1, y1], "to": [x2, y2]}
 
 
-def close_window(hwnd):
-    """Cierra una ventana por hwnd (WM_CLOSE)."""
+PROTEGIDAS = {"explorer.exe", "code.exe", "windowsterminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe",
+              "claude.exe", "chrome.exe", "msedge.exe", "firefox.exe", "obs64.exe", "discord.exe"}
+
+
+def _proceso_de_ventana(hwnd):
+    """Nombre del .exe dueño de la ventana (o '')."""
+    try:
+        import ctypes.wintypes as _wt
+        pid = _wt.DWORD()
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        k32 = ctypes.windll.kernel32
+        h = k32.OpenProcess(0x1000, False, pid.value)          # PROCESS_QUERY_LIMITED_INFORMATION
+        if not h:
+            return ""
+        buf = ctypes.create_unicode_buffer(520); n = _wt.DWORD(520)
+        ok = k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(n))
+        k32.CloseHandle(h)
+        return os.path.basename(buf.value).lower() if ok else ""
+    except Exception:
+        return ""
+
+
+def close_window(hwnd, forzar=False):
+    """Cierra una ventana por hwnd (WM_CLOSE). Nunca cierra tus ventanas de trabajo (navegador, VS Code,
+    terminales, Explorador, Claude, Discord, OBS) salvo que se pida explícitamente con forzar=True."""
     WM_CLOSE = 0x0010
     if not hwnd:
         return {"status": "error", "error": "hwnd invalido"}
+    exe = _proceso_de_ventana(hwnd)
+    if exe in PROTEGIDAS and not forzar:
+        return {"status": "error", "error": "no cierro ventanas de %s (protegida)" % exe}
     user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
     return {"status": "ok", "hwnd": hwnd}
 
@@ -164,4 +190,4 @@ def run(action="list", **kw):
     if action == "drag":
         return drag(kw.get("x1", 0), kw.get("y1", 0), kw.get("x2", 0), kw.get("y2", 0), kw.get("duration", 0.3))
     if action == "close":
-        return close_window(kw.get("hwnd", 0))
+        return close_window(kw.get("hwnd", 0), bool(kw.get("forzar")))

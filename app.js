@@ -1794,11 +1794,11 @@ if ('serviceWorker' in navigator) {
     const ox = (fotoImg.width - l2) * ((h >> 3) % 100) / 100, oy = (fotoImg.height - l2) * ((h >> 9) % 60) / 100;
     x.drawImage(fotoImg, ox, oy, l2, l2, 0, 0, S, S);
     const g = x.createLinearGradient(0, S * 0.35, 0, S);
-    g.addColorStop(0, 'rgba(5,11,13,0)'); g.addColorStop(1, 'rgba(5,11,13,0.88)');
+    g.addColorStop(0, 'rgba(15, 6, 11, 0)'); g.addColorStop(1, 'rgba(15, 6, 11, 0.88)');
     x.fillStyle = g; x.fillRect(0, 0, S, S);
     x.fillStyle = L().colorTile(a.label); x.fillRect(S * 0.12, S - 14, S * 0.3, 3);
-    x.font = '700 44px "Shippori Mincho B1", Georgia, serif'; x.fillStyle = '#e2b04a';
-    x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 6;
+    x.font = '700 44px "Shippori Mincho B1", Georgia, serif'; x.fillStyle = '#ffd700';
+    x.shadowColor = 'rgba(8, 4, 8, .6)'; x.shadowBlur = 6;
     x.fillText(L().inicial(a.label), S * 0.1, S - 22);
     return (iconCache[a.package] = cv.toDataURL('image/png'));
   }
@@ -2020,7 +2020,7 @@ if ('serviceWorker' in navigator) {
 
   function feedLinea(nombre, color, txt) {
     if (!estado) return;
-    estado = Object.assign({}, estado, { feed: estado.feed.concat({ bot: nombre, color: color || '#e2b04a', txt: txt, t: estado.t }) });
+    estado = Object.assign({}, estado, { feed: estado.feed.concat({ bot: nombre, color: color || '#ffd700', txt: txt, t: estado.t }) });
   }
   function contextoMemoria(tarea) {
     try {
@@ -2128,14 +2128,14 @@ if ('serviceWorker' in navigator) {
     B.desplegarV2(tarea, ejecutarBot, {
       max: 4, contexto: contextoMemoria(tarea), timeoutMs: 45000,
       onEvento(ev) {
-        if (ev.tipo === 'plan') ev.plan.forEach((p) => feedLinea('Supervisor', '#e2b04a', p.nombre + ' → ' + p.subtarea.slice(0, 70)));
+        if (ev.tipo === 'plan') ev.plan.forEach((p) => feedLinea('Supervisor', '#ffd700', p.nombre + ' → ' + p.subtarea.slice(0, 70)));
         if (ev.tipo === 'inicio' && (ev.id === 'sintetizador' || ev.id === 'critico' || ev.id === 'revision'))
-          feedLinea({ critico: 'Crítico', sintetizador: 'Sintetizador', revision: 'Revisión' }[ev.id], '#e8507a', ev.id === 'revision' ? 'corrigiendo según el Crítico…' : 'revisando…');
-        if (ev.tipo === 'reintento') feedLinea((B.botPorId(ev.id) || {}).nombre || ev.id, '#e2b04a', '↻ reintentando (' + String(ev.error).slice(0, 40) + ')');
+          feedLinea({ critico: 'Crítico', sintetizador: 'Sintetizador', revision: 'Revisión' }[ev.id], '#f03c5c', ev.id === 'revision' ? 'corrigiendo según el Crítico…' : 'revisando…');
+        if (ev.tipo === 'reintento') feedLinea((B.botPorId(ev.id) || {}).nombre || ev.id, '#ffd700', '↻ reintentando (' + String(ev.error).slice(0, 40) + ')');
         if (ev.tipo === 'fin') {
           const tr = ev.traza, tj = tarjetas[tr.id];
           if (estado) estado.workers.forEach((w) => { if (w.id === tr.id) { w.realHecho = true; w.real = true; } });
-          feedLinea(tr.nombre, tr.ok ? '#3cc4c9' : '#ef4444', (tr.ok ? '✓ ' : '✗ ') + (tr.ms / 1000).toFixed(1) + ' s' + (tr.ok ? '' : ' · ' + tr.error));
+          feedLinea(tr.nombre, tr.ok ? '#de183f' : '#ee395a', (tr.ok ? '✓ ' : '✗ ') + (tr.ms / 1000).toFixed(1) + ' s' + (tr.ok ? '' : ' · ' + tr.error));
           if (tj && tj.resEl) { tj.resEl.hidden = false; tj.resEl.textContent = tr.ok ? (tr.texto || '').slice(0, 600) : 'Falló: ' + tr.error; }
           if (tj && !tr.ok) tj.card.classList.add('fallo');
         }
@@ -2184,7 +2184,7 @@ if ('serviceWorker' in navigator) {
     }
     function draw() {
       raf = requestAnimationFrame(draw); tt += 0.03;
-      g.clearRect(0, 0, W, H); g.fillStyle = 'rgba(7, 12, 14,0.5)'; g.fillRect(0, 0, W, H);
+      g.clearRect(0, 0, W, H); g.fillStyle = 'rgba(16, 6, 11, 0.5)'; g.fillRect(0, 0, W, H);
       const cx = W / 2, cy = H / 2;
       const ws = (estado && estado.workers) || [];
       const n = Math.max(ws.length, 1);
@@ -2218,10 +2218,10 @@ if ('serviceWorker' in navigator) {
         g.beginPath(); g.arc(bx, by, w.estado === 'listo' ? 6 : 5, 0, Math.PI * 2); g.fill();
         g.globalAlpha = 1;
         if (w.estado === 'listo') {                            // tilde al terminar
-          g.strokeStyle = '#eaffea'; g.lineWidth = 1.6; g.beginPath();
+          g.strokeStyle = '#f0f0f8'; g.lineWidth = 1.6; g.beginPath();
           g.moveTo(bx - 2.4, by); g.lineTo(bx - 0.6, by + 2); g.lineTo(bx + 2.6, by - 2.4); g.stroke(); g.lineWidth = 1;
         }
-        g.fillStyle = 'rgba(135, 219, 222,0.75)'; g.font = '8px monospace'; g.textAlign = 'center';
+        g.fillStyle = 'rgba(255, 92, 118, 0.75)'; g.font = '8px monospace'; g.textAlign = 'center';
         g.fillText(w.nombre.slice(0, 7), bx, by + 15);
       });
       // destello de completado: anillo que se expande una vez al converger
@@ -2234,10 +2234,10 @@ if ('serviceWorker' in navigator) {
       const pulse = 0.7 + 0.3 * Math.sin(tt * 2);
       const grd = g.createRadialGradient(cx, cy, 0, cx, cy, 20);
       grd.addColorStop(0, 'rgba(55, 194, 199,' + (0.9 * pulse).toFixed(2) + ')');
-      grd.addColorStop(1, 'rgba(55, 194, 199,0)');
+      grd.addColorStop(1, 'rgba(219, 20, 60, 0)');
       g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, 20, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#8ddddf'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = 'rgba(135, 219, 222,0.9)'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
+      g.fillStyle = '#f6d8e0'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255, 92, 118, 0.9)'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
       g.fillText('ASAGI', cx, cy + 3);
     }
     function run() { const ab = document.getElementById('grok'); if (ab && ab.classList.contains('open')) { if (!raf) { size(); draw(); } } else if (raf) { cancelAnimationFrame(raf); raf = null; } }
@@ -2259,8 +2259,8 @@ if ('serviceWorker' in navigator) {
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });
   window._asagiWall = wp;                 // el panel de personalización lo controla
   // Acento dinámico: la UI (pestañas, botones) sigue el color del fondo (Material You / Niagara).
-  const ACC = { cian: ['#37c2c7', 'rgba(55, 194, 199,.4)'], violeta: ['#e8c070', 'rgba(232, 192, 112,.4)'],
-    verde: ['#e43162', 'rgba(228, 49, 98,.4)'], rosa: ['#eb668b', 'rgba(235, 102, 139,.4)'], ambar: ['#fbbf24', 'rgba(251, 191, 36,.4)'] };
+  const ACC = { cian: ['#db143c', 'rgba(219, 20, 60, .4)'], violeta: ['#ffdb1b', 'rgba(255, 219, 27, .4)'],
+    verde: ['#e42449', 'rgba(228, 36, 73, .4)'], rosa: ['#f84e6b', 'rgba(248, 78, 107, .4)'], ambar: ['#ffd700', 'rgba(255, 215, 0, .4)'] };
   window._asagiAccento = function (t) {
     let key = t;
     if (t === 'auto') { const h = new Date().getHours(); key = h < 6 ? 'violeta' : h < 12 ? 'cian' : h < 18 ? 'verde' : h < 21 ? 'ambar' : 'rosa'; }
@@ -2337,8 +2337,8 @@ if ('serviceWorker' in navigator) {
   }
   window._asagiPedirVideo = pedirVideo;
   (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
-  const SW = { cian: '#37c2c7', violeta: '#e8c070', verde: '#e43162', rosa: '#eb668b', ambar: '#fbbf24',
-    auto: 'conic-gradient(from 0deg, #37c2c7, #e8c070, #e43162, #fbbf24, #eb668b, #37c2c7)' };
+  const SW = { cian: '#db143c', violeta: '#ffdb1b', verde: '#e42449', rosa: '#f84e6b', ambar: '#ffd700',
+    auto: 'conic-gradient(from 0deg, #db143c, #ffdb1b, #e42449, #ffd700, #f84e6b, #db143c)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'tinta', t: w ? w.getTema() : 'cian' }; }
   function pintar() {
     const c = cur();
@@ -2441,8 +2441,8 @@ if ('serviceWorker' in navigator) {
     // calidez: tinte cálido (naranja) o frío (azul)
     if (tint) {
       const c = cfg.calidez / 100;
-      if (c > 0) { tint.style.background = '#ff9838'; tint.style.opacity = (c * 0.9).toFixed(2); }
-      else if (c < 0) { tint.style.background = '#3ac4c9'; tint.style.opacity = (-c * 0.9).toFixed(2); }
+      if (c > 0) { tint.style.background = '#ffd700'; tint.style.opacity = (c * 0.9).toFixed(2); }
+      else if (c < 0) { tint.style.background = '#dd173e'; tint.style.opacity = (-c * 0.9).toFixed(2); }
       else { tint.style.opacity = 0; }
     }
     if (vig) vig.style.opacity = (cfg.vineta / 100).toFixed(2);
@@ -2642,7 +2642,7 @@ if ('serviceWorker' in navigator) {
     if (!iw || !ih) return null;
     const cv = document.createElement('canvas'); cv.width = TW; cv.height = TH;
     const g = cv.getContext('2d');
-    g.fillStyle = '#060c0e'; g.fillRect(0, 0, TW, TH);
+    g.fillStyle = '#0f060b'; g.fillRect(0, 0, TW, TH);
     const z = cfg.zoom / 100;
     let scale = cfg.ajuste === 'contain' ? Math.min(TW / iw, TH / ih) : Math.max(TW / iw, TH / ih);
     scale *= z;
@@ -2657,7 +2657,7 @@ if ('serviceWorker' in navigator) {
     const c = cfg.calidez / 100;
     if (c !== 0) { g.globalCompositeOperation = 'soft-light'; g.fillStyle = c > 0 ? 'rgba(255, 152, 56,' + (Math.abs(c) * 0.9) + ')' : 'rgba(58, 196, 201,' + (Math.abs(c) * 0.9) + ')'; g.fillRect(0, 0, TW, TH); g.globalCompositeOperation = 'source-over'; }
     // viñeta
-    if (cfg.vineta > 0) { const gr = g.createRadialGradient(TW / 2, TH / 2, Math.min(TW, TH) * 0.3, TW / 2, TH / 2, Math.max(TW, TH) * 0.72); gr.addColorStop(0, 'rgba(0, 0, 0,0)'); gr.addColorStop(1, 'rgba(0, 0, 0,' + (cfg.vineta / 100) + ')'); g.fillStyle = gr; g.fillRect(0, 0, TW, TH); }
+    if (cfg.vineta > 0) { const gr = g.createRadialGradient(TW / 2, TH / 2, Math.min(TW, TH) * 0.3, TW / 2, TH / 2, Math.max(TW, TH) * 0.72); gr.addColorStop(0, 'rgba(8, 4, 8, 0)'); gr.addColorStop(1, 'rgba(0, 0, 0,' + (cfg.vineta / 100) + ')'); g.fillStyle = gr; g.fillRect(0, 0, TW, TH); }
     return cv;
   }
   const btnExport = document.getElementById('wf-exportar');
@@ -2791,7 +2791,7 @@ if ('serviceWorker' in navigator) {
   const btn = document.getElementById('def-scan');
   const out = document.getElementById('def-resultado');
   if (!btn || !out) return;
-  const COLOR = { alto: '#f87171', medio: '#fbbf24', bajo: '#34d399' };
+  const COLOR = { alto: '#ff5c76', medio: '#ffd700', bajo: '#ffd700' };
   function esc(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
   btn.addEventListener('click', async () => {
     const c = C();

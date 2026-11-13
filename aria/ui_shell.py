@@ -33,14 +33,14 @@ try:
 except Exception:
     _QT = False
 
-CYAN = "#e5c064"
-VIOLETA = "#cfc7ff"
-TEAL = "#ec6da0"
-TXT = "#f3e1b5"
-VERDE = "#f4aeca"
+CYAN = "#ffd90d"
+VIOLETA = "#e6e5ed"
+TEAL = "#fb546f"
+TXT = "#ffe66a"
+VERDE = "#ff5c76"
 MONO = "Consolas"
 DISPLAY = "Georgia"
-PAPEL = "#efe9f7"      # texto de lectura (blanco lila)
+PAPEL = "#f0f0f8"      # texto de lectura (blanco lila)
 LILA = VIOLETA
 ROSA = TEAL
 
@@ -111,7 +111,7 @@ def _stats():
 
 
 if _QT:
-    _CARD = ("background:rgba(14, 16, 30,0.55); border:1px solid rgba(229, 192, 100,0.30);"
+    _CARD = ("background:rgba(24, 8, 15, 0.55); border:1px solid rgba(255, 217, 13, 0.30);"
              "border-radius:16px;")
 
     def _ventana_activa(w):
@@ -123,7 +123,7 @@ if _QT:
             return True
 
     class _Fondo(QWidget):
-        """Fondo vivo de ARIA (paleta fija: negro #080408, carmesí #DC143C, oro #FFD700, blanco #F0F0F8).
+        """Fondo vivo de ARIA (paleta fija: negro #080408, carmesí #dc143c, oro #ffd700, blanco #f0f0f8).
         'red'    : red neuronal — nodos que derivan, enlaces carmesí y pulsos de oro que viajan por ellos,
                    sobre una retícula de puntos y un haz de escaneo lento. Es lo que ARIA "piensa".
         'matrix' : lluvia de código (clásico), ahora en carmesí/oro.
@@ -260,12 +260,12 @@ if _QT:
                 b.fillRect(0, 0, W, H, QColor(*self.NEGRO, int(255 * self._osc)))
             else:
                 g = QLinearGradient(0, 0, 0, H)
-                g.setColorAt(0, QColor(14, 6, 10)); g.setColorAt(0.55, QColor(*self.NEGRO)); g.setColorAt(1, QColor(4, 2, 4))
+                g.setColorAt(0, QColor(15, 6, 11)); g.setColorAt(0.55, QColor(*self.NEGRO)); g.setColorAt(1, QColor(10, 5, 9))
                 b.fillRect(0, 0, W, H, g)
             # brasas: dos halos muy tenues (carmesí abajo-izq, oro arriba-der)
             for cx, cy, r, col in ((0.12, 0.92, 0.75, QColor(*self.CARMESI, 34)), (0.92, 0.04, 0.55, QColor(*self.ORO, 14))):
                 rg = QRadialGradient(W * cx, H * cy, W * r)
-                rg.setColorAt(0, col); rg.setColorAt(1, QColor(0, 0, 0, 0))
+                rg.setColorAt(0, col); rg.setColorAt(1, QColor(8, 4, 8, 0))
                 b.setPen(Qt.NoPen); b.setBrush(rg); b.drawRect(0, 0, W, H)
             # retícula de puntos (cada 28 px) — más moderno que las rayas
             b.setPen(QPen(QColor(*self.BLANCO, 22), 1.4))
@@ -278,7 +278,7 @@ if _QT:
                 b.drawLine(x0, y0, x0 + 16 * sx, y0); b.drawLine(x0, y0, x0, y0 + 16 * sy)
             # viñeta
             rg = QRadialGradient(W / 2, H / 2, max(W, H) * 0.75)
-            rg.setColorAt(0.5, QColor(0, 0, 0, 0)); rg.setColorAt(1, QColor(0, 0, 0, 170))
+            rg.setColorAt(0.5, QColor(8, 4, 8, 0)); rg.setColorAt(1, QColor(8, 4, 8, 170))
             b.setPen(Qt.NoPen); b.setBrush(rg); b.drawRect(0, 0, W, H)
             b.end()
             return px
@@ -411,7 +411,7 @@ if _QT:
             p.setPen(QColor(TXT)); f = QFont(MONO, 8); p.setFont(f)
             p.drawText(0, 0, 44, H, Qt.AlignVCenter, self._label)
             x = 48; bw = W - x
-            p.setBrush(QColor(255, 255, 255, 22)); p.setPen(Qt.NoPen)
+            p.setBrush(QColor(240, 240, 248, 22)); p.setPen(Qt.NoPen)
             p.drawRoundedRect(QRectF(x, H / 2 - 4, bw, 8), 4, 4)
             p.setBrush(self._color)
             p.drawRoundedRect(QRectF(x, H / 2 - 4, bw * self._v, 8), 4, 4)
@@ -446,11 +446,11 @@ if _QT:
             if self._cache is None or self._cache.size() != self.size():
                 px = QPixmap(W, H); px.fill(Qt.transparent)
                 b = QPainter(px)
-                b.setPen(QPen(QColor(0, 0, 0, 34), 1))
+                b.setPen(QPen(QColor(8, 4, 8, 34), 1))
                 for y in range(0, H, 3):
                     b.drawLine(0, y, W, y)
                 rg = QRadialGradient(W / 2, H / 2, max(W, H) * 0.75)
-                rg.setColorAt(0.6, QColor(0, 0, 0, 0)); rg.setColorAt(1.0, QColor(0, 0, 0, 120))
+                rg.setColorAt(0.6, QColor(8, 4, 8, 0)); rg.setColorAt(1.0, QColor(8, 4, 8, 120))
                 b.setPen(Qt.NoPen); b.setBrush(rg); b.drawRect(0, 0, W, H)
                 b.setBrush(Qt.NoBrush); b.setPen(QPen(QColor(220, 20, 60, 40), 1)); b.drawRect(0, 0, W - 1, H - 1)
                 b.end()
@@ -506,7 +506,7 @@ if _QT:
 
         def paintEvent(self, e):
             p = QPainter(self); p.setRenderHint(QPainter.Antialiasing)
-            p.fillRect(self.rect(), QColor(11, 13, 23))
+            p.fillRect(self.rect(), QColor(21, 7, 13))
             if self.modo == "rostro" and self._rostro is not None:
                 self._rostro.paint(p, QRectF(0, 0, self.width(), self.height()), self._t, self._estado)
             elif self._nucleo is not None:
@@ -550,16 +550,16 @@ if _QT:
             self._eff = QGraphicsDropShadowEffect(widget)
             self._eff.setBlurRadius(blur)
             self._eff.setOffset(0, 0)
-            self._eff.setColor(QColor(229, 192, 100, 0))
+            self._eff.setColor(QColor(255, 217, 13, 0))
             widget.setGraphicsEffect(self._eff)
             self._alpha = alpha
             widget.installEventFilter(self)
 
         def eventFilter(self, obj, ev):
             if ev.type() == QEvent.Enter:
-                self._eff.setColor(QColor(229, 192, 100, self._alpha))
+                self._eff.setColor(QColor(255, 217, 13, self._alpha))
             elif ev.type() == QEvent.Leave:
-                self._eff.setColor(QColor(229, 192, 100, 0))
+                self._eff.setColor(QColor(255, 217, 13, 0))
             return False
 
     def _tarjeta():
@@ -837,7 +837,7 @@ if _QT:
             pr = QLabel("root@aria:~#"); pr.setStyleSheet("color:%s;font:700 12px '%s';" % (TEAL, MONO))
             self.entrada = QLineEdit(); self.entrada.setPlaceholderText("escribe y Enter...")
             self.entrada.setStyleSheet(
-                "QLineEdit{background:rgba(5, 6, 11,0.7);border:1px solid rgba(229, 192, 100,0.5);"
+                "QLineEdit{background:rgba(14, 5, 11, 0.7);border:1px solid rgba(255, 217, 13, 0.5);"
                 "border-radius:10px;color:%s;font:12px '%s';padding:10px;}"
                 "QLineEdit:focus{border:1px solid %s;}" % (TXT, MONO, CYAN))
             self.entrada.returnPressed.connect(self._enviar)
@@ -864,9 +864,9 @@ if _QT:
             lay = QVBoxLayout(c); lay.setContentsMargins(12, 10, 12, 10); lay.setSpacing(6)
             self._btn_skills = QPushButton("SKILLS (%d)" % len(self.skills))
             self._btn_skills.setStyleSheet(
-                "QPushButton{background:rgba(229, 192, 100,40);color:%s;border:1px solid %s;"
+                "QPushButton{background:rgba(255, 217, 13, 40);color:%s;border:1px solid %s;"
                 "border-radius:8px;font:700 11px '%s';padding:6px;}"
-                "QPushButton:hover{background:rgba(229, 192, 100,70);}" % (CYAN, CYAN, MONO))
+                "QPushButton:hover{background:rgba(255, 217, 13, 70);}" % (CYAN, CYAN, MONO))
             self._btn_skills.clicked.connect(self._alternar_skills)
             lay.addWidget(self._btn_skills)
             self._scroll_skills = QScrollArea()
@@ -886,7 +886,7 @@ if _QT:
                 b.setStyleSheet(
                     "QPushButton{background:transparent;color:%s;border:0;text-align:left;"
                     "font:11px '%s';padding:3px 4px;}"
-                    "QPushButton:hover{background:rgba(244, 174, 202,40);color:%s;}" % (TXT, MONO, VERDE))
+                    "QPushButton:hover{background:rgba(255, 92, 118, 40);color:%s;}" % (TXT, MONO, VERDE))
                 b.clicked.connect(lambda _c=False, _s=sid: self._preparar_skill(_s))
                 vl.addWidget(b)
             vl.addStretch(1)
@@ -918,7 +918,7 @@ if _QT:
             top = QHBoxLayout()
             av = QLabel("✦"); av.setFixedSize(40, 40); av.setAlignment(Qt.AlignCenter)
             av.setStyleSheet("background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 %s,stop:1 %s);"
-                             "color:#0c0e19;border-radius:20px;font:700 20px '%s';" % (CYAN, VIOLETA, MONO))
+                             "color:#16070e;border-radius:20px;font:700 20px '%s';" % (CYAN, VIOLETA, MONO))
             nom = QVBoxLayout(); nom.setSpacing(0)
             n1 = QLabel("aria@raiden"); n1.setStyleSheet("color:%s;font:700 12px '%s';" % (TXT, MONO))
             n2 = QLabel("gran sabio · local"); n2.setStyleSheet("color:%s;font:9px '%s';" % (TEAL, MONO))
@@ -983,7 +983,7 @@ if _QT:
                         continue
                     lab = QLabel(str(dia)); lab.setAlignment(Qt.AlignCenter)
                     if dia == hoy.day:
-                        lab.setStyleSheet("background:%s;color:#0c0e19;border-radius:9px;"
+                        lab.setStyleSheet("background:%s;color:#16070e;border-radius:9px;"
                                           "font:700 10px '%s';padding:1px;" % (CYAN, MONO))
                     else:
                         lab.setStyleSheet("color:%s;font:10px '%s';" % (TXT, MONO))
@@ -1106,19 +1106,19 @@ if _QT:
                     txt, on = "CRT:%s" % ("ON" if val else "OFF"), bool(val)
                 else:
                     txt, on = "%s:%s" % (key.upper()[:4], "ON" if val else "OFF"), bool(val)
-                col = CYAN if on else "#5d6387"
+                col = CYAN if on else "#756e75"
                 b.setText(txt)
                 b.setStyleSheet(
                     "QPushButton{background:rgba(229, 192, 100,%d);color:%s;border:1px solid %s;"
                     "border-radius:9px;font:700 11px '%s';padding:6px 12px;}"
-                    "QPushButton:hover{background:rgba(229, 192, 100,60);}" % (40 if on else 16, col, col, MONO))
+                    "QPushButton:hover{background:rgba(255, 217, 13, 60);}" % (40 if on else 16, col, col, MONO))
 
         def _fmt(self, texto, quien="aria"):
             cuerpo = html.escape(str(texto)).replace("\n", "<br>")
             if quien == "user":
                 return ('<table width="100%%" cellspacing="0" cellpadding="0" style="margin:8px 0;"><tr>'
                         '<td width="22%%"></td><td align="right">'
-                        '<table cellspacing="0" cellpadding="9" style="background-color:#1a1626;border:1px solid %s;">'
+                        '<table cellspacing="0" cellpadding="9" style="background-color:#1e0a12;border:1px solid %s;">'
                         '<tr><td style="color:%s;font-family:\'%s\';font-size:13px;">%s</td></tr></table>'
                         '</td></tr></table>') % (CYAN, PAPEL, MONO, cuerpo)
             if quien == "sys":

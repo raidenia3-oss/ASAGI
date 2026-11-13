@@ -19,9 +19,9 @@ from PyQt5.QtWidgets import QWidget, QMenu, QApplication
 _DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _POS = os.path.join(_DIR, "data", "mascota.json")
 LADO = 150
-ORO = QColor(230, 195, 106)
-TINTA = QColor(7, 8, 15, 236)
-PAPEL = QColor(236, 232, 245)
+ORO = QColor(255, 218, 19)
+TINTA = QColor(16, 6, 12, 236)
+PAPEL = QColor(240, 240, 248)
 
 
 def _cargar_pos():
@@ -130,7 +130,7 @@ class Mascota(QWidget):
         # halo suave
         p.setPen(Qt.NoPen)
         for i, a in ((12, 18), (6, 28)):
-            p.setBrush(QColor(169, 155, 255, a))
+            p.setBrush(QColor(243, 229, 237, a))
             p.drawEllipse(cara.adjusted(i, i, -i, -i))
         if self._rostro is not None:
             path = QPainterPath(); path.addEllipse(cara.adjusted(10, 10, -10, -10))
@@ -148,7 +148,7 @@ class Mascota(QWidget):
             cola = QPainterPath(); cola.moveTo(r.right() - 2, r.bottom() - 18); cola.lineTo(r.right() + 10, r.bottom() - 6)
             cola.lineTo(r.right() - 2, r.bottom() - 6); cola.closeSubpath()
             path = path.united(cola)
-            p.setPen(QPen(QColor(230, 195, 106, 150), 1)); p.setBrush(TINTA); p.drawPath(path)
+            p.setPen(QPen(QColor(255, 218, 19, 150), 1)); p.setBrush(TINTA); p.drawPath(path)
             p.setPen(PAPEL); p.setFont(self._fuente())
             p.drawText(r.adjusted(14, 11, -14, -11), Qt.TextWordWrap, self._globo)
         p.end()
@@ -178,8 +178,8 @@ class Mascota(QWidget):
 
     def contextMenuEvent(self, e):
         m = QMenu(self)
-        m.setStyleSheet("QMenu{background:#0b0d18;color:#ece8f5;border:1px solid #e6c36a;font:10pt 'JetBrains Mono';}"
-                        "QMenu::item:selected{background:rgba(230,195,106,60);}")
+        m.setStyleSheet("QMenu{background:#15070e;color:#f0f0f8;border:1px solid #ffda13;font:10pt 'JetBrains Mono';}"
+                        "QMenu::item:selected{background:rgba(255, 218, 19, 60);}")
         a1 = m.addAction("Abrir ARIA")
         a2 = m.addAction("Callar")
         a3 = m.addAction("Ocultar mascota")

@@ -18,7 +18,7 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
 
     /** Color "noche" del tema: lo que se ve detrás de la barra de estado y de los botones del celular. */
-    private static final int NOCHE = 0xFF050B0D;
+    private static final int NOCHE = 0xFF080408;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

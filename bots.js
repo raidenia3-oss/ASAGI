@@ -9,22 +9,22 @@
 'use strict';
 
 const BOTS = [
-  { id: 'investigador', nombre: 'Investigador', color: '#38bdf8',
+  { id: 'investigador', nombre: 'Investigador', color: '#ed3758',
     clave: ['investiga', 'busca', 'averigua', 'reverse', 'rea', 'fuentes', 'compara'],
     rol: 'Eres un bot Investigador. Buscas, analizas y devuelves un playbook claro: hallazgos, tacticas a replicar y riesgos. Si no tienes datos, lo dices.' },
-  { id: 'vigia', nombre: 'Vigía', color: '#2dd4bf',
+  { id: 'vigia', nombre: 'Vigía', color: '#dd153d',
     clave: ['noticias', 'noticia', 'hoy', 'ultimo', 'actualidad', 'pasa'],
     rol: 'Eres un bot Vigía. Resumes lo relevante de hoy de forma neutral, sin opinar.' },
-  { id: 'programador', nombre: 'Programador', color: '#a78bfa',
+  { id: 'programador', nombre: 'Programador', color: '#f4dfe7',
     clave: ['codigo', 'code', 'script', 'funcion', 'bug', 'error', 'programa', 'python', 'js', 'java'],
     rol: 'Eres un bot Programador. Escribes y depuras codigo correcto y claro, explicando en pasos cortos.' },
-  { id: 'escritor', nombre: 'Escritor', color: '#f0abfc',
+  { id: 'escritor', nombre: 'Escritor', color: '#f2e9f1',
     clave: ['escribe', 'redacta', 'texto', 'mensaje', 'correo', 'post', 'carta'],
     rol: 'Eres un bot Escritor. Redactas textos claros en el tono pedido, sin relleno.' },
-  { id: 'analista', nombre: 'Analista', color: '#fbbf24',
+  { id: 'analista', nombre: 'Analista', color: '#ffd700',
     clave: ['analiza', 'datos', 'calcula', 'pros', 'contras', 'decidir', 'conviene', 'opciones'],
     rol: 'Eres un bot Analista. Estructuras el problema, comparas opciones y recomiendas con razones honestas.' },
-  { id: 'asistente', nombre: 'Asistente', color: '#34d399',
+  { id: 'asistente', nombre: 'Asistente', color: '#ffd700',
     clave: [],
     rol: 'Eres un bot Asistente general. Ayudas con lo que sea, directo y util.' },
 ];

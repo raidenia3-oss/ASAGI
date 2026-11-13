@@ -40,7 +40,7 @@ function filtrar(apps, q) {
 
 // Color de tile deterministico a partir de la etiqueta. Puro.
 function colorTile(label) {
-  const paleta = ['#38bdf8', '#2dd4bf', '#a78bfa', '#f0abfc', '#fbbf24', '#f87171', '#34d399', '#60a5fa'];
+  const paleta = ['#ed3758', '#dd153d', '#f4dfe7', '#f2e9f1', '#ffd700', '#ff5c76', '#ffd700', '#fb5470'];
   let h = 0;
   const s = label || '?';
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;

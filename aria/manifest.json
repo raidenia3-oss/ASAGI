@@ -89,8 +89,10 @@
    "sha256": "5f87e6bba4401271aadc86f96456dfbb56a543fc39aca638016a9dadfc7bd708"
   },
   "ui/mascota.py": {
-   "previos": [],
-   "sha256": "288441e0c82f53f3ca6d94ba15ca55e6e80f35ddb7c8c4636b5b70076589eaed"
+   "previos": [
+    "288441e0c82f53f3ca6d94ba15ca55e6e80f35ddb7c8c4636b5b70076589eaed"
+   ],
+   "sha256": "45f1a621a9edeefb35fbf96769ba19e90061d30c01e416e3703eed3c23a14cef"
   },
   "ui/rostro_aria.py": {
    "previos": [],
@@ -105,9 +107,10 @@
     "f3c61477090a0a4fd03a5273b416bb4a32ac86a519ce2020dd33730fe6422702",
     "6aba95d91b50d7ef80835c811262e0e2dee9f1d45d74acf89ac07fa40dff15c2",
     "6a3deb7df058bd5b2dfcd91cf43182bc5f7ca3869d8967829a162853ffd3c80e",
-    "228357a05cdc383f952fe34707559e397455e56a221e79119ba95ecb38512b98"
+    "228357a05cdc383f952fe34707559e397455e56a221e79119ba95ecb38512b98",
+    "49750588c760eb7ace1329ac1ef77047d5d9c81f1d1da920aa57b3372b0cb090"
    ],
-   "sha256": "49750588c760eb7ace1329ac1ef77047d5d9c81f1d1da920aa57b3372b0cb090"
+   "sha256": "604e28a3d42f2aea28b6abc53b0036d673db9fd4ab5c48dbdc04afab142c43af"
   },
   "voz_local.py": {
    "previos": [],

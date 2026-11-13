@@ -677,8 +677,18 @@ class LocalAIBrain:
                 self._model_loaded = False
                 print("[VA] Cerebro local fallo al cargar: %s" % exc, flush=True)
 
-        # Run synchronously to avoid race with PyQt5 UI thread
-        _bg()
+        # En segundo plano: antes se cargaba aquí mismo y ARIA no aparecía (o aparecía congelada)
+        # hasta terminar de leer ~1 GB de modelo. llama_cpp ya viene pre-importado desde aria_main,
+        # así que cargarlo en un hilo no choca con las DLL de PyQt5. chat() espera la carga si hace falta.
+        import threading as _th
+        self._carga_lista = _th.Event()
+
+        def _bg_y_avisar():
+            try:
+                _bg()
+            finally:
+                self._carga_lista.set()
+        _th.Thread(target=_bg_y_avisar, name="aria-carga-modelo", daemon=True).start()
 
         # Vigia del enlace ASAGI (daemon, cada 5 min). Nunca bloquea el arranque.
         try:
@@ -1183,6 +1193,9 @@ class LocalAIBrain:
                 return {"response": sk, "provider": "local", "source": "skill"}
 
         # 3. Cerebro local (llama.cpp) en formato chat (ChatML)
+        ev = getattr(self, "_carga_lista", None)
+        if not self._model_loaded and ev is not None and not ev.is_set():
+            ev.wait(120)            # el modelo aún carga: esperar (corre en el hilo del chat, no congela la ventana)
         if self._model_loaded:
             if self._es_pedido_codigo(msg):
                 cod = self._programar(msg)

@@ -69,6 +69,14 @@ _DIR = os.path.dirname(os.path.abspath(__file__))
 _CFG = os.path.join(_DIR, "data", "fondo.json")
 
 
+def _hora12(segundos=False):
+    """Reloj de 12 h (1-12) con a. m. / p. m."""
+    t = time.localtime()
+    h = t.tm_hour % 12 or 12
+    base = "%d:%02d" % (h, t.tm_min) + (":%02d" % t.tm_sec if segundos else "")
+    return base + (" a. m." if t.tm_hour < 12 else " p. m.")
+
+
 def _cfg_fondo():
     try:
         return json.load(open(_CFG, encoding="utf-8"))
@@ -106,29 +114,45 @@ if _QT:
     _CARD = ("background:rgba(14, 16, 30,0.55); border:1px solid rgba(229, 192, 100,0.30);"
              "border-radius:16px;")
 
+    def _ventana_activa(w):
+        """Solo animar si la ventana se ve: oculta, minimizada o en la bandeja = 0 CPU."""
+        try:
+            win = w.window()
+            return win.isVisible() and not win.isMinimized()
+        except Exception:
+            return True
+
     class _Fondo(QWidget):
-        """Fondo rice ANIMADO: wallpaper (ken-burns) + glow que deriva + montanas.
-        Modo 'matrix': lluvia de katakana ASCII con estela (idea de ascii-magic)."""
-        KATAKANA = list("ｱｶｻﾀﾅﾊﾏﾔﾗｦﾂﾇﾍﾐﾓﾜ0123456789:.=*+-<>¦|ç")
+        """Fondo vivo de ARIA (paleta fija: negro #080408, carmesí #DC143C, oro #FFD700, blanco #F0F0F8).
+        'red'    : red neuronal — nodos que derivan, enlaces carmesí y pulsos de oro que viajan por ellos,
+                   sobre una retícula de puntos y un haz de escaneo lento. Es lo que ARIA "piensa".
+        'matrix' : lluvia de código (clásico), ahora en carmesí/oro.
+        Rendimiento: todo lo fijo (degradado, retícula, viñeta, scanlines) se pinta UNA vez en caché;
+        por cuadro solo se dibujan ~40 nodos. 15 fps, y 0 fps si la ventana no se ve."""
+        KATAKANA = list("ｱｶｻﾀﾅﾊﾏﾔﾗｦﾂﾇﾍﾐﾓﾜ0123456789:.=*+-<>¦|")
+        NEGRO, CARMESI, ORO, BLANCO = (8, 4, 8), (220, 20, 60), (255, 215, 0), (240, 240, 248)
+        FPS = 15
 
         def __init__(self, parent=None):
             super().__init__(parent)
+            self.setAttribute(Qt.WA_OpaquePaintEvent, True)
             self._t = 0.0
             self._drag = None
-            self._modo = "rice"
-            self._buf = None
-            self._fs = 0
-            self._cols = []
+            self._modo = "red"
+            self._buf = None; self._fs = 0; self._cols = []
+            self._base = None          # caché de la capa fija
+            self._nodos = []
+            self._pulsos = []
             cfg = _cfg_fondo()
             self._anim = bool(cfg.get("animaciones", True))
-            self._osc = float(cfg.get("oscurecer", 0.5))
+            self._osc = float(cfg.get("oscurecer", 0.55))
             self._wall = None
             self.set_wallpaper(cfg.get("wallpaper", ""))
             self._timer = QTimer(self); self._timer.timeout.connect(self._tick)
-            self._timer.start(33 if self._anim else 1000)
+            self._timer.start(int(1000 / self.FPS) if self._anim else 1000)
 
         def set_modo(self, modo):
-            self._modo = modo if modo in ("rice", "matrix") else "rice"
+            self._modo = "matrix" if modo == "matrix" else "red"
             self._buf = None; self._cols = []
             self.update()
             return self._modo
@@ -140,10 +164,18 @@ if _QT:
                 if os.path.isfile(r):
                     px = QPixmap(r)
                     self._wall = px if not px.isNull() else None
+            self._base = None
             self.update(); return self._wall is not None
 
         def _tick(self):
-            self._t += 0.016; self.update()
+            if not _ventana_activa(self):
+                return
+            self._t += 1.0 / self.FPS
+            self.update()
+
+        def resizeEvent(self, e):
+            self._base = None; self._buf = None
+            super().resizeEvent(e)
 
         def mousePressEvent(self, e):
             if e.button() == Qt.LeftButton:
@@ -156,89 +188,128 @@ if _QT:
         def mouseReleaseEvent(self, e):
             self._drag = None
 
-        def paintEvent(self, e):
-            p = QPainter(self); p.setRenderHint(QPainter.Antialiasing)
-            W, H = self.width(), self.height(); t = self._t
-            if self._modo == "matrix":
-                self._matrix(p, W, H)
-                p.end(); return
+        # ---- capa fija (se pinta solo al cambiar tamaño) ----
+        def _capa_fija(self, W, H):
+            px = QPixmap(W, H)
+            b = QPainter(px); b.setRenderHint(QPainter.Antialiasing)
             if self._wall is not None:
-                self._wallpaper(p, W, H, t)
+                esc = self._wall.scaled(W, H, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
+                b.drawPixmap(int((W - esc.width()) / 2), int((H - esc.height()) / 2), esc)
+                b.fillRect(0, 0, W, H, QColor(*self.NEGRO, int(255 * self._osc)))
             else:
-                g = QLinearGradient(0, 0, W, H)
-                g.setColorAt(0, QColor(18, 20, 36)); g.setColorAt(0.5, QColor(12, 13, 24))
-                g.setColorAt(1, QColor(7, 8, 16)); p.fillRect(0, 0, W, H, g)
-            d = 20 if self._anim else 0
-            for i, (bx, by, rad, col) in enumerate((
-                    (0.16, 0.18, 0.42, QColor(229, 192, 100, 55)),
-                    (0.86, 0.14, 0.38, QColor(207, 199, 255, 55)),
-                    (0.68, 0.9, 0.5, QColor(236, 109, 160, 38)))):
-                cx = W * bx + math.sin(t * 0.3 + i) * d
-                cy = H * by + math.cos(t * 0.25 + i) * d
-                rg = QRadialGradient(cx, cy, W * rad)
+                g = QLinearGradient(0, 0, 0, H)
+                g.setColorAt(0, QColor(14, 6, 10)); g.setColorAt(0.55, QColor(*self.NEGRO)); g.setColorAt(1, QColor(4, 2, 4))
+                b.fillRect(0, 0, W, H, g)
+            # brasas: dos halos muy tenues (carmesí abajo-izq, oro arriba-der)
+            for cx, cy, r, col in ((0.12, 0.92, 0.75, QColor(*self.CARMESI, 34)), (0.92, 0.04, 0.55, QColor(*self.ORO, 14))):
+                rg = QRadialGradient(W * cx, H * cy, W * r)
                 rg.setColorAt(0, col); rg.setColorAt(1, QColor(0, 0, 0, 0))
-                p.setBrush(rg); p.setPen(Qt.NoPen)
-                p.drawEllipse(QPointF(cx, cy), W * rad, W * rad)
-            self._montanas(p, W, H, math.sin(t * 0.2) * 12 if self._anim else 0)
-            p.setPen(QPen(QColor(229, 192, 100, 6), 1))
-            for y in range(0, H, 3):
-                p.drawLine(0, y, W, y)
+                b.setPen(Qt.NoPen); b.setBrush(rg); b.drawRect(0, 0, W, H)
+            # retícula de puntos (cada 28 px) — más moderno que las rayas
+            b.setPen(QPen(QColor(*self.BLANCO, 22), 1.4))
+            for y in range(14, H, 28):
+                for x in range(14, W, 28):
+                    b.drawPoint(x, y)
+            # cruces de mira en las esquinas
+            b.setPen(QPen(QColor(*self.ORO, 70), 1))
+            for x0, y0, sx, sy in ((14, 14, 1, 1), (W - 15, 14, -1, 1), (14, H - 15, 1, -1), (W - 15, H - 15, -1, -1)):
+                b.drawLine(x0, y0, x0 + 16 * sx, y0); b.drawLine(x0, y0, x0, y0 + 16 * sy)
+            # viñeta
+            rg = QRadialGradient(W / 2, H / 2, max(W, H) * 0.75)
+            rg.setColorAt(0.5, QColor(0, 0, 0, 0)); rg.setColorAt(1, QColor(0, 0, 0, 170))
+            b.setPen(Qt.NoPen); b.setBrush(rg); b.drawRect(0, 0, W, H)
+            b.end()
+            return px
+
+        def paintEvent(self, e):
+            W, H = self.width(), self.height()
+            if W <= 0 or H <= 0:
+                return
+            p = QPainter(self)
+            if self._modo == "matrix":
+                self._matrix(p, W, H); p.end(); return
+            if self._base is None or self._base.size() != self.size():
+                self._base = self._capa_fija(W, H)
+            p.drawPixmap(0, 0, self._base)
+            p.setRenderHint(QPainter.Antialiasing)
+            self._red(p, W, H)
             p.end()
 
-        def _wallpaper(self, p, W, H, t):
-            zoom = 1.06 + (0.03 * math.sin(t * 0.15) if self._anim else 0)
-            esc = self._wall.scaled(int(W * zoom), int(H * zoom),
-                                    Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
-            px = (W - esc.width()) / 2 + (math.sin(t * 0.1) * 14 if self._anim else 0)
-            py = (H - esc.height()) / 2
-            p.drawPixmap(int(px), int(py), esc)
-            p.fillRect(0, 0, W, H, QColor(8, 10, 18, int(255 * self._osc)))
+        # ---- red neuronal ----
+        def _red(self, p, W, H):
+            import random as _r
+            n = max(30, min(70, (W * H) // 10000))
+            if len(self._nodos) != n:
+                self._nodos = [[_r.uniform(0, W), _r.uniform(0, H), _r.uniform(-9, 9), _r.uniform(-9, 9), _r.random()] for _ in range(n)]
+                self._pulsos = []
+            dt = 1.0 / self.FPS if self._anim else 0
+            for nd in self._nodos:
+                nd[0] += nd[2] * dt; nd[1] += nd[3] * dt
+                if nd[0] < -20 or nd[0] > W + 20: nd[2] = -nd[2]
+                if nd[1] < -20 or nd[1] > H + 20: nd[3] = -nd[3]
+            lim = 165.0; lim2 = lim * lim
+            enlaces = []
+            for i in range(n):
+                a = self._nodos[i]
+                for j in range(i + 1, n):
+                    c = self._nodos[j]
+                    dx = a[0] - c[0]; dy = a[1] - c[1]; d2 = dx * dx + dy * dy
+                    if d2 < lim2:
+                        f = 1.0 - (d2 ** 0.5) / lim
+                        p.setPen(QPen(QColor(*self.CARMESI, int(150 * f * f + 20 * f)), 1))
+                        p.drawLine(QPointF(a[0], a[1]), QPointF(c[0], c[1]))
+                        enlaces.append((i, j))
+            # pulsos de oro: viajan por un enlace (una "idea" pasando de nodo a nodo)
+            if enlaces and len(self._pulsos) < 4 and _r.random() < 0.12:
+                self._pulsos.append([_r.choice(enlaces), 0.0])
+            vivos = []
+            for (i, j), k in self._pulsos:
+                if i < n and j < n:
+                    a, c = self._nodos[i], self._nodos[j]
+                    x = a[0] + (c[0] - a[0]) * k; y = a[1] + (c[1] - a[1]) * k
+                    rg = QRadialGradient(x, y, 9)
+                    rg.setColorAt(0, QColor(*self.ORO, 230)); rg.setColorAt(1, QColor(*self.ORO, 0))
+                    p.setPen(Qt.NoPen); p.setBrush(rg); p.drawEllipse(QPointF(x, y), 9, 9)
+                    if k + 0.08 < 1:
+                        vivos.append([(i, j), k + 0.08])
+            self._pulsos = vivos
+            # nodos: los "brillantes" respiran
+            p.setPen(Qt.NoPen)
+            for nd in self._nodos:
+                br = 0.5 + 0.5 * math.sin(self._t * 1.6 + nd[4] * 6.28)
+                if nd[4] > 0.82:
+                    p.setBrush(QColor(*self.BLANCO, int(120 + 100 * br))); p.drawEllipse(QPointF(nd[0], nd[1]), 2.4, 2.4)
+                else:
+                    p.setBrush(QColor(*self.CARMESI, int(110 + 80 * br))); p.drawEllipse(QPointF(nd[0], nd[1]), 1.7, 1.7)
+            # haz de escaneo: una línea fina de oro que baja despacio
+            y = (self._t * 38) % (H + 120) - 60
+            g = QLinearGradient(0, y - 40, 0, y)
+            g.setColorAt(0, QColor(*self.ORO, 0)); g.setColorAt(1, QColor(*self.ORO, 9))
+            p.fillRect(QRectF(0, y - 40, W, 40), g)
+            p.setPen(QPen(QColor(*self.ORO, 32), 1)); p.drawLine(QPointF(0, y), QPointF(W, y))
 
         def _matrix(self, p, W, H):
-            """Lluvia ASCII: buffer persistente + velo oscuro = estela real."""
+            """Lluvia de código con estela (buffer persistente + velo)."""
             import random as _r
-            fs = max(12, int(W / 34))
+            fs = max(13, int(W / 40))
             if (self._buf is None or self._buf.width() != W or self._buf.height() != H
                     or self._fs != fs or not self._cols):
                 self._fs = fs
-                self._buf = QPixmap(W, H)
-                self._buf.fill(QColor(2, 2, 4))
-                n = max(1, W // fs)
-                self._cols = [{"y": _r.uniform(-H, 0), "v": _r.uniform(5, 16)} for _ in range(n)]
+                self._buf = QPixmap(W, H); self._buf.fill(QColor(*self.NEGRO))
+                self._cols = [{"y": _r.uniform(-H, 0), "v": _r.uniform(8, 22)} for _ in range(max(1, W // fs))]
             b = QPainter(self._buf)
-            b.fillRect(0, 0, W, H, QColor(3, 3, 5, 24))          # velo -> estela
-            f = QFont("MS Gothic"); f.setPixelSize(fs); f.setBold(True)
-            b.setFont(f)
-            paso = 1.9
+            b.fillRect(0, 0, W, H, QColor(*self.NEGRO, 40))
+            f = QFont("Consolas"); f.setPixelSize(fs); b.setFont(f)
             for i, c in enumerate(self._cols):
-                x = i * fs
                 if c["y"] > 0:
                     ch = _r.choice(self.KATAKANA)
-                    b.setPen(QColor(250, 216, 230, 240))
-                    b.drawText(int(x), int(c["y"]), ch)
-                    b.setPen(QColor(240, 137, 178, 130))
-                    b.drawText(int(x), int(c["y"] - fs), ch)
-                c["y"] += c["v"] * paso
+                    b.setPen(QColor(*self.BLANCO, 230)); b.drawText(int(i * fs), int(c["y"]), ch)
+                    b.setPen(QColor(*self.CARMESI, 170)); b.drawText(int(i * fs), int(c["y"] - fs), ch)
+                c["y"] += c["v"]
                 if c["y"] > H + _r.uniform(0, H * 0.7):
-                    c["y"] = -_r.uniform(0, H * 0.4)
-                    c["v"] = _r.uniform(5, 16)
+                    c["y"] = -_r.uniform(0, H * 0.4); c["v"] = _r.uniform(8, 22)
             b.end()
             p.drawPixmap(0, 0, self._buf)
-            rg = QRadialGradient(W / 2, H / 2, max(W, H) * 0.7)
-            rg.setColorAt(0.4, QColor(0, 0, 0, 0)); rg.setColorAt(1, QColor(1, 1, 3, 170))
-            p.setPen(Qt.NoPen); p.setBrush(rg); p.drawRect(0, 0, W, H)
-
-        def _montanas(self, p, W, H, off):
-            base = H * 0.82
-            for y0, col, picos, alt in ((base, QColor(229, 192, 100, 22), 7, 70),
-                                        (base + 28, QColor(207, 199, 255, 22), 5, 120),
-                                        (base + 60, QColor(16, 18, 34, 200), 4, 160)):
-                poly = QPolygonF(); poly.append(QPointF(0, H))
-                for i in range(picos + 1):
-                    x = W * i / picos + off * (1 - (y0 - base) / 100.0)
-                    poly.append(QPointF(x, y0 - abs(math.sin(i * 1.7 + y0)) * alt))
-                poly.append(QPointF(W, H))
-                p.setBrush(QBrush(col)); p.setPen(Qt.NoPen); p.drawPolygon(poly)
 
     # ---------------- widgets de sistema (barras pintadas) ----------------
     class _Barra(QWidget):
@@ -259,61 +330,45 @@ if _QT:
             p.end()
 
     class _CRT(QWidget):
-        """Overlay CRT sobre toda la ventana: scanlines, viñeta, glitch y flicker de
-        fosforo. WA_TransparentForMouseEvents: no se come ningun clic."""
+        """Acabado de pantalla sobre toda la ventana: scanlines finas + viñeta. ESTÁTICO y en caché:
+        antes repintaba toda la ventana 25 veces por segundo (y con ella cada tarjeta de abajo)."""
         def __init__(self, parent=None):
             super().__init__(parent)
             self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
             self.setAttribute(Qt.WA_NoSystemBackground, True)
             self.setAttribute(Qt.WA_TranslucentBackground, True)
             self._activo = True
-            self._t = 0.0
-            self._timer = QTimer(self); self._timer.timeout.connect(self._tick)
-            self._timer.start(40)
+            self._cache = None
 
         def set_activo(self, v):
             self._activo = bool(v)
             self.update()
             return self._activo
 
-        def _tick(self):
-            if not self._activo:
-                return
-            self._t += 0.04
-            self.update()
+        def resizeEvent(self, e):
+            self._cache = None
+            super().resizeEvent(e)
 
         def paintEvent(self, e):
             if not self._activo:
                 return
-            import random as _r
-            p = QPainter(self)
             W, H = self.width(), self.height()
             if W <= 0 or H <= 0:
-                p.end(); return
-            # 1) scanlines
-            p.setPen(QPen(QColor(0, 0, 0, 58), 1))
-            for y in range(0, H, 3):
-                p.drawLine(0, y, W, y)
-            # 2) flicker de fosforo (muy sutil, no epiléptico)
-            flick = 5 + 4 * math.sin(self._t * 6.0) * math.sin(self._t * 2.3)
-            p.fillRect(0, 0, W, H, QColor(244, 171, 200, int(max(0.0, flick))))
-            # 3) glitch ocasional: bandas de color
-            if _r.random() < 0.06:
-                for _ in range(_r.randint(1, 3)):
-                    y = _r.randint(0, max(0, H - 20)); h = _r.randint(2, 10)
-                    col = (QColor(229, 192, 100, _r.randint(18, 46)) if _r.random() < 0.5
-                           else QColor(241, 150, 187, _r.randint(14, 34)))
-                    p.fillRect(0, y, W, h, col)
-                    p.fillRect(_r.randint(0, 40), y, W, 1, QColor(255, 255, 255, 26))
-            # 4) viñeta: esquinas oscuras (sensacion de tubo)
-            rg = QRadialGradient(W / 2, H / 2, max(W, H) * 0.72)
-            rg.setColorAt(0.55, QColor(0, 0, 0, 0))
-            rg.setColorAt(1.0, QColor(0, 0, 0, 195))
-            p.setPen(Qt.NoPen); p.setBrush(rg); p.drawRect(0, 0, W, H)
-            # 5) aberracion cromatica barata en el filo
-            p.setBrush(Qt.NoBrush)
-            p.setPen(QPen(QColor(236, 108, 159, 14), 1)); p.drawRect(1, 1, W - 2, H - 2)
-            p.setPen(QPen(QColor(236, 108, 159, 10), 1)); p.drawRect(2, 2, W - 4, H - 4)
+                return
+            if self._cache is None or self._cache.size() != self.size():
+                px = QPixmap(W, H); px.fill(Qt.transparent)
+                b = QPainter(px)
+                b.setPen(QPen(QColor(0, 0, 0, 34), 1))
+                for y in range(0, H, 3):
+                    b.drawLine(0, y, W, y)
+                rg = QRadialGradient(W / 2, H / 2, max(W, H) * 0.75)
+                rg.setColorAt(0.6, QColor(0, 0, 0, 0)); rg.setColorAt(1.0, QColor(0, 0, 0, 120))
+                b.setPen(Qt.NoPen); b.setBrush(rg); b.drawRect(0, 0, W, H)
+                b.setBrush(Qt.NoBrush); b.setPen(QPen(QColor(220, 20, 60, 40), 1)); b.drawRect(0, 0, W - 1, H - 1)
+                b.end()
+                self._cache = px
+            p = QPainter(self)
+            p.drawPixmap(e.rect(), self._cache, e.rect())   # solo la zona que Qt pide
             p.end()
 
     class _OrbMini(QWidget):
@@ -356,7 +411,7 @@ if _QT:
                     QTimer.singleShot(int(durante), lambda: self._estado == estado and self.set_estado("reposo"))
 
         def _tick(self):
-            if not self.isVisible():
+            if not self.isVisible() or not _ventana_activa(self):
                 return
             self._t += 0.03
             self.update()
@@ -479,7 +534,7 @@ if _QT:
                 _estado["cuerpo"] = "rostro"; _estado["rostro_v1"] = True
                 _guardar_estado(_estado)
             self.toggles = {"autonomia": False, "cuerpo": _estado.get("cuerpo") or "rostro",
-                            "voz": bool(_estado.get("voz")), "fondo": _estado.get("fondo") or "rice",
+                            "voz": bool(_estado.get("voz")), "fondo": "matrix" if _estado.get("fondo") == "matrix" else "red",
                             "crt": _estado.get("crt") is not False, "mascota": bool(_estado.get("mascota"))}
             self._hist = []
             self._es_chat = False
@@ -559,11 +614,7 @@ if _QT:
             super().showEvent(e)
             if not getattr(self, "_blur_ok", False):
                 self._blur_ok = True
-                try:
-                    import pywinstyles           # blur nativo de Windows (opcional, liviano)
-                    pywinstyles.apply_style(self, "acrylic")
-                except Exception:
-                    pass
+                pass   # sin acrylic: el fondo es opaco y el blur de Windows solo agregaba lag
 
         def closeEvent(self, e):
             """Cerrar la ventana NO cierra ARIA: la manda a la bandeja.
@@ -816,7 +867,7 @@ if _QT:
                 self._linea("autonomia desactivada (regla v2)", "sys")
             elif key == "fondo":
                 self.toggles["fondo"] = self._fondo.set_modo(
-                    "matrix" if self.toggles["fondo"] == "rice" else "rice")
+                    "red" if self.toggles["fondo"] == "matrix" else "matrix")
                 self._linea("fondo -> %s" % self.toggles["fondo"], "sys")
             elif key == "crt":
                 self.toggles["crt"] = self._crt.set_activo(not self.toggles["crt"])
@@ -1309,10 +1360,11 @@ if _QT:
 
         def _reloj(self):
             def tick():
-                self._lbl_rel.setText(time.strftime("%H:%M:%S"))
+                self._lbl_rel.setText(_hora12(True))
                 cpu, ram = _stats()
                 self._lbl_sys.setText("CPU %2.0f%%  RAM %2.0f%%" % (cpu, ram))
-                self._reloj_big.setText(time.strftime("%H:%M"))
+                _h = _hora12(False).split(" ", 1)
+                self._reloj_big.setText("%s<span style='font-size:16px;letter-spacing:2px;'> %s</span>" % (_h[0], _h[1]))
                 _lt = time.localtime()
                 self._fecha_big.setText("%s · %d %s" % (("LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO", "DOMINGO")[_lt.tm_wday], _lt.tm_mday, ("ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC")[_lt.tm_mon - 1]))
                 self._bcpu.set_v(cpu / 100.0); self._bram.set_v(ram / 100.0)

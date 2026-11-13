@@ -852,6 +852,21 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Tu correo (lo revisa ARIA en la PC; aquí llega solo el resumen y los pendientes, por WiFi).
+  {
+    const nc = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.!?¿¡]/g, '').trim();
+    if (/^(?:revisa|lee|resume|que hay en|que llego a) (?:mi |el )?(?:correo|gmail|email|mail)(?: de hoy)?$|^(?:mi correo|correos nuevos|tengo correos)$/.test(nc)) {
+      if (window._asagiCorreo) window._asagiCorreo(false); else appendMessage('bot', 'No encuentro el enlace con ARIA.');
+      return;
+    }
+    if (/^(?:anota|agrega|pasa) (?:los )?pendientes del correo$/.test(nc)) {
+      const u = window._asagiCorreoUlt;
+      if (!u || !(u.pendientes || []).length) { appendMessage('bot', 'No tengo pendientes del correo. Di «revisa mi correo».'); return; }
+      const hechos = u.pendientes.map((p) => window._asagiAddPendiente && window._asagiAddPendiente('recuérdame ' + p)).filter(Boolean);
+      appendMessage('bot', '📌 Anoté ' + hechos.length + ' pendiente(s) del correo.'); return;
+    }
+  }
+
   // Tu fondo de pantalla: «fondo», «pon mi fondo», «cambiar fondo», «quitar fondo», «editar fondo».
   {
     const nf = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.!?¿¡]/g, '').trim();
@@ -1133,8 +1148,24 @@ renderBrainControls();
     vistos[a.tipo] = a.hoy; try { localStorage.setItem('asagi-avisos-vistos', JSON.stringify(vistos)); } catch (x) {}
     if (msg) appendMessage('bot', msg);
     if (abriendoChat && window._asagiTacticaDelDia) window._asagiTacticaDelDia();
+    if (abriendoChat && window._asagiCorreo) window._asagiCorreo(true);
   }
   window._asagiProactivo = proactivo;
+  // Correo: ARIA lo revisa en la PC; ASAGI pide el último resumen. Solo muestra lo NUEVO.
+  window._asagiCorreo = async function (silencioso) {
+    const cli = window._asagiLan;
+    if (!cli) { if (!silencioso) appendMessage('bot', '📬 Necesito el enlace con ARIA por WiFi para ver tu correo.'); return; }
+    let r = null; try { r = await cli.enviar({ t: 'correo' }); } catch (e) {}
+    const u = r && r.ok && r.resp && r.resp.correo;
+    if (!u) { if (!silencioso) appendMessage('bot', '📬 ARIA aún no revisó tu correo. En la PC dile «conecta gmail».'); return; }
+    window._asagiCorreoUlt = u;
+    let visto = 0; try { visto = Number(localStorage.getItem('asagi-correo-visto') || 0); } catch (e) {}
+    if (silencioso && u.ts <= visto) return;
+    try { localStorage.setItem('asagi-correo-visto', String(u.ts)); } catch (e) {}
+    const hace = Math.max(1, Math.round((Date.now() / 1000 - u.ts) / 60));
+    appendMessage('bot', u.texto + '\n(ARIA lo revisó hace ' + (hace < 60 ? hace + ' min' : Math.round(hace / 60) + ' h') + ')' +
+      ((u.pendientes || []).length ? '\n¿Los anoto? Di «anota pendientes del correo».' : ''));
+  };
   setTimeout(() => proactivo(false), 8000); setInterval(() => proactivo(false), 30 * 60000);
   setTimeout(() => compartir(true), 20000); setInterval(() => compartir(false), 120000);
 

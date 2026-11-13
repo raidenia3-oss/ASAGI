@@ -855,6 +855,13 @@ class LocalAIBrain:
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
                 return {"ok": False}
+            if c.get("t") == "correo":           # ASAGI pide el último resumen del correo (nunca correos completos)
+                try:
+                    import correo as _co
+                    u = _co.ultimo()
+                    return {"ok": True, "correo": u} if u else {"ok": True, "correo": None}
+                except Exception:
+                    return {"ok": False}
             if c.get("t") == "personajes":       # ASAGI pide los personajes que ARIA aprendió
                 try:
                     import personajes as _pj

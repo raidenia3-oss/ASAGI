@@ -646,6 +646,8 @@ if _QT:
             self._crt.set_activo(self.toggles["crt"])
             QTimer.singleShot(2500, self._iniciar_bots)
             QTimer.singleShot(9000, self._auto_actualizar)
+            QTimer.singleShot(60000, self._correo_auto)
+            self._correo_t = QTimer(self); self._correo_t.timeout.connect(self._correo_auto); self._correo_t.start(3 * 3600 * 1000)
             self._actu_t = QTimer(self); self._actu_t.timeout.connect(self._auto_actualizar); self._actu_t.start(6 * 3600 * 1000)
             if self.toggles.get("mascota"):
                 QTimer.singleShot(1200, lambda: self._mascota_visible(True))
@@ -773,6 +775,82 @@ if _QT:
                 self._linea(("Tengo tu imagen en estilo «%s» (luz %d%%, color %d%%, velo %d%%)." % (
                     self._fondo._estilo, inf["lum"] * 100, inf["sat"] * 100, inf.get("velo", 0) * 100)) if inf
                     else "Uso mi fondo propio (%s). Escribe «fondo» para poner el tuyo." % self.toggles["fondo"], "aria")
+            return True
+
+        # ---- Gmail (correo.py): API (C) -> IMAP (B) -> web (A) ----
+        def _correo_hilo(self, fn, prefijo="📬 "):
+            import threading as _th
+
+            def _h():
+                try:
+                    txt = fn()
+                except Exception as exc:
+                    txt = "No pude con el correo: %s" % exc
+                cola = getattr(self, "_bots_cola", None)
+                if cola is not None and txt:
+                    cola.put(txt if txt[:2] in ("📬", "🔒") else prefijo + txt)
+            _th.Thread(target=_h, daemon=True).start()
+
+        def _correo_revisar(self, silencioso=False):
+            import correo as _co
+            pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
+
+            def fn():
+                r = _co.revisar(pensar=pensar)
+                if r.get("status") != "ok":
+                    return None if silencioso else r["texto"]
+                _co.guardar_ultimo(r)
+                if silencioso:   # automático: solo avisa si hay algo de personas o pendientes nuevos
+                    clave = "|".join(r.get("pendientes") or []) + str(r.get("n"))
+                    if clave == getattr(self, "_correo_ult", None) or not (r.get("pendientes") or r.get("contactos")):
+                        return None
+                    self._correo_ult = clave
+                extra = ("\n📝 Pendientes: " + " · ".join(r["pendientes"][:5])) if r.get("pendientes") and "Pendientes" not in r["texto"] else ""
+                return r["texto"] + extra + "\n(vía %s)" % r.get("via")
+            self._correo_hilo(fn)
+
+        def _correo_auto(self):
+            try:
+                import correo as _co
+                m = _co.metodos()
+                if m["api"] or m["imap"]:
+                    self._correo_revisar(silencioso=True)
+            except Exception:
+                pass
+
+        def _cmd_correo(self, t):
+            try:
+                import correo as _co
+            except Exception:
+                return False
+            acc = _co.manejar(t)
+            if not acc:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if acc == "revisar":
+                self._linea("Reviso tu correo…", "sys"); self._correo_revisar()
+            elif acc == "api":
+                if not _co.cliente():
+                    self._linea(_co.PASOS_CLIENTE, "aria"); return True
+                self._linea("Te abro Google: toca «Permitir» (solo lectura). Vuelvo cuando llegue el permiso.", "aria")
+                self._correo_hilo(lambda: _co.conectar_api()["texto"])
+            elif acc == "imap":
+                from PyQt5.QtWidgets import QInputDialog, QLineEdit
+                mail, ok = QInputDialog.getText(self, "Gmail IMAP", "Tu correo de Gmail:")
+                if not ok or not mail.strip():
+                    self._linea("Cancelado.", "sys"); return True
+                pw, ok = QInputDialog.getText(self, "Gmail IMAP", "Contraseña de aplicación (16 letras; no se muestra):",
+                                              QLineEdit.Password)
+                if not ok or not pw.strip():
+                    self._linea("Cancelado.", "sys"); return True
+                self._linea(_co.guardar_imap(mail, pw)["texto"] + " Probando…", "aria")
+                pw = None
+                self._correo_revisar()
+            else:
+                m = _co.metodos(); u = _co.ultimo()
+                self._linea("Correo · API: %s · IMAP: %s · web: usa la sesión de Google del perfil de ARIA.%s" % (
+                    "sí" if m["api"] else "no", "sí" if m["imap"] else "no",
+                    ("\nÚltima revisión: %d correos." % u["n"]) if u else ""), "aria")
             return True
 
         def _cmd_rollercoin(self, t):
@@ -1198,6 +1276,8 @@ if _QT:
             if self._cmd_fondo(t):
                 return
             if self._cmd_rollercoin(t):
+                return
+            if self._cmd_correo(t):
                 return
             if self._worker is not None and self._worker.isRunning():
                 return

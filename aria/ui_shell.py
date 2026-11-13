@@ -1495,12 +1495,11 @@ if _QT:
                                                    time.time() - self._t0), "sys")
                 self._fin_generacion()
                 return
-            pt = getattr(self._worker, "primer_token", None)
-            if pt is None:
-                self._linea("%d caracteres · total %.1f s" % (len(self._acc), time.time() - self._t0), "sys")
-            else:
-                self._linea("%d caracteres · primer token %.2f s · total %.1f s"
-                            % (len(self._acc), pt, time.time() - self._t0), "sys")
+            # métricas: solo si tardó (antes salía «96 caracteres · total 0.3 s» bajo CADA respuesta = ruido)
+            total = time.time() - self._t0
+            if total >= 8:
+                pt = getattr(self._worker, "primer_token", None)
+                self._linea("tardé %.0f s%s" % (total, (" · empecé a los %.1f s" % pt) if pt else ""), "sys")
             self._fin_generacion()
 
         def _on_fallo(self, err):

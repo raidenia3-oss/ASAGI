@@ -157,6 +157,7 @@ function renderMessages() {
     bubble.className = `message ${message.sender}`;
 
     const textEl = document.createElement('div');
+    textEl.className = 'msg-text';
     textEl.textContent = message.text;
     bubble.appendChild(textEl);
 
@@ -169,6 +170,12 @@ function renderMessages() {
   });
 
   chat.scrollTop = chat.scrollHeight;
+  // si la última respuesta de ASAGI es más alta que el chat, mostrar su INICIO (antes se veía
+  // la mitad de abajo y había que subir para entender de qué hablaba)
+  const ult = chat.lastElementChild;
+  if (ult && ult.classList.contains('bot') && ult.offsetHeight > chat.clientHeight - 24) {
+    chat.scrollTop = Math.max(0, chat.scrollTop + ult.getBoundingClientRect().top - chat.getBoundingClientRect().top - 8);
+  }
 }
 
 function showReplyStatus(text) {
@@ -324,8 +331,16 @@ function refreshBrainStatus() {
     brainHint.hidden = false;
   }
   if (brainAlert) {
+    // se puede cerrar (×): no vuelve a salir mientras el aviso sea el mismo (antes ocupaba 2 líneas fijas del chat)
+    let cerrado = ''; try { cerrado = localStorage.getItem('asagi-aviso-cerebro-cerrado') || ''; } catch (e) {}
     brainAlert.textContent = info.alert;
-    brainAlert.hidden = !info.alert;
+    if (info.alert) {
+      const x = document.createElement('button');
+      x.type = 'button'; x.className = 'brain-alert-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Cerrar aviso');
+      x.addEventListener('click', (ev) => { ev.stopPropagation(); try { localStorage.setItem('asagi-aviso-cerebro-cerrado', info.alert); } catch (e) {} brainAlert.hidden = true; });
+      brainAlert.appendChild(x);
+    }
+    brainAlert.hidden = !info.alert || cerrado === info.alert;
   }
   const dlBtn = document.getElementById('brain-dl');
   if (dlBtn) {
@@ -2981,7 +2996,8 @@ if ('serviceWorker' in navigator) {
     if (localStorage.getItem('asagi-tactica-dia') === hoy) return;
     await listo; const x = P.delDia(lista, new Date()); if (!x) return;
     localStorage.setItem('asagi-tactica-dia', hoy);
-    appendMessage('bot', '☀️ Táctica del día\n' + P.textoTactica(x.p, x.t));
+    appendMessage('bot', '☀️ Táctica del día · ' + (x.p.apodo || x.p.nombre) + ' — ' + x.t.nombre + '\n' + x.t.que_es +
+      '\nHoy: ' + String(x.t.practica || '').replace(/^\s*hoy\s*[:,]?\s*/i, '') + '\n(«táctica del día» para verla completa)');
   };
   const pensar = async (p) => { if (!window._asagiPensar) throw new Error('sin cerebro'); const r = await window._asagiPensar(p); if (!r || !String(r).trim()) throw new Error('vacío'); return String(r).trim(); };
   window._asagiPersonajesCmd = async function (o) {

@@ -245,3 +245,8 @@ html, body { font-family: var(--sans); color: var(--papel); }
   -webkit-overflow-scrolling: touch; padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
 .wall-foto-edit[hidden], #wf-notas[hidden], #wf-lib-h[hidden], #wf-ascii[hidden], #wf-ascii-off[hidden],
 #wall-foto-quitar[hidden] { display: none !important; }
+.brain-alert { position: relative; padding-right: 34px !important; }
+.brain-alert-x { position: absolute; top: -4px; right: -4px; width: 44px; height: 44px; border: 0; background: none;
+  color: inherit; font-size: 20px; line-height: 1; opacity: .75; cursor: pointer; }
+/* los saltos de línea de ASAGI (listas, tácticas, pasos) se veían pegados en un solo párrafo */
+.message .msg-text { white-space: pre-line; }

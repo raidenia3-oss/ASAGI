@@ -238,3 +238,10 @@ html, body { font-family: var(--sans); color: var(--papel); }
 }
 #assistant.conversando .panel-header { min-height: 70px !important; }
 .avatar-wrap { margin-top: 56px; }  /* que el botón ⌄ no tape la cara */
+
+/* Hoja del fondo (12-nov): con la foto puesta la hoja medía más que la pantalla y la parte de arriba
+   («Elegir foto…», estilos, color) quedaba fuera, sin poder llegar. Ahora tiene alto máximo y se desplaza. */
+.wall-sheet-in { max-height: calc(100% - 16px); overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
+.wall-foto-edit[hidden], #wf-notas[hidden], #wf-lib-h[hidden], #wf-ascii[hidden], #wf-ascii-off[hidden],
+#wall-foto-quitar[hidden] { display: none !important; }

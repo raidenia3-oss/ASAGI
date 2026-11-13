@@ -837,6 +837,29 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Tu fondo de pantalla: «fondo», «pon mi fondo», «cambiar fondo», «quitar fondo», «editar fondo».
+  {
+    const nf = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.!?¿¡]/g, '').trim();
+    if (/^(?:quita(?:r)?|borra(?:r)?)\s+(?:el\s+|mi\s+)?(?:fondo|wallpaper|foto de fondo)$/.test(nf)) {
+      if (window._asagiQuitarFoto) window._asagiQuitarFoto();
+      appendMessage('bot', '🖼 Listo, quité tu foto de fondo.'); return;
+    }
+    if (/^(?:editar|ajustar|personalizar) (?:el |mi )?(?:fondo|wallpaper)$/.test(nf)) {
+      setActiveSection('launcher'); setTimeout(() => window._asagiAbrirFondo && window._asagiAbrirFondo(), 450);
+      appendMessage('bot', '🖼 Te abro los ajustes del fondo.'); return;
+    }
+    if (/^(?:fondo|wallpaper|(?:pon(?:er|me)?|cambia(?:r)?|elegir|quiero(?: poner)?) (?:un |mi |el |otro )?(?:fondo|wallpaper|foto de fondo)(?: de pantalla)?)$/.test(nf)) {
+      if (window._asagiElegirFoto) {
+        window._asagiFondoListo = (ok) => { window._asagiFondoListo = null; setActiveSection('launcher');
+          appendMessage('bot', ok ? '🖼 Puse tu fondo y lo ajusté para que el reloj y las apps se lean bien. Para retocarlo: «editar fondo».'
+            : '🖼 Puse tu fondo, pero no hay espacio para guardarlo: al reiniciar se perderá.'); };
+        window._asagiElegirFoto();
+        appendMessage('bot', '🖼 Elige la foto en tu galería.');
+      } else appendMessage('bot', 'No encuentro el editor de fondo.');
+      return;
+    }
+  }
+
   // Personajes (carpeta personajes/): tácticas de Patrick Jane, Barney Stinson y los que agregues.
   const per = window.AsagiPersonajes && window.AsagiPersonajes.parsear(text);
   if (per && window._asagiPersonajesCmd) { window._asagiPersonajesCmd(per); return; }
@@ -2335,7 +2358,8 @@ if ('serviceWorker' in navigator) {
       rTemas.appendChild(b);
     });
   }
-  function abrir() { pintar(); sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open')); }
+  function abrir() { pintar(); sheet.hidden = false; const inn = sheet.querySelector('.wall-sheet-in'); if (inn) inn.scrollTop = 0; requestAnimationFrame(() => sheet.classList.add('open')); }
+  window._asagiAbrirFondo = abrir;
   function cerrarSheet() { sheet.classList.remove('open'); setTimeout(() => { sheet.hidden = true; }, 240); }
   btn.addEventListener('click', abrir);
   if (cerrar) cerrar.addEventListener('click', cerrarSheet);
@@ -2483,9 +2507,20 @@ if ('serviceWorker' in navigator) {
         const r = Math.min(maxW / w, maxH / h, 1); w = Math.round(w * r); h = Math.round(h * r);
         const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
         cv.getContext('2d').drawImage(im, 0, 0, w, h);
-        let data; try { data = cv.toDataURL('image/jpeg', 0.85); } catch (e) { data = fr.result; }
-        try { localStorage.setItem('asagi-foto-img', data); } catch (e) {}
-        img.onload = () => { cfg = Object.assign({}, DEF); syncSliders(); aplicar(); mostrarFoto(true); guardar(); if (notas) notas.hidden = true; img.onload = null; };
+        // guardar: si no cabe, bajar calidad/tamaño hasta que entre (antes fallaba en silencio y al
+        // reiniciar la foto desaparecía)
+        let data = null, guardada = false;
+        for (const [q, esc] of [[0.85, 1], [0.72, 1], [0.6, 0.8], [0.5, 0.6]]) {
+          const c2 = esc === 1 ? cv : (() => { const c = document.createElement('canvas'); c.width = Math.round(w * esc); c.height = Math.round(h * esc); c.getContext('2d').drawImage(cv, 0, 0, c.width, c.height); return c; })();
+          try { data = c2.toDataURL('image/jpeg', q); } catch (e) { data = fr.result; }
+          try { localStorage.setItem('asagi-foto-img', data); guardada = true; break; } catch (e) {}
+        }
+        img.onload = () => {
+          cfg = Object.assign({}, DEF); syncSliders(); aplicar(); mostrarFoto(true); guardar(); img.onload = null;
+          auto();                                         // ASAGI la deja bien de una vez
+          if (!guardada && notas) { notas.hidden = false; notas.innerHTML = notas.innerHTML + '<br><b>Ojo:</b> no hay espacio para guardarla; al reiniciar se perderá. Borra algún fondo de «Mis fondos».'; }
+          if (window._asagiFondoListo) window._asagiFondoListo(guardada);
+        };
         img.src = data;
       };
       im.src = fr.result;
@@ -2494,6 +2529,8 @@ if ('serviceWorker' in navigator) {
   }
 
   pick.addEventListener('click', () => file.click());
+  window._asagiElegirFoto = () => file.click();
+  window._asagiQuitarFoto = () => { if (quitar) quitar.click(); };
   file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });
   if (quitar) quitar.addEventListener('click', () => {
     try { localStorage.removeItem('asagi-foto-img'); localStorage.removeItem('asagi-foto-cfg'); } catch (e) {}

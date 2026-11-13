@@ -46,6 +46,10 @@
    "previos": [],
    "sha256": "c342df0c3f7ba428915b44596eb1964ec6c019b989216696ce02f610f3de62a6"
   },
+  "fondo_foto.py": {
+   "previos": [],
+   "sha256": "4695a125591f9646ca0af709f6e7dedaf6ee41b654176f8b7d99bbc0cb0b43c9"
+  },
   "informe.py": {
    "previos": [],
    "sha256": "78ef98fd39feb1bda8af1a06c150283347a8e747a78554fff4deb5c3edc87a39"
@@ -99,9 +103,10 @@
     "a4dc8575701246e1a6a2637b09f3e793c060841b6be49c7a40f7f7e003964914",
     "430d2820f8b89b47ce7f85197bad9ab281ada97ec1375591ca9f64f83bdeec14",
     "f3c61477090a0a4fd03a5273b416bb4a32ac86a519ce2020dd33730fe6422702",
-    "6aba95d91b50d7ef80835c811262e0e2dee9f1d45d74acf89ac07fa40dff15c2"
+    "6aba95d91b50d7ef80835c811262e0e2dee9f1d45d74acf89ac07fa40dff15c2",
+    "6a3deb7df058bd5b2dfcd91cf43182bc5f7ca3869d8967829a162853ffd3c80e"
    ],
-   "sha256": "6a3deb7df058bd5b2dfcd91cf43182bc5f7ca3869d8967829a162853ffd3c80e"
+   "sha256": "228357a05cdc383f952fe34707559e397455e56a221e79119ba95ecb38512b98"
   },
   "voz_local.py": {
    "previos": [],

@@ -81,7 +81,7 @@ def _cfg_fondo():
     try:
         return json.load(open(_CFG, encoding="utf-8"))
     except Exception:
-        return {"wallpaper": "", "animaciones": True, "oscurecer": 0.5}
+        return {"wallpaper": "", "estilo": "auto", "animaciones": True, "oscurecer": 0.5}
 
 
 _ESTADO = os.path.join(_DIR, "data", "shell_state.json")
@@ -147,25 +147,85 @@ if _QT:
             self._anim = bool(cfg.get("animaciones", True))
             self._osc = float(cfg.get("oscurecer", 0.55))
             self._wall = None
-            self.set_wallpaper(cfg.get("wallpaper", ""))
+            self._foto_src = None; self._foto = None; self._foto_info = None; self._movie = None
+            self._estilo = cfg.get("estilo") or "auto"
             self._timer = QTimer(self); self._timer.timeout.connect(self._tick)
             self._timer.start(int(1000 / self.FPS) if self._anim else 1000)
+            if cfg.get("wallpaper"):
+                QTimer.singleShot(0, lambda: self.set_wallpaper(cfg.get("wallpaper"), self._estilo))
 
         def set_modo(self, modo):
-            self._modo = "matrix" if modo == "matrix" else "red"
+            if modo == "foto" and (self._foto_src is not None or self._movie is not None):
+                self._modo = "foto"
+            else:
+                self._modo = "matrix" if modo == "matrix" else "red"
             self._buf = None; self._cols = []
             self.update()
             return self._modo
 
-        def set_wallpaper(self, ruta):
-            self._wall = None
-            if ruta:
-                r = ruta if os.path.isabs(ruta) else os.path.join(_DIR, ruta)
-                if os.path.isfile(r):
-                    px = QPixmap(r)
-                    self._wall = px if not px.isNull() else None
+        def tiene_foto(self):
+            return self._foto_src is not None or self._movie is not None
+
+        def set_wallpaper(self, ruta, estilo=None):
+            """Carga tu imagen (o gif animado) y la trata con fondo_foto. -> info dict o None."""
+            self._wall = None; self._foto_src = None; self._foto = None; self._foto_info = None
+            if getattr(self, "_movie", None) is not None:
+                try:
+                    self._movie.stop()
+                except Exception:
+                    pass
+            self._movie = None
+            self._estilo = estilo or getattr(self, "_estilo", None) or "auto"
             self._base = None
-            self.update(); return self._wall is not None
+            if not ruta:
+                self.update(); return None
+            r = ruta if os.path.isabs(ruta) else os.path.join(_DIR, ruta)
+            if not os.path.isfile(r):
+                self.update(); return None
+            try:
+                from PyQt5.QtGui import QImage, QMovie
+                import fondo_foto as _ff
+                if r.lower().endswith(".gif"):
+                    mv = QMovie(r)
+                    if mv.isValid() and mv.frameCount() != 1:
+                        mv.jumpToFrame(0)
+                        info = _ff.analizar(mv.currentImage())
+                        info["velo"] = _ff.oscurecer_para(info["lum"], self._estilo)
+                        info["animada"] = True
+                        self._movie = mv; self._foto_info = info
+                        mv.frameChanged.connect(lambda _i: _ventana_activa(self) and self.update())
+                        mv.start()
+                        self.update(); return info
+                img = QImage(r)
+                if img.isNull():
+                    return None
+                lado = max(img.width(), img.height())
+                if lado > 3840:     # fotos gigantes: bajarlas una vez y listo
+                    img = img.scaled(3840, 3840, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                self._foto_src = img
+                self._preparar_foto()
+                self.update()
+                return dict(self._foto_info or {})
+            except Exception as exc:
+                print("[fondo] no pude cargar %s: %s" % (r, exc), flush=True)
+                return None
+
+        def set_estilo(self, estilo):
+            self._estilo = estilo
+            if self._movie is not None and self._foto_info is not None:
+                import fondo_foto as _ff
+                self._foto_info["velo"] = _ff.oscurecer_para(self._foto_info["lum"], estilo)
+            else:
+                self._preparar_foto()
+            self.update()
+            return dict(self._foto_info or {})
+
+        def _preparar_foto(self):
+            if self._foto_src is None or self.width() <= 0:
+                return
+            import fondo_foto as _ff
+            img, info = _ff.preparar(self._foto_src, self.width(), self.height(), self._estilo)
+            self._foto = QPixmap.fromImage(img); self._foto_info = info
 
         def _tick(self):
             if not _ventana_activa(self):
@@ -175,6 +235,8 @@ if _QT:
 
         def resizeEvent(self, e):
             self._base = None; self._buf = None
+            if self._foto is not None and (abs(self._foto.width() - self.width() * 1.05) > 4 or abs(self._foto.height() - self.height() * 1.05) > 4):
+                self._preparar_foto()
             super().resizeEvent(e)
 
         def mousePressEvent(self, e):
@@ -228,12 +290,38 @@ if _QT:
             p = QPainter(self)
             if self._modo == "matrix":
                 self._matrix(p, W, H); p.end(); return
+            if self._modo == "foto" and self._pintar_foto(p, W, H):
+                p.setRenderHint(QPainter.Antialiasing)
+                p.setOpacity(0.45)            # la red sigue viva encima, pero discreta
+                self._red(p, W, H)
+                p.end(); return
             if self._base is None or self._base.size() != self.size():
                 self._base = self._capa_fija(W, H)
             p.drawPixmap(0, 0, self._base)
             p.setRenderHint(QPainter.Antialiasing)
             self._red(p, W, H)
             p.end()
+
+        def _pintar_foto(self, p, W, H):
+            if self._movie is not None:
+                fr = self._movie.currentPixmap()
+                if fr.isNull():
+                    return False
+                esc = fr.scaled(W, H, Qt.KeepAspectRatioByExpanding, Qt.FastTransformation)
+                p.fillRect(0, 0, W, H, QColor(*self.NEGRO))
+                p.drawPixmap(int((W - esc.width()) / 2), int((H - esc.height()) / 2), esc)
+                p.fillRect(0, 0, W, H, QColor(*self.NEGRO, int(255 * (self._foto_info or {}).get("velo", 0.4))))
+                return True
+            if self._foto is None:
+                self._preparar_foto()
+            if self._foto is None:
+                return False
+            # deriva lenta (parallax): mover la imagen ya tratada cuesta casi nada
+            mx = (self._foto.width() - W) / 2.0; my = (self._foto.height() - H) / 2.0
+            dx = mx + (math.sin(self._t * 0.05) * mx * 0.9 if self._anim else 0)
+            dy = my + (math.cos(self._t * 0.04) * my * 0.9 if self._anim else 0)
+            p.drawPixmap(QPointF(-dx, -dy), self._foto)
+            return True
 
         # ---- red neuronal ----
         def _red(self, p, W, H):
@@ -534,7 +622,7 @@ if _QT:
                 _estado["cuerpo"] = "rostro"; _estado["rostro_v1"] = True
                 _guardar_estado(_estado)
             self.toggles = {"autonomia": False, "cuerpo": _estado.get("cuerpo") or "rostro",
-                            "voz": bool(_estado.get("voz")), "fondo": "matrix" if _estado.get("fondo") == "matrix" else "red",
+                            "voz": bool(_estado.get("voz")), "fondo": _estado.get("fondo") if _estado.get("fondo") in ("matrix", "foto") else "red",
                             "crt": _estado.get("crt") is not False, "mascota": bool(_estado.get("mascota"))}
             self._hist = []
             self._es_chat = False
@@ -544,10 +632,13 @@ if _QT:
             self._t0 = 0.0
             self._pre_modo = False
             self.setWindowFlags(Qt.FramelessWindowHint)
+            self.setAcceptDrops(True)        # arrastra una imagen sobre ARIA = tu fondo
             self.resize(w, h); self.setWindowTitle("ARIA")
             self._fondo = _Fondo(self)
             if self.toggles["fondo"] == "matrix":
                 self._fondo.set_modo("matrix")
+            elif self.toggles["fondo"] == "foto":
+                QTimer.singleShot(50, lambda: self._fondo.set_modo("foto"))
             self._build(); self._reloj()
             self._crt = _CRT(self)
             self._crt.setGeometry(0, 0, self.width(), self.height())
@@ -632,6 +723,81 @@ if _QT:
                 return
             # sin bandeja no hay forma de recuperarla: se acepta el cierre
             e.accept()
+
+        # ---- tu fondo de pantalla ----
+        def dragEnterEvent(self, e):
+            md = e.mimeData()
+            if md.hasUrls() and any(u.isLocalFile() and u.toLocalFile().lower().endswith(
+                    (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif")) for u in md.urls()):
+                e.acceptProposedAction()
+
+        def dropEvent(self, e):
+            for u in e.mimeData().urls():
+                if u.isLocalFile():
+                    self._poner_fondo(u.toLocalFile()); break
+
+        def _cmd_fondo(self, t):
+            try:
+                import fondo_foto as _ff
+            except Exception:
+                return False
+            o = _ff.parsear(t)
+            if not o:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if o["accion"] == "elegir":
+                from PyQt5.QtWidgets import QFileDialog
+                ruta, _ = QFileDialog.getOpenFileName(self, "Elige tu fondo", os.path.expanduser("~/Pictures"),
+                                                      "Imágenes (*.jpg *.jpeg *.png *.webp *.bmp *.gif)")
+                if ruta:
+                    self._poner_fondo(ruta)
+                else:
+                    self._linea("No elegiste nada. También puedes arrastrar la imagen sobre mí.", "aria")
+            elif o["accion"] == "poner":
+                self._poner_fondo(o["ruta"])
+            elif o["accion"] == "estilo":
+                if not self._fondo.tiene_foto():
+                    self._linea("Primero ponme una imagen: escribe «fondo» o arrástrala sobre mí.", "aria")
+                else:
+                    info = self._fondo.set_estilo(o["estilo"])
+                    self.toggles["fondo"] = self._fondo.set_modo("foto")
+                    self._guardar_fondo(estilo=o["estilo"]); self._pintar_toggles(); self._guardar_toggles()
+                    self._linea(_ff.describir(info, o["estilo"]), "aria")
+            elif o["accion"] == "quitar":
+                self._fondo.set_wallpaper(None)
+                self.toggles["fondo"] = self._fondo.set_modo("red")
+                self._guardar_fondo(wallpaper=""); self._pintar_toggles(); self._guardar_toggles()
+                self._linea("Listo, volví a mi red neuronal.", "aria")
+            elif o["accion"] == "info":
+                inf = getattr(self._fondo, "_foto_info", None)
+                self._linea(("Tengo tu imagen en estilo «%s» (luz %d%%, color %d%%, velo %d%%)." % (
+                    self._fondo._estilo, inf["lum"] * 100, inf["sat"] * 100, inf.get("velo", 0) * 100)) if inf
+                    else "Uso mi fondo propio (%s). Escribe «fondo» para poner el tuyo." % self.toggles["fondo"], "aria")
+            return True
+
+        def _poner_fondo(self, ruta):
+            import fondo_foto as _ff
+            try:
+                rel = _ff.importar(ruta)
+            except Exception as exc:
+                self._linea("No pude usar esa imagen: %s" % exc, "aria"); return
+            estilo = getattr(self._fondo, "_estilo", None) or "auto"
+            info = self._fondo.set_wallpaper(rel, estilo)
+            if not info:
+                self._linea("La imagen no se pudo abrir (¿está dañada?).", "aria"); return
+            self.toggles["fondo"] = self._fondo.set_modo("foto")
+            self._guardar_fondo(wallpaper=rel, estilo=estilo); self._pintar_toggles(); self._guardar_toggles()
+            self._linea(_ff.describir(info, estilo), "aria")
+            self._estado_orb("curiosa", 2000)
+
+        def _guardar_fondo(self, **cambios):
+            cfg = _cfg_fondo(); cfg.update(cambios)
+            try:
+                os.makedirs(os.path.dirname(_CFG), exist_ok=True)
+                with open(_CFG, "w", encoding="utf-8") as f:
+                    json.dump(cfg, f, ensure_ascii=False, indent=1)
+            except OSError:
+                pass
 
         def resizeEvent(self, e):
             self._fondo.setGeometry(0, 0, self.width(), self.height())
@@ -866,8 +1032,9 @@ if _QT:
                 self.toggles["autonomia"] = False
                 self._linea("autonomia desactivada (regla v2)", "sys")
             elif key == "fondo":
-                self.toggles["fondo"] = self._fondo.set_modo(
-                    "red" if self.toggles["fondo"] == "matrix" else "matrix")
+                ciclo = (["foto"] if self._fondo.tiene_foto() else []) + ["red", "matrix"]
+                act = self.toggles["fondo"] if self.toggles["fondo"] in ciclo else ciclo[-1]
+                self.toggles["fondo"] = self._fondo.set_modo(ciclo[(ciclo.index(act) + 1) % len(ciclo)])
                 self._linea("fondo -> %s" % self.toggles["fondo"], "sys")
             elif key == "crt":
                 self.toggles["crt"] = self._crt.set_activo(not self.toggles["crt"])
@@ -998,6 +1165,8 @@ if _QT:
                 self.entrada.clear(); return
             if _re.match(r"^(?:mascota|modo mascota)$", t.strip(), _re.I):
                 self.entrada.clear(); self._toggle("mascota"); return
+            if self._cmd_fondo(t):
+                return
             if self._worker is not None and self._worker.isRunning():
                 return
             # modo enseñar: rutinas que le muestras una vez

@@ -45,6 +45,8 @@ const files = [
   'sin-cerebro.js',
   'navegador-lector.js',
   'navegador.js',
+  'openverse.js',
+  'wiki.js',
   'piensa.js',
   'discord.js',
   'app.js',

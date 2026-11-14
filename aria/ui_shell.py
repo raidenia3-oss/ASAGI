@@ -671,6 +671,67 @@ if _QT:
                 self._bots_t = QTimer(self); self._bots_t.timeout.connect(self._bots_leer); self._bots_t.start(1000)
             except Exception as exc:
                 print("[UI] bots no arrancaron: %s" % exc, flush=True)
+            self._iniciar_voz_extra()
+
+        # --- dictado con atajo (Ctrl+Alt+Espacio) y voz natural; se instalan solos la primera vez ---
+        def _iniciar_voz_extra(self):
+            cola = getattr(self, "_bots_cola", None)
+            avisar = cola.put if cola is not None else (lambda t: None)
+            try:
+                import dictado_pc
+                self._dictado = dictado_pc.Dictado(avisar=avisar)
+                self._dictado.iniciar()
+            except Exception as exc:
+                print("[UI] dictado: %s" % exc, flush=True)
+            try:
+                import extras_pc
+                # 3 min después de arrancar, para no competir con la carga del modelo
+                QTimer.singleShot(180000, lambda: extras_pc.en_fondo(avisar))
+            except Exception as exc:
+                print("[UI] extras: %s" % exc, flush=True)
+
+        def _cmd_wiki(self, t):
+            import re as _re
+            n = _re.sub(r"[¿?¡!.]", "", (t or "").lower()).strip()
+            m = _re.match(r"^(?:wiki|wikipedia)\s+(.{2,80})$", n)
+            if n not in ("prepara wikipedia", "prepara la wikipedia", "descarga wikipedia", "wikipedia sin internet", "pasa wikipedia al celular") and not m:
+                return False
+            try:
+                import wiki_pc
+            except Exception:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            cola = getattr(self, "_bots_cola", None)
+            if m:
+                if not os.path.exists(wiki_pc.DB):
+                    self._linea("Aún no tengo la Wikipedia sin internet. Di «prepara wikipedia».", "aria"); return True
+                r = wiki_pc.buscar(m.group(1))
+                self._linea(("📚 %s\n%s" % (r[0]["titulo"], r[0]["texto"][:900])) if r else "No encontré «%s» en la Wikipedia." % m.group(1), "aria")
+                return True
+            wiki_pc.en_fondo(cola.put if cola is not None else None)
+            return True
+
+        def _cmd_voz_extra(self, t):
+            import re as _re
+            n = _re.sub(r"[¿?¡!.]", "", (t or "").lower()).strip()
+            if n not in ("instala voz", "instala tu voz", "instala el dictado", "mejora tu voz", "instala dictado", "como dicto", "dictado"):
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            try:
+                import extras_pc, dictado_pc
+            except Exception as exc:
+                self._linea("⚠ %s" % exc, "aria"); return True
+            if n in ("como dicto", "dictado"):
+                self._linea("🎙 Pulsa Ctrl+Alt+Espacio en cualquier programa, habla y vuelve a pulsarlo: escribo lo que dijiste ahí mismo. "
+                            + ("Ya está listo." if dictado_pc.disponible() else "Aún falta instalarlo: di «instala voz»."), "aria")
+                return True
+            falta = extras_pc.faltan()
+            if not falta:
+                self._linea("🧩 Ya tengo todo: dictado y voz natural.", "aria"); return True
+            cola = getattr(self, "_bots_cola", None)
+            import threading as _th
+            _th.Thread(target=lambda: extras_pc.instalar(avisar=(cola.put if cola is not None else None), forzar=True), daemon=True).start()
+            return True
 
         # --- se actualiza sola desde GitHub (aria/manifest.json del repo de ASAGI) ---
         def _auto_actualizar(self, avisar_si_nada=False):
@@ -693,6 +754,12 @@ if _QT:
             try:
                 while True:
                     msg = self._bots_cola.get_nowait()
+                    if callable(msg):                 # trabajo de un hilo que debe tocar la interfaz
+                        try:
+                            msg()
+                        except Exception as exc:
+                            print("[UI] cola: %s" % exc, flush=True)
+                        continue
                     self._linea(msg, "aria")
                     self._estado_orb("picara" if msg.startswith("⏰") else "analitica", 2500)
                     if self.isHidden():
@@ -745,7 +812,7 @@ if _QT:
                 return False
             o = _ff.parsear(t)
             if not o:
-                return False
+                return self._cmd_openverse(t)
             self.entrada.clear(); self._linea(t, "user")
             if o["accion"] == "elegir":
                 from PyQt5.QtWidgets import QFileDialog
@@ -775,6 +842,31 @@ if _QT:
                 self._linea(("Tengo tu imagen en estilo «%s» (luz %d%%, color %d%%, velo %d%%)." % (
                     self._fondo._estilo, inf["lum"] * 100, inf["sat"] * 100, inf.get("velo", 0) * 100)) if inf
                     else "Uso mi fondo propio (%s). Escribe «fondo» para poner el tuyo." % self.toggles["fondo"], "aria")
+            return True
+
+        def _cmd_openverse(self, t):
+            """«fondo de lluvia»: imagen libre de Openverse como fondo (con su crédito)."""
+            try:
+                import openverse_pc as _ov
+            except Exception:
+                return False
+            o = _ov.parsear(t)
+            if not o:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            self._linea("🔎 Busco un fondo libre de «%s» en Openverse…" % o["q"], "sys")
+            cola = getattr(self, "_bots_cola", None)
+            import threading as _th
+
+            def _h():
+                try:
+                    ruta, cred = _ov.fondo(o["q"])
+                    if cola is not None:
+                        cola.put(lambda: (self._poner_fondo(ruta), self._linea("🖼 Crédito: " + cred, "sys")))
+                except Exception as exc:
+                    if cola is not None:
+                        cola.put("⚠ Openverse: %s" % exc)
+            _th.Thread(target=_h, daemon=True).start()
             return True
 
         # ---- Gmail (correo.py): API (C) -> IMAP (B) -> web (A) ----
@@ -837,6 +929,8 @@ if _QT:
                 self._linea("🌐 Abriendo %s…" % o["url"], "sys")
             elif acc == "investigar":
                 self._linea("🔎 Busco «%s» en la web…" % o["pregunta"], "sys")
+            elif acc == "youtube":
+                self._linea("📺 Abro el video para leer sus subtítulos…", "sys")
             import threading as _th
 
             def _h():
@@ -857,6 +951,9 @@ if _QT:
                         nv.cerrar(); decir("🌐 Cerré mi navegador.")
                     elif acc == "visible":
                         nv.visible(o["si"]); decir("🌐 Mi navegador ahora es %s. Abre una página para verlo." % ("visible" if o["si"] else "oculto"))
+                    elif acc == "youtube":
+                        r = nv.youtube(o["url"], pensar=pensar, progreso=decir)
+                        decir("📺 %s\n\n%s" % (r.get("titulo", ""), r["resumen"]))
                     elif acc == "investigar":
                         r = nv.investigar(o["pregunta"], pensar=pensar, progreso=decir)
                         decir("🔎 " + r["texto"] + (("\n\nFuentes:\n" + "\n".join(r["fuentes"])) if r["fuentes"] else ""))
@@ -1320,6 +1417,10 @@ if _QT:
                 self.entrada.clear(); return
             if _re.match(r"^(?:mascota|modo mascota)$", t.strip(), _re.I):
                 self.entrada.clear(); self._toggle("mascota"); return
+            if self._cmd_voz_extra(t):
+                return
+            if self._cmd_wiki(t):
+                return
             if self._cmd_fondo(t):
                 return
             if self._cmd_rollercoin(t):

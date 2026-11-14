@@ -30,6 +30,7 @@ const defaultState = {
     remoteModel: '',
     remoteKey: '',
     geminiKey: '',
+    clavesExtra: '',
     atriaKey: '',
     mistralKey: ''
   }
@@ -53,6 +54,7 @@ const brainKey = document.getElementById('brain-key');
 const brainApply = document.getElementById('brain-apply');
 const brainHint = document.getElementById('brain-hint');
 const brainGeminiKey = document.getElementById('brain-gemini-key');
+const brainClavesExtra = document.getElementById('brain-claves-extra');
 const brainAtriaKey = document.getElementById('brain-atria-key');
 const brainMistralKey = document.getElementById('brain-mistral-key');
 
@@ -73,6 +75,7 @@ function loadState() {
         remoteModel: (parsed.brain && typeof parsed.brain.remoteModel === 'string') ? parsed.brain.remoteModel : defaultState.brain.remoteModel,
         remoteKey: (parsed.brain && typeof parsed.brain.remoteKey === 'string') ? parsed.brain.remoteKey : defaultState.brain.remoteKey,
         geminiKey: (parsed.brain && typeof parsed.brain.geminiKey === 'string') ? parsed.brain.geminiKey : defaultState.brain.geminiKey,
+        clavesExtra: (parsed.brain && typeof parsed.brain.clavesExtra === 'string') ? parsed.brain.clavesExtra : '',
         atriaKey: (parsed.brain && typeof parsed.brain.atriaKey === 'string') ? parsed.brain.atriaKey : defaultState.brain.atriaKey,
         mistralKey: (parsed.brain && typeof parsed.brain.mistralKey === 'string') ? parsed.brain.mistralKey : defaultState.brain.mistralKey
       }
@@ -212,7 +215,8 @@ function readBrainControls() {
     remoteKey: brainKey ? brainKey.value.trim() : state.brain.remoteKey,
     geminiKey: brainGeminiKey ? brainGeminiKey.value.trim() : (state.brain.geminiKey || ''),
     atriaKey: brainAtriaKey ? brainAtriaKey.value.trim() : (state.brain.atriaKey || ''),
-    mistralKey: brainMistralKey ? brainMistralKey.value.trim() : (state.brain.mistralKey || '')
+    mistralKey: brainMistralKey ? brainMistralKey.value.trim() : (state.brain.mistralKey || ''),
+    clavesExtra: brainClavesExtra ? brainClavesExtra.value.trim() : (state.brain.clavesExtra || '')
   };
 }
 
@@ -225,6 +229,7 @@ function applyBrainControlsFromState() {
   if (brainGeminiKey) brainGeminiKey.value = state.brain.geminiKey || '';
   if (brainAtriaKey) brainAtriaKey.value = state.brain.atriaKey || '';
   if (brainMistralKey) brainMistralKey.value = state.brain.mistralKey || '';
+  if (brainClavesExtra) brainClavesExtra.value = state.brain.clavesExtra || '';
   if (brainUrl) brainUrl.disabled = state.brain.mode !== 'remote';
   if (brainModel) brainModel.disabled = state.brain.mode !== 'remote';
   if (brainKey) brainKey.disabled = state.brain.mode !== 'remote';
@@ -283,6 +288,11 @@ function describeBrain() {
   const val = (id) => { const e = document.getElementById(id); return e && e.value ? e.value.trim() : ''; };
   const gk = val('brain-gemini-key') || (b.geminiKey || '');
   const ak = val('brain-atria-key') || (b.atriaKey || '');
+  const R0 = window.AsagiBrainRouter;
+  const extras = R0 && R0.parsearClaves ? R0.parsearClaves(val('brain-claves-extra') || b.clavesExtra || '') : [];
+  const mk0 = val('brain-mistral-key') || (b.mistralKey || '');
+  const nubeTxt = [gk && 'Gemini', ak && 'Atria', mk0 && 'Mistral'].concat(extras.map((c) => c.prov[0].toUpperCase() + c.prov.slice(1)))
+    .filter((x, i, a) => x && a.indexOf(x) === i).join(' → ');
 
   const dl = window._asagiModelo;
   if (b.mode === 'local') {
@@ -297,8 +307,8 @@ function describeBrain() {
       return { detail: 'Modelo: error al descargar', alert: 'No pude descargar el modelo (' + (dl.error || 'sin conexión') + '). Reintento solo cuando haya red.' };
     }
     // sin modelo local pero con key -> el router usa la nube, sin alarma
-    if (gk || ak) {
-      return { detail: 'Local sin modelo · usando ' + (ak ? 'Atria' : 'Gemini'), alert: '' };
+    if (nubeTxt) {
+      return { detail: 'Local sin modelo · usando ' + nubeTxt, alert: '' };
     }
     const espera = dl && dl.estado === 'espera';
     return {
@@ -306,13 +316,12 @@ function describeBrain() {
       descargar: !!window._asagiDescargarModelo,
       alert: espera
         ? 'Estás con datos móviles, así que no descargo solo el modelo (~400 MB). Con Wi-Fi arranca solo; si prefieres ya, toca el botón.'
-        : 'El modelo local aún no está descargado (~400 MB). Pon tu key de Gemini/Atria para responder sin descargarlo, o descárgalo.'
+        : 'El modelo local aún no está descargado (~400 MB). Pon una key gratis (Gemini, Groq, OpenRouter…) para responder sin descargarlo, o descárgalo.'
     };
   }
 
   // modo remoto: con key, el router responde por la nube (no hace falta URL)
-  if (ak) return { detail: 'Remoto · Atria', alert: '' };
-  if (gk) return { detail: 'Remoto · Gemini', alert: '' };
+  if (nubeTxt) return { detail: 'Remoto · ' + nubeTxt, alert: '' };
   if (b.remoteUrl) {
     return { detail: 'Remoto · URL: ' + (b.remoteUrl.length > 48 ? b.remoteUrl.slice(0, 48) + '…' : b.remoteUrl), alert: '' };
   }
@@ -451,6 +460,7 @@ async function startBotStreaming(userText) {
   state.brain.geminiKey = b.geminiKey || '';
   state.brain.atriaKey = b.atriaKey || '';
   state.brain.mistralKey = b.mistralKey || '';
+  state.brain.clavesExtra = b.clavesExtra || '';
   saveState();
   const brain = getBrainBridge();
 
@@ -461,12 +471,13 @@ async function startBotStreaming(userText) {
       const gk = (state.brain.geminiKey || b.geminiKey || '').trim();
       const ak = (state.brain.atriaKey || b.atriaKey || '').trim();
       const mk = (state.brain.mistralKey || b.mistralKey || '').trim();
+      const nube = window.AsagiBrainRouter.armarNube(Object.assign({}, state.brain, b));
       const router = new BrainRouter({
         // modelo nativo si de verdad está cargado; si no, '' para que el router pase al siguiente cerebro
         localFn: localResponder,
-        geminiFn: gk ? ((p) => geminiResponder(p, gk)) : null,
-        // remoto: Mistral si hay key (fuerte en código), si no Atria
-        remotoFn: mk ? ((p) => mistralResponder(p, mk)) : (ak ? ((p) => atriaResponder(p, ak)) : null),
+        // keys en cadena: varias por proveedor + lista extra; si una se agota salta sola a la siguiente
+        geminiFn: nube.geminiFn,
+        remotoFn: nube.remotoFn,
         testFn: (p) => createBotReply(p),
         apiKey: gk,
         store: window.localStorage
@@ -479,12 +490,19 @@ async function startBotStreaming(userText) {
       let pen = null;
       if (P) {
         try {
-          pen = await P.pensar(userText, pedir, { fuerte: !!(gk || ak || mk), persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '',
+          pen = await P.pensar(userText, pedir, { fuerte: !!(gk || ak || mk || nube.hay), persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '',
             daniel: sab.daniel, saber: sab.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular });
         } catch (e) { pen = null; }
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
       // sin ningún cerebro: lo que ASAGI sabe hacer sola (charla corta, chistes, ayuda, búsquedas…) en vez de la respuesta de prueba
+      // sin cerebro ni internet, «qué es X» se responde con la Wikipedia de la SD
+      if (res && res.backend === 'prueba' && window.AsagiWiki && window.AsagiWiki.pregunta(userText)) {
+        try {
+          const rs = await window.AsagiWiki.buscar(window.AsagiWiki.pregunta(userText), 1);
+          if (rs.length) res = { texto: window.AsagiWiki.resumen(rs[0]) + '\n(de tu Wikipedia sin internet)', backend: 'Wikipedia local' };
+        } catch (e) {}
+      }
       if (res && res.backend === 'prueba' && window.AsagiSinCerebro) {
         try {
           const sc = await window.AsagiSinCerebro.responder(userText, ctxSinCerebro());
@@ -810,6 +828,10 @@ chatForm.addEventListener('submit', (event) => {
       }
       if (o.accion === 'volver') { NV.volver().then((p) => p ? mostrar(p) : appendMessage('bot', 'No hay página anterior.')).catch(fallo); return; }
       if (o.accion === 'cerrar') { NV.cerrar().then(() => appendMessage('bot', '🌐 Cerré mi navegador.')); return; }
+      if (o.accion === 'youtube') {
+        NV.youtube(o.url, (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', '📺 ' + (r.titulo || 'Video') + '\n\n' + r.texto)).catch(fallo);
+        return;
+      }
       if (o.accion === 'investigar') {
         appendMessage('bot', '🔎 Busco «' + o.pregunta + '» en la web…');
         const pensarNav = async (p) => { if (!window._asagiPensar) return null; const r = await window._asagiPensar(p); return r && String(r).trim() ? String(r).trim() : null; };
@@ -932,6 +954,57 @@ chatForm.addEventListener('submit', (event) => {
         window._asagiElegirFoto();
         appendMessage('bot', '🖼 Elige la foto en tu galería.');
       } else appendMessage('bot', 'No encuentro el editor de fondo.');
+      return;
+    }
+  }
+
+  // Wikipedia sin internet en la SD: «wiki X», «prepara wikipedia», «espacio».
+  {
+    const W = window.AsagiWiki, c = W && W.parsear(text);
+    if (c && c.accion === 'buscar') {
+      W.buscar(c.q).then((rs) => appendMessage('bot', rs.length ? W.resumen(rs[0]) + (rs.length > 1 ? '\n\nTambién: ' + rs.slice(1).map((r) => r.titulo).join(', ') : '')
+        : 'No la encontré en tu Wikipedia sin internet' + (window._asagiWikiLista ? '.' : ' (¿ya la preparaste? Di «prepara wikipedia» con ARIA conectada).')));
+      return;
+    }
+    if (c && c.accion === 'preparar') {
+      W.preparar().then((r) => {
+        if (!r.ok) { appendMessage('bot', '⚠ ' + (r.error || 'no pude')); return; }
+        const w = r.wiki || {};
+        appendMessage('bot', w.fase === 'listo' ? '📚 Ya está: la Wikipedia está en tu SD.' : '📚 ARIA ya la está preparando en la PC (' + (w.fase || 'empezando') + (w.pct ? ' ' + w.pct + '%' : '') + '). Son ~2 GB: baja, la convierte y la copia por USB a tu SD. Te aviso en ARIA cuando termine.');
+      });
+      return;
+    }
+    if (c && c.accion === 'espacio') {
+      W.estado().then((e) => appendMessage('bot', !e ? 'No puedo ver el almacenamiento aquí.' :
+        '💾 Memoria interna libre: ' + e.internaLibreGB + ' GB\n' + (e.sd ? '💳 Tarjeta SD libre: ' + e.sdLibreGB + ' GB (ahí guardo el modelo y la Wikipedia)' : 'No veo tarjeta SD.') +
+        '\n📚 Wikipedia sin internet: ' + (e.wiki ? 'sí (' + e.wikiGB + ' GB' + (e.wikiEnSd ? ', en la SD' : '') + ')' : 'no; di «prepara wikipedia»')));
+      return;
+    }
+  }
+
+  // Openverse: fondos y sonidos de uso libre («fondo de lluvia», «sonido de lluvia», «para el sonido»).
+  {
+    const OV = window.AsagiOpenverse, c = OV && OV.parsear(text);
+    if (c && c.accion === 'parar') { OV.parar(); appendMessage('bot', '🔇 Listo, sonido apagado.'); return; }
+    if (c && c.accion === 'fondos') {
+      appendMessage('bot', '🔎 Busco fondos libres de «' + c.q + '»…');
+      OV.imagenes(c.q).then((rs) => {
+        if (!rs.length) { appendMessage('bot', 'No encontré fondos de «' + c.q + '». Prueba con otra palabra (en inglés suele haber más).'); return; }
+        OV.mostrarFondos(c.q, rs, async (r) => {
+          const blob = await OV.blobDe(r);
+          window._asagiFondoListo = (ok) => { window._asagiFondoListo = null; setActiveSection('launcher');
+            appendMessage('bot', '🖼 Fondo puesto: ' + OV.credito(r) + (ok ? '.' : '. Ojo: no hay espacio para guardarlo.')); };
+          if (window._asagiImportarFoto) window._asagiImportarFoto(blob);
+        });
+      }).catch(() => appendMessage('bot', 'No pude conectar con Openverse (¿sin internet?).'));
+      return;
+    }
+    if (c && c.accion === 'sonido') {
+      OV.sonidos(c.q).then((rs) => {
+        const r = rs.find((x) => x.url);
+        if (!r) { appendMessage('bot', 'No encontré sonidos de «' + c.q + '».'); return; }
+        return OV.sonar(r).then(() => appendMessage('bot', '🔊 Sonando: ' + OV.credito(r) + '. Para apagarlo: «para el sonido».'));
+      }).catch(() => appendMessage('bot', 'No pude poner el sonido (¿sin internet?).'));
       return;
     }
   }
@@ -2035,7 +2108,9 @@ if ('serviceWorker' in navigator) {
     const R = window.AsagiBrainRouter;
     if (!R) return '(cerebro no disponible)';
     const gk = val('brain-gemini-key'), ak = val('brain-atria-key'), mk = val('brain-mistral-key');
-    if (!gk && !ak && !mk) {
+    const esProg = bot && bot.id === 'programador';       // el Programador prefiere Mistral (código)
+    const nube = R.armarNube({ geminiKey: gk, atriaKey: ak, mistralKey: mk, clavesExtra: val('brain-claves-extra') }, esProg ? { modeloMistral: 'codestral-latest' } : null);
+    if (!nube.hay) {
       // Sin key: primero el modelo del celular (funciona sin la PC); si no está, ARIA por WiFi/Bluetooth.
       try { const loc = await localResponder(prompt); if (loc && loc.trim()) return loc; } catch (e) {}
       const cli = window._asagiLan;
@@ -2045,12 +2120,9 @@ if ('serviceWorker' in navigator) {
       }
       throw new Error('sin cerebro');
     }
-    const esProg = bot && bot.id === 'programador';       // el Programador prefiere Mistral (código)
     const router = new R.BrainRouter({
-      geminiFn: gk ? ((p) => R.geminiResponder(p, gk)) : null,
-      remotoFn: (esProg && mk) ? ((p) => R.mistralResponder(p, mk, 'codestral-latest'))
-              : mk ? ((p) => R.mistralResponder(p, mk))
-              : ak ? ((p) => R.atriaResponder(p, ak)) : null,
+      geminiFn: nube.geminiFn,
+      remotoFn: nube.remotoFn,
       testFn: () => 'El bot ' + (bot ? bot.nombre : '') + ' necesita una key (Gemini/Mistral/Atria) para responder de verdad.',
       store: window.localStorage,
     });
@@ -2624,6 +2696,7 @@ if ('serviceWorker' in navigator) {
 
   pick.addEventListener('click', () => file.click());
   window._asagiElegirFoto = () => file.click();
+  window._asagiImportarFoto = (blob) => importar(blob);
   window._asagiQuitarFoto = () => { if (quitar) quitar.click(); };
   file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });
   if (quitar) quitar.addEventListener('click', () => {
@@ -3412,8 +3485,8 @@ if ('serviceWorker' in navigator) {
 
 // --- Keys y ajustes del cerebro: se guardan SOLOS al escribir (sin "Aplicar") ---
 (function autoGuardarCerebro() {
-  const IDS = ['brain-url', 'brain-model', 'brain-key', 'brain-gemini-key', 'brain-atria-key', 'brain-mistral-key'];
-  const CAMPOS = ['remoteUrl', 'remoteModel', 'remoteKey', 'geminiKey', 'atriaKey', 'mistralKey'];
+  const IDS = ['brain-url', 'brain-model', 'brain-key', 'brain-gemini-key', 'brain-atria-key', 'brain-mistral-key', 'brain-claves-extra'];
+  const CAMPOS = ['remoteUrl', 'remoteModel', 'remoteKey', 'geminiKey', 'atriaKey', 'mistralKey', 'clavesExtra'];
   const K2 = 'asagi-keys-v1';            // copia aparte: si el estado principal se pierde, esta rescata
   let sucio = false, t = null;
   function guardar() {
@@ -3541,8 +3614,8 @@ if ('serviceWorker' in navigator) {
         }
         return '';
       },
-      geminiFn: gk ? ((p) => R.geminiResponder(p, gk)) : null,
-      remotoFn: mk ? ((p) => R.mistralResponder(p, mk)) : (ak ? ((p) => R.atriaResponder(p, ak)) : null),
+      geminiFn: R.armarNube(b).geminiFn,
+      remotoFn: R.armarNube(b).remotoFn,
       testFn: null, apiKey: gk, store: window.localStorage
     });
     const res = await router.responder(prompt);

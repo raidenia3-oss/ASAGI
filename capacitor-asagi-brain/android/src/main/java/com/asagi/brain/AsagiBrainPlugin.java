@@ -82,8 +82,8 @@ public class AsagiBrainPlugin extends Plugin {
     private static native String nativeGenerateStream(String[] roles, String[] contents, int maxTokens);
 
     private Context appContext;
-    private File modelDirectory;
-    private File modelFile;
+    private volatile File modelDirectory;
+    private volatile File modelFile;
     private DownloadState downloadState;
     private AtomicBoolean loaded = new AtomicBoolean(false);
     private Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -114,10 +114,23 @@ public class AsagiBrainPlugin extends Plugin {
     public void load() {
         instance = this;
         appContext = getContext().getApplicationContext();
-        modelDirectory = new File(appContext.getFilesDir(), "models");
+        // El modelo vive en la tarjeta SD si hay (no llena la memoria interna).
+        modelDirectory = Almacen.carpetaModelos(appContext, MODEL_FILENAME);
         modelFile = new File(modelDirectory, MODEL_FILENAME);
         downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME);
         iniciarEnlacePoller();
+        // Si ya estaba en la interna y hay SD con espacio: lo pasa en segundo plano.
+        if (modelFile.exists() && modelDirectory.equals(new File(appContext.getFilesDir(), "models")) && Almacen.sd(appContext) != null) {
+            new Thread(() -> {
+                File nuevo = Almacen.moverModeloASd(appContext, MODEL_FILENAME);
+                if (nuevo != null) {
+                    modelDirectory = nuevo.getParentFile();
+                    modelFile = nuevo;
+                    try { downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME); } catch (Throwable ignored) {}
+                    Log.i(TAG, "modelo movido a la SD: " + nuevo);
+                }
+            }, "asagi-modelo-sd").start();
+        }
     }
 
     private File resolveModelDirectory() {

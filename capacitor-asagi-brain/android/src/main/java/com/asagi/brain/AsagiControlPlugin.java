@@ -1325,4 +1325,37 @@ public class AsagiControlPlugin extends Plugin {
             call.resolve(r);
         }, 2500);
     }
+
+    // ---- Almacenamiento y Wikipedia sin internet (en la SD; la prepara ARIA en la PC) ----
+    @PluginMethod
+    public void almacen(PluginCall call) {
+        Context c = getContext();
+        java.io.File sd = Almacen.sd(c), w = Almacen.wikiDb(c);
+        JSObject r = new JSObject();
+        r.put("sd", sd != null);
+        r.put("sdLibreGB", sd != null ? Math.round(sd.getUsableSpace() / 1e8) / 10.0 : 0);
+        r.put("internaLibreGB", Math.round(c.getFilesDir().getUsableSpace() / 1e8) / 10.0);
+        r.put("wiki", w != null);
+        r.put("wikiGB", w != null ? Math.round(w.length() / 1e8) / 10.0 : 0);
+        r.put("wikiEnSd", w != null && sd != null && w.getAbsolutePath().startsWith(sd.getAbsolutePath()));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void wikiBuscar(PluginCall call) {
+        final String q = call.getString("q", "");
+        final int n = Math.max(1, Math.min(5, call.getInt("n", 3)));
+        new Thread(() -> {
+            JSArray arr = new JSArray();
+            for (String[] f : Almacen.buscarWiki(getContext(), q, n)) {
+                JSObject o = new JSObject();
+                o.put("titulo", f[0]);
+                o.put("texto", f[1]);
+                arr.put(o);
+            }
+            JSObject r = new JSObject();
+            r.put("resultados", arr);
+            call.resolve(r);
+        }, "asagi-wiki").start();
+    }
 }

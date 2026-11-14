@@ -81,7 +81,7 @@ public class BrainDownloadActivity extends Activity {
         cellularButton = findViewById(R.id.brain_download_cellular);
         statusView = findViewById(R.id.brain_download_status);
 
-        modelDirectory = new File(getFilesDir(), "models");
+        modelDirectory = Almacen.carpetaModelos(this, MODEL_FILENAME);
         modelFile = new File(modelDirectory, MODEL_FILENAME);
         tmpFile = new File(modelDirectory, MODEL_FILENAME + ".part");
 

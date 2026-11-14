@@ -110,6 +110,23 @@ var _investigar = async function (pregunta, pensar, progreso, n) {
   return investigar(pregunta, pensar, progreso, n);
 };
 
-window.AsagiNavegador = { ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
+// YouTube: lo resume ARIA en la PC (lee los subtítulos con su navegador y piensa con su modelo).
+// Es un trabajo largo: se pide, y se pregunta cada 8 s hasta 6 min. En el celular no se hace (RAM).
+async function youtube(url, progreso) {
+  if (!window._asagiLan) throw new Error('para resumir videos necesito a ARIA conectada (USB o WiFi)');
+  var w = await _aria({ accion: 'youtube', url: url });
+  if (!w || w.error || !w.id) throw new Error((w && w.error) || 'ARIA no respondió');
+  if (progreso) progreso('📺 ARIA está viendo el video (lee sus subtítulos en la PC)…');
+  var fin = Date.now() + 6 * 60e3;
+  while (Date.now() < fin) {
+    await new Promise(function (r) { setTimeout(r, 8000); });
+    var e = await _aria({ accion: 'resultado', id: w.id });
+    if (e && e.listo) { if (e.error) throw new Error(e.error); return e; }
+    if (e && e.error && !/no conozco/.test(e.error)) throw new Error(e.error);
+  }
+  throw new Error('ARIA tardó demasiado con el video');
+}
+
+window.AsagiNavegador = { youtube: youtube, ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
   investigar: _investigar, viaPC: function () { return _viaPC; }, ultima: function () { return ultima; }, nativo: function () { return !!nativo(); } };
 })();

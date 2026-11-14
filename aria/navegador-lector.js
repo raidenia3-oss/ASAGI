@@ -130,6 +130,8 @@ function parsear(t) {
   var n = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[¿?¡!]+/g, '').trim();
   if ((m = s.match(/^(?:navega(?:r)?|ve|entra|abre la (?:web|pagina|página)|abre la url)\s+(?:a\s+)?((?:https?:\/\/)?(?:[\w.-]+\.[a-z]{2,}|\d{1,3}(?:\.\d{1,3}){3}|localhost)(?::\d+)?(?:\/\S*)?)$/i))) return { accion: 'ir', url: /^https?:/i.test(m[1]) ? m[1] : (/^(\d|localhost)/.test(m[1]) ? 'http://' : 'https://') + m[1] };
   if ((m = s.match(/^(?:busca en (?:la web|internet)|investiga en (?:la web|internet)|web)\s*:?\s+(.{2,200})$/i))) return { accion: 'investigar', pregunta: m[1].trim() };
+  if ((m = s.match(/(https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/)|youtu\.be\/)[\w-]{6,}\S*)/)) &&
+      (s === m[1] || /^(?:resume|resumen|resumeme|que dice|de que trata|youtube|video|mira)/.test(n))) return { accion: 'youtube', url: m[1] };
   if (/^(lee la pagina|que dice la pagina|lee la web|leer pagina|que hay en la pagina)$/.test(n)) return { accion: 'leer' };
   if ((m = n.match(/^(?:clic|click|toca|pulsa)\s+(?:en\s+)?(?:el\s+)?(\d{1,3})$/))) return { accion: 'clic', n: parseInt(m[1], 10) };
   if ((m = s.match(/^escribe\s+(?:en\s+)?(?:el\s+)?(\d{1,3})\s*:\s*(.+?)(\s+y\s+env[ií]a)?$/i))) return { accion: 'escribir', n: parseInt(m[1], 10), texto: m[2], enviar: !!m[3] };

@@ -77,7 +77,17 @@ _VOLUMEN_POR_PERSONAJE = {
 }
 
 
+def _piper_ok():
+    try:
+        import voz_piper
+        return voz_piper.listo()
+    except Exception:
+        return False
+
+
 def disponible():
+    if _piper_ok():
+        return True
     try:
         import pyttsx3  # noqa: F401
         return True
@@ -167,6 +177,21 @@ def hablar(texto, personaje="aria", rol="default"):
         with _lock:
             if mi != _gen:
                 return
+            # Voz natural (Piper) si ya se instaló; si falla, sigue con la de Windows.
+            if _piper_ok():
+                try:
+                    import voz_piper
+                    _hablando_ahora[0] = True
+                    vel = _ritmo_para(personaje, rol) / 175.0
+                    for f in frases(texto):
+                        if mi != _gen:
+                            break
+                        voz_piper.decir_frase(f, sigue=lambda: mi == _gen, velocidad=vel)
+                    return
+                except Exception:
+                    pass
+                finally:
+                    _hablando_ahora[0] = False
             try:
                 e = _engine_local()
                 if not _conectado[0]:

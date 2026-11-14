@@ -29,9 +29,10 @@
     "166ebc9cf33f85b28cf2facdb649ca45b36cad582de27e813218f24d050c3214",
     "27b28b8b62408111d31ba1e87c9575c4b622034f121ee6829471c6f414ca07ef",
     "548293595403469ca35fa5761f929ab9743a11e097f89f1ca1f0b032ecb31a34",
-    "8ade0578d26ad33b9818eafa593fc46667d012739bd8b68ab0fbaa6b2ca00848"
+    "8ade0578d26ad33b9818eafa593fc46667d012739bd8b68ab0fbaa6b2ca00848",
+    "b5e71375b240e31604cb1e03ac576f896de05d5e9f9668d352fe7821e8df0ae9"
    ],
-   "sha256": "b5e71375b240e31604cb1e03ac576f896de05d5e9f9668d352fe7821e8df0ae9"
+   "sha256": "35a2e07b07ada5bfe8541ef8fe1345c1c27b96f5f56735aa1be4c9128314ed4f"
   },
   "bots_agenda.py": {
    "previos": [
@@ -58,9 +59,17 @@
    ],
    "sha256": "010ca4071f610d2202ff65e96869367e8bc00254b71816b5f9c9a84d4c128399"
   },
+  "dictado_pc.py": {
+   "previos": [],
+   "sha256": "85c5afc60380be3093c7f4538f98a62d73be5431d9fed0720a74aab99b17fe75"
+  },
   "ensenar.py": {
    "previos": [],
    "sha256": "c342df0c3f7ba428915b44596eb1964ec6c019b989216696ce02f610f3de62a6"
+  },
+  "extras_pc.py": {
+   "previos": [],
+   "sha256": "e825308e6c66fca6e262ecd3db8df880ba2c457a0fc43ba8552cf67acd31f9d2"
   },
   "fondo_foto.py": {
    "previos": [],
@@ -80,16 +89,22 @@
   },
   "navegador-lector.js": {
    "previos": [
-    "8c299213599a837e5309affd9d70e25e5413919fb7a08838c206ef2fb3b71ebd"
+    "8c299213599a837e5309affd9d70e25e5413919fb7a08838c206ef2fb3b71ebd",
+    "561c9f3c5e7b5e2b2f1f5a7b66dffb76843b59341bf9d3c6fa233bdfaa7fa7a8"
    ],
-   "sha256": "561c9f3c5e7b5e2b2f1f5a7b66dffb76843b59341bf9d3c6fa233bdfaa7fa7a8"
+   "sha256": "b4b17b20b81fa9dbc8722aca3c9cd7a95d88e75cd032f25301a35ea8d6ab99db"
   },
   "navegador_aria.py": {
    "previos": [
     "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b",
-    "e9345d72c22fdb6ac6455d40894c5b6892067968dbf667f74c303896d917fa7e"
+    "e9345d72c22fdb6ac6455d40894c5b6892067968dbf667f74c303896d917fa7e",
+    "bf2ab30f7dd96de6a9bdc55a6517f1435d24e94270c1fb4d0e83ba07ca83e511"
    ],
-   "sha256": "bf2ab30f7dd96de6a9bdc55a6517f1435d24e94270c1fb4d0e83ba07ca83e511"
+   "sha256": "0512bcd55ff0e9eae5157c246dd5cfa36a8f7b29724032c1dfe02b071a710e19"
+  },
+  "openverse_pc.py": {
+   "previos": [],
+   "sha256": "6e71ccc1bf133d431dd4ef964b07cc0cf01e34eeb263894ba42dbfb1744d9aab"
   },
   "personajes.py": {
    "previos": [
@@ -146,13 +161,24 @@
     "c4df375ddae174cf8d7d379530d16061e5a4c836266a1e5c3177615c14105f2a",
     "52040b00031a01a2d287277f9c5e35f1021df8049701b6a4108aafc1ec5a84d3",
     "60118de23783269ae8105d6488054b7cba89a32f6b3d8eb2a198207a5c9bb454",
-    "4ea5623e1588491f545db17ba4b4cceb36bd21e54d117ea80f9a47f8e4120395"
+    "4ea5623e1588491f545db17ba4b4cceb36bd21e54d117ea80f9a47f8e4120395",
+    "081ae738fb08d660f7a4d9ce6a50d5af922b1b797d1a2cd679a4a0a57dafbb7f"
    ],
-   "sha256": "081ae738fb08d660f7a4d9ce6a50d5af922b1b797d1a2cd679a4a0a57dafbb7f"
+   "sha256": "1f74593e836db9415683af7ad99d9f39b83b7a6d7fd17466e5b300575afba89c"
   },
   "voz_local.py": {
+   "previos": [
+    "376f693efb9d581ac02050ad42e707486dce9b680966b6366ff917391e1e2ff4"
+   ],
+   "sha256": "31fc2012cb3ab44ac42df94acced78d34b2998e019f7efa52603280638997258"
+  },
+  "voz_piper.py": {
    "previos": [],
-   "sha256": "376f693efb9d581ac02050ad42e707486dce9b680966b6366ff917391e1e2ff4"
+   "sha256": "36bf7ba37fb90134480e7240f3465429069b06eeeb4e8579cdd2187258e94fbe"
+  },
+  "wiki_pc.py": {
+   "previos": [],
+   "sha256": "4d7b650d3b2e18de95d3b672f7b97de4887a129dd749589a405f53423b997623"
   }
  },
  "version": 1

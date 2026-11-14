@@ -876,6 +876,14 @@ class LocalAIBrain:
                     e = {"activos": 0, "proximo": None, "lista": []}
                 e["ocupada"] = bool(getattr(self, "_gen_lock", None) and self._gen_lock.locked())
                 return {"ok": True, "estado": e}
+            if c.get("t") == "wiki":             # ASAGI pide preparar la Wikipedia sin internet (PC baja y convierte, USB la copia)
+                try:
+                    import wiki_pc
+                    if c.get("accion") == "preparar" and wiki_pc.estado.get("fase") not in ("bajando", "convirtiendo", "inicio"):
+                        wiki_pc.en_fondo()
+                    return {"ok": True, "wiki": dict(wiki_pc.estado, en_pc=os.path.exists(wiki_pc.DB))}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "web":              # ASAGI navega con el navegador de ARIA (no gasta RAM del celular)
                 res = {}
 
@@ -898,6 +906,31 @@ class LocalAIBrain:
                             res["r"] = {"pagina": nv.volver()}
                         elif a == "cerrar":
                             nv.cerrar(); res["r"] = {"ok": True}
+                        elif a == "youtube":      # tarda (subtítulos + resumen por partes): trabajo en fondo
+                            trab = getattr(self, "_web_trabajos", None)
+                            if trab is None:
+                                trab = self._web_trabajos = {}
+                            import uuid as _uu
+                            jid = _uu.uuid4().hex[:10]
+                            trab[jid] = {"listo": False}
+
+                            def _yt(u=str(c.get("url", ""))[:300], jid=jid):
+                                try:
+                                    r = nv.youtube(u, pensar=lambda p: self.generate_chat(p))
+                                    trab[jid] = {"listo": True, "titulo": r.get("titulo", ""), "texto": r.get("resumen", ""), "url": u}
+                                except Exception as exc:
+                                    trab[jid] = {"listo": True, "error": str(exc)}
+                            threading.Thread(target=_yt, daemon=True).start()
+                            res["r"] = {"pendiente": True, "id": jid}
+                        elif a == "resultado":
+                            trab = getattr(self, "_web_trabajos", None) or {}
+                            t = trab.get(str(c.get("id", "")))
+                            if t is None:
+                                res["e"] = "no conozco ese trabajo"
+                            else:
+                                if t.get("listo"):
+                                    trab.pop(str(c.get("id", "")), None)
+                                res["r"] = dict(t)
                         else:
                             res["e"] = "acción desconocida"
                     except Exception as exc:
@@ -1354,6 +1387,11 @@ class LocalVoice:
         sin que nadie lo haya pedido.
         """
         try:
+            import faster_whisper  # noqa: F401   (se instala solo: extras_pc)
+            return "faster"
+        except Exception:
+            pass
+        try:
             import whisper  # noqa: F401
             return "whisper"
         except Exception:
@@ -1379,7 +1417,24 @@ class LocalVoice:
         if not self._local_engine:
             self._local_engine = self._pick_local_engine()
 
-        if self._local_engine == "whisper":
+        if self._local_engine == "faster":
+            try:
+                import tempfile as _tf
+                import dictado_pc
+                fd, ruta = _tf.mkstemp(suffix=".wav")
+                os.close(fd)
+                try:
+                    with open(ruta, "wb") as f:
+                        f.write(audio.get_wav_data(convert_rate=16000, convert_width=2))
+                    return dictado_pc.transcribir(ruta)
+                finally:
+                    try:
+                        os.remove(ruta)
+                    except Exception:
+                        pass
+            except Exception:
+                self._local_engine = ""
+        elif self._local_engine == "whisper":
             try:
                 return str(recognizer.recognize_whisper(audio) or "").strip()
             except Exception:

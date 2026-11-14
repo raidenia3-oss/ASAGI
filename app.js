@@ -792,6 +792,34 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Navegador propio de ASAGI (WebView oculto): «navega a x.com», «busca en la web: …», «lee la página», «clic 3», «escribe 5: hola y envía».
+  {
+    const L = window.AsagiNavLector, NV = window.AsagiNavegador, o = L && NV && L.parsear(text);
+    if (o) {
+      const mostrar = (p) => appendMessage('bot', L.resumenPagina(p, 25, 900) + '\n(«clic N», «escribe N: …», «lee la página», «vuelve atrás»)');
+      const fallo = (e) => appendMessage('bot', '⚠ Navegador: ' + ((e && e.message) || e));
+      if (o.accion === 'ir') { appendMessage('bot', '🌐 Abriendo ' + o.url + '…'); NV.ir(o.url).then(mostrar).catch(fallo); return; }
+      if (o.accion === 'leer') { NV.leer().then(mostrar).catch(fallo); return; }
+      if (o.accion === 'clic') {
+        NV.clic(o.n).then((r) => r.ok ? (appendMessage('bot', '👆 Toqué [' + o.n + ']' + (r.el ? ' «' + r.el.texto + '»' : '')), mostrar(r.pagina)) : appendMessage('bot', '⚠ ' + r.error)).catch(fallo);
+        return;
+      }
+      if (o.accion === 'escribir') {
+        NV.escribir(o.n, o.texto, o.enviar).then((r) => r.ok ? (appendMessage('bot', '⌨ Escribí en [' + o.n + ']' + (o.enviar ? ' y envié.' : '. Di «clic N» en el botón para enviar.')), o.enviar && mostrar(r.pagina)) : appendMessage('bot', '⚠ ' + r.error)).catch(fallo);
+        return;
+      }
+      if (o.accion === 'volver') { NV.volver().then((p) => p ? mostrar(p) : appendMessage('bot', 'No hay página anterior.')).catch(fallo); return; }
+      if (o.accion === 'cerrar') { NV.cerrar().then(() => appendMessage('bot', '🌐 Cerré mi navegador.')); return; }
+      if (o.accion === 'investigar') {
+        appendMessage('bot', '🔎 Busco «' + o.pregunta + '» en la web…');
+        const pensarNav = async (p) => { if (!window._asagiPensar) return null; const r = await window._asagiPensar(p); return r && String(r).trim() ? String(r).trim() : null; };
+        NV.investigar(o.pregunta, pensarNav, (t) => appendMessage('bot', t)).then((r) =>
+          appendMessage('bot', r.texto + (r.fuentes.length ? '\n\nFuentes:\n' + r.fuentes.join('\n') : ''))).catch(fallo);
+        return;
+      }
+    }
+  }
+
   // Lo cotidiano lo resuelve ASAGI sola, con o sin cerebro (hora, cuentas, alarmas, abrir apps, batería, hoy…).
   {
     const SC = window.AsagiSinCerebro, o = SC && SC.entender(text);

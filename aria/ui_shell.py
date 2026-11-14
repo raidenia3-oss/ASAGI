@@ -818,6 +818,53 @@ if _QT:
             except Exception:
                 pass
 
+        # ---- navegador propio de ARIA (navegador_aria.py) ----
+        def _cmd_navegador(self, t):
+            try:
+                import navegador_aria as _na
+            except Exception:
+                return False
+            o = _na.parsear(t)
+            if not o:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            nv = _na.nav()
+            pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
+            cola = getattr(self, "_bots_cola", None)
+            decir = (lambda x: cola.put(x)) if cola is not None else (lambda x: None)
+            acc = o["accion"]
+            if acc == "ir":
+                self._linea("🌐 Abriendo %s…" % o["url"], "sys")
+            elif acc == "investigar":
+                self._linea("🔎 Busco «%s» en la web…" % o["pregunta"], "sys")
+            import threading as _th
+
+            def _h():
+                try:
+                    if acc == "ir":
+                        decir("🌐 " + _na.resumen(nv.ir(o["url"])))
+                    elif acc == "leer":
+                        decir("🌐 " + _na.resumen(nv.leer()))
+                    elif acc == "clic":
+                        r = nv.clic(o["n"])
+                        decir(("👆 Toqué [%d] «%s»\n" % (o["n"], r.get("texto") or "") + _na.resumen(r["pagina"])) if r.get("ok") else "⚠ " + r.get("error", "no pude"))
+                    elif acc == "escribir":
+                        r = nv.escribir(o["n"], o["texto"], o["enviar"])
+                        decir(("⌨ Escribí en [%d]%s" % (o["n"], " y envié.\n" + _na.resumen(r["pagina"]) if o["enviar"] else ".")) if r.get("ok") else "⚠ " + r.get("error", "no pude"))
+                    elif acc == "volver":
+                        p = nv.volver(); decir("🌐 " + _na.resumen(p) if p else "No hay página anterior.")
+                    elif acc == "cerrar":
+                        nv.cerrar(); decir("🌐 Cerré mi navegador.")
+                    elif acc == "visible":
+                        nv.visible(o["si"]); decir("🌐 Mi navegador ahora es %s. Abre una página para verlo." % ("visible" if o["si"] else "oculto"))
+                    elif acc == "investigar":
+                        r = nv.investigar(o["pregunta"], pensar=pensar, progreso=decir)
+                        decir("🔎 " + r["texto"] + (("\n\nFuentes:\n" + "\n".join(r["fuentes"])) if r["fuentes"] else ""))
+                except Exception as exc:
+                    decir("⚠ Navegador: %s" % exc)
+            _th.Thread(target=_h, daemon=True).start()
+            return True
+
         def _cmd_correo(self, t):
             try:
                 import correo as _co
@@ -1278,6 +1325,8 @@ if _QT:
             if self._cmd_rollercoin(t):
                 return
             if self._cmd_correo(t):
+                return
+            if self._cmd_navegador(t):
                 return
             if self._worker is not None and self._worker.isRunning():
                 return

@@ -77,6 +77,14 @@
    "previos": [],
    "sha256": "3426f07e7947a57a2946bccb55d18376f928464d59ab22a36870608bb3ef72ab"
   },
+  "navegador-lector.js": {
+   "previos": [],
+   "sha256": "8c299213599a837e5309affd9d70e25e5413919fb7a08838c206ef2fb3b71ebd"
+  },
+  "navegador_aria.py": {
+   "previos": [],
+   "sha256": "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b"
+  },
   "personajes.py": {
    "previos": [
     "f05fd3635fc17170c813d2925c732e4ac035ee7c9f6e1304436bd1fa3f54ce69"
@@ -131,9 +139,10 @@
     "604e28a3d42f2aea28b6abc53b0036d673db9fd4ab5c48dbdc04afab142c43af",
     "c4df375ddae174cf8d7d379530d16061e5a4c836266a1e5c3177615c14105f2a",
     "52040b00031a01a2d287277f9c5e35f1021df8049701b6a4108aafc1ec5a84d3",
-    "60118de23783269ae8105d6488054b7cba89a32f6b3d8eb2a198207a5c9bb454"
+    "60118de23783269ae8105d6488054b7cba89a32f6b3d8eb2a198207a5c9bb454",
+    "4ea5623e1588491f545db17ba4b4cceb36bd21e54d117ea80f9a47f8e4120395"
    ],
-   "sha256": "4ea5623e1588491f545db17ba4b4cceb36bd21e54d117ea80f9a47f8e4120395"
+   "sha256": "081ae738fb08d660f7a4d9ce6a50d5af922b1b797d1a2cd679a4a0a57dafbb7f"
   },
   "voz_local.py": {
    "previos": [],

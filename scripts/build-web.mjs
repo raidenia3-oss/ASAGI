@@ -43,6 +43,8 @@ const files = [
   'citas.js',
   'personajes.js',
   'sin-cerebro.js',
+  'navegador-lector.js',
+  'navegador.js',
   'piensa.js',
   'discord.js',
   'app.js',

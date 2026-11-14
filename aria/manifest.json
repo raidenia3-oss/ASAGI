@@ -178,8 +178,10 @@
    "sha256": "36bf7ba37fb90134480e7240f3465429069b06eeeb4e8579cdd2187258e94fbe"
   },
   "wiki_pc.py": {
-   "previos": [],
-   "sha256": "4d7b650d3b2e18de95d3b672f7b97de4887a129dd749589a405f53423b997623"
+   "previos": [
+    "4d7b650d3b2e18de95d3b672f7b97de4887a129dd749589a405f53423b997623"
+   ],
+   "sha256": "8b05b7dcdf3778d1ebec5a7bc02c5f6b73cfee804c4f31a2b549cd89158fbcf7"
   }
  },
  "version": 1

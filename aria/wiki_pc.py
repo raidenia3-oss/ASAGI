@@ -218,6 +218,7 @@ def buscar(q, ruta=DB, n=3):
 # ---------------- 3. copiar a la SD por USB ----------------
 def adb():
     cands = [shutil.which("adb"), os.path.join(BASE, "platform-tools", "adb.exe"),
+             os.path.join(os.path.expanduser("~"), "platform-tools", "adb.exe"),
              os.path.join(os.environ.get("LOCALAPPDATA", ""), "Android", "Sdk", "platform-tools", "adb.exe"),
              r"C:\platform-tools\adb.exe", r"C:\adb\adb.exe"]
     try:

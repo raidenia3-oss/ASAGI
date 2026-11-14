@@ -1,0 +1,1415 @@
+11-14 18:07:49.982  2135  2135 D Capacitor: Starting BridgeActivity
+11-14 18:07:50.013  2135  2135 D Capacitor: Registering plugin instance: CapacitorCookies
+11-14 18:07:50.018  2135  2135 D Capacitor: Registering plugin instance: WebView
+11-14 18:07:50.022  2135  2135 D Capacitor: Registering plugin instance: CapacitorHttp
+11-14 18:07:50.025  2135  2135 D Capacitor: Registering plugin instance: AsagiBrain
+11-14 18:07:50.190  2135  2135 D Capacitor: Registering plugin instance: AsagiControl
+11-14 18:07:50.202  2135  2135 D Capacitor: Registering plugin instance: AsagiNavegador
+11-14 18:07:50.204  2135  2135 D Capacitor: Registering plugin instance: LocalNotifications
+11-14 18:07:50.241  2135  2135 W Capacitor: Unable to read file at path public/plugins
+11-14 18:07:50.245  2135  2135 D Capacitor: Loading app at https://localhost
+11-14 18:07:50.264  2135  2135 D Capacitor/LN: LocalNotification received: null
+11-14 18:07:50.264  2135  2135 D Capacitor/LN: Activity started without notification attached
+11-14 18:07:50.284  2135  2135 D Capacitor: App started
+11-14 18:07:50.287  2135  2135 D Capacitor/LN: LocalNotification received: null
+11-14 18:07:50.288  2135  2135 D Capacitor/LN: Activity started without notification attached
+11-14 18:07:50.288  2135  2135 D Capacitor: App resumed
+11-14 18:07:50.340  2135  2268 D Capacitor: Handling local request: https://localhost/
+11-14 18:07:50.480  2135  2260 D Capacitor: Handling local request: https://localhost/styles.css
+11-14 18:07:50.505  2135  2263 D Capacitor: Handling local request: https://localhost/tema-asagi.css
+11-14 18:07:50.506  2135  2267 D Capacitor: Handling local request: https://localhost/brain-router.js
+11-14 18:07:50.509  2135  2268 D Capacitor: Handling local request: https://localhost/asagi-browser.js
+11-14 18:07:50.513  2135  2262 D Capacitor: Handling local request: https://localhost/asagi-apps.js
+11-14 18:07:51.336  2135  2260 D Capacitor: Handling local request: https://localhost/sync-memoria.js
+11-14 18:07:51.337  2135  2260 D Capacitor: Handling local request: https://localhost/enlace.js
+11-14 18:07:51.337  2135  2267 D Capacitor: Handling local request: https://localhost/personalidad.js
+11-14 18:07:51.337  2135  2260 D Capacitor: Handling local request: https://localhost/razonamiento.js
+11-14 18:07:51.337  2135  2260 D Capacitor: Handling local request: https://localhost/memoria.js
+11-14 18:07:51.338  2135  2260 D Capacitor: Handling local request: https://localhost/rea.js
+11-14 18:07:51.338  2135  2263 D Capacitor: Handling local request: https://localhost/voz.js
+11-14 18:07:51.338  2135  2260 D Capacitor: Handling local request: https://localhost/ads.js
+11-14 18:07:51.338  2135  2260 D Capacitor: Handling local request: https://localhost/bots.js
+11-14 18:07:51.339  2135  2262 D Capacitor: Handling local request: https://localhost/wallpaper.js
+11-14 18:07:51.339  2135  2260 D Capacitor: Handling local request: https://localhost/defensa.js
+11-14 18:07:51.339  2135  2262 D Capacitor: Handling local request: https://localhost/gestures.js
+11-14 18:07:51.339  2135  2260 D Capacitor: Handling local request: https://localhost/palette.js
+11-14 18:07:51.340  2135  2260 D Capacitor: Handling local request: https://localhost/conocimiento.js
+11-14 18:07:51.340  2135  2260 D Capacitor: Handling local request: https://localhost/enjambre.js
+11-14 18:07:51.341  2135  2260 D Capacitor: Handling local request: https://localhost/foto-ia.js
+11-14 18:07:51.341  2135  2260 D Capacitor: Handling local request: https://localhost/monitor.js
+11-14 18:07:51.342  2135  2262 D Capacitor: Handling local request: https://localhost/recon.js
+11-14 18:07:51.342  2135  2260 D Capacitor: Handling local request: https://localhost/retro.js
+11-14 18:07:51.342  2135  2262 D Capacitor: Handling local request: https://localhost/ui-fx.js
+11-14 18:07:51.342  2135  2260 D Capacitor: Handling local request: https://localhost/avatar.js
+11-14 18:07:51.342  2135  2262 D Capacitor: Handling local request: https://localhost/dictado.js
+11-14 18:07:51.342  2135  2260 D Capacitor: Handling local request: https://localhost/pendientes.js
+11-14 18:07:51.343  2135  2262 D Capacitor: Handling local request: https://localhost/notificar.js
+11-14 18:07:51.343  2135  2260 D Capacitor: Handling local request: https://localhost/enlace-adb.js
+11-14 18:07:51.343  2135  2262 D Capacitor: Handling local request: https://localhost/herramientas.js
+11-14 18:07:51.343  2135  2260 D Capacitor: Handling local request: https://localhost/bandeja.js
+11-14 18:07:51.343  2135  2262 D Capacitor: Handling local request: https://localhost/enlace-lan.js
+11-14 18:07:51.343  2135  2260 D Capacitor: Handling local request: https://localhost/actualizador.js
+11-14 18:07:51.344  2135  2262 D Capacitor: Handling local request: https://localhost/niveles.js
+11-14 18:07:51.344  2135  2260 D Capacitor: Handling local request: https://localhost/manos.js
+11-14 18:07:51.344  2135  2262 D Capacitor: Handling local request: https://localhost/vistas.js
+11-14 18:07:51.344  2135  2260 D Capacitor: Handling local request: https://localhost/estudia.js
+11-14 18:07:51.345  2135  2260 D Capacitor: Handling local request: https://localhost/personajes.js
+11-14 18:07:51.346  2135  2260 D Capacitor: Handling local request: https://localhost/sin-cerebro.js
+11-14 18:07:51.346  2135  2260 D Capacitor: Handling local request: https://localhost/navegador-lector.js
+11-14 18:07:51.346  2135  2260 D Capacitor: Handling local request: https://localhost/navegador.js
+11-14 18:07:51.347  2135  2260 D Capacitor: Handling local request: https://localhost/openverse.js
+11-14 18:07:51.347  2135  2260 D Capacitor: Handling local request: https://localhost/wiki.js
+11-14 18:07:51.348  2135  2267 D Capacitor: Handling local request: https://localhost/noticias.js
+11-14 18:07:51.348  2135  2260 D Capacitor: Handling local request: https://localhost/notificaciones.js
+11-14 18:07:51.349  2135  2267 D Capacitor: Handling local request: https://localhost/habilidades.js
+11-14 18:07:51.349  2135  2263 D Capacitor: Handling local request: https://localhost/launcher.js
+11-14 18:07:51.349  2135  2263 D Capacitor: Handling local request: https://localhost/discord.js
+11-14 18:07:51.350  2135  2263 D Capacitor: Handling local request: https://localhost/app.js
+11-14 18:07:51.350  2135  2260 D Capacitor: Handling local request: https://localhost/piensa.js
+11-14 18:07:51.357  2135  2262 D Capacitor: Handling local request: https://localhost/citas.js
+11-14 18:07:52.379  2135  2260 D Capacitor: Handling local request: https://localhost/assets/fonts/zen-kaku-gothic-new-latin-400-normal.woff2
+11-14 18:07:52.403  2135  2260 D Capacitor: Handling local request: https://localhost/assets/fonts/jetbrains-mono-latin-600-normal.woff2
+11-14 18:07:52.413  2135  2263 D Capacitor: Handling local request: https://localhost/assets/fonts/jetbrains-mono-latin-400-normal.woff2
+11-14 18:07:52.414  2135  2263 D Capacitor: Handling local request: https://localhost/assets/fonts/shippori-mincho-b1-latin-700-normal.woff2
+11-14 18:07:52.416  2135  2262 D Capacitor: Handling local request: https://localhost/assets/fonts/zen-kaku-gothic-new-latin-500-normal.woff2
+11-14 18:07:52.422  2135  2262 D Capacitor: Handling local request: https://localhost/assets/fonts/zen-kaku-gothic-new-latin-700-normal.woff2
+11-14 18:08:04.634  2135  2260 D Capacitor: Handling local request: https://localhost/personajes/indice.json
+11-14 18:08:12.367  2135  2261 D Capacitor: Handling local request: https://localhost/assets/icon.svg
+11-14 18:08:12.373  2135  2135 D Capacitor: onGeolocationPermissionsShowPrompt: DOING IT HERE FOR ORIGIN: https://localhost/
+11-14 18:08:12.393  2135  2135 D Capacitor: onGeolocationPermissionsShowPrompt: has required permission
+11-14 18:08:12.414  2135  2263 D Capacitor: Handling local request: https://localhost/personajes/patrick-jane.json
+11-14 18:08:12.780  2135  2261 D Capacitor: Handling local request: https://localhost/personajes/barney-stinson.json
+11-14 18:08:12.863  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837652, pluginId: AsagiBrain, methodName: addListener
+11-14 18:08:12.865  2135  2135 V Capacitor: callback: 77837652, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"enlace-nuevos"}
+11-14 18:08:12.867  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837653, pluginId: AsagiControl, methodName: addListener
+11-14 18:08:12.867  2135  2135 V Capacitor: callback: 77837653, pluginId: AsagiControl, methodName: addListener, methodData: {"eventName":"actualizacion"}
+11-14 18:08:12.868  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837654, pluginId: AsagiControl, methodName: leerClaveLan
+11-14 18:08:12.868  2135  2135 V Capacitor: callback: 77837654, pluginId: AsagiControl, methodName: leerClaveLan, methodData: {}
+11-14 18:08:12.869  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837655, pluginId: AsagiBrain, methodName: status
+11-14 18:08:12.869  2135  2135 V Capacitor: callback: 77837655, pluginId: AsagiBrain, methodName: status, methodData: {}
+11-14 18:08:12.871  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837656, pluginId: AsagiControl, methodName: isEnabled
+11-14 18:08:12.871  2135  2135 V Capacitor: callback: 77837656, pluginId: AsagiControl, methodName: isEnabled, methodData: {}
+11-14 18:08:12.872  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837657, pluginId: AsagiBrain, methodName: addListener
+11-14 18:08:12.872  2135  2135 V Capacitor: callback: 77837657, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"descarga"}
+11-14 18:08:12.873  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837658, pluginId: AsagiControl, methodName: listApps
+11-14 18:08:12.873  2135  2135 V Capacitor: callback: 77837658, pluginId: AsagiControl, methodName: listApps, methodData: {}
+11-14 18:08:12.883  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837659, pluginId: AsagiBrain, methodName: estadoModelo
+11-14 18:08:12.883  2135  2135 V Capacitor: callback: 77837659, pluginId: AsagiBrain, methodName: estadoModelo, methodData: {}
+11-14 18:08:12.884  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837660, pluginId: AsagiControl, methodName: fotoPerfil
+11-14 18:08:12.884  2135  2135 V Capacitor: callback: 77837660, pluginId: AsagiControl, methodName: fotoPerfil, methodData: {}
+11-14 18:08:16.529  2135  2263 D Capacitor: Handling local request: https://localhost/sw.js
+11-14 18:08:23.909  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837661, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:08:23.911  2135  2135 V Capacitor: callback: 77837661, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:08:23.915  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837662, pluginId: AsagiControl, methodName: pedirPermisosRadios
+11-14 18:08:23.915  2135  2135 V Capacitor: callback: 77837662, pluginId: AsagiControl, methodName: pedirPermisosRadios, methodData: {}
+11-14 18:08:24.644  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837663, pluginId: AsagiControl, methodName: infoDispositivo
+11-14 18:08:24.644  2135  2135 V Capacitor: callback: 77837663, pluginId: AsagiControl, methodName: infoDispositivo, methodData: {}
+11-14 18:08:24.644  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837664, pluginId: AsagiBrain, methodName: descargarModelo
+11-14 18:08:24.644  2135  2135 V Capacitor: callback: 77837664, pluginId: AsagiBrain, methodName: descargarModelo, methodData: {}
+11-14 18:08:24.646  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837665, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:08:24.646  2135  2135 V Capacitor: callback: 77837665, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:08:24.713  2135  2261 D Capacitor: Handling local request: https://localhost/
+11-14 18:08:24.725  2135  2261 D Capacitor: Handling local request: https://localhost/brain-router.js
+11-14 18:08:24.728  2135  2263 D Capacitor: Handling local request: https://localhost/index.html
+11-14 18:08:24.729  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:24.752  2135  3797 I CapacitorCookies: Getting cookies at: 'https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:08:25.113  2135  3797 I CapacitorCookies: Getting cookies at: 'https://us.aws.cdn.hf.co/xet-bridge-us/67cc236a67ab2574de8724e6/32b2f5e0f57d8b86d53594a0ae6a6364350d351b9ec3faf1018de1da43e6c438?X-Xet-Cas-Uid=public&xip=0QO8j7P3LFs&response-content-disposition=inline%3B+filename*%3DUTF-8%27%27Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%3B+filename%3D%22Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%22%3B&user_id=public&Expires=1794683306&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly91cy5hd3MuY2RuLmhmLmNvL3hldC1icmlkZ2UtdXMvNjdjYzIzNmE2N2FiMjU3NGRlODcyNGU2LzMyYjJmNWUwZjU3ZDhiODZkNTM1OTRhMGFlNmE2MzY0MzUwZDM1MWI5ZWMzZmFmMTAxOGRlMWRhNDNlNmM0MzhcXD9YLVhldC1DYXMtVWlkPXB1YmxpYyZ4aXA9MFFPOGo3UDNMRnMmcmVzcG9uc2UtY29udGVudC1kaXNwb3NpdGlvbj1pbmxpbmUlM0IrZmlsZW5hbWUlMkElM0RVVEYtOCUyNyUyN1F3ZW4yLjUtMC41Qi1JbnN0cnVjdC1hYmxpdGVyYXRlZC5RNF9LX00uZ2d1ZiUzQitmaWxlbmFtZSUzRCUyMlF3ZW4yLjUtMC41Qi1JbnN0cnVjdC1hYmxpdGVyYXRlZC5RNF9LX00uZ2d1ZiUyMiUzQiZ1c2VyX2lkPXB1YmxpYyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiRXBvY2hUaW1lIjoxNzk0NjgzMzA2fX19XX0_&Signature=MEYCIQDZ4IgbEj2uxNXuC3%7Eu0T%7E3tHbDPX5JqO3aA0kxzEf7mwIhANLGExD%7EFB80JNZ4Mvzll8BxyW7KGVwddHQTDl8L6Ory&Key-Pair-Id=01KXEF4KZ1B6FV465MAWR4M21F&Hash-Algorithm=SHA256'
+11-14 18:08:25.438  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:25.865  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:26.157  2135  2260 D Capacitor: Handling local request: https://localhost/asagi-browser.js
+11-14 18:08:26.205  2135  2260 D Capacitor: Handling local request: https://localhost/asagi-apps.js
+11-14 18:08:26.210  2135  2261 D Capacitor: Handling local request: https://localhost/sync-memoria.js
+11-14 18:08:26.279  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:26.679  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:27.115  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:27.651  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:27.861  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837666, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:08:27.861  2135  2135 V Capacitor: callback: 77837666, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679704899-2792b7a1\",\"de\":\"asagi\",\"ts\":1794679704899,\"c\":\"IL9b0z8fkT20zHSWi8isXAMKHbeCfzt604SQjyiRpIIqVC6S+\/8mLA==\"}","puerto":47831,"espera":1500}
+11-14 18:08:27.865  2135  2135 D Capacitor: App paused
+11-14 18:08:27.866  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837667, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:08:27.869  2135  2135 V Capacitor: callback: 77837667, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"t\":\"emparejar\",\"A\":\"d0e17744d5ab59711aca2745a41f7d3a457b310dedb85ad6b89e54c461b4d624ec6cef1c0982df298c2e20de596e4ca89f972b8ed7697b216edf2ec03150b0b4b1a093995f88ae407b3e3cd15057513664751060ad83cad4861b7bddd1001e1109fec1b74477837013fc9344aa0180a75ad409bbd1c4e8f3cac50f779380244f0a59dae4254baeb5eb0610f745b964201acb4a52f372c07619bb74d825deb2e898ca13c61e103dbcdd9bcffd918bf2d1193fa41f736e4b4a4d39922932f83442ada0571ba2ae2e1f920ede6bcb69e4a9364a2fea64d151a7e79882cbdf2ce9286ce0a7dbe9ffc6ce6f5c60d7217175a1fd816a2d508c39f46c474af49dba00a0\",\"nombre\":\"ASAGI\",\"disp\":{\"fabricante\":\"Google\",\"marca\":\"google\",\"modelo\":\"sdk_gphone64_x86_64\",\"nombre\":\"sdk_gphone64_x86_64\",\"android\":\"15\",\"androidId\":\"893b2755657538bb\"}}","puerto":47831,"espera":2500}
+11-14 18:08:27.887  2135  2260 D Capacitor: Handling local request: https://localhost/enlace.js
+11-14 18:08:27.887  2135  2260 D Capacitor: Handling local request: https://localhost/personalidad.js
+11-14 18:08:27.911  2135  2260 D Capacitor: Handling local request: https://localhost/razonamiento.js
+11-14 18:08:28.123  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:28.525  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:28.926  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:29.337  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:29.742  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:30.164  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:30.593  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837668, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:08:30.593  2135  2135 V Capacitor: callback: 77837668, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679706243-72980542\",\"de\":\"asagi\",\"ts\":1794679706243,\"c\":\"eLyIvNRmr2bFlCWDTRBnZeoA697DX\/\/tuTy4ISDTtMqmBJyRx1D6qg==\"}","puerto":47831,"espera":1500}
+11-14 18:08:30.597  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:30.672  2135  2262 D Capacitor: Handling local request: https://localhost/noticias.js
+11-14 18:08:30.672  2135  2262 D Capacitor: Handling local request: https://localhost/memoria.js
+11-14 18:08:30.677  2135  2262 D Capacitor: Handling local request: https://localhost/rea.js
+11-14 18:08:30.998  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:31.407  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:31.832  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:31.838  2135  2135 D Capacitor: Unable to find a Capacitor plugin to handle permission requestCode, trying Cordova plugins 7301
+11-14 18:08:31.846  2135  2135 D Capacitor: App resumed
+11-14 18:08:31.857  2135  2261 D Capacitor: Handling local request: https://localhost/voz.js
+11-14 18:08:32.038  2135  2260 D Capacitor: Handling local request: https://localhost/ads.js
+11-14 18:08:32.097  2135  2261 D Capacitor: Handling local request: https://localhost/launcher.js
+11-14 18:08:32.167  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837669, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:08:32.169  2135  2135 V Capacitor: callback: 77837669, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:08:32.216  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:32.412  2135  2260 D Capacitor: Handling local request: https://localhost/bots.js
+11-14 18:08:32.414  2135  2260 D Capacitor: Handling local request: https://localhost/wallpaper.js
+11-14 18:08:32.415  2135  2260 D Capacitor: Handling local request: https://localhost/defensa.js
+11-14 18:08:32.618  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837670, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:08:32.619  2135  2135 V Capacitor: callback: 77837670, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679710622-f89e15aa\",\"de\":\"asagi\",\"ts\":1794679710622,\"c\":\"b0986ix0z\/HaBsxlL4Q0DTawc\/zGDpfsiFI8oX1LyR1cU9TqQuv4aQ==\"}"}
+11-14 18:08:32.623  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:32.745  2135  2260 D Capacitor: Handling local request: https://localhost/gestures.js
+11-14 18:08:32.746  2135  2260 D Capacitor: Handling local request: https://localhost/palette.js
+11-14 18:08:32.755  2135  2260 D Capacitor: Handling local request: https://localhost/conocimiento.js
+11-14 18:08:33.051  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:33.453  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:33.466  2135  2261 D Capacitor: Handling local request: https://localhost/enjambre.js
+11-14 18:08:33.468  2135  2261 D Capacitor: Handling local request: https://localhost/foto-ia.js
+11-14 18:08:33.470  2135  2261 D Capacitor: Handling local request: https://localhost/monitor.js
+11-14 18:08:33.861  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:34.277  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:34.636  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837671, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:08:34.637  2135  2135 V Capacitor: callback: 77837671, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679712644-4622930b\",\"de\":\"asagi\",\"ts\":1794679712644,\"c\":\"Ch+kFQ0shGU4vQIpT4X2X5Xg\/VfPF8jZWrSqqi+lbJrx0+4py7Nu7g==\"}"}
+11-14 18:08:34.696  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:34.710  2135  2260 D Capacitor: Handling local request: https://localhost/recon.js
+11-14 18:08:34.710  2135  2260 D Capacitor: Handling local request: https://localhost/retro.js
+11-14 18:08:34.711  2135  2260 D Capacitor: Handling local request: https://localhost/ui-fx.js
+11-14 18:08:35.143  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:35.554  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:35.601  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837672, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:08:35.601  2135  2135 V Capacitor: callback: 77837672, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679704899-2792b7a1\",\"de\":\"asagi\",\"ts\":1794679704899,\"c\":\"IL9b0z8fkT20zHSWi8isXAMKHbeCfzt604SQjyiRpIIqVC6S+\/8mLA==\"}","canal":4}
+11-14 18:08:35.635  2135  2260 D Capacitor: Handling local request: https://localhost/avatar.js
+11-14 18:08:35.654  2135  2260 D Capacitor: Handling local request: https://localhost/pendientes.js
+11-14 18:08:35.654  2135  2261 D Capacitor: Handling local request: https://localhost/dictado.js
+11-14 18:08:35.955  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:36.356  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:36.775  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:37.184  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:37.553  2135  2260 D Capacitor: Handling local request: https://localhost/notificar.js
+11-14 18:08:37.553  2135  2262 D Capacitor: Handling local request: https://localhost/enlace-adb.js
+11-14 18:08:37.556  2135  2263 D Capacitor: Handling local request: https://localhost/herramientas.js
+11-14 18:08:37.604  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:38.059  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:38.443  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837673, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:08:38.449  2135  2135 V Capacitor: callback: 77837673, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679706243-72980542\",\"de\":\"asagi\",\"ts\":1794679706243,\"c\":\"eLyIvNRmr2bFlCWDTRBnZeoA697DX\/\/tuTy4ISDTtMqmBJyRx1D6qg==\"}","canal":4}
+11-14 18:08:38.454  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837674, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:08:38.454  2135  2135 V Capacitor: callback: 77837674, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:08:38.456  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837675, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:08:38.456  2135  2135 V Capacitor: callback: 77837675, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679717526-17d1e9e8\",\"de\":\"asagi\",\"ts\":1794679717526,\"c\":\"sOD8Xxnu5z2t46cfoGXV\/IAlCiwe1rWZqdCCIN1pSQcImZNQARX8MWacdWZjN1qLoXBcreBZLnJ6Wv7b4YwtxXkVaQMp1sISP6xTOVPXYd1gUjNjjfA5E\/inIzKxqIk=\"}","canal":4}
+11-14 18:08:38.473  2135  2260 D Capacitor: Handling local request: https://localhost/bandeja.js
+11-14 18:08:38.479  2135  2260 D Capacitor: Handling local request: https://localhost/enlace-lan.js
+11-14 18:08:38.480  2135  2260 D Capacitor: Handling local request: https://localhost/actualizador.js
+11-14 18:08:38.525  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:38.551  2135  2260 D Capacitor: Handling local request: https://localhost/niveles.js
+11-14 18:08:38.551  2135  2260 D Capacitor: Handling local request: https://localhost/manos.js
+11-14 18:08:38.620  2135  2260 D Capacitor: Handling local request: https://localhost/vistas.js
+11-14 18:08:38.624  2135  2261 D Capacitor: Handling local request: https://localhost/estudia.js
+11-14 18:08:38.625  2135  2261 D Capacitor: Handling local request: https://localhost/citas.js
+11-14 18:08:38.721  2135  2260 D Capacitor: Handling local request: https://localhost/personajes.js
+11-14 18:08:38.885  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:39.301  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:39.422  2135  2261 D Capacitor: Handling local request: https://localhost/sin-cerebro.js
+11-14 18:08:39.423  2135  2262 D Capacitor: Handling local request: https://localhost/navegador-lector.js
+11-14 18:08:39.436  2135  2260 D Capacitor: Handling local request: https://localhost/navegador.js
+11-14 18:08:39.704  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:40.108  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:40.526  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:40.927  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:41.166  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837676, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:08:41.167  2135  2135 V Capacitor: callback: 77837676, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679718576-973e0604\",\"de\":\"asagi\",\"ts\":1794679718576,\"c\":\"WkL5VFapSFU0B9VMz87RsFQWgSI7NOaTVnUBBvnhyX+SPoA\/lJkkI2YYTrHsCw==\"}","canal":4}
+11-14 18:08:41.220  2135  2260 D Capacitor: Handling local request: https://localhost/openverse.js
+11-14 18:08:41.220  2135  2260 D Capacitor: Handling local request: https://localhost/wiki.js
+11-14 18:08:41.284  2135  2260 D Capacitor: Handling local request: https://localhost/notificaciones.js
+11-14 18:08:41.330  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:41.733  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:42.099  2135  2260 D Capacitor: Handling local request: https://localhost/habilidades.js
+11-14 18:08:42.103  2135  2261 D Capacitor: Handling local request: https://localhost/personajes/indice.json
+11-14 18:08:42.105  2135  2261 D Capacitor: Handling local request: https://localhost/personajes/patrick-jane.json
+11-14 18:08:42.135  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:42.541  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:42.944  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:43.341  2135  2260 D Capacitor: Handling local request: https://localhost/personajes/barney-stinson.json
+11-14 18:08:43.358  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:43.373  2135  2260 D Capacitor: Handling local request: https://localhost/piensa.js
+11-14 18:08:43.375  2135  2260 D Capacitor: Handling local request: https://localhost/discord.js
+11-14 18:08:43.759  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:44.225  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:44.356  2135  2260 D Capacitor: Handling local request: https://localhost/styles.css
+11-14 18:08:44.357  2135  2260 D Capacitor: Handling local request: https://localhost/tema-asagi.css
+11-14 18:08:44.419  2135  2261 D Capacitor: Handling local request: https://localhost/app.js
+11-14 18:08:44.645  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:45.083  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:45.178  2135  2261 D Capacitor: Handling local request: https://localhost/manifest.webmanifest
+11-14 18:08:45.182  2135  2261 D Capacitor: Handling local request: https://localhost/assets/icon.svg
+11-14 18:08:45.501  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:45.922  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:46.323  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:46.729  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:47.130  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:47.542  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:47.991  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:48.409  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:48.733  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837677, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:08:48.733  2135  2135 V Capacitor: callback: 77837677, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:08:48.813  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:49.226  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:49.639  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:50.055  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:50.469  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:50.877  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:51.030  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837678, pluginId: AsagiControl, methodName: versionApp
+11-14 18:08:51.030  2135  2135 V Capacitor: callback: 77837678, pluginId: AsagiControl, methodName: versionApp, methodData: {}
+11-14 18:08:51.343  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:51.755  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:52.161  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:52.618  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:53.023  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:53.426  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:53.830  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:54.243  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:54.403  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837679, pluginId: CapacitorHttp, methodName: get
+11-14 18:08:54.404  2135  2135 V Capacitor: callback: 77837679, pluginId: CapacitorHttp, methodName: get, methodData: {"url":"https:\/\/github.com\/raidenia3-oss\/ASAGI\/releases\/download\/latest\/version.json?t=1794679732187","headers":{"Cache-Control":"no-cache"}}
+11-14 18:08:54.404  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837680, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:08:54.404  2135  2135 V Capacitor: callback: 77837680, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:08:54.502  2135  4038 I CapacitorCookies: Getting cookies at: 'https://github.com/raidenia3-oss/ASAGI/releases/download/latest/version.json?t=1794679732187'
+11-14 18:08:54.647  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:55.061  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:55.120  2135  4038 I CapacitorCookies: Getting cookies at: 'https://release-assets.githubusercontent.com/github-production-release-asset/1432142268/0df14fa2-7fb9-425b-98b9-4b565febea52?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-11-14T18%3A58%3A20Z&rscd=attachment%3B+filename%3Dversion.json&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-11-14T17%3A57%3A29Z&ske=2026-11-14T18%3A58%3A20Z&sks=b&skv=2018-11-09&sig=68s3AaKXAagpglp0KMWP%2BrsJu8fg5XDbjGOrzyUs64o%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5NDY4MDAzNiwibmJmIjoxNzk0Njc5NzM2LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.aZcI-1hPowZ4lKu6CNV-YSrJ6aLXwWqQJ_kkyftq7os&response-content-disposition=attachment%3B%20filename%3Dversion.json&response-content-type=application%2Foctet-stream'
+11-14 18:08:55.474  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:55.926  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:56.366  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:56.865  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:57.268  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:57.680  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:58.135  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:58.536  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:59.020  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:59.489  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:08:59.915  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:00.324  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:00.725  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:01.132  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:01.546  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:01.952  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:02.357  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:02.513  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837681, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:09:02.513  2135  2135 V Capacitor: callback: 77837681, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679740802-3a679c88\",\"de\":\"asagi\",\"ts\":1794679740802,\"c\":\"\/0yDmvu64jGqsObHSAIJSuxs+46sfkP7ryS0Wc7MFtFKVqGnXO+wLw==\"}","puerto":47831,"espera":1500}
+11-14 18:09:02.514  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837682, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:02.514  2135  2135 V Capacitor: callback: 77837682, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:02.765  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:03.167  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:03.620  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:04.029  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:04.430  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:04.832  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:05.238  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:05.640  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:06.041  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:06.443  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:06.849  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:07.250  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:07.653  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:08.062  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:08.193  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837683, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:09:08.193  2135  2135 V Capacitor: callback: 77837683, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679744316-5f98aa11\",\"de\":\"asagi\",\"ts\":1794679744316,\"c\":\"m5LFIl47Mr+fMzEOvSH0aTvOYDW1O8QjOgY5vU63V54\/tcFdgbj8Rw==\"}"}
+11-14 18:09:08.197  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837684, pluginId: AsagiControl, methodName: almacen
+11-14 18:09:08.198  2135  2135 V Capacitor: callback: 77837684, pluginId: AsagiControl, methodName: almacen, methodData: {}
+11-14 18:09:08.200  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837685, pluginId: AsagiControl, methodName: leerClaveLan
+11-14 18:09:08.201  2135  2135 V Capacitor: callback: 77837685, pluginId: AsagiControl, methodName: leerClaveLan, methodData: {}
+11-14 18:09:08.479  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:09.038  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:09.458  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:09.859  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:10.308  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:10.725  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:11.061  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837686, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:11.062  2135  2135 V Capacitor: callback: 77837686, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:11.062  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837687, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:09:11.062  2135  2135 V Capacitor: callback: 77837687, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679740802-3a679c88\",\"de\":\"asagi\",\"ts\":1794679740802,\"c\":\"\/0yDmvu64jGqsObHSAIJSuxs+46sfkP7ryS0Wc7MFtFKVqGnXO+wLw==\"}","canal":4}
+11-14 18:09:11.142  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:11.543  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:11.970  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:12.266  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837688, pluginId: AsagiControl, methodName: infoDispositivo
+11-14 18:09:12.266  2135  2135 V Capacitor: callback: 77837688, pluginId: AsagiControl, methodName: infoDispositivo, methodData: {}
+11-14 18:09:12.266  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837689, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:09:12.266  2135  2135 V Capacitor: callback: 77837689, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679749353-3c834b59\",\"de\":\"asagi\",\"ts\":1794679749353,\"c\":\"GeRazopzlzHgh74k35PClPjKfm+r\/geZHootOYqQf0aOwemL5vhg2A==\"}","puerto":47831,"espera":1500}
+11-14 18:09:12.374  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:12.836  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:13.279  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:13.690  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:14.098  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:14.500  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:14.543  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837690, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:09:14.555  2135  2135 V Capacitor: callback: 77837690, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679752271-085c0646\",\"de\":\"asagi\",\"ts\":1794679752271,\"c\":\"gWNRFot+feEfGVkc77sfft6IWS9vzKZOi8WXfTVK3gyraXoSvpbqqfY8\"}","canal":4}
+11-14 18:09:14.903  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:15.314  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:15.750  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837691, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:09:15.750  2135  2135 V Capacitor: callback: 77837691, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"t\":\"emparejar\",\"A\":\"cc935dc2c90c635c1680edcbdac561e467b0362057349b8d3c2e21b73c944ed48182e3c66a58e14fe8594423e37437534b4f0c20a63200942cc94a5ce5fe86dff0adb0b26f4e4c7ab76c89bbe0e9304857d5dcd465e35b5195249d19c9434e200dd025fdef3565e617b137ebe6d0299661a5e7ba2f45a9eebcfce66d63952d5275cb918c797dbeba4bd411aac812adf0c88280c5a0ace7c872d41fc168c5df991647e839739207d7a8bf3fefd99362a41a11f763c891921dbf254491272b4783bc759f0d5d359a50121b010123d2359f4f634a44a1ad9e3c6e28f9bbccecc36ff23f32bfe0ed7d2908fdd6d6239a3ed834ba5a6680d8f208aab5352f019fee6\",\"nombre\":\"ASAGI\",\"disp\":{\"fabricante\":\"Google\",\"marca\":\"google\",\"modelo\":\"sdk_gphone64_x86_64\",\"nombre\":\"sdk_gphone64_x86_64\",\"android\":\"15\",\"androidId\":\"893b2755657538bb\"}}","puerto":47831,"espera":2500}
+11-14 18:09:15.771  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:16.201  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:16.606  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:16.908  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837692, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:09:16.908  2135  2135 V Capacitor: callback: 77837692, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679754557-5609fc3b\",\"de\":\"asagi\",\"ts\":1794679754557,\"c\":\"PWvtRvLbTjI1hJWQWVL2HSNSR61o6sFNzIfa2STbqn+QBg+DPfA77A==\"}"}
+11-14 18:09:17.012  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:17.421  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:17.834  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:18.250  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:18.661  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:19.062  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:19.181  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837693, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:19.182  2135  2135 V Capacitor: callback: 77837693, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:19.578  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:19.978  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:20.333  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837694, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:09:20.333  2135  2135 V Capacitor: callback: 77837694, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679749353-3c834b59\",\"de\":\"asagi\",\"ts\":1794679749353,\"c\":\"GeRazopzlzHgh74k35PClPjKfm+r\/geZHootOYqQf0aOwemL5vhg2A==\"}","canal":4}
+11-14 18:09:20.389  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:20.794  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:21.368  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:21.814  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:22.217  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:22.618  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:23.032  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:23.433  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:23.579  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837695, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:09:23.581  2135  2135 V Capacitor: callback: 77837695, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679761348-a8a3245c\",\"de\":\"asagi\",\"ts\":1794679761348,\"c\":\"xbIeH+st4njFUig8CL0+dDXRDLHajkXNsZ6vrl2SV0FcPY\/Wg78VUnbESwn1L\/RB\/sJSaQOcLDk=\"}","canal":4}
+11-14 18:09:23.859  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:24.267  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:24.671  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:25.080  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:25.485  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:25.900  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:26.343  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:26.757  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:27.088  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837696, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:27.088  2135  2135 V Capacitor: callback: 77837696, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:27.164  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:27.598  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:28.012  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:28.463  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:28.865  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:29.273  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:29.709  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:30.122  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:30.533  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:30.941  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:31.349  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:31.750  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:32.155  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:32.564  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:32.980  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:33.381  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:33.785  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:34.189  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:34.602  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:34.969  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837697, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:34.970  2135  2135 V Capacitor: callback: 77837697, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:35.011  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:35.415  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:35.830  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:36.245  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:36.647  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:37.060  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:37.476  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:37.876  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:38.287  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:38.690  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:39.094  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:39.513  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:39.923  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:40.408  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:40.810  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:41.213  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:41.514  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837698, pluginId: AsagiControl, methodName: bluetoothInfo
+11-14 18:09:41.515  2135  2135 V Capacitor: callback: 77837698, pluginId: AsagiControl, methodName: bluetoothInfo, methodData: {}
+11-14 18:09:41.621  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:42.032  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:42.437  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:42.662  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837699, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:42.663  2135  2135 V Capacitor: callback: 77837699, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:42.843  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:43.267  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:43.670  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:44.082  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:44.488  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:45.045  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:45.446  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:45.861  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:46.263  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:46.667  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:47.080  2135  2135 D Capacitor: App paused
+11-14 18:09:47.084  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:47.330  2135  2135 D Capacitor: Starting BridgeActivity
+11-14 18:09:47.461  2135  2135 D Capacitor: Registering plugin instance: CapacitorCookies
+11-14 18:09:47.463  2135  2135 D Capacitor: Registering plugin instance: WebView
+11-14 18:09:47.490  2135  2135 D Capacitor: Registering plugin instance: CapacitorHttp
+11-14 18:09:47.492  2135  2135 D Capacitor: Registering plugin instance: AsagiBrain
+11-14 18:09:47.510  2135  2135 D Capacitor: Registering plugin instance: AsagiControl
+11-14 18:09:47.514  2135  2135 D Capacitor: Registering plugin instance: AsagiNavegador
+11-14 18:09:47.529  2135  2135 D Capacitor: Registering plugin instance: LocalNotifications
+11-14 18:09:47.638  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:47.651  2135  2135 W Capacitor: Unable to read file at path public/plugins
+11-14 18:09:47.677  2135  2135 D Capacitor: Loading app at https://localhost
+11-14 18:09:47.704  2135  2135 D Capacitor/LN: LocalNotification received: null
+11-14 18:09:47.704  2135  2135 D Capacitor/LN: Activity started without notification attached
+11-14 18:09:47.720  2135  2135 D Capacitor: App started
+11-14 18:09:47.722  2135  2135 D Capacitor: App resumed
+11-14 18:09:48.056  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:48.501  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:48.905  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:49.328  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:49.729  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:50.133  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:50.362  2135  2260 D Capacitor: Handling local request: https://localhost/assets/fonts/zen-kaku-gothic-new-latin-400-normal.woff2
+11-14 18:09:50.535  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:50.541  2135  2260 D Capacitor: Handling local request: https://localhost/assets/fonts/jetbrains-mono-latin-600-normal.woff2
+11-14 18:09:50.543  2135  2261 D Capacitor: Handling local request: https://localhost/assets/fonts/jetbrains-mono-latin-400-normal.woff2
+11-14 18:09:50.544  2135  2262 D Capacitor: Handling local request: https://localhost/assets/fonts/shippori-mincho-b1-latin-700-normal.woff2
+11-14 18:09:50.546  2135  2267 D Capacitor: Handling local request: https://localhost/assets/fonts/zen-kaku-gothic-new-latin-500-normal.woff2
+11-14 18:09:50.550  2135  2268 D Capacitor: Handling local request: https://localhost/assets/fonts/zen-kaku-gothic-new-latin-700-normal.woff2
+11-14 18:09:50.939  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:50.960  2135  2135 D Capacitor: App stopped
+11-14 18:09:51.005  2135  2135 D Capacitor: App destroyed
+11-14 18:09:51.190  2135  2135 D Capacitor: onGeolocationPermissionsShowPrompt: DOING IT HERE FOR ORIGIN: https://localhost/
+11-14 18:09:51.193  2135  2135 D Capacitor: onGeolocationPermissionsShowPrompt: has required permission
+11-14 18:09:51.239  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 77837700, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:09:51.252  2135  2135 V Capacitor: callback: 77837700, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:09:51.340  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:51.393  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062132, pluginId: AsagiBrain, methodName: addListener
+11-14 18:09:51.393  2135  2135 V Capacitor: callback: 128062132, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"enlace-nuevos"}
+11-14 18:09:51.393  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062133, pluginId: AsagiControl, methodName: addListener
+11-14 18:09:51.394  2135  2135 V Capacitor: callback: 128062133, pluginId: AsagiControl, methodName: addListener, methodData: {"eventName":"actualizacion"}
+11-14 18:09:51.417  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062134, pluginId: AsagiControl, methodName: leerClaveLan
+11-14 18:09:51.417  2135  2135 V Capacitor: callback: 128062134, pluginId: AsagiControl, methodName: leerClaveLan, methodData: {}
+11-14 18:09:51.425  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062135, pluginId: AsagiBrain, methodName: status
+11-14 18:09:51.425  2135  2135 V Capacitor: callback: 128062135, pluginId: AsagiBrain, methodName: status, methodData: {}
+11-14 18:09:51.425  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062136, pluginId: AsagiControl, methodName: isEnabled
+11-14 18:09:51.425  2135  2135 V Capacitor: callback: 128062136, pluginId: AsagiControl, methodName: isEnabled, methodData: {}
+11-14 18:09:51.426  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062137, pluginId: AsagiBrain, methodName: addListener
+11-14 18:09:51.426  2135  2135 V Capacitor: callback: 128062137, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"descarga"}
+11-14 18:09:51.426  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062138, pluginId: AsagiControl, methodName: listApps
+11-14 18:09:51.427  2135  2135 V Capacitor: callback: 128062138, pluginId: AsagiControl, methodName: listApps, methodData: {}
+11-14 18:09:51.744  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:52.207  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:52.630  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:53.038  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:53.450  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:53.851  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:54.276  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:54.696  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:55.107  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:55.537  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:55.938  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:56.339  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:56.756  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:57.172  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:57.186  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062139, pluginId: AsagiControl, methodName: infoDispositivo
+11-14 18:09:57.186  2135  2135 V Capacitor: callback: 128062139, pluginId: AsagiControl, methodName: infoDispositivo, methodData: {}
+11-14 18:09:57.187  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062140, pluginId: AsagiBrain, methodName: estadoModelo
+11-14 18:09:57.187  2135  2135 V Capacitor: callback: 128062140, pluginId: AsagiBrain, methodName: estadoModelo, methodData: {}
+11-14 18:09:57.188  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062141, pluginId: AsagiControl, methodName: fotoPerfil
+11-14 18:09:57.188  2135  2135 V Capacitor: callback: 128062141, pluginId: AsagiControl, methodName: fotoPerfil, methodData: {}
+11-14 18:09:57.578  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:57.983  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:58.393  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:58.808  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:59.213  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:09:59.488  2135  2260 D Capacitor: Handling local request: https://localhost/sw.js
+11-14 18:09:59.616  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:00.028  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:00.434  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:00.840  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:01.259  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:01.689  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:01.940  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062142, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:01.940  2135  2135 V Capacitor: callback: 128062142, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"t\":\"emparejar\",\"A\":\"309a92c4c13dd9b9f2e26e3c0a300a66b6e202feb138fa18f205db864ceaea9673d5bd5c8477503e105f60d9b771009d0888ce6fcbc6cd7d3f21441a4c14f25fe068eba76c744def4bb0bee8428a228abd26dce7d71b85aca568657a69a4836e9a7e6f6c9be3279b5ae3d4b7744b60917ace92f73a88fcd78cac47edf7210876b88168a216c661da985f65422eb9f571160cbac4b412d5277ae7f88b5690229e46ab706666335cbe90efcb78101c1513c17ee2f11f420919278071d512f355d1451f5f2682f3b2d81fa5c45330ff437a2fa164954b19936669b0bbbff12e4cdfab1c1ec4f4a225da47a069189e4b4bca694c27d1c6a4c51a69bf6e38e2cb52c6\",\"nombre\":\"ASAGI\",\"disp\":{\"fabricante\":\"Google\",\"marca\":\"google\",\"modelo\":\"sdk_gphone64_x86_64\",\"nombre\":\"sdk_gphone64_x86_64\",\"android\":\"15\",\"androidId\":\"893b2755657538bb\"}}","puerto":47831,"espera":2500}
+11-14 18:10:01.943  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062143, pluginId: AsagiBrain, methodName: descargarModelo
+11-14 18:10:01.943  2135  2135 V Capacitor: callback: 128062143, pluginId: AsagiBrain, methodName: descargarModelo, methodData: {}
+11-14 18:10:01.943  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062144, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:01.947  2135  2135 V Capacitor: callback: 128062144, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679797722-7d7992b9\",\"de\":\"asagi\",\"ts\":1794679797722,\"c\":\"KybLdF3YaaT4VM6lZ4ANaeLAROhE3TroW8mgGXjK\/ilaQdnJtXd5zQ==\"}","puerto":47831,"espera":1500}
+11-14 18:10:01.948  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062145, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:01.948  2135  2135 V Capacitor: callback: 128062145, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:02.049  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:02.050  2135  4451 I CapacitorCookies: Getting cookies at: 'https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:10:02.101  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:02.494  2135  4451 I CapacitorCookies: Getting cookies at: 'https://us.aws.cdn.hf.co/xet-bridge-us/67cc236a67ab2574de8724e6/32b2f5e0f57d8b86d53594a0ae6a6364350d351b9ec3faf1018de1da43e6c438?response-content-disposition=inline%3B+filename*%3DUTF-8%27%27Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%3B+filename%3D%22Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%22%3B&user_id=public&xip=0QO8j7P3LFs&X-Xet-Cas-Uid=public&Expires=1794683403&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly91cy5hd3MuY2RuLmhmLmNvL3hldC1icmlkZ2UtdXMvNjdjYzIzNmE2N2FiMjU3NGRlODcyNGU2LzMyYjJmNWUwZjU3ZDhiODZkNTM1OTRhMGFlNmE2MzY0MzUwZDM1MWI5ZWMzZmFmMTAxOGRlMWRhNDNlNmM0MzhcXD9yZXNwb25zZS1jb250ZW50LWRpc3Bvc2l0aW9uPWlubGluZSUzQitmaWxlbmFtZSUyQSUzRFVURi04JTI3JTI3UXdlbjIuNS0wLjVCLUluc3RydWN0LWFibGl0ZXJhdGVkLlE0X0tfTS5nZ3VmJTNCK2ZpbGVuYW1lJTNEJTIyUXdlbjIuNS0wLjVCLUluc3RydWN0LWFibGl0ZXJhdGVkLlE0X0tfTS5nZ3VmJTIyJTNCJnVzZXJfaWQ9cHVibGljJnhpcD0wUU84ajdQM0xGcyZYLVhldC1DYXMtVWlkPXB1YmxpYyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiRXBvY2hUaW1lIjoxNzk0NjgzNDAzfX19XX0_&Signature=MEUCIQD0oN5cAdkBLMe8ESHZ1yfBUZS%7EySrkZP5DleCJiUbWfwIgQgs0XXgUyiMrPBpZQGcZeE-r1RDCsMx6GmPsK2Vbxis_&Key-Pair-Id=01KXEF4KZ1B6FV465MAWR4M21F&Hash-Algorithm=SHA256'
+11-14 18:10:02.502  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:02.729  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:02.995  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:03.146  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:03.407  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:03.545  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:03.807  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:03.956  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:04.221  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:04.399  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:04.649  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:04.852  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:05.069  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:05.260  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:05.496  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:05.694  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:05.771  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062146, pluginId: AsagiControl, methodName: versionApp
+11-14 18:10:05.771  2135  2135 V Capacitor: callback: 128062146, pluginId: AsagiControl, methodName: versionApp, methodData: {}
+11-14 18:10:05.897  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:06.099  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:06.301  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:06.527  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:06.641  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062147, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:10:06.642  2135  2135 V Capacitor: callback: 128062147, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679804633-705e7aee\",\"de\":\"asagi\",\"ts\":1794679804633,\"c\":\"J9gAHKdOXK70jAe9U\/vMdCLLU2tI+Fqaf6tPzW5dwUl1TlmBk8K\/XQ==\"}"}
+11-14 18:10:06.704  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:06.932  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:07.126  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:07.332  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:07.547  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:07.690  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062148, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:07.692  2135  2135 V Capacitor: callback: 128062148, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:07.751  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:07.948  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:08.181  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:08.360  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:08.595  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:08.668  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062149, pluginId: CapacitorHttp, methodName: get
+11-14 18:10:08.668  2135  2135 V Capacitor: callback: 128062149, pluginId: CapacitorHttp, methodName: get, methodData: {"url":"https:\/\/github.com\/raidenia3-oss\/ASAGI\/releases\/download\/latest\/version.json?t=1794679806692","headers":{"Cache-Control":"no-cache"}}
+11-14 18:10:08.743  2135  4496 I CapacitorCookies: Getting cookies at: 'https://github.com/raidenia3-oss/ASAGI/releases/download/latest/version.json?t=1794679806692'
+11-14 18:10:08.762  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:08.776  2135  4496 I CapacitorCookies: Getting cookies at: 'https://github.com/raidenia3-oss/ASAGI/releases/download/latest/version.json?t=1794679806692'
+11-14 18:10:09.006  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:09.197  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:09.409  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:09.515  2135  4496 I CapacitorCookies: Getting cookies at: 'https://release-assets.githubusercontent.com/github-production-release-asset/1432142268/0df14fa2-7fb9-425b-98b9-4b565febea52?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-11-14T18%3A43%3A17Z&rscd=attachment%3B+filename%3Dversion.json&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-11-14T17%3A43%3A02Z&ske=2026-11-14T18%3A43%3A17Z&sks=b&skv=2018-11-09&sig=mUGWOD6pyZ7iVBOXExMfpl0CX%2FhjjBvdbcBk8KNzK5A%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5NDY4MDExMCwibmJmIjoxNzk0Njc5ODEwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.xE9cbZrbS9pL0hCPGZKh5BWMwE3ZM9RakD8kJRW0IVo&response-content-disposition=attachment%3B%20filename%3Dversion.json&response-content-type=application%2Foctet-stream'
+11-14 18:10:09.601  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:09.629  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062150, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:09.629  2135  2135 V Capacitor: callback: 128062150, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679797722-7d7992b9\",\"de\":\"asagi\",\"ts\":1794679797722,\"c\":\"KybLdF3YaaT4VM6lZ4ANaeLAROhE3TroW8mgGXjK\/ilaQdnJtXd5zQ==\"}","canal":4}
+11-14 18:10:09.813  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:10.006  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:10.214  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:10.415  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:10.616  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:10.817  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:11.022  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:11.224  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:11.439  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:11.638  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:11.696  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062151, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:11.701  2135  2135 V Capacitor: callback: 128062151, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679810458-e0eff040\",\"de\":\"asagi\",\"ts\":1794679810458,\"c\":\"UuqjKnDS4loFPrFxcqReDGqHxVLuKqatiZgo+GWJYx2hzplNzc18jA==\"}","puerto":47831,"espera":1500}
+11-14 18:10:11.845  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:12.039  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:12.252  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:12.447  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:12.663  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:12.714  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062152, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:12.714  2135  2135 V Capacitor: callback: 128062152, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679810727-9808bd1f\",\"de\":\"asagi\",\"ts\":1794679810727,\"c\":\"QxxDyR9s+RO2xKeA7rCO0RUAuqAez2IMY7tRr+nB9tD5JVIhvCW4BGNdzARq9g==\"}","canal":4}
+11-14 18:10:12.851  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:13.069  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:13.257  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:13.491  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:13.662  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:13.909  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:14.068  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:14.324  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:14.497  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:14.725  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:14.927  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062153, pluginId: AsagiBrain, methodName: addListener
+11-14 18:10:14.927  2135  2135 V Capacitor: callback: 128062153, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"token"}
+11-14 18:10:14.929  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062154, pluginId: AsagiBrain, methodName: load
+11-14 18:10:14.929  2135  2135 V Capacitor: callback: 128062154, pluginId: AsagiBrain, methodName: load, methodData: {}
+11-14 18:10:14.937  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:15.126  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:15.305  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:15.542  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:15.716  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:15.946  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:16.003  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062155, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:10:16.004  2135  2135 V Capacitor: callback: 128062155, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679813891-e43c6b5c\",\"de\":\"asagi\",\"ts\":1794679813891,\"c\":\"DLBBZyNfuOvgkKLiC7PVpI2pCi309OweaFNtat5V9udmePLlj2mDkA==\"}"}
+11-14 18:10:16.006  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062156, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:16.007  2135  2135 V Capacitor: callback: 128062156, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:16.119  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:16.347  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:16.518  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:16.766  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:16.932  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:17.169  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:17.353  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:17.582  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:17.777  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:17.857  2135  2135 D Capacitor/Console: File:  - Line 194 - Msg: Removing listener AsagiBrain token
+11-14 18:10:18.029  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:18.180  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:18.461  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:18.581  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:18.886  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:18.888  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062157, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:18.888  2135  2135 V Capacitor: callback: 128062157, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679810458-e0eff040\",\"de\":\"asagi\",\"ts\":1794679810458,\"c\":\"UuqjKnDS4loFPrFxcqReDGqHxVLuKqatiZgo+GWJYx2hzplNzc18jA==\"}","canal":4}
+11-14 18:10:18.889  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062158, pluginId: AsagiBrain, methodName: removeListener
+11-14 18:10:18.889  2135  2135 V Capacitor: callback: 128062158, pluginId: AsagiBrain, methodName: removeListener, methodData: {"callbackId":"128062153","eventName":"token"}
+11-14 18:10:18.889  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062159, pluginId: AsagiBrain, methodName: addListener
+11-14 18:10:18.891  2135  2135 V Capacitor: callback: 128062159, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"token"}
+11-14 18:10:18.893  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062160, pluginId: AsagiBrain, methodName: load
+11-14 18:10:18.894  2135  2135 V Capacitor: callback: 128062160, pluginId: AsagiBrain, methodName: load, methodData: {}
+11-14 18:10:18.991  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:19.288  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:19.405  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:19.692  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:19.809  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:20.121  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:20.212  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:20.522  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:20.705  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:20.934  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:21.106  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:21.336  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:21.517  2135  2135 D Capacitor/Console: File:  - Line 194 - Msg: Removing listener AsagiBrain token
+11-14 18:10:21.527  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062161, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:21.527  2135  2135 V Capacitor: callback: 128062161, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679819696-7afc08d1\",\"de\":\"asagi\",\"ts\":1794679819696,\"c\":\"cOJt2fMSREPURBHEF7wJefa+cILNDZ8DkdaPDGR+l6GfUIawTZZMzl1kDKJbYb1gUN8cyVD2w5mOETXE\/ubjRPFpe9YWcaCWGu0oVaG2hoM86nwRax3ZL\/FZ8SOWJimD4+121w==\"}","canal":4}
+11-14 18:10:21.532  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:21.757  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:21.929  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:22.171  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:22.349  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:22.509  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062162, pluginId: AsagiBrain, methodName: removeListener
+11-14 18:10:22.509  2135  2135 V Capacitor: callback: 128062162, pluginId: AsagiBrain, methodName: removeListener, methodData: {"callbackId":"128062159","eventName":"token"}
+11-14 18:10:22.577  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:22.765  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:22.979  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:23.170  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:23.385  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:23.579  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:23.785  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:23.992  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:24.187  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:24.402  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:24.543  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062163, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:24.543  2135  2135 V Capacitor: callback: 128062163, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:24.627  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:24.806  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:25.031  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:25.216  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:25.445  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:25.627  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:25.849  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:26.063  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:26.251  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:26.464  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:26.660  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:26.874  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:27.069  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:27.282  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:27.475  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:27.685  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:27.895  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:28.093  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:28.301  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:28.502  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:28.705  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:28.912  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:29.113  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:29.319  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:29.525  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:29.725  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:29.929  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:30.125  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:30.330  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:30.546  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:30.742  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:30.952  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:31.146  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:31.360  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:31.553  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:31.758  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:31.919  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062164, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:31.919  2135  2135 V Capacitor: callback: 128062164, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:31.960  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:32.161  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:32.381  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:32.576  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:32.787  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:32.972  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:33.192  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:33.377  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:33.596  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:33.782  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:33.967  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:33.968  2135  3797 I CapacitorCookies: Getting cookies at: 'https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:10:33.997  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:34.278  2135  3797 I CapacitorCookies: Getting cookies at: 'https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:10:34.403  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:34.456  2135  3797 I CapacitorCookies: Getting cookies at: 'https://us.aws.cdn.hf.co/xet-bridge-us/67cc236a67ab2574de8724e6/32b2f5e0f57d8b86d53594a0ae6a6364350d351b9ec3faf1018de1da43e6c438?xip=0QO8j7P3LFs&user_id=public&X-Xet-Cas-Uid=public&response-content-disposition=inline%3B+filename*%3DUTF-8%27%27Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%3B+filename%3D%22Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%22%3B&Expires=1794683435&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly91cy5hd3MuY2RuLmhmLmNvL3hldC1icmlkZ2UtdXMvNjdjYzIzNmE2N2FiMjU3NGRlODcyNGU2LzMyYjJmNWUwZjU3ZDhiODZkNTM1OTRhMGFlNmE2MzY0MzUwZDM1MWI5ZWMzZmFmMTAxOGRlMWRhNDNlNmM0MzhcXD94aXA9MFFPOGo3UDNMRnMmdXNlcl9pZD1wdWJsaWMmWC1YZXQtQ2FzLVVpZD1wdWJsaWMmcmVzcG9uc2UtY29udGVudC1kaXNwb3NpdGlvbj1pbmxpbmUlM0IrZmlsZW5hbWUlMkElM0RVVEYtOCUyNyUyN1F3ZW4yLjUtMC41Qi1JbnN0cnVjdC1hYmxpdGVyYXRlZC5RNF9LX00uZ2d1ZiUzQitmaWxlbmFtZSUzRCUyMlF3ZW4yLjUtMC41Qi1JbnN0cnVjdC1hYmxpdGVyYXRlZC5RNF9LX00uZ2d1ZiUyMiUzQiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiRXBvY2hUaW1lIjoxNzk0NjgzNDM1fX19XX0_&Signature=MEUCIQD2WclXLo9GJpHDSgaYvt%7E4bm4ZeLGcrE7CMaQtoTVqVgIgIye2iupagngpkUSDtx890hxvsIS2fmmjkqYwcNC-c8c_&Key-Pair-Id=01KXEF4KZ1B6FV465MAWR4M21F&Hash-Algorithm=SHA256'
+11-14 18:10:34.539  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:34.821  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:34.941  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:35.124  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:35.342  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:35.745  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:36.147  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:36.549  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:36.560  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062165, pluginId: AsagiControl, methodName: versionApp
+11-14 18:10:36.560  2135  2135 V Capacitor: callback: 128062165, pluginId: AsagiControl, methodName: versionApp, methodData: {}
+11-14 18:10:36.633  2135  4451 I CapacitorCookies: Getting cookies at: 'https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:10:36.685  2135  4451 I CapacitorCookies: Getting cookies at: 'https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:10:36.930  2135  4451 I CapacitorCookies: Getting cookies at: 'https://us.aws.cdn.hf.co/xet-bridge-us/67cc236a67ab2574de8724e6/32b2f5e0f57d8b86d53594a0ae6a6364350d351b9ec3faf1018de1da43e6c438?response-content-disposition=inline%3B+filename*%3DUTF-8%27%27Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%3B+filename%3D%22Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%22%3B&user_id=public&X-Xet-Cas-Uid=public&xip=0QO8j7P3LFs&Expires=1794683437&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly91cy5hd3MuY2RuLmhmLmNvL3hldC1icmlkZ2UtdXMvNjdjYzIzNmE2N2FiMjU3NGRlODcyNGU2LzMyYjJmNWUwZjU3ZDhiODZkNTM1OTRhMGFlNmE2MzY0MzUwZDM1MWI5ZWMzZmFmMTAxOGRlMWRhNDNlNmM0MzhcXD9yZXNwb25zZS1jb250ZW50LWRpc3Bvc2l0aW9uPWlubGluZSUzQitmaWxlbmFtZSUyQSUzRFVURi04JTI3JTI3UXdlbjIuNS0wLjVCLUluc3RydWN0LWFibGl0ZXJhdGVkLlE0X0tfTS5nZ3VmJTNCK2ZpbGVuYW1lJTNEJTIyUXdlbjIuNS0wLjVCLUluc3RydWN0LWFibGl0ZXJhdGVkLlE0X0tfTS5nZ3VmJTIyJTNCJnVzZXJfaWQ9cHVibGljJlgtWGV0LUNhcy1VaWQ9cHVibGljJnhpcD0wUU84ajdQM0xGcyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiRXBvY2hUaW1lIjoxNzk0NjgzNDM3fX19XX0_&Signature=MEQCIEJiWhPVDzokKGL3YHzP55gc6mIM06ZMTMDfa3pbVxtVAiBPgBocTb2QBoD06IcEYApORmojLrmqw7eg32tO3yV-ZA__&Key-Pair-Id=01KXEF4KZ1B6FV465MAWR4M21F&Hash-Algorithm=SHA256'
+11-14 18:10:36.957  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:36.991  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:37.381  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:37.403  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:37.771  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:37.805  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:38.172  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:38.208  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:38.573  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:38.609  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:38.976  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:39.016  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:39.293  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062166, pluginId: CapacitorHttp, methodName: get
+11-14 18:10:39.294  2135  2135 V Capacitor: callback: 128062166, pluginId: CapacitorHttp, methodName: get, methodData: {"url":"https:\/\/github.com\/raidenia3-oss\/ASAGI\/releases\/download\/latest\/version.json?t=1794679837434","headers":{"Cache-Control":"no-cache"}}
+11-14 18:10:39.303  2135  4496 I CapacitorCookies: Getting cookies at: 'https://github.com/raidenia3-oss/ASAGI/releases/download/latest/version.json?t=1794679837434'
+11-14 18:10:39.385  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:39.418  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:39.435  2135  4496 I CapacitorCookies: Getting cookies at: 'https://release-assets.githubusercontent.com/github-production-release-asset/1432142268/0df14fa2-7fb9-425b-98b9-4b565febea52?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-11-14T18%3A58%3A37Z&rscd=attachment%3B+filename%3Dversion.json&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-11-14T17%3A57%3A55Z&ske=2026-11-14T18%3A58%3A37Z&sks=b&skv=2018-11-09&sig=GU8gD91EyIqPZ5fIyJo6evsoVWZASvy2nAf7VgFQIrI%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5NDY4MDE0MCwibmJmIjoxNzk0Njc5ODQwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.pJC2lhRikHydU4OBaOC8ZUHQRt5aFe7TrUVv3yvHHYE&response-content-disposition=attachment%3B%20filename%3Dversion.json&response-content-type=application%2Foctet-stream'
+11-14 18:10:39.800  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:39.821  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:40.204  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:40.223  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:40.288  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062167, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:40.292  2135  2135 V Capacitor: callback: 128062167, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:40.611  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:40.635  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:41.012  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:41.041  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:41.195  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062168, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:41.198  2135  2135 V Capacitor: callback: 128062168, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679839325-07b85bba\",\"de\":\"asagi\",\"ts\":1794679839325,\"c\":\"\/Aq5x2UJn4mofLj8xRJ+S02tMpmmeTd8dUboXHlDgSqy8peyrB1tJg==\"}","puerto":47831,"espera":1500}
+11-14 18:10:41.417  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:41.446  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:41.817  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:41.869  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:42.222  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:42.271  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:42.625  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:42.672  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:43.032  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:43.075  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:43.434  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:43.477  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:43.843  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:43.882  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:44.249  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:44.283  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:44.653  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:44.693  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:45.056  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:45.093  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:45.222  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062169, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:10:45.223  2135  2135 V Capacitor: callback: 128062169, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679842914-2d822bba\",\"de\":\"asagi\",\"ts\":1794679842914,\"c\":\"j8\/39RWnmUnW7+Yj6DTypC+WHKFvcs9yoD40VEo2+JIZsxIe7zVicA==\"}"}
+11-14 18:10:45.459  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:45.495  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:45.882  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:45.897  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:46.153  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062170, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:46.153  2135  2135 V Capacitor: callback: 128062170, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679844318-9fd4e537\",\"de\":\"asagi\",\"ts\":1794679844318,\"c\":\"V2NyFpYnwaOp2grIgKdZlW02fruyCZGLsy\/sRvZEpHDRxkNrj89cmw==\"}","puerto":47831,"espera":1500}
+11-14 18:10:46.289  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:46.301  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:46.705  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:46.721  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:47.109  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:47.121  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:47.514  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:47.538  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:47.917  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:47.938  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:48.003  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062171, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:48.003  2135  2135 V Capacitor: callback: 128062171, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679839325-07b85bba\",\"de\":\"asagi\",\"ts\":1794679839325,\"c\":\"\/Aq5x2UJn4mofLj8xRJ+S02tMpmmeTd8dUboXHlDgSqy8peyrB1tJg==\"}","canal":4}
+11-14 18:10:48.005  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062172, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:48.007  2135  2135 V Capacitor: callback: 128062172, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:48.321  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:48.345  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:48.736  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:48.766  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:49.138  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:49.178  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:49.576  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:49.582  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:49.761  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062173, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:10:49.762  2135  2135 V Capacitor: callback: 128062173, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679848005-f8a37a65\",\"de\":\"asagi\",\"ts\":1794679848005,\"c\":\"vj53wR8LfeEr5sm1GkoHzzXxi4Q4ZNbwpaE8BA51DFvSoTjH\/VOI4w==\"}"}
+11-14 18:10:49.979  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:49.985  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:50.381  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:50.394  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:50.722  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062174, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:50.722  2135  2135 V Capacitor: callback: 128062174, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679848903-d51c4e47\",\"de\":\"asagi\",\"ts\":1794679848903,\"c\":\"rct+kUkTMlLBlfAGcFZvKFJpQDS7ASzMYK3bS5\/pOT1I1ySHEzMUcmBGx8bJMpYZBE461AFFTGseHg71KvAm5H5RTC43idU2kHEvQo\/KOkKI\"}","canal":4}
+11-14 18:10:50.797  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:50.802  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:51.212  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:51.217  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:51.617  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:51.631  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062175, pluginId: AsagiControl, methodName: almacen
+11-14 18:10:51.632  2135  2135 V Capacitor: callback: 128062175, pluginId: AsagiControl, methodName: almacen, methodData: {}
+11-14 18:10:51.634  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062176, pluginId: AsagiControl, methodName: leerClaveLan
+11-14 18:10:51.635  2135  2135 V Capacitor: callback: 128062176, pluginId: AsagiControl, methodName: leerClaveLan, methodData: {}
+11-14 18:10:51.637  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:52.026  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:52.054  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:52.431  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:52.461  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:52.517  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062177, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:52.517  2135  2135 V Capacitor: callback: 128062177, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679844318-9fd4e537\",\"de\":\"asagi\",\"ts\":1794679844318,\"c\":\"V2NyFpYnwaOp2grIgKdZlW02fruyCZGLsy\/sRvZEpHDRxkNrj89cmw==\"}","canal":4}
+11-14 18:10:52.836  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:52.863  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:53.239  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:53.271  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:53.642  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:53.744  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:53.780  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062178, pluginId: AsagiNavegador, methodName: abrir
+11-14 18:10:53.780  2135  2135 V Capacitor: callback: 128062178, pluginId: AsagiNavegador, methodName: abrir, methodData: {"url":"https:\/\/example.com"}
+11-14 18:10:54.052  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:54.169  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:54.456  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:54.578  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:54.863  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:54.909  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062179, pluginId: AsagiControl, methodName: infoDispositivo
+11-14 18:10:54.911  2135  2135 V Capacitor: callback: 128062179, pluginId: AsagiControl, methodName: infoDispositivo, methodData: {}
+11-14 18:10:54.915  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062180, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:54.917  2135  2135 V Capacitor: callback: 128062180, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679852523-07aa934f\",\"de\":\"asagi\",\"ts\":1794679852523,\"c\":\"\/V5tS8z644sbhdTtXiHmnQ+m4zVm6FcNxk6mYYpV2fvM+hQlv\/moVg==\"}","puerto":47831,"espera":1500}
+11-14 18:10:54.981  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:55.268  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:55.394  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:55.672  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:55.804  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:55.989  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062181, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:10:55.989  2135  2135 V Capacitor: callback: 128062181, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679853787-df480b48\",\"de\":\"asagi\",\"ts\":1794679853787,\"c\":\"QqE0rwItZplKZtxCii0dgaoV6lMA0dyBhYDD7et1IF0hwvJgkxFMqcnjv1pEa2sDbmZ0IKE2rw==\"}","canal":4}
+11-14 18:10:55.990  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062182, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:10:55.990  2135  2135 V Capacitor: callback: 128062182, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:10:56.077  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:56.205  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:56.482  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:56.614  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:56.904  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:56.947  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062183, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:10:56.947  2135  2135 V Capacitor: callback: 128062183, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"t\":\"emparejar\",\"A\":\"cdfcd6002100d061c1cc0f9e8a04409d7f497d025b9954867e429bd8bd92afaf39c88d0e6a8ecf03d881e3513dbaf241b25a01428bf7e572e37944782f7c2b750617ceaa717978c2adfc87cc64eff2cc7f4d83b0503a37ce6efe77dc35ae19f02ad3806b3fec4fe05321baab224d59de39a8d2bfea7e65cdbf658f68d64b9499bd67bb5dd56bb141f807f01dda6e228ec273680e5db2e81eb26b4770b150c197e6eb5fca276badddb1f1835a3123f31daec3496af8ccccaa567e4a56e4e66cfa354666c4cd3f663643afb7e09ffd6812b953a441e65c71de0254dce8c24705a3d89625fc0d52b59de8e7c382e22fd22281e95992568a9d2619696f4bfe658450\",\"nombre\":\"ASAGI\",\"disp\":{\"fabricante\":\"Google\",\"marca\":\"google\",\"modelo\":\"sdk_gphone64_x86_64\",\"nombre\":\"sdk_gphone64_x86_64\",\"android\":\"15\",\"androidId\":\"893b2755657538bb\"}}","puerto":47831,"espera":2500}
+11-14 18:10:57.021  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:57.304  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:57.435  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:57.707  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:57.838  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:58.109  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:58.242  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:58.515  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:58.649  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:58.734  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062184, pluginId: AsagiNavegador, methodName: ejecutar
+11-14 18:10:58.736  2135  2135 V Capacitor: callback: 128062184, pluginId: AsagiNavegador, methodName: ejecutar, methodData: {"codigo":"JSON.stringify((function (maxTexto) {\n  maxTexto = maxTexto || 6000;\n  function visible(el) {\n    var r = el.getBoundingClientRect();\n    if (r.width < 2 || r.height < 2) return false;\n    var cs = getComputedStyle(el);\n    return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05;\n  }\n  function limpio(t) { return String(t || '').replace(\/\\s+\/g, ' ').trim(); }\n  function etiqueta(el) {\n    var t = limpio(el.getAttribute('aria-label') || el.innerText || el.value || el.getAttribute('placeholder') ||\n      el.getAttribute('title') || el.getAttribute('alt') || el.getAttribute('name') || '');\n    if (!t && el.id) { var l = document.querySelector('label[for=\"' + el.id + '\"]'); if (l) t = limpio(l.innerText); }\n    if (!t) { var img = el.querySelector && el.querySelector('img[alt]'); if (img) t = limpio(img.alt); }\n    return t.slice(0, 80);\n  }\n  document.querySelectorAll('[data-asagi-n]').forEach(function (e) { e.removeAttribute('data-asagi-n'); });\n  var sel = 'a[href], button, input:not([type=hidden]), textarea, select, [role=button], [role=link], [role=tab], [role=menuitem], [contenteditable=true], summary';\n  var els = Array.prototype.slice.call(document.querySelectorAll(sel)).filter(visible).slice(0, 120);\n  var elementos = els.map(function (el, i) {\n    var n = i + 1; el.setAttribute('data-asagi-n', String(n));\n    var tag = el.tagName.toLowerCase(), tipo = el.getAttribute('role') || tag;\n    var o = { n: n, tipo: tipo, texto: etiqueta(el) };\n    if (tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable) {\n      o.tipo = 'campo'; o.campo = (el.getAttribute('type') || tag).toLowerCase();\n      if (o.campo === 'password') o.texto = (o.texto || 'contraseña') + ' (contraseña)';\n    }\n    if (tag === 'a') { o.tipo = 'enlace'; try { o.href = new URL(el.getAttribute('href'), location.href).href.slice(0, 200); } catch (e) {} }\n    if (tag === 'button' || tipo === 'button' || (tag === 'input' && \/submit|button\/.test(el.type))) o.tipo = 'botón';\n    return o;\n  });\n  \/\/ texto principal: <main>\/<article> si hay; si no, el body sin menús\n  var raiz = document.querySelector('main, article, [role=main]') || document.body;\n  \/\/ bloques de texto en orden (con saltos de línea), sin menús\/pies\/formularios\n  var fuera = 'nav, footer, header, aside, form, script, style, noscript';\n  var bloques = Array.prototype.slice.call(raiz.querySelectorAll('h1, h2, h3, h4, p, li, td, th, pre, blockquote, dt, dd, figcaption'))\n    .filter(function (b) { return !b.closest(fuera) && visible(b); })\n    .map(function (b) { return limpio(b.innerText); }).filter(function (t, i, a) { return t && a.indexOf(t) === i; });\n  var texto = (bloques.length ? bloques.join('\\n') : limpio(raiz.innerText || '')).slice(0, maxTexto);\n  return { titulo: document.title, url: location.href, texto: texto, elementos: elementos,\n    formularios: document.forms.length };\n})(6000))"}
+11-14 18:10:58.736  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062185, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:10:58.737  2135  2135 V Capacitor: callback: 128062185, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679856975-f17dcede\",\"de\":\"asagi\",\"ts\":1794679856975,\"c\":\"AsvhGIqXJdbrpyfsZZTw3HO4dnGyfHGqHhOJancYvOIZB6INiwDxRw==\"}"}
+11-14 18:10:58.921  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:59.064  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:59.324  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:59.470  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:59.727  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:10:59.879  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:00.142  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:00.295  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:00.409  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062186, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:11:00.418  2135  2135 V Capacitor: callback: 128062186, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679852523-07aa934f\",\"de\":\"asagi\",\"ts\":1794679852523,\"c\":\"\/V5tS8z644sbhdTtXiHmnQ+m4zVm6FcNxk6mYYpV2fvM+hQlv\/moVg==\"}","canal":4}
+11-14 18:11:00.545  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:00.714  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:00.953  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:01.121  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:01.357  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:01.523  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:01.760  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:01.926  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:02.187  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:02.330  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:02.596  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:02.733  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:03.021  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:03.137  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:03.285  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062187, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:11:03.288  2135  2135 V Capacitor: callback: 128062187, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679861514-36b9924c\",\"de\":\"asagi\",\"ts\":1794679861514,\"c\":\"sTJeB9jBVF1Itxq13RJJdx3k0fkRqWvV6fZ5tzdSO5M6gmH\/7XsO3Z\/RKmCde\/ai5buOc0WA4k8=\"}","canal":4}
+11-14 18:11:03.427  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:03.545  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:03.836  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:03.947  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:04.201  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062188, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:04.201  2135  2135 V Capacitor: callback: 128062188, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:04.235  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:04.357  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:04.639  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:04.765  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:05.007  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062189, pluginId: AsagiNavegador, methodName: ejecutar
+11-14 18:11:05.009  2135  2135 V Capacitor: callback: 128062189, pluginId: AsagiNavegador, methodName: ejecutar, methodData: {"codigo":"JSON.stringify((function (maxTexto) {\n  maxTexto = maxTexto || 6000;\n  function visible(el) {\n    var r = el.getBoundingClientRect();\n    if (r.width < 2 || r.height < 2) return false;\n    var cs = getComputedStyle(el);\n    return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05;\n  }\n  function limpio(t) { return String(t || '').replace(\/\\s+\/g, ' ').trim(); }\n  function etiqueta(el) {\n    var t = limpio(el.getAttribute('aria-label') || el.innerText || el.value || el.getAttribute('placeholder') ||\n      el.getAttribute('title') || el.getAttribute('alt') || el.getAttribute('name') || '');\n    if (!t && el.id) { var l = document.querySelector('label[for=\"' + el.id + '\"]'); if (l) t = limpio(l.innerText); }\n    if (!t) { var img = el.querySelector && el.querySelector('img[alt]'); if (img) t = limpio(img.alt); }\n    return t.slice(0, 80);\n  }\n  document.querySelectorAll('[data-asagi-n]').forEach(function (e) { e.removeAttribute('data-asagi-n'); });\n  var sel = 'a[href], button, input:not([type=hidden]), textarea, select, [role=button], [role=link], [role=tab], [role=menuitem], [contenteditable=true], summary';\n  var els = Array.prototype.slice.call(document.querySelectorAll(sel)).filter(visible).slice(0, 120);\n  var elementos = els.map(function (el, i) {\n    var n = i + 1; el.setAttribute('data-asagi-n', String(n));\n    var tag = el.tagName.toLowerCase(), tipo = el.getAttribute('role') || tag;\n    var o = { n: n, tipo: tipo, texto: etiqueta(el) };\n    if (tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable) {\n      o.tipo = 'campo'; o.campo = (el.getAttribute('type') || tag).toLowerCase();\n      if (o.campo === 'password') o.texto = (o.texto || 'contraseña') + ' (contraseña)';\n    }\n    if (tag === 'a') { o.tipo = 'enlace'; try { o.href = new URL(el.getAttribute('href'), location.href).href.slice(0, 200); } catch (e) {} }\n    if (tag === 'button' || tipo === 'button' || (tag === 'input' && \/submit|button\/.test(el.type))) o.tipo = 'botón';\n    return o;\n  });\n  \/\/ texto principal: <main>\/<article> si hay; si no, el body sin menús\n  var raiz = document.querySelector('main, article, [role=main]') || document.body;\n  \/\/ bloques de texto en orden (con saltos de línea), sin menús\/pies\/formularios\n  var fuera = 'nav, footer, header, aside, form, script, style, noscript';\n  var bloques = Array.prototype.slice.call(raiz.querySelectorAll('h1, h2, h3, h4, p, li, td, th, pre, blockquote, dt, dd, figcaption'))\n    .filter(function (b) { return !b.closest(fuera) && visible(b); })\n    .map(function (b) { return limpio(b.innerText); }).filter(function (t, i, a) { return t && a.indexOf(t) === i; });\n  var texto = (bloques.length ? bloques.join('\\n') : limpio(raiz.innerText || '')).slice(0, maxTexto);\n  return { titulo: document.title, url: location.href, texto: texto, elementos: elementos,\n    formularios: document.forms.length };\n})(6000))"}
+11-14 18:11:05.046  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:05.177  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:05.449  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:05.586  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:05.861  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:05.987  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:06.315  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:06.390  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:06.720  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:06.797  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:07.128  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:07.154  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062190, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:11:07.155  2135  2135 V Capacitor: callback: 128062190, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679865006-74f1d8b4\",\"de\":\"asagi\",\"ts\":1794679865006,\"c\":\"njR5f0K54DKk7XMsxLp4npfuPpGHavf7C3xSLPwQOYh9oDZ2fV0x8Q==\"}","puerto":47831,"espera":1500}
+11-14 18:11:07.222  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:07.540  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:07.628  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:07.953  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:08.033  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:08.357  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:08.455  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:08.760  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:08.858  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:09.175  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:09.269  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:09.605  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:09.685  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.021  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.089  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.430  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.490  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.853  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.931  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:10.934  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062191, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:11:10.938  2135  2135 V Capacitor: callback: 128062191, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679869150-ca3e6bbf\",\"de\":\"asagi\",\"ts\":1794679869150,\"c\":\"98iHauY+m3GuOpVZIl1CvtG8K6smtPRwNa2\/8Ip9dLY10ZMM\/+3tNw==\"}"}
+11-14 18:11:11.269  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:11.352  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:11.678  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:11.739  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:11.951  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062192, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:11.953  2135  2135 V Capacitor: callback: 128062192, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:12.081  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:12.141  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:12.522  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:12.548  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:12.967  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:12.975  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:13.368  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:13.381  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:13.770  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:13.785  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:14.172  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:14.212  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:14.582  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:14.617  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:14.983  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062193, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:11:14.992  2135  2135 V Capacitor: callback: 128062193, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679865006-74f1d8b4\",\"de\":\"asagi\",\"ts\":1794679865006,\"c\":\"njR5f0K54DKk7XMsxLp4npfuPpGHavf7C3xSLPwQOYh9oDZ2fV0x8Q==\"}","canal":4}
+11-14 18:11:14.996  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062194, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:11:14.997  2135  2135 V Capacitor: callback: 128062194, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679872164-7c865936\",\"de\":\"asagi\",\"ts\":1794679872164,\"c\":\"M7hN6LOpsHyjjFhBupWXY1RQD6CbfwAVciMuMoRL44uVpPh9mQ1DVg==\"}","puerto":47831,"espera":1500}
+11-14 18:11:15.009  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:15.028  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:15.400  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:15.432  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:15.801  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:15.851  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:16.205  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:16.282  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:16.613  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:16.689  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:17.031  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:17.100  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:17.445  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:17.509  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:17.848  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:17.855  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062195, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:11:17.856  2135  2135 V Capacitor: callback: 128062195, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679875863-c5af0ce2\",\"de\":\"asagi\",\"ts\":1794679875863,\"c\":\"MXyWfWIGnoYzP3aHg7mLdE90wNViI43qpcJp2O\/R+cBtdWK2X7ap1Z51UKVg41Ek4xSVsM1ASwxozpx6Tg==\"}","canal":4}
+11-14 18:11:17.918  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:18.249  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:18.324  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:18.659  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:18.736  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:18.813  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062196, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:11:18.813  2135  2135 V Capacitor: callback: 128062196, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679876885-71fac816\",\"de\":\"asagi\",\"ts\":1794679876885,\"c\":\"W6LnRDGx0PGfsflC9DxtXd3Ai8etZXWLDipLuhG0qxyjzSDiZU\/LnQ==\"}"}
+11-14 18:11:19.060  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:19.143  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:19.474  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:19.549  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:19.888  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062197, pluginId: AsagiControl, methodName: wifiInfo
+11-14 18:11:19.894  2135  2135 V Capacitor: callback: 128062197, pluginId: AsagiControl, methodName: wifiInfo, methodData: {"escanear":false}
+11-14 18:11:19.895  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062198, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:19.896  2135  2135 V Capacitor: callback: 128062198, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:19.907  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:19.954  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:20.310  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:20.356  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:20.655  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062199, pluginId: AsagiNavegador, methodName: ejecutar
+11-14 18:11:20.655  2135  2135 V Capacitor: callback: 128062199, pluginId: AsagiNavegador, methodName: ejecutar, methodData: {"codigo":"JSON.stringify((function (n) {\n  var el = document.querySelector('[data-asagi-n=\"' + n + '\"]');\n  if (!el) return { ok: false, error: 'no existe el elemento ' + n + ' (lee la página otra vez)' };\n  el.scrollIntoView({ block: 'center' });\n  el.click();\n  return { ok: true, texto: (el.innerText || el.value || '').trim().slice(0, 60) };\n})(1))"}
+11-14 18:11:20.656  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062200, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:11:20.656  2135  2135 V Capacitor: callback: 128062200, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679872164-7c865936\",\"de\":\"asagi\",\"ts\":1794679872164,\"c\":\"M7hN6LOpsHyjjFhBupWXY1RQD6CbfwAVciMuMoRL44uVpPh9mQ1DVg==\"}","canal":4}
+11-14 18:11:20.725  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:20.760  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:21.134  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:21.161  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:21.544  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:21.566  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:21.952  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:21.976  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:22.358  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:22.376  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:22.759  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:22.782  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:23.187  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:23.189  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:23.600  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:23.605  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062201, pluginId: AsagiControl, methodName: btEnviar
+11-14 18:11:23.606  2135  2135 V Capacitor: callback: 128062201, pluginId: AsagiControl, methodName: btEnviar, methodData: {"linea":"{\"id\":\"asagi-1794679881733-7c6b7b4f\",\"de\":\"asagi\",\"ts\":1794679881733,\"c\":\"8vQfa1yUPkx0sEGiVnaevT6F5HNs6bKf3tUgqR8MpilT3wiYHxP4bMmoIggSeM7cKJKyccIHL0pdmMJ97hAEv0gTM8a3TG3iSfvs+KUZQtgQRYUWgXNY9raHzdQ=\"}","canal":4}
+11-14 18:11:23.612  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:24.003  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:24.022  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:24.413  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:24.432  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:24.545  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062202, pluginId: AsagiControl, methodName: bluetoothInfo
+11-14 18:11:24.547  2135  2135 V Capacitor: callback: 128062202, pluginId: AsagiControl, methodName: bluetoothInfo, methodData: {"escanear":false}
+11-14 18:11:24.818  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:24.845  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:25.219  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:25.247  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:25.622  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:25.649  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:26.049  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:26.073  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:26.377  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062203, pluginId: AsagiNavegador, methodName: abrir
+11-14 18:11:26.377  2135  2135 V Capacitor: callback: 128062203, pluginId: AsagiNavegador, methodName: abrir, methodData: {"url":"https:\/\/html.duckduckgo.com\/html\/?q=capital%20del%20Per%C3%BA"}
+11-14 18:11:26.378  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062204, pluginId: AsagiNavegador, methodName: esperarCarga
+11-14 18:11:26.378  2135  2135 V Capacitor: callback: 128062204, pluginId: AsagiNavegador, methodName: esperarCarga, methodData: {}
+11-14 18:11:26.394  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062205, pluginId: AsagiControl, methodName: bluetoothInfo
+11-14 18:11:26.395  2135  2135 V Capacitor: callback: 128062205, pluginId: AsagiControl, methodName: bluetoothInfo, methodData: {}
+11-14 18:11:26.453  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:26.474  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:26.879  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:26.883  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:27.281  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:27.291  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:27.694  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:27.708  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:28.113  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:28.122  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:28.318  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062206, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:28.320  2135  2135 V Capacitor: callback: 128062206, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:28.514  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:28.525  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:28.918  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:28.930  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:29.251  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062207, pluginId: AsagiNavegador, methodName: ejecutar
+11-14 18:11:29.253  2135  2135 V Capacitor: callback: 128062207, pluginId: AsagiNavegador, methodName: ejecutar, methodData: {"codigo":"JSON.stringify((function () {\n  var out = [], vistos = {};\n  function add(a, resumen) {\n    if (!a) return;\n    var href = a.getAttribute('href') || '';\n    var m = href.match(\/[?&]uddg=([^&]+)\/); if (m) href = decodeURIComponent(m[1]);\n    m = href.match(\/bing\\.com\\\/ck\\\/a\\?.*[?&]u=a1([^&]+)\/);\n    if (m) { try { href = atob(m[1].replace(\/-\/g, '+').replace(\/_\/g, '\/')); } catch (e) {} }\n    try { href = new URL(href, location.href).href; } catch (e) { return; }\n    if (!\/^https?:\/.test(href) || \/duckduckgo\\.com|bing\\.com|microsoft\\.com\\\/.*bing|ad_domain|\\\/y\\.js\/.test(href) || vistos[href]) return;\n    vistos[href] = 1;\n    out.push({ titulo: (a.textContent || '').trim().slice(0, 140), url: href, resumen: (resumen || '').trim().slice(0, 300) });\n  }\n  document.querySelectorAll('.result').forEach(function (r) { add(r.querySelector('a.result__a'), (r.querySelector('.result__snippet') || {}).textContent); });\n  document.querySelectorAll('a.result-link').forEach(function (a) {\n    var tr = a.closest('tr'), sn = tr && tr.nextElementSibling && tr.nextElementSibling.querySelector('.result-snippet');\n    add(a, sn ? sn.textContent : '');\n  });\n  document.querySelectorAll('li.b_algo').forEach(function (li) { add(li.querySelector('h2 a'), (li.querySelector('.b_caption p, p') || {}).textContent); });\n  return out.slice(0, 10);\n})())"}
+11-14 18:11:29.319  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:29.332  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:29.720  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:29.734  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:30.137  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:30.140  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:30.546  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:30.553  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:30.949  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:30.967  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:31.364  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:31.393  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:31.795  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:31.802  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:32.202  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:32.221  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:32.605  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:32.649  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:32.850  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062208, pluginId: AsagiNavegador, methodName: ejecutar
+11-14 18:11:32.851  2135  2135 V Capacitor: callback: 128062208, pluginId: AsagiNavegador, methodName: ejecutar, methodData: {"codigo":"JSON.stringify((function (maxTexto) {\n  maxTexto = maxTexto || 6000;\n  function visible(el) {\n    var r = el.getBoundingClientRect();\n    if (r.width < 2 || r.height < 2) return false;\n    var cs = getComputedStyle(el);\n    return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05;\n  }\n  function limpio(t) { return String(t || '').replace(\/\\s+\/g, ' ').trim(); }\n  function etiqueta(el) {\n    var t = limpio(el.getAttribute('aria-label') || el.innerText || el.value || el.getAttribute('placeholder') ||\n      el.getAttribute('title') || el.getAttribute('alt') || el.getAttribute('name') || '');\n    if (!t && el.id) { var l = document.querySelector('label[for=\"' + el.id + '\"]'); if (l) t = limpio(l.innerText); }\n    if (!t) { var img = el.querySelector && el.querySelector('img[alt]'); if (img) t = limpio(img.alt); }\n    return t.slice(0, 80);\n  }\n  document.querySelectorAll('[data-asagi-n]').forEach(function (e) { e.removeAttribute('data-asagi-n'); });\n  var sel = 'a[href], button, input:not([type=hidden]), textarea, select, [role=button], [role=link], [role=tab], [role=menuitem], [contenteditable=true], summary';\n  var els = Array.prototype.slice.call(document.querySelectorAll(sel)).filter(visible).slice(0, 120);\n  var elementos = els.map(function (el, i) {\n    var n = i + 1; el.setAttribute('data-asagi-n', String(n));\n    var tag = el.tagName.toLowerCase(), tipo = el.getAttribute('role') || tag;\n    var o = { n: n, tipo: tipo, texto: etiqueta(el) };\n    if (tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable) {\n      o.tipo = 'campo'; o.campo = (el.getAttribute('type') || tag).toLowerCase();\n      if (o.campo === 'password') o.texto = (o.texto || 'contraseña') + ' (contraseña)';\n    }\n    if (tag === 'a') { o.tipo = 'enlace'; try { o.href = new URL(el.getAttribute('href'), location.href).href.slice(0, 200); } catch (e) {} }\n    if (tag === 'button' || tipo === 'button' || (tag === 'input' && \/submit|button\/.test(el.type))) o.tipo = 'botón';\n    return o;\n  });\n  \/\/ texto principal: <main>\/<article> si hay; si no, el body sin menús\n  var raiz = document.querySelector('main, article, [role=main]') || document.body;\n  \/\/ bloques de texto en orden (con saltos de línea), sin menús\/pies\/formularios\n  var fuera = 'nav, footer, header, aside, form, script, style, noscript';\n  var bloques = Array.prototype.slice.call(raiz.querySelectorAll('h1, h2, h3, h4, p, li, td, th, pre, blockquote, dt, dd, figcaption'))\n    .filter(function (b) { return !b.closest(fuera) && visible(b); })\n    .map(function (b) { return limpio(b.innerText); }).filter(function (t, i, a) { return t && a.indexOf(t) === i; });\n  var texto = (bloques.length ? bloques.join('\\n') : limpio(raiz.innerText || '')).slice(0, maxTexto);\n  return { titulo: document.title, url: location.href, texto: texto, elementos: elementos,\n    formularios: document.forms.length };\n})(6000))"}
+11-14 18:11:33.021  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:33.050  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:33.426  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:33.460  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:33.841  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:33.864  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:34.248  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:34.269  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:34.658  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:34.671  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:35.085  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:35.094  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062209, pluginId: AsagiNavegador, methodName: abrir
+11-14 18:11:35.094  2135  2135 V Capacitor: callback: 128062209, pluginId: AsagiNavegador, methodName: abrir, methodData: {"url":"https:\/\/en.wikipedia.org\/wiki\/Lima"}
+11-14 18:11:35.117  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:35.487  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:35.521  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:35.876  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062210, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:35.876  2135  2135 V Capacitor: callback: 128062210, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:35.892  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:35.927  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:36.301  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:36.335  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:36.703  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:36.738  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:37.110  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:37.138  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:37.523  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:37.554  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:37.935  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:37.961  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:38.347  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:38.373  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:38.770  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062211, pluginId: AsagiControl, methodName: accion
+11-14 18:11:38.770  2135  2135 V Capacitor: callback: 128062211, pluginId: AsagiControl, methodName: accion, methodData: {"tipo":"bateria"}
+11-14 18:11:38.779  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:38.783  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:39.185  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:39.186  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:39.594  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:39.597  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:39.999  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:40.003  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:40.407  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:40.408  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:40.812  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:40.821  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:41.221  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:41.229  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:41.624  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:41.633  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:42.033  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:42.046  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:42.441  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:42.460  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:42.841  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:42.906  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:43.242  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:43.310  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:43.649  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:43.718  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:43.740  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062212, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:43.741  2135  2135 V Capacitor: callback: 128062212, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:44.049  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:44.125  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:44.452  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:44.527  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:44.856  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:44.939  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:45.259  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:45.341  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:45.661  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:45.811  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:46.071  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:46.215  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:46.477  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:46.727  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:46.878  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:47.129  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:47.301  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:47.554  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:47.704  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:47.958  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:48.111  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:48.374  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:48.474  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062213, pluginId: AsagiControl, methodName: accion
+11-14 18:11:48.474  2135  2135 V Capacitor: callback: 128062213, pluginId: AsagiControl, methodName: accion, methodData: {"tipo":"alarma","hora":7,"minuto":0,"mensaje":"ASAGI"}
+11-14 18:11:48.475  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062214, pluginId: AsagiNavegador, methodName: ejecutar
+11-14 18:11:48.482  2135  2135 V Capacitor: callback: 128062214, pluginId: AsagiNavegador, methodName: ejecutar, methodData: {"codigo":"JSON.stringify((function (maxTexto) {\n  maxTexto = maxTexto || 6000;\n  function visible(el) {\n    var r = el.getBoundingClientRect();\n    if (r.width < 2 || r.height < 2) return false;\n    var cs = getComputedStyle(el);\n    return cs.visibility !== 'hidden' && cs.display !== 'none' && Number(cs.opacity) > 0.05;\n  }\n  function limpio(t) { return String(t || '').replace(\/\\s+\/g, ' ').trim(); }\n  function etiqueta(el) {\n    var t = limpio(el.getAttribute('aria-label') || el.innerText || el.value || el.getAttribute('placeholder') ||\n      el.getAttribute('title') || el.getAttribute('alt') || el.getAttribute('name') || '');\n    if (!t && el.id) { var l = document.querySelector('label[for=\"' + el.id + '\"]'); if (l) t = limpio(l.innerText); }\n    if (!t) { var img = el.querySelector && el.querySelector('img[alt]'); if (img) t = limpio(img.alt); }\n    return t.slice(0, 80);\n  }\n  document.querySelectorAll('[data-asagi-n]').forEach(function (e) { e.removeAttribute('data-asagi-n'); });\n  var sel = 'a[href], button, input:not([type=hidden]), textarea, select, [role=button], [role=link], [role=tab], [role=menuitem], [contenteditable=true], summary';\n  var els = Array.prototype.slice.call(document.querySelectorAll(sel)).filter(visible).slice(0, 120);\n  var elementos = els.map(function (el, i) {\n    var n = i + 1; el.setAttribute('data-asagi-n', String(n));\n    var tag = el.tagName.toLowerCase(), tipo = el.getAttribute('role') || tag;\n    var o = { n: n, tipo: tipo, texto: etiqueta(el) };\n    if (tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable) {\n      o.tipo = 'campo'; o.campo = (el.getAttribute('type') || tag).toLowerCase();\n      if (o.campo === 'password') o.texto = (o.texto || 'contraseña') + ' (contraseña)';\n    }\n    if (tag === 'a') { o.tipo = 'enlace'; try { o.href = new URL(el.getAttribute('href'), location.href).href.slice(0, 200); } catch (e) {} }\n    if (tag === 'button' || tipo === 'button' || (tag === 'input' && \/submit|button\/.test(el.type))) o.tipo = 'botón';\n    return o;\n  });\n  \/\/ texto principal: <main>\/<article> si hay; si no, el body sin menús\n  var raiz = document.querySelector('main, article, [role=main]') || document.body;\n  \/\/ bloques de texto en orden (con saltos de línea), sin menús\/pies\/formularios\n  var fuera = 'nav, footer, header, aside, form, script, style, noscript';\n  var bloques = Array.prototype.slice.call(raiz.querySelectorAll('h1, h2, h3, h4, p, li, td, th, pre, blockquote, dt, dd, figcaption'))\n    .filter(function (b) { return !b.closest(fuera) && visible(b); })\n    .map(function (b) { return limpio(b.innerText); }).filter(function (t, i, a) { return t && a.indexOf(t) === i; });\n  var texto = (bloques.length ? bloques.join('\\n') : limpio(raiz.innerText || '')).slice(0, maxTexto);\n  return { titulo: document.title, url: location.href, texto: texto, elementos: elementos,\n    formularios: document.forms.length };\n})(6000))"}
+11-14 18:11:48.571  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:48.812  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:49.021  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:49.359  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:49.422  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:49.430  2135  2135 D Capacitor: App paused
+11-14 18:11:49.784  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:49.850  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:50.188  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:50.254  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:50.588  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:50.671  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:51.267  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:51.302  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:51.687  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:51.705  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:52.094  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:52.128  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:52.560  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:52.564  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:52.568  2135  2135 D Capacitor: App resumed
+11-14 18:11:52.965  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:52.969  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:53.373  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:53.375  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:53.777  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:53.782  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:54.178  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:54.185  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:54.229  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062215, pluginId: AsagiNavegador, methodName: abrir
+11-14 18:11:54.229  2135  2135 V Capacitor: callback: 128062215, pluginId: AsagiNavegador, methodName: abrir, methodData: {"url":"https:\/\/es.wikipedia.org\/wiki\/Lima"}
+11-14 18:11:54.239  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062216, pluginId: AsagiControl, methodName: leerClaveLan
+11-14 18:11:54.239  2135  2135 V Capacitor: callback: 128062216, pluginId: AsagiControl, methodName: leerClaveLan, methodData: {}
+11-14 18:11:54.586  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:54.589  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:54.990  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:54.994  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:55.393  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:55.396  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:55.801  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:55.801  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:56.028  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062217, pluginId: AsagiBrain, methodName: estadoModelo
+11-14 18:11:56.029  2135  2135 V Capacitor: callback: 128062217, pluginId: AsagiBrain, methodName: estadoModelo, methodData: {}
+11-14 18:11:56.031  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062218, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:11:56.032  2135  2135 V Capacitor: callback: 128062218, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:11:56.033  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062219, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:11:56.033  2135  2135 V Capacitor: callback: 128062219, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679914201-54298dbf\",\"de\":\"asagi\",\"ts\":1794679914201,\"c\":\"K4r7a+X8RMLPxml6EgP18dUqe6yF2SCQ3cUh8IIzf+JiQWtVAh70bw==\"}","puerto":47831,"espera":1500}
+11-14 18:11:56.204  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:56.206  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:56.609  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:56.622  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:57.026  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:57.042  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:57.373  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062220, pluginId: AsagiControl, methodName: infoDispositivo
+11-14 18:11:57.374  2135  2135 V Capacitor: callback: 128062220, pluginId: AsagiControl, methodName: infoDispositivo, methodData: {}
+11-14 18:11:57.429  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:57.445  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:57.838  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:57.859  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:58.277  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:58.285  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:58.552  2135  2135 D Capacitor: App paused
+11-14 18:11:59.295  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:59.303  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:59.357  2135  2135 D Capacitor: Starting BridgeActivity
+11-14 18:11:59.362  2135  2135 D Capacitor: Registering plugin instance: CapacitorCookies
+11-14 18:11:59.364  2135  2135 D Capacitor: Registering plugin instance: WebView
+11-14 18:11:59.365  2135  2135 D Capacitor: Registering plugin instance: CapacitorHttp
+11-14 18:11:59.368  2135  2135 D Capacitor: Registering plugin instance: AsagiBrain
+11-14 18:11:59.373  2135  2135 D Capacitor: Registering plugin instance: AsagiControl
+11-14 18:11:59.376  2135  2135 D Capacitor: Registering plugin instance: AsagiNavegador
+11-14 18:11:59.379  2135  2135 D Capacitor: Registering plugin instance: LocalNotifications
+11-14 18:11:59.411  2135  2135 W Capacitor: Unable to read file at path public/plugins
+11-14 18:11:59.414  2135  2135 D Capacitor: Loading app at https://localhost
+11-14 18:11:59.428  2135  2135 D Capacitor: App started
+11-14 18:11:59.429  2135  2135 D Capacitor: App resumed
+11-14 18:11:59.709  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:11:59.717  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:00.121  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:00.141  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:00.543  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:00.574  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:00.944  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:01.073  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:01.350  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:01.482  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:01.765  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:01.886  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:01.993  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062221, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:12:01.994  2135  2135 V Capacitor: callback: 128062221, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"t\":\"emparejar\",\"A\":\"58a14cf7aa5e45ed18c9a8bca4af99f891a0a7491b8c1c9af8496964b0886759de17c1fe6d9617a455e888ff89c8a57c6e2c7ff4a33461f8f8b7d54b1a58e4ec55df2fb01943c404424ace28b1b089b7c9609a3a511697b7c16fdee61976286519ef4140dfbb98b157b426729113fb80cadd50ca01fa20158f0df049d62492115aea590447c3bf948a134706141b534da2cd14b31829a02287c48a36403bbb37fb47db6e7b25434e99116abf5c06cfb6e45a50a7cd9c7a4ba4cf181f3bff0c4b8af9f10d3e5a851e60d93362b354aee650be2d23f4b0e3dc12d5d9ba1d1ac4557c72b00360de0d53f7a2d1bc8fe6d178a2a7a39f8bda53b26159c6069789596c\",\"nombre\":\"ASAGI\",\"disp\":{\"fabricante\":\"Google\",\"marca\":\"google\",\"modelo\":\"sdk_gphone64_x86_64\",\"nombre\":\"sdk_gphone64_x86_64\",\"android\":\"15\",\"androidId\":\"893b2755657538bb\"}}","puerto":47831,"espera":2500}
+11-14 18:12:01.994  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062222, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:12:01.997  2135  2135 V Capacitor: callback: 128062222, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:12:01.998  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062223, pluginId: AsagiControl, methodName: lanEnviar
+11-14 18:12:01.998  2135  2135 V Capacitor: callback: 128062223, pluginId: AsagiControl, methodName: lanEnviar, methodData: {"host":"127.0.0.1","puerto":47832,"linea":"{\"id\":\"asagi-1794679919835-231cc7cd\",\"de\":\"asagi\",\"ts\":1794679919835,\"c\":\"E1KE7OUFGIyLYAMDYQrfPJFoWIy0wfH2f7Jtp56WszIYCfkixrr01A==\"}"}
+11-14 18:12:02.056  2135  2135 D Capacitor: onGeolocationPermissionsShowPrompt: DOING IT HERE FOR ORIGIN: https://localhost/
+11-14 18:12:02.065  2135  2135 D Capacitor: onGeolocationPermissionsShowPrompt: has required permission
+11-14 18:12:02.075  2135  2135 D Capacitor: App stopped
+11-14 18:12:02.076  2135  2135 D Capacitor: App destroyed
+11-14 18:12:02.155  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 128062224, pluginId: AsagiControl, methodName: accion
+11-14 18:12:02.156  2135  2135 V Capacitor: callback: 128062224, pluginId: AsagiControl, methodName: accion, methodData: {"tipo":"temporizador","segundos":60,"mensaje":"ASAGI"}
+11-14 18:12:02.157  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158109, pluginId: AsagiBrain, methodName: addListener
+11-14 18:12:02.157  2135  2135 V Capacitor: callback: 120158109, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"enlace-nuevos"}
+11-14 18:12:02.165  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158110, pluginId: AsagiControl, methodName: addListener
+11-14 18:12:02.165  2135  2135 V Capacitor: callback: 120158110, pluginId: AsagiControl, methodName: addListener, methodData: {"eventName":"actualizacion"}
+11-14 18:12:02.165  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158111, pluginId: AsagiControl, methodName: leerClaveLan
+11-14 18:12:02.165  2135  2135 V Capacitor: callback: 120158111, pluginId: AsagiControl, methodName: leerClaveLan, methodData: {}
+11-14 18:12:02.209  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158112, pluginId: AsagiBrain, methodName: status
+11-14 18:12:02.209  2135  2135 V Capacitor: callback: 120158112, pluginId: AsagiBrain, methodName: status, methodData: {}
+11-14 18:12:02.209  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158113, pluginId: AsagiControl, methodName: isEnabled
+11-14 18:12:02.209  2135  2135 V Capacitor: callback: 120158113, pluginId: AsagiControl, methodName: isEnabled, methodData: {}
+11-14 18:12:02.209  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158114, pluginId: AsagiBrain, methodName: addListener
+11-14 18:12:02.210  2135  2135 V Capacitor: callback: 120158114, pluginId: AsagiBrain, methodName: addListener, methodData: {"eventName":"descarga"}
+11-14 18:12:02.213  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:02.300  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:02.519  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158115, pluginId: AsagiControl, methodName: infoDispositivo
+11-14 18:12:02.519  2135  2135 V Capacitor: callback: 120158115, pluginId: AsagiControl, methodName: infoDispositivo, methodData: {}
+11-14 18:12:02.705  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:03.109  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:03.513  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:03.678  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:03.917  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:04.082  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:04.322  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:04.483  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:04.723  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:04.897  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:05.134  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:05.299  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:05.535  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:05.705  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:05.936  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:06.113  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:06.338  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:06.530  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:06.751  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158116, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:12:06.751  2135  2135 V Capacitor: callback: 120158116, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"t\":\"emparejar\",\"A\":\"eb7f70349971522367ba76fbb8468d90543a640b83cb70e86f0a4520d0fdb146163495dec775e0ce5ff8fd349f22c8818eab09bb4f9c1f6c1c266644046f117bd500d88d0759af793ee86cd044e289b36c8eed952dc0cb52c973a697deb06a859364a01851ee2c6337722a2fb19707cff75597213b906dabd6d3a79ccd247e1881f3907d8cb0195c4eaf3f268cebd8cfa3790fecce0bedb813eadc4620eb1d8255f76442aed2e1456065a135b8bfddb6a008445b170617f2eb4b0621353aca9c840bce3171c6e02bdd117b0e2de0e5e9b3bb305bb221cb229b8c17805ccb38d739ad42c11d3270d630834b9e47a46e076ca34ee99c5d141bb943026461dd511c\",\"nombre\":\"ASAGI\",\"disp\":{\"fabricante\":\"Google\",\"marca\":\"google\",\"modelo\":\"sdk_gphone64_x86_64\",\"nombre\":\"sdk_gphone64_x86_64\",\"android\":\"15\",\"androidId\":\"893b2755657538bb\"}}","puerto":47831,"espera":2500}
+11-14 18:12:06.752  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158117, pluginId: AsagiControl, methodName: listApps
+11-14 18:12:06.752  2135  2135 V Capacitor: callback: 120158117, pluginId: AsagiControl, methodName: listApps, methodData: {}
+11-14 18:12:06.753  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158118, pluginId: AsagiBrain, methodName: estadoModelo
+11-14 18:12:06.754  2135  2135 V Capacitor: callback: 120158118, pluginId: AsagiBrain, methodName: estadoModelo, methodData: {}
+11-14 18:12:06.755  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158119, pluginId: AsagiControl, methodName: fotoPerfil
+11-14 18:12:06.755  2135  2135 V Capacitor: callback: 120158119, pluginId: AsagiControl, methodName: fotoPerfil, methodData: {}
+11-14 18:12:06.760  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:06.952  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:07.165  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:07.353  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:07.567  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:07.759  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:07.969  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:08.160  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:08.377  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:08.561  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:08.800  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:08.963  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:09.211  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:09.369  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:09.621  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:09.776  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:10.030  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:10.184  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:10.441  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:10.585  2135  2261 D Capacitor: Handling local request: https://localhost/sw.js
+11-14 18:12:10.608  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:10.842  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:11.028  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:11.533  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:11.534  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:11.546  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158120, pluginId: AsagiBrain, methodName: descargarModelo
+11-14 18:12:11.549  2135  2135 V Capacitor: callback: 120158120, pluginId: AsagiBrain, methodName: descargarModelo, methodData: {}
+11-14 18:12:11.550  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158121, pluginId: AsagiBrain, methodName: enlaceLeer
+11-14 18:12:11.550  2135  2135 V Capacitor: callback: 120158121, pluginId: AsagiBrain, methodName: enlaceLeer, methodData: {}
+11-14 18:12:11.550  2135  2135 V Capacitor/Plugin: To native (Capacitor plugin): callbackId: 120158122, pluginId: AsagiControl, methodName: lanDescubrir
+11-14 18:12:11.550  2135  2135 V Capacitor: callback: 120158122, pluginId: AsagiControl, methodName: lanDescubrir, methodData: {"linea":"{\"id\":\"asagi-1794679930565-19bf98cc\",\"de\":\"asagi\",\"ts\":1794679930565,\"c\":\"MyVd2ZUTUKp+30Yxa8nbb29gK5nTNOyBJ6XTlkIkZrM2s8JMkbn\/Vg==\"}","puerto":47831,"espera":1500}
+11-14 18:12:11.565  2135  2135 D Capacitor: App paused
+11-14 18:12:11.598  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:11.601  2135  4811 I CapacitorCookies: Getting cookies at: 'https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf'
+11-14 18:12:11.859  2135  4811 I CapacitorCookies: Getting cookies at: 'https://us.aws.cdn.hf.co/xet-bridge-us/67cc236a67ab2574de8724e6/32b2f5e0f57d8b86d53594a0ae6a6364350d351b9ec3faf1018de1da43e6c438?response-content-disposition=inline%3B+filename*%3DUTF-8%27%27Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%3B+filename%3D%22Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf%22%3B&user_id=public&xip=0QO8j7P3LFs&X-Xet-Cas-Uid=public&Expires=1794683532&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly91cy5hd3MuY2RuLmhmLmNvL3hldC1icmlkZ2UtdXMvNjdjYzIzNmE2N2FiMjU3NGRlODcyNGU2LzMyYjJmNWUwZjU3ZDhiODZkNTM1OTRhMGFlNmE2MzY0MzUwZDM1MWI5ZWMzZmFmMTAxOGRlMWRhNDNlNmM0MzhcXD9yZXNwb25zZS1jb250ZW50LWRpc3Bvc2l0aW9uPWlubGluZSUzQitmaWxlbmFtZSUyQSUzRFVURi04JTI3JTI3UXdlbjIuNS0wLjVCLUluc3RydWN0LWFibGl0ZXJhdGVkLlE0X0tfTS5nZ3VmJTNCK2ZpbGVuYW1lJTNEJTIyUXdlbjIuNS0wLjVCLUluc3RydWN0LWFibGl0ZXJhdGVkLlE0X0tfTS5nZ3VmJTIyJTNCJnVzZXJfaWQ9cHVibGljJnhpcD0wUU84ajdQM0xGcyZYLVhldC1DYXMtVWlkPXB1YmxpYyIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiRXBvY2hUaW1lIjoxNzk0NjgzNTMyfX19XX0_&Signature=MEUCIQDAlegDKM23xJ9BXAneAucvZW5CCaDT54aM8dE-jRqHeAIgZvviOdAEh78utnnCtAgyksQ6ODndO974%7EFsj7vQdQS8_&Key-Pair-Id=01KXEF4KZ1B6FV465MAWR4M21F&Hash-Algorithm=SHA256'
+11-14 18:12:11.934  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:11.940  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:12.355  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:12.356  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:12.441  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:12.521  2135  2135 D Capacitor: Starting BridgeActivity
+11-14 18:12:12.544  2135  2135 D Capacitor: Registering plugin instance: CapacitorCookies
+11-14 18:12:12.553  2135  2135 D Capacitor: Registering plugin instance: WebView
+11-14 18:12:12.561  2135  2135 D Capacitor: Registering plugin instance: CapacitorHttp
+11-14 18:12:12.563  2135  2135 D Capacitor: Registering plugin instance: AsagiBrain
+11-14 18:12:12.571  2135  2135 D Capacitor: Registering plugin instance: AsagiControl
+11-14 18:12:12.588  2135  2135 D Capacitor: Registering plugin instance: AsagiNavegador
+11-14 18:12:12.589  2135  2135 D Capacitor: Registering plugin instance: LocalNotifications
+11-14 18:12:12.655  2135  2135 W Capacitor: Unable to read file at path public/plugins
+11-14 18:12:12.669  2135  2135 D Capacitor: Loading app at https://localhost
+11-14 18:12:12.733  2135  2135 D Capacitor/LN: LocalNotification received: null
+11-14 18:12:12.739  2135  2135 D Capacitor/LN: Activity started without notification attached
+11-14 18:12:12.740  2135  2135 D Capacitor: App started
+11-14 18:12:12.753  2135  2135 D Capacitor: App resumed
+11-14 18:12:12.768  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:12.781  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:12.853  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:13.289  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:13.301  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:13.314  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:13.707  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:13.708  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:13.718  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.111  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.122  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.124  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.515  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.525  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.532  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.917  2135  4811 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.926  2135  4451 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga
+11-14 18:12:14.941  2135  3797 V Capacitor/AsagiBrainPlugin: Notifying listeners for event descarga

@@ -1,0 +1,1 @@
+11-14 18:11:57.641   564  1254 V SplashScreenExceptionList: SplashScreen checking exception for package com.asagi.app (target sdk:35) -> false

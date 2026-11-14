@@ -1434,4 +1434,47 @@ public class AsagiControlPlugin extends Plugin {
             call.resolve(r);
         }, "asagi-wiki").start();
     }
+
+    // ---- Notificaciones (Ajustes > Acceso a notificaciones; lo activa el usuario) ----
+    @PluginMethod
+    public void notifEstado(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("activo", androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(getContext()).contains(getContext().getPackageName()));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void notifAbrirAjustes(PluginCall call) {
+        try {
+            Intent i = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+            JSObject r = new JSObject(); r.put("ok", true); call.resolve(r);
+        } catch (Throwable e) { call.reject(String.valueOf(e.getMessage())); }
+    }
+
+    @PluginMethod
+    public void notifLista(PluginCall call) {
+        JSArray arr = new JSArray();
+        android.content.pm.PackageManager pm = getContext().getPackageManager();
+        for (org.json.JSONObject o : AsagiNotificaciones.recientes()) {
+            try {
+                JSObject j = new JSObject(o.toString());
+                try { j.put("nombre", String.valueOf(pm.getApplicationLabel(pm.getApplicationInfo(o.optString("app"), 0)))); } catch (Throwable ignored) { j.put("nombre", o.optString("app")); }
+                arr.put(j);
+            } catch (Throwable ignored) {}
+        }
+        JSObject r = new JSObject(); r.put("lista", arr); call.resolve(r);
+    }
+
+    /** Movimientos de dinero vistos en notificaciones (Yape, Plin, bancos). desde = ms. */
+    @PluginMethod
+    public void notifFinanzas(PluginCall call) {
+        Double dd = call.getDouble("desde", 0.0); long desde = dd == null ? 0L : dd.longValue();
+        JSArray arr = new JSArray();
+        for (String l : AsagiNotificaciones.leerLineas(new java.io.File(getContext().getFilesDir(), "finanzas_notif.jsonl"))) {
+            try { org.json.JSONObject o = new org.json.JSONObject(l); if (o.optLong("ts") >= desde) arr.put(new JSObject(l)); } catch (Throwable ignored) {}
+        }
+        JSObject r = new JSObject(); r.put("lista", arr); call.resolve(r);
+    }
 }

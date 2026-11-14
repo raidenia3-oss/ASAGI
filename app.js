@@ -958,6 +958,16 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Notificaciones y gastos (Yape/Plin/bancos): «qué notificaciones tengo», «cuánto gasté esta semana».
+  {
+    const NT = window.AsagiNotif, c = NT && NT.parsear(text);
+    if (c) {
+      const decir = (t) => appendMessage('bot', t);
+      (c.accion === 'notificaciones' ? NT.notificaciones(decir) : NT.gastos(c, decir)).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
+      return;
+    }
+  }
+
   // Wikipedia sin internet en la SD: «wiki X», «prepara wikipedia», «espacio».
   {
     const W = window.AsagiWiki, c = W && W.parsear(text);

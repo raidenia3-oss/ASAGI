@@ -47,6 +47,7 @@ const files = [
   'navegador.js',
   'openverse.js',
   'wiki.js',
+  'notificaciones.js',
   'piensa.js',
   'discord.js',
   'app.js',

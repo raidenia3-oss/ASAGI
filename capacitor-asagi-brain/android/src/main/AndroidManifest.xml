@@ -61,6 +61,18 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <!-- Notificaciones: lo activa el usuario en Ajustes. ASAGI las resume y anota tus movimientos
+             de Yape/Plin/bancos. Todo queda en el celular. -->
+        <service
+            android:name=".AsagiNotificaciones"
+            android:label="ASAGI"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

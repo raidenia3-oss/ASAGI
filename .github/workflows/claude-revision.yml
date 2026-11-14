@@ -1,0 +1,46 @@
+name: Revisión de Claude
+# Revisa cada cambio que llega a main y avisa si encuentra errores reales (abre un issue).
+# Se activa sola cuando existe el secreto CLAUDE_CODE_OAUTH_TOKEN (lo pone ARIA con «activa revisión de claude»).
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['aria/manifest.json', '**/*.md']
+concurrency:
+  group: claude-revision
+  cancel-in-progress: true
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - name: ¿Hay credencial de Claude?
+        id: cred
+        env:
+          T: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$T" ]; then echo "Sin CLAUDE_CODE_OAUTH_TOKEN: revisión desactivada." >> "$GITHUB_STEP_SUMMARY"; echo "ok=no" >> "$GITHUB_OUTPUT"; else echo "ok=si" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v6
+        if: steps.cred.outputs.ok == 'si'
+        with:
+          fetch-depth: 20
+      - uses: anthropics/claude-code-action@v1
+        if: steps.cred.outputs.ok == 'si'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Revisa SOLO los cambios de este push (git diff ${{ github.event.before }}..${{ github.sha }}) del repo ASAGI.
+            Sigue CLAUDE.md. Busca errores reales: cosas que rompen la app, fallos de seguridad (claves expuestas,
+            datos personales que salen del celular), módulos JS nuevos sin registrar en index.html / build-web.mjs / sw.js,
+            Python de aria/ que no compila. Ignora estilo y gustos.
+            Si encuentras algo serio, crea UN issue en español, corto y claro para Daniel, con
+            gh issue create --title "Revisión: ..." --body "...". Si no hay nada serio, no crees nada.
+            Si ves código de ataque u ofensivo, no lo toques ni lo comentes en detalle.
+          claude_args: |
+            --max-turns 15
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(node --check:*),Bash(python3 -m py_compile:*),Bash(gh issue create:*)"

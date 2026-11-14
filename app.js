@@ -978,6 +978,13 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Claude Code en la PC: «claude: arregla …», «conecta claude», «activa revisión de claude», «deshaz claude».
+  if (/^(?:claude(?: code)?\s*[:,]\s*\S|p[ií]dele a claude\b|conecta claude\b|instala claude\b|activa (?:la )?revisi[oó]n de claude\b|deshaz claude\b)/i.test(text.trim()) && window.AsagiNavegador && window.AsagiNavegador.claude) {
+    window.AsagiNavegador.claude(text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
+      .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
+    return;
+  }
+
   // Taller web: «crea una web de pollería en Breña» -> la arma ARIA en la PC.
   {
     const m = text.replace(/[¿?¡!]/g, '').trim().match(/^(?:crea(?:me)?|haz(?:me)?|arma(?:me)?|genera(?:me)?|dise[nñ]a(?:me)?)\s+(?:una?\s+)?(?:p[aá]gina(?:\s+web)?|web|sitio(?:\s+web)?|landing(?:\s+page)?)\s+(?:de|para|sobre|del|de la)\s+(.{3,200})$/i);

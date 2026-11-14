@@ -117,7 +117,7 @@ async function _trabajoARIA(carga, aviso, progreso) {
   var w = await _aria(carga);
   if (!w || w.error || !w.id) throw new Error((w && w.error) || 'ARIA no respondió');
   if (progreso) progreso(aviso);
-  var fin = Date.now() + 6 * 60e3;
+  var fin = Date.now() + (carga.accion === 'claude' ? 16 : 6) * 60e3;
   while (Date.now() < fin) {
     await new Promise(function (r) { setTimeout(r, 8000); });
     var e = await _aria({ accion: 'resultado', id: w.id });
@@ -128,8 +128,10 @@ async function _trabajoARIA(carga, aviso, progreso) {
 }
 function youtube(url, progreso) { return _trabajoARIA({ accion: 'youtube', url: url }, '📺 ARIA está viendo el video (lee sus subtítulos en la PC)…', progreso); }
 // «crea una web de …»: ARIA la arma en la PC (su cerebro escribe, plantilla probada) y la abre allá.
+// «claude: …»: ARIA le pasa el trabajo a Claude Code en la PC.
+function claude(texto, progreso) { return _trabajoARIA({ accion: 'claude', texto: texto }, '🤖 ARIA le pasó el trabajo a Claude Code en la PC (puede tardar unos minutos)…', progreso); }
 function crearSitio(tema, progreso) { return _trabajoARIA({ accion: 'crear_sitio', tema: tema }, '🛠 ARIA trabaja en la web en la PC…', progreso); }
 
-window.AsagiNavegador = { youtube: youtube, crearSitio: crearSitio, ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
+window.AsagiNavegador = { youtube: youtube, crearSitio: crearSitio, claude: claude, ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
   investigar: _investigar, viaPC: function () { return _viaPC; }, ultima: function () { return ultima; }, nativo: function () { return !!nativo(); } };
 })();

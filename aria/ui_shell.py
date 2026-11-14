@@ -741,6 +741,31 @@ if _QT:
             QTimer.singleShot(300, _siguiente)
             return True
 
+        def _cmd_claude(self, t):
+            """«claude: …», «conecta claude», «activa revisión de claude», «deshaz claude»."""
+            try:
+                import claude_pc as _cp
+            except Exception:
+                return False
+            o = _cp.parsear(t)
+            if not o:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if o["accion"] == "tarea":
+                self._linea("🤖 Le paso el trabajo a Claude Code (puede tardar unos minutos)…", "sys")
+            cola = getattr(self, "_bots_cola", None)
+            import threading as _th
+
+            def _h():
+                try:
+                    msg = _cp.ejecutar(o)
+                except Exception as exc:
+                    msg = "⚠ Claude: %s" % exc
+                if cola is not None:
+                    cola.put(msg)
+            _th.Thread(target=_h, daemon=True).start()
+            return True
+
         def _cmd_taller(self, t):
             """«crea una web de pollería en Breña» -> sitio en ARIA_APP/sitios/, se abre en tu navegador."""
             try:
@@ -1499,6 +1524,8 @@ if _QT:
             if self._cmd_wiki(t):
                 return
             if self._cmd_taller(t):
+                return
+            if self._cmd_claude(t):
                 return
             if self._cmd_fondo(t):
                 return

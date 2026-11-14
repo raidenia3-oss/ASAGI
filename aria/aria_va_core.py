@@ -945,6 +945,26 @@ class LocalAIBrain:
                                     trab[jid] = {"listo": True, "error": str(exc)}
                             threading.Thread(target=_ts, daemon=True).start()
                             res["r"] = {"pendiente": True, "id": jid}
+                        elif a == "claude":          # ASAGI le pasa un trabajo a Claude Code en la PC (en fondo)
+                            import claude_pc
+                            o = claude_pc.parsear(str(c.get("texto", ""))[:2000])
+                            if not o:
+                                res["e"] = "no entendí el pedido para Claude"
+                            else:
+                                trab = getattr(self, "_web_trabajos", None)
+                                if trab is None:
+                                    trab = self._web_trabajos = {}
+                                import uuid as _uu
+                                jid = _uu.uuid4().hex[:10]
+                                trab[jid] = {"listo": False}
+
+                                def _cl(o=o, jid=jid):
+                                    try:
+                                        trab[jid] = {"listo": True, "titulo": "Claude", "texto": claude_pc.ejecutar(o)}
+                                    except Exception as exc:
+                                        trab[jid] = {"listo": True, "error": str(exc)}
+                                threading.Thread(target=_cl, daemon=True).start()
+                                res["r"] = {"pendiente": True, "id": jid}
                         elif a == "resultado":
                             trab = getattr(self, "_web_trabajos", None) or {}
                             t = trab.get(str(c.get("id", "")))

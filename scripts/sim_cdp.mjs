@@ -53,6 +53,11 @@ await di('hola asagi', 15000);
 await di('bandeja');
 await di('guarda en la bandeja: pagar luz hoy');
 await di('prioridades');
+// Navegador propio (WebView oculto nativo)
+await di('navega a example.com', 25000);
+await di('lee la página', 15000);
+await di('clic 1', 20000);
+await di('busca en la web: capital del Perú', 60000);
 await di('wifi', 25000);
 await di('bluetooth', 25000);
 // Sin cerebro: lo cotidiano que ASAGI resuelve sola (intents reales de Android).

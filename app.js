@@ -3592,6 +3592,9 @@ if ('serviceWorker' in navigator) {
     window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '' };
     refrescar();
     if (ev.estado === 'listo') cargarMotor();
+    if (ev.estado === 'error') {            // cuenta los fallos del día: tras 3, no reintenta solo (no gasta datos en bucle)
+      try { const k = 'asagi-dl-fallos-' + new Date().toISOString().slice(0, 10); localStorage.setItem(k, String((+localStorage.getItem(k) || 0) + 1)); } catch (e) {}
+    }
     if (ev.estado === 'listo' && !avisado) {
       avisado = true;
       if (window._asagiAviso) window._asagiAviso('Modelo local descargado: ASAGI ya funciona sin internet', false, '🧠');
@@ -3614,6 +3617,8 @@ if ('serviceWorker' in navigator) {
         cargarMotor(); refrescar(); return;
       }
       if (e.descargando) return;
+      let fallos = 0; try { fallos = +localStorage.getItem('asagi-dl-fallos-' + new Date().toISOString().slice(0, 10)) || 0; } catch (e2) {}
+      if (fallos >= 3) { window._asagiModelo = { estado: 'error', bytes: e.parcial, total: e.total, error: 'falló 3 veces hoy; tócalo para intentar de nuevo' }; refrescar(); return; }
       if (celular()) {            // no gasta tus datos moviles sin que lo pidas
         window._asagiModelo = { estado: 'espera', bytes: e.parcial, total: e.total, error: '' };
         refrescar();

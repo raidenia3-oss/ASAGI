@@ -51,13 +51,13 @@ public class AsagiBrainPlugin extends Plugin {
     private static final String TAG = "AsagiBrain";
     private static final String MODEL_FILENAME = "Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf";
     // Revisión fijada del repo (no "main"): el archivo y su hash no cambian
-    // aunque el autor actualice la rama. 50968a4 = revisión verificada.
-    private static final String MODEL_REVISION = "main";
+    // aunque el autor actualice la rama. 2fc6c39 = subida del archivo (397808512 bytes, sha256 eddb18fb…, verificado contra la API de HuggingFace el 14-nov-2026).
+    private static final String MODEL_REVISION = "2fc6c39fcfca22bf662cf44f5e563a6b2d3b8984";
     private static final String MODEL_HTTP_URL =
             "https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/" + MODEL_REVISION
                     + "/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf";
-    private static final long MODEL_EXPECTED_BYTES = 396705472L;
-    private static final String MODEL_EXPECTED_SHA256 = "ac2d97712095a558e31573f62f466a3f9d93990898b0ec79d7c974c1780d524a";
+    private static final long MODEL_EXPECTED_BYTES = 397808512L;
+    private static final String MODEL_EXPECTED_SHA256 = "eddb18fbeee320a9eca35cefc88efdb938d9ebe106922f3d91e261f3cbc1c9f6";
     private static final int DOWNLOAD_BUFFER_BYTES = 8192;
     private static final long DOWNLOAD_FALLBACK_BYTES = 400 * 1024 * 1024;
 
@@ -526,7 +526,7 @@ public class AsagiBrainPlugin extends Plugin {
 
     private static final String[] MODEL_URLS = new String[]{
             MODEL_HTTP_URL,
-            "https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main"
+            "https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/" + MODEL_REVISION
                     + "/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf"
     };
 

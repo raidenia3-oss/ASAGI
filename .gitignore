@@ -39,3 +39,4 @@ config/keys.json
 # APKs construidos (viven en Releases, no en git)
 *.apk
 artifacts/*.apk
+__pycache__/

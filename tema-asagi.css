@@ -273,3 +273,39 @@ html, body { font-family: var(--sans); color: var(--papel); }
   background: rgba(255, 215, 0, 0.06); color: #F0F0F8; font: 500 0.82rem/1 var(--sans); cursor: pointer; }
 .sugerencias button:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
 #assistant.conversando .sugerencias { display: none; }
+
+/* ---------- Música: mini reproductor encima del cuadro de texto + hoja con la lista ---------- */
+.mu-mini { display: flex; align-items: center; gap: 4px; margin: 0 12px 8px; padding: 6px 6px 6px 10px; border-radius: 16px;
+  background: linear-gradient(90deg, rgba(220, 20, 60, 0.18), rgba(8, 4, 8, 0.92)); border: 1px solid rgba(220, 20, 60, 0.45); }
+.mu-mini[hidden] { display: none; }
+.mu-info { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; background: none; border: 0; color: #F0F0F8; text-align: left; padding: 4px 0; cursor: pointer; }
+.mu-nota { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: #DC143C; color: #FFD700; font-size: 1.1rem; }
+.mu-sonando .mu-nota { animation: mu-pulso 1.6s ease-in-out infinite; }
+@keyframes mu-pulso { 50% { box-shadow: 0 0 0 6px rgba(220, 20, 60, 0.18); } }
+@media (prefers-reduced-motion: reduce) { .mu-sonando .mu-nota { animation: none; } }
+.mu-tx { min-width: 0; display: flex; flex-direction: column; }
+.mu-tx b, .mu-tx small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-tx b { font: 600 0.88rem/1.25 var(--sans); }
+.mu-tx small { font: 400 0.72rem/1.3 var(--sans); color: rgba(240, 240, 248, 0.65); }
+.mu-b { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 12px; border: 0; background: none; color: #F0F0F8; font-size: 1.1rem; cursor: pointer; }
+.mu-pp { background: #FFD700; color: #080408; border-radius: 50%; }
+.mu-b:focus-visible, .mu-info:focus-visible, .mu-fila:focus-visible, .mu-acc-b:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.mu-hoja { position: fixed; left: 8px; right: 8px; bottom: 8px; top: 12vh; z-index: 61; display: flex; flex-direction: column; gap: 8px;
+  background: rgba(8, 4, 8, 0.97); border: 1px solid rgba(220, 20, 60, 0.45); border-radius: 18px; padding: 12px; box-shadow: 0 -8px 40px rgba(0, 0, 0, .6); }
+.mu-cab { display: flex; justify-content: space-between; align-items: center; color: #FFD700; }
+.mu-x { background: none; border: 0; color: #F0F0F8; font-size: 1.7rem; line-height: 1; width: 44px; height: 44px; cursor: pointer; }
+.mu-busca { width: 100%; min-height: 44px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.2); background: rgba(240, 240, 248, 0.06);
+  color: #F0F0F8; padding: 0 14px; font: 400 0.92rem var(--sans); }
+.mu-acc { display: flex; gap: 8px; }
+.mu-acc-b { flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.4); background: rgba(255, 215, 0, 0.08); color: #F0F0F8; font: 600 0.88rem var(--sans); cursor: pointer; }
+.mu-lista { flex: 1; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; }
+.mu-fila { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 6px; background: none; border: 0;
+  border-bottom: 1px solid rgba(240, 240, 248, 0.07); color: #F0F0F8; text-align: left; cursor: pointer; }
+.mu-ft { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mu-ft b, .mu-ft small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-ft b { font: 500 0.9rem/1.3 var(--sans); }
+.mu-ft small { font: 400 0.74rem/1.3 var(--sans); color: rgba(240, 240, 248, 0.6); }
+.mu-dur { font: 500 0.72rem var(--mono); color: rgba(240, 240, 248, 0.55); }
+.mu-actual { background: rgba(220, 20, 60, 0.14); border-radius: 10px; }
+.mu-actual b { color: #FFD700; }
+.mu-vacio { color: rgba(240, 240, 248, 0.65); padding: 16px 4px; font: 400 0.88rem/1.5 var(--sans); }

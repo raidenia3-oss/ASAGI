@@ -985,6 +985,12 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Música del celular: «pon música», «pon canciones de …», «pausa», «siguiente», «mi música».
+  {
+    const MU = window.AsagiMusica, c = MU && MU.parsear(text, MU.activo());
+    if (c) { MU.ejecutar(c, (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e))); return; }
+  }
+
   // Taller web: «crea una web de pollería en Breña» -> la arma ARIA en la PC.
   {
     const m = text.replace(/[¿?¡!]/g, '').trim().match(/^(?:crea(?:me)?|haz(?:me)?|arma(?:me)?|genera(?:me)?|dise[nñ]a(?:me)?)\s+(?:una?\s+)?(?:p[aá]gina(?:\s+web)?|web|sitio(?:\s+web)?|landing(?:\s+page)?)\s+(?:de|para|sobre|del|de la)\s+(.{3,200})$/i);

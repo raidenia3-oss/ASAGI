@@ -49,6 +49,7 @@ const files = [
   'wiki.js',
   'notificaciones.js',
   'habilidades.js',
+  'musica.js',
   'piensa.js',
   'discord.js',
   'app.js',

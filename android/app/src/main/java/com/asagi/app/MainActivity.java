@@ -29,6 +29,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AsagiBrainPlugin.class);
         registerPlugin(AsagiControlPlugin.class);
         registerPlugin(com.asagi.brain.AsagiNavegadorPlugin.class);
+        registerPlugin(com.asagi.brain.AsagiMusicaPlugin.class);
         super.onCreate(savedInstanceState);
         ajustarABarrasDelSistema();
     }

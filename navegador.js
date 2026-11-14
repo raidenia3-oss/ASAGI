@@ -68,7 +68,7 @@ async function investigar(pregunta, pensar, progreso, n) {
   var paginas = [];
   for (var i = 0; i < res.length && paginas.length < n; i++) {
     if (progreso) progreso('📖 Leyendo ' + (paginas.length + 1) + '/' + n + ': ' + res[i].titulo.slice(0, 60));
-    try { var p = await ir(res[i].url); if (p && p.texto && p.texto.length > 120) paginas.push({ url: p.url || res[i].url, titulo: p.titulo || res[i].titulo, texto: p.texto }); } catch (e) {}
+    try { var p = await ir(res[i].url); if (p && p.texto && p.texto.length > 120 && !/^(un momento|just a moment|attention required|access denied|verifica)/i.test(p.titulo || '')) paginas.push({ url: p.url || res[i].url, titulo: p.titulo || res[i].titulo, texto: p.texto }); } catch (e) {}
   }
   if (!paginas.length) paginas = res.slice(0, n).map(function (r) { return { url: r.url, titulo: r.titulo, texto: r.resumen }; });
   var fuentes = paginas.map(function (p, i) { return '[' + (i + 1) + '] ' + p.titulo + ' — ' + p.url; });

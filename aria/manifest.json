@@ -85,9 +85,10 @@
   },
   "navegador_aria.py": {
    "previos": [
-    "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b"
+    "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b",
+    "e9345d72c22fdb6ac6455d40894c5b6892067968dbf667f74c303896d917fa7e"
    ],
-   "sha256": "e9345d72c22fdb6ac6455d40894c5b6892067968dbf667f74c303896d917fa7e"
+   "sha256": "bf2ab30f7dd96de6a9bdc55a6517f1435d24e94270c1fb4d0e83ba07ca83e511"
   },
   "personajes.py": {
    "previos": [

@@ -241,7 +241,7 @@ class Navegador:
                 progreso("📖 Leyendo %d/%d: %s" % (len(paginas) + 1, n, r["titulo"][:60]))
             try:
                 p = self.ir(r["url"])
-                if p and len(p.get("texto") or "") > 120:
+                if p and len(p.get("texto") or "") > 120 and not re.match(r"(?i)^(un momento|just a moment|attention required|access denied|verifica)", p.get("titulo") or ""):
                     paginas.append({"url": p.get("url") or r["url"], "titulo": p.get("titulo") or r["titulo"], "texto": p["texto"]})
             except Exception:
                 pass

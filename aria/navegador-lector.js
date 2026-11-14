@@ -100,6 +100,30 @@ function resultadosDDG(html, Parser) {
   return out;
 }
 
+// Resultados de una página de buscador ya abierta (DuckDuckGo html/lite o Bing). Corre DENTRO de la página.
+var RESULTADOS = function () {
+  var out = [], vistos = {};
+  function add(a, resumen) {
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    var m = href.match(/[?&]uddg=([^&]+)/); if (m) href = decodeURIComponent(m[1]);
+    m = href.match(/bing\.com\/ck\/a\?.*[?&]u=a1([^&]+)/);
+    if (m) { try { href = atob(m[1].replace(/-/g, '+').replace(/_/g, '/')); } catch (e) {} }
+    try { href = new URL(href, location.href).href; } catch (e) { return; }
+    if (!/^https?:/.test(href) || /duckduckgo\.com|bing\.com|microsoft\.com\/.*bing|ad_domain|\/y\.js/.test(href) || vistos[href]) return;
+    vistos[href] = 1;
+    out.push({ titulo: (a.textContent || '').trim().slice(0, 140), url: href, resumen: (resumen || '').trim().slice(0, 300) });
+  }
+  document.querySelectorAll('.result').forEach(function (r) { add(r.querySelector('a.result__a'), (r.querySelector('.result__snippet') || {}).textContent); });
+  document.querySelectorAll('a.result-link').forEach(function (a) {
+    var tr = a.closest('tr'), sn = tr && tr.nextElementSibling && tr.nextElementSibling.querySelector('.result-snippet');
+    add(a, sn ? sn.textContent : '');
+  });
+  document.querySelectorAll('li.b_algo').forEach(function (li) { add(li.querySelector('h2 a'), (li.querySelector('.b_caption p, p') || {}).textContent); });
+  return out.slice(0, 10);
+};
+var BUSCADORES = ['https://html.duckduckgo.com/html/?q=', 'https://lite.duckduckgo.com/lite/?q=', 'https://www.bing.com/search?setlang=es&q='];
+
 // Comandos de chat. PURO.
 function parsear(t) {
   var s = String(t || '').trim(), m;
@@ -122,7 +146,7 @@ function promptInvestigar(pregunta, paginas) {
     paginas.map(function (p, i) { return '<pagina n="' + (i + 1) + '" url="' + p.url + '">\n' + String(p.texto || '').slice(0, 2500) + '\n</pagina>'; }).join('\n');
 }
 
-var API = { LECTOR: LECTOR, CLIC: CLIC, ESCRIBIR: ESCRIBIR, resumenPagina: resumenPagina, resultadosDDG: resultadosDDG,
+var API = { LECTOR: LECTOR, CLIC: CLIC, ESCRIBIR: ESCRIBIR, RESULTADOS: RESULTADOS, BUSCADORES: BUSCADORES, resumenPagina: resumenPagina, resultadosDDG: resultadosDDG,
   parsear: parsear, promptInvestigar: promptInvestigar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiNavLector = API;

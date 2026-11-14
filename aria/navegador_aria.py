@@ -193,11 +193,22 @@ class Navegador:
             return self._leer()
         return self._llamar(f)
 
+    BUSCADORES = ("https://html.duckduckgo.com/html/?q=", "https://lite.duckduckgo.com/lite/?q=", "https://www.bing.com/search?setlang=es&q=")
+
     def buscar(self, q):
+        """Prueba varios buscadores: si uno pide captcha o viene vacío, pasa al siguiente."""
         def f():
             self._asegurar()
-            self._page.goto("https://html.duckduckgo.com/html/?q=" + urllib.parse.quote(q), wait_until="domcontentloaded")
-            return self._js("window.AsagiNavLector.resultadosDDG(document.documentElement.outerHTML)")
+            for b in self.BUSCADORES:
+                try:
+                    self._page.goto(b + urllib.parse.quote(q), wait_until="domcontentloaded", timeout=30000)
+                    self._page.wait_for_timeout(800)
+                    r = self._js("window.AsagiNavLector.RESULTADOS()")
+                    if r:
+                        return r
+                except Exception:
+                    pass
+            return []
         return self._llamar(f)
 
     def cerrar(self):

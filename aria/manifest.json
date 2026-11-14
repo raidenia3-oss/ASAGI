@@ -78,12 +78,16 @@
    "sha256": "3426f07e7947a57a2946bccb55d18376f928464d59ab22a36870608bb3ef72ab"
   },
   "navegador-lector.js": {
-   "previos": [],
-   "sha256": "8c299213599a837e5309affd9d70e25e5413919fb7a08838c206ef2fb3b71ebd"
+   "previos": [
+    "8c299213599a837e5309affd9d70e25e5413919fb7a08838c206ef2fb3b71ebd"
+   ],
+   "sha256": "561c9f3c5e7b5e2b2f1f5a7b66dffb76843b59341bf9d3c6fa233bdfaa7fa7a8"
   },
   "navegador_aria.py": {
-   "previos": [],
-   "sha256": "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b"
+   "previos": [
+    "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b"
+   ],
+   "sha256": "e9345d72c22fdb6ac6455d40894c5b6892067968dbf667f74c303896d917fa7e"
   },
   "personajes.py": {
    "previos": [

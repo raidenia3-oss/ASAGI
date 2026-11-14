@@ -49,13 +49,15 @@ async function volver() { var N = nativo(); if (!N) throw new Error('necesita la
 async function cerrar() { var N = nativo(); ultima = null; if (N) await N.cerrar(); }
 
 async function buscar(q) {
-  var url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(q);
-  if (nativo()) {
-    await nativo().abrir({ url: url });
-    var html = await _ejecutar(function () { return document.documentElement.outerHTML; });
-    return L.resultadosDDG(String(html || ''));
+  // varios buscadores: si uno pide captcha o viene vacío, se prueba el siguiente
+  for (var i = 0; i < L.BUSCADORES.length; i++) {
+    var url = L.BUSCADORES[i] + encodeURIComponent(q);
+    try {
+      if (nativo()) { await nativo().abrir({ url: url }); var r = await _ejecutar(L.RESULTADOS); if (r && r.length) return r; }
+      else { var res = L.resultadosDDG(await (await fetch(url)).text()); if (res.length) return res; }
+    } catch (e) {}
   }
-  return L.resultadosDDG(await (await fetch(url)).text());
+  return [];
 }
 
 // Busca, abre las mejores páginas, las lee y resume con fuentes. pensar(prompt) -> texto (o null sin cerebro).

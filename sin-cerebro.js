@@ -128,7 +128,11 @@ function ayudaTexto() {
     '• «pon una alarma a las 7», «temporizador de 10 minutos», «modo concentración 25 minutos»\n' +
     '• «recuérdame … mañana a las 8», «qué tengo hoy», «guarda en la bandeja: …»\n' +
     '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
-    '• «personajes», «práctica de cita», «fondo», «revisa mi correo» (vía ARIA)\n' +
+    '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +
+    '• «qué notificaciones tengo», «cuánto gasté esta semana», «cuánto me yapearon hoy»\n' +
+    '• «aprende buenos días: clima; mis gastos hoy» (y luego «buenos días»), «mis habilidades»\n' +
+    '• «wiki fotosíntesis», «espacio», «prepara wikipedia»\n' +
+    '• Con ARIA en el WiFi: «revisa mi correo», «resume este video <enlace>», «crea una web de …», «claude: …»\n' +
     'Para charlar de todo: descarga mi modelo (botón ⬇ en el chat) o pon una key gratis de Gemini.';
 }
 

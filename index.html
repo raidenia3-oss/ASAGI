@@ -105,7 +105,7 @@
               </div>
             </div>
 
-            <button id="reset-chat" class="secondary" type="button">Reset chat</button>
+            <button id="reset-chat" class="secondary" type="button">Nuevo chat</button>
           </header>
 
           <p id="brain-alert" class="brain-alert" role="status" aria-live="polite" hidden></p>
@@ -115,6 +115,12 @@
 
           <div id="bot-reply-status" class="bot-reply-status hidden" aria-live="polite"></div>
 
+          <div id="sugerencias" class="sugerencias" aria-label="Ideas para empezar">
+            <button type="button" data-di="qué puedes hacer">¿Qué puedes hacer?</button>
+            <button type="button" data-di="qué notificaciones tengo">Mis notificaciones</button>
+            <button type="button" data-di="cuánto gasté esta semana">Mis gastos</button>
+            <button type="button" data-di="mis habilidades">Mis habilidades</button>
+          </div>
           <form id="chat-form" class="composer" autocomplete="off">
             <label class="sr-only" for="message-input">Escribe un mensaje</label>
             <input

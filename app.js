@@ -3734,3 +3734,10 @@ if ('serviceWorker' in navigator) {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) ciclo(); });
   window._asagiDiscord = { cli, ciclo };
 })();
+
+// Ideas para empezar (solo con el chat nuevo): un toque y se envía.
+document.getElementById('sugerencias')?.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-di]'); if (!b) return;
+  const inp = document.getElementById('message-input'); if (!inp) return;
+  inp.value = b.dataset.di; chatForm.requestSubmit();
+});

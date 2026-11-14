@@ -48,6 +48,7 @@ const files = [
   'openverse.js',
   'wiki.js',
   'notificaciones.js',
+  'habilidades.js',
   'piensa.js',
   'discord.js',
   'app.js',

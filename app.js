@@ -805,6 +805,26 @@ chatForm.addEventListener('submit', (event) => {
   if (!reesc) appendMessage('user', text);
   input.value = '';
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
+  // Habilidades que le enseñas (macros): «aprende buenos días: clima; mis gastos hoy».
+  {
+    const H = window.AsagiHabilidades;
+    if (H) {
+      const c = H.parsear(text);
+      if (c && c.accion === 'aprender') {
+        const r = H.aprender(c.nombre, c.pasos);
+        appendMessage('bot', r.ok ? '🧠 Aprendí «' + c.nombre + '»:\n' + c.pasos.map((x, i) => (i + 1) + '. ' + x).join('\n') + '\nDi «' + c.nombre + '» para usarla.' : '⚠ ' + (r.error || 'no pude guardarla'));
+        return;
+      }
+      if (c && c.accion === 'listar') { appendMessage('bot', H.listar()); return; }
+      if (c && c.accion === 'olvidar') { appendMessage('bot', H.olvidar(c.nombre) ? '🗑 Olvidé «' + c.nombre + '».' : 'No tengo una habilidad llamada «' + c.nombre + '».'); return; }
+      const hab = !reesc && H.buscar(text, H.cargar());
+      if (hab) {
+        H.correr(hab, (paso) => { appendMessage('user', '▸ ' + paso); window._asagiReescribir = paso; try { chatForm.requestSubmit(); } catch (e) { chatForm.dispatchEvent(new Event('submit', { cancelable: true })); } },
+          (t) => appendMessage('bot', t));
+        return;
+      }
+    }
+  }
   if (/^\s*(nivel|mi nivel|tu nivel|niveles|cu[aá]nto has aprendido|qu[eé] nivel tienes)\s*\??\s*$/i.test(text) && window.AsagiNiveles) {
     appendMessage('bot', window._asagiNivelTexto ? window._asagiNivelTexto() : window.AsagiNiveles.formato(window.AsagiNiveles.actual()));
     return;
@@ -954,6 +974,16 @@ chatForm.addEventListener('submit', (event) => {
         window._asagiElegirFoto();
         appendMessage('bot', '🖼 Elige la foto en tu galería.');
       } else appendMessage('bot', 'No encuentro el editor de fondo.');
+      return;
+    }
+  }
+
+  // Taller web: «crea una web de pollería en Breña» -> la arma ARIA en la PC.
+  {
+    const m = text.replace(/[¿?¡!]/g, '').trim().match(/^(?:crea(?:me)?|haz(?:me)?|arma(?:me)?|genera(?:me)?|dise[nñ]a(?:me)?)\s+(?:una?\s+)?(?:p[aá]gina(?:\s+web)?|web|sitio(?:\s+web)?|landing(?:\s+page)?)\s+(?:de|para|sobre|del|de la)\s+(.{3,200})$/i);
+    if (m && window.AsagiNavegador && window.AsagiNavegador.crearSitio) {
+      window.AsagiNavegador.crearSitio(m[1], (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
+        .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
       return;
     }
   }

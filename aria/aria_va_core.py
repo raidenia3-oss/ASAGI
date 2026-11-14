@@ -927,6 +927,24 @@ class LocalAIBrain:
                                     trab[jid] = {"listo": True, "error": str(exc)}
                             threading.Thread(target=_yt, daemon=True).start()
                             res["r"] = {"pendiente": True, "id": jid}
+                        elif a == "crear_sitio":     # ASAGI pide una web: se arma aquí en la PC (trabajo en fondo)
+                            trab = getattr(self, "_web_trabajos", None)
+                            if trab is None:
+                                trab = self._web_trabajos = {}
+                            import uuid as _uu
+                            jid = _uu.uuid4().hex[:10]
+                            trab[jid] = {"listo": False}
+
+                            def _ts(tema=str(c.get("tema", ""))[:200], jid=jid):
+                                try:
+                                    import taller_web
+                                    r = taller_web.crear(tema, pensar=lambda p: self.generate_chat(p))
+                                    trab[jid] = {"listo": True, "titulo": r["nombre"],
+                                                 "texto": "🛠 Web «%s» lista en la PC y abierta en el navegador.\nCarpeta: %s" % (r["nombre"], os.path.dirname(r["ruta"]))}
+                                except Exception as exc:
+                                    trab[jid] = {"listo": True, "error": str(exc)}
+                            threading.Thread(target=_ts, daemon=True).start()
+                            res["r"] = {"pendiente": True, "id": jid}
                         elif a == "resultado":
                             trab = getattr(self, "_web_trabajos", None) or {}
                             t = trab.get(str(c.get("id", "")))

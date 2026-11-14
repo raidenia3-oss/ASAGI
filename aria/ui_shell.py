@@ -690,6 +690,33 @@ if _QT:
             except Exception as exc:
                 print("[UI] extras: %s" % exc, flush=True)
 
+        def _cmd_taller(self, t):
+            """«crea una web de pollería en Breña» -> sitio en ARIA_APP/sitios/, se abre en tu navegador."""
+            try:
+                import taller_web as _tw
+            except Exception:
+                return False
+            o = _tw.parsear(t)
+            if not o:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            self._linea("🛠 Armo la web de «%s»… (escribo el contenido y lo pongo en una plantilla)" % o["tema"], "sys")
+            cola = getattr(self, "_bots_cola", None)
+            pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
+            import threading as _th
+
+            def _h():
+                try:
+                    r = _tw.crear(o["tema"], pensar=pensar)
+                    msg = "🛠 Lista: «%s». La abrí en tu navegador.\nCarpeta: %s%s" % (
+                        r["nombre"], os.path.dirname(r["ruta"]), "" if r["con_cerebro"] else "\n(usé textos base: mi cerebro no respondió)")
+                except Exception as exc:
+                    msg = "⚠ Taller web: %s" % exc
+                if cola is not None:
+                    cola.put(msg)
+            _th.Thread(target=_h, daemon=True).start()
+            return True
+
         def _cmd_wiki(self, t):
             import re as _re
             n = _re.sub(r"[¿?¡!.]", "", (t or "").lower()).strip()
@@ -1420,6 +1447,8 @@ if _QT:
             if self._cmd_voz_extra(t):
                 return
             if self._cmd_wiki(t):
+                return
+            if self._cmd_taller(t):
                 return
             if self._cmd_fondo(t):
                 return

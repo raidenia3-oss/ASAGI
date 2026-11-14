@@ -80,6 +80,36 @@ async function investigar(pregunta, pensar, progreso, n) {
   return { texto: texto, fuentes: fuentes };
 }
 
-window.AsagiNavegador = { ir: ir, leer: leer, clic: clic, escribir: escribir, volver: volver, cerrar: cerrar, buscar: buscar,
-  investigar: investigar, ultima: function () { return ultima; }, nativo: function () { return !!nativo(); } };
+// ---- Ahorro de RAM: si ARIA está conectada (USB/WiFi), ella navega en la PC y aquí solo llega el texto.
+// El WebView oculto del celular es solo el plan B, y se cierra solo tras 2 min sin uso.
+var _ociosoT = null;
+function _ocioso() { clearTimeout(_ociosoT); _ociosoT = setTimeout(function () { var N = nativo(); if (N) N.cerrar().catch(function () {}); }, 120000); }
+async function _aria(carga) {
+  var cli = window._asagiLan; if (!cli) return null;
+  try { var r = await cli.enviar(Object.assign({ t: 'web' }, carga)); return r && r.ok && r.resp && r.resp.ok ? r.resp.web : (r && r.ok && r.resp ? { error: r.resp.error } : null); } catch (e) { return null; }
+}
+function _conPC(nombre, local, aCarga, deARIA) {
+  return async function () {
+    var args = arguments, w = await _aria(aCarga.apply(null, args));
+    if (w && !w.error) { _viaPC = true; return deARIA(w); }
+    _viaPC = false; _ocioso();
+    return local.apply(null, args);
+  };
+}
+var _viaPC = false;
+var _ir = _conPC('ir', ir, function (u) { return { accion: 'ir', url: u }; }, function (w) { ultima = w.pagina; return w.pagina; });
+var _leer = _conPC('leer', leer, function () { return { accion: 'leer' }; }, function (w) { ultima = w.pagina; return w.pagina; });
+var _clic = _conPC('clic', clic, function (n) { return { accion: 'clic', n: n }; }, function (w) { if (w.pagina) ultima = w.pagina; return w.ok === undefined ? Object.assign({ ok: !!w.pagina }, w) : w; });
+var _escribir = _conPC('escribir', escribir, function (n, t, e) { return { accion: 'escribir', n: n, texto: t, enviar: !!e }; }, function (w) { if (w.pagina) ultima = w.pagina; return w.ok === undefined ? Object.assign({ ok: !!w.pagina }, w) : w; });
+var _volver = _conPC('volver', volver, function () { return { accion: 'volver' }; }, function (w) { ultima = w.pagina; return w.pagina; });
+var _investigar = async function (pregunta, pensar, progreso, n) {
+  if (progreso && window._asagiLan) progreso('🖥 Le pido a ARIA que lo busque en la PC (no gasto RAM del celular)…');
+  var w = await _aria({ accion: 'investigar', pregunta: pregunta });
+  if (w && !w.error && w.texto) { _viaPC = true; return { texto: w.texto, fuentes: w.fuentes || [], via: 'ARIA' }; }
+  _viaPC = false; _ocioso();
+  return investigar(pregunta, pensar, progreso, n);
+};
+
+window.AsagiNavegador = { ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
+  investigar: _investigar, viaPC: function () { return _viaPC; }, ultima: function () { return ultima; }, nativo: function () { return !!nativo(); } };
 })();

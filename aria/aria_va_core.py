@@ -876,6 +876,43 @@ class LocalAIBrain:
                     e = {"activos": 0, "proximo": None, "lista": []}
                 e["ocupada"] = bool(getattr(self, "_gen_lock", None) and self._gen_lock.locked())
                 return {"ok": True, "estado": e}
+            if c.get("t") == "web":              # ASAGI navega con el navegador de ARIA (no gasta RAM del celular)
+                res = {}
+
+                def _web():
+                    try:
+                        import navegador_aria as _na
+                        nv, a = _na.nav(), c.get("accion")
+                        if a == "investigar":
+                            r = nv.investigar(str(c.get("pregunta", ""))[:200], pensar=lambda p: self.generate_chat(p))
+                            res["r"] = {"texto": r["texto"], "fuentes": r["fuentes"]}
+                        elif a == "ir":
+                            res["r"] = {"pagina": nv.ir(str(c.get("url", "")))}
+                        elif a == "leer":
+                            res["r"] = {"pagina": nv.leer()}
+                        elif a == "clic":
+                            res["r"] = nv.clic(int(c.get("n", 0)))
+                        elif a == "escribir":
+                            res["r"] = nv.escribir(int(c.get("n", 0)), str(c.get("texto", ""))[:500], bool(c.get("enviar")))
+                        elif a == "volver":
+                            res["r"] = {"pagina": nv.volver()}
+                        elif a == "cerrar":
+                            nv.cerrar(); res["r"] = {"ok": True}
+                        else:
+                            res["e"] = "acción desconocida"
+                    except Exception as exc:
+                        res["e"] = str(exc)
+                hw = threading.Thread(target=_web, daemon=True)
+                hw.start()
+                hw.join(48.0)                    # el celular espera 50 s
+                if "r" in res:
+                    out = res["r"]
+                    pg = out.get("pagina") if isinstance(out, dict) else None
+                    if pg:                       # recortar para no pasar el límite de 64 KB por línea
+                        pg["texto"] = (pg.get("texto") or "")[:4000]
+                        pg["elementos"] = (pg.get("elementos") or [])[:60]
+                    return {"ok": True, "web": out}
+                return {"ok": False, "error": res.get("e", "ARIA tardó demasiado")}
             if c.get("t") == "bot":              # un bot de ASAGI piensa con ARIA (sin key en el celular)
                 prompt = str(c.get("prompt", "")).strip()[:6000]
                 if not prompt:

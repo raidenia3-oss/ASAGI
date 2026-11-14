@@ -796,7 +796,7 @@ chatForm.addEventListener('submit', (event) => {
   {
     const L = window.AsagiNavLector, NV = window.AsagiNavegador, o = L && NV && L.parsear(text);
     if (o) {
-      const mostrar = (p) => appendMessage('bot', L.resumenPagina(p, 25, 900) + '\n(«clic N», «escribe N: …», «lee la página», «vuelve atrás»)');
+      const mostrar = (p) => appendMessage('bot', (NV.viaPC && NV.viaPC() ? '🖥 (vía ARIA en la PC) ' : '') + L.resumenPagina(p, 25, 900) + '\n(«clic N», «escribe N: …», «lee la página», «vuelve atrás»)');
       const fallo = (e) => appendMessage('bot', '⚠ Navegador: ' + ((e && e.message) || e));
       if (o.accion === 'ir') { appendMessage('bot', '🌐 Abriendo ' + o.url + '…'); NV.ir(o.url).then(mostrar).catch(fallo); return; }
       if (o.accion === 'leer') { NV.leer().then(mostrar).catch(fallo); return; }

@@ -113,9 +113,9 @@ function crearCliente(o) {
     for (var intento = 0; intento < 2; intento++) {
       if (!destino && !(await buscar())) return null;
       var linea = await sellar('asagi', carga);
-      var esperaMs = carga && carga.t === 'bot' ? 50000 : 8000;   // un bot que piensa con ARIA tarda mas
+      var esperaMs = carga && (carga.t === 'bot' || carga.t === 'web') ? 50000 : 8000;   // un bot que piensa con ARIA tarda mas
       var r; try { r = await P.lanEnviar({ host: destino.host, puerto: destino.puerto, linea: linea, esperaMs: esperaMs }); } catch (e) { r = null; }
-      if (!r && carga && carga.t === 'bot') return null;        // no reenviar: ARIA ya puede estar pensando
+      if (!r && carga && (carga.t === 'bot' || carga.t === 'web')) return null;        // no reenviar: ARIA ya puede estar pensando
       if (r && r.ok) { var resp = await abrir(r.linea, 'aria'); if (resp) return resp; }
       destino = null;                                      // cambio de red / IP nueva: reintenta descubriendo
     }

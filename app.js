@@ -963,14 +963,15 @@ chatForm.addEventListener('submit', (event) => {
     const W = window.AsagiWiki, c = W && W.parsear(text);
     if (c && c.accion === 'buscar') {
       W.buscar(c.q).then((rs) => appendMessage('bot', rs.length ? W.resumen(rs[0]) + (rs.length > 1 ? '\n\nTambién: ' + rs.slice(1).map((r) => r.titulo).join(', ') : '')
-        : 'No la encontré en tu Wikipedia sin internet' + (window._asagiWikiLista ? '.' : ' (¿ya la preparaste? Di «prepara wikipedia» con ARIA conectada).')));
+        : 'No la encontré en tu Wikipedia sin internet' + (window._asagiWikiLista ? '.' : ' (¿ya la preparaste? Di «prepara wikipedia» con ARIA en el mismo WiFi).')));
       return;
     }
     if (c && c.accion === 'preparar') {
       W.preparar().then((r) => {
         if (!r.ok) { appendMessage('bot', '⚠ ' + (r.error || 'no pude')); return; }
         const w = r.wiki || {};
-        appendMessage('bot', w.fase === 'listo' ? '📚 Ya está: la Wikipedia está en tu SD.' : '📚 ARIA ya la está preparando en la PC (' + (w.fase || 'empezando') + (w.pct ? ' ' + w.pct + '%' : '') + '). Son ~2 GB: baja, la convierte y la copia por USB a tu SD. Te aviso en ARIA cuando termine.');
+        if (w.fase === 'listo' || w.en_pc) { window._asagiWikiTraer && window._asagiWikiTraer(true); return; }
+        appendMessage('bot', '📚 ARIA ya la está preparando en la PC (' + (w.fase || 'empezando') + (w.pct ? ' ' + w.pct + '%' : '') + '). Son ~2 GB: ella la baja y la convierte; cuando esté, me la traigo sola por WiFi a tu SD.');
       });
       return;
     }
@@ -1350,6 +1351,17 @@ renderBrainControls();
   }
   const cli = L.crearCliente({ plugin: plugin, clave: clave });
   window._asagiLan = cli;
+  // Wikipedia sin internet: si ARIA ya la tiene lista y aquí falta, me la traigo sola por WiFi
+  // (al abrir la app y cada 20 min con la app a la vista; reanuda si se corta).
+  window._asagiWikiTraer = async (avisar) => {
+    const W = window.AsagiWiki; if (!W || !W.traer) return;
+    const decir = avisar ? (t) => appendMessage('bot', t) : null;
+    const r = await W.traer(decir);
+    if (r.ok && !r.ya) appendMessage('bot', '📚 Listo: tu Wikipedia sin internet ya está en la SD. Prueba «wiki fotosíntesis».');
+    else if (avisar && !r.ok) appendMessage('bot', '📚 ' + r.error + '.');
+  };
+  setTimeout(() => window._asagiWikiTraer(false), 60000);
+  setInterval(() => { if (!document.hidden) window._asagiWikiTraer(false); }, 20 * 60000);
   // La PC deja la clave por adb (files/enlace/lan.key): ASAGI la toma sola, sin teclear nada.
   async function tomarClaveDePc() {
     try {

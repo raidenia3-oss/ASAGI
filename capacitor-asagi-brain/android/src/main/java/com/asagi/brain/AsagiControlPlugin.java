@@ -1117,6 +1117,82 @@ public class AsagiControlPlugin extends Plugin {
         } }).start();
     }
 
+    /**
+     * Trae un archivo grande de ARIA por WiFi (hoy: la Wikipedia sin internet) directo a la SD, sin pasar
+     * por JS. Manda la línea sellada; ARIA contesta una línea y detrás el archivo crudo desde «desde».
+     * Escribe en wiki_es.db.part (reanuda) y devuelve el sha256 de TODO el archivo; JS lo compara con el
+     * sha256 que ARIA dio por el canal cifrado y recién ahí llama a wikiActivar.
+     */
+    @PluginMethod
+    public void lanBajarArchivo(final PluginCall call) {
+        final String host = call.getString("host", "");
+        final int puerto = call.getInt("puerto", 47832);
+        final String linea = call.getString("linea", "");
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            java.io.File dir = Almacen.sd(getContext());
+            if (dir == null) dir = getContext().getExternalFilesDir(null);
+            java.io.File carpeta = new java.io.File(dir, "wiki");
+            carpeta.mkdirs();
+            java.io.File parte = new java.io.File(carpeta, "wiki_es.db.part");
+            try {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                long previo = parte.exists() ? parte.length() : 0L;
+                if (previo > 0) {
+                    try (java.io.InputStream in = new java.io.FileInputStream(parte)) {
+                        byte[] b = new byte[1 << 20]; int n;
+                        while ((n = in.read(b)) > 0) md.update(b, 0, n);
+                    }
+                }
+                java.net.Socket so = new java.net.Socket();
+                so.connect(new java.net.InetSocketAddress(host, puerto), 4000);
+                so.setSoTimeout(60000);
+                long nuevos = 0;
+                try {
+                    java.io.InputStream in = new java.io.BufferedInputStream(so.getInputStream(), 1 << 16);
+                    java.io.OutputStream out = so.getOutputStream();
+                    out.write((linea + "\n").getBytes("UTF-8")); out.flush();
+                    int c, cab = 0;
+                    while ((c = in.read()) != -1 && c != '\n') { if (++cab > 65536) throw new java.io.IOException("cabecera"); }
+                    if (cab == 0) throw new java.io.IOException("sinRespuesta");
+                    try (java.io.OutputStream f = new java.io.FileOutputStream(parte, true)) {
+                        byte[] b = new byte[1 << 20]; int n;
+                        while ((n = in.read(b)) > 0) { f.write(b, 0, n); md.update(b, 0, n); nuevos += n; }
+                    }
+                } finally { so.close(); }
+                StringBuilder hx = new StringBuilder();
+                for (byte x : md.digest()) hx.append(String.format("%02x", x));
+                r.put("ok", true); r.put("bytes", nuevos); r.put("total", parte.length()); r.put("sha256", hx.toString());
+            } catch (Throwable e) {
+                r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); r.put("total", parte.exists() ? parte.length() : 0);
+            }
+            call.resolve(r);
+        } }).start();
+    }
+
+    /** Tamaño de la copia a medias (para reanudar) */
+    @PluginMethod
+    public void wikiParte(PluginCall call) {
+        java.io.File dir = Almacen.sd(getContext());
+        if (dir == null) dir = getContext().getExternalFilesDir(null);
+        java.io.File parte = new java.io.File(new java.io.File(dir, "wiki"), "wiki_es.db.part");
+        JSObject r = new JSObject(); r.put("bytes", parte.exists() ? parte.length() : 0); call.resolve(r);
+    }
+
+    /** ok=true: la copia está completa y verificada -> pasa a ser la Wikipedia activa. ok=false: se borra para empezar de cero. */
+    @PluginMethod
+    public void wikiActivar(PluginCall call) {
+        java.io.File dir = Almacen.sd(getContext());
+        if (dir == null) dir = getContext().getExternalFilesDir(null);
+        java.io.File carpeta = new java.io.File(dir, "wiki");
+        java.io.File parte = new java.io.File(carpeta, "wiki_es.db.part"), db = new java.io.File(carpeta, "wiki_es.db");
+        JSObject r = new JSObject();
+        if (!call.getBoolean("ok", false)) { parte.delete(); r.put("ok", true); call.resolve(r); return; }
+        if (db.exists()) db.delete();
+        r.put("ok", parte.renameTo(db));
+        call.resolve(r);
+    }
+
     private JSObject lineaPorSocket(java.io.InputStream in, java.io.OutputStream out, String linea) throws java.io.IOException {
         JSObject r = new JSObject();
         out.write((linea + "\n").getBytes("UTF-8")); out.flush();

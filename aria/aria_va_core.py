@@ -881,6 +881,11 @@ class LocalAIBrain:
                     import wiki_pc
                     if c.get("accion") == "preparar" and wiki_pc.estado.get("fase") not in ("bajando", "convirtiendo", "inicio"):
                         wiki_pc.en_fondo()
+                    if c.get("accion") == "info" and os.path.exists(wiki_pc.DB):
+                        return {"ok": True, "wiki": dict(wiki_pc.estado, en_pc=True, tam=os.path.getsize(wiki_pc.DB), sha256=wiki_pc.huella())}
+                    if c.get("accion") == "archivo" and os.path.exists(wiki_pc.DB):
+                        desde = max(0, int(c.get("desde") or 0))
+                        return {"ok": True, "tam": os.path.getsize(wiki_pc.DB), "_archivo": {"ruta": wiki_pc.DB, "desde": desde}}
                     return {"ok": True, "wiki": dict(wiki_pc.estado, en_pc=os.path.exists(wiki_pc.DB))}
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}

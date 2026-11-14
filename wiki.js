@@ -1,4 +1,4 @@
-// Wikipedia en español SIN internet, guardada en la tarjeta SD (la arma ARIA en la PC y la copia por USB).
+// Wikipedia en español SIN internet, guardada en la tarjeta SD (la arma ARIA en la PC y ASAGI se la trae por WiFi).
 // «wiki fotosíntesis», «qué es la fotosíntesis» (cuando no hay cerebro ni internet),
 // «prepara wikipedia» (se lo pide a ARIA), «espacio» (memoria interna / SD).
 // La búsqueda la hace el SQLite de Android: casi nada de RAM.
@@ -34,12 +34,38 @@ async function buscar(q, n) {
 }
 async function preparar() {
   var cli = window._asagiLan;
-  if (!cli) return { ok: false, error: 'necesito a ARIA conectada (USB o WiFi): ella baja y arma la Wikipedia en la PC' };
+  if (!cli) return { ok: false, error: 'necesito a ARIA conectada por WiFi: ella baja y arma la Wikipedia en la PC' };
   var r = await cli.enviar({ t: 'wiki', accion: 'preparar' });
   return r && r.ok && r.resp ? r.resp : { ok: false, error: 'ARIA no respondió' };
 }
 
-var API = { parsear: parsear, pregunta: pregunta, resumen: resumen, estado: estado, buscar: buscar, preparar: preparar };
+// Trae la Wikipedia de ARIA por WiFi (reanuda si se corta) y la verifica con sha256.
+var _copiando = false;
+async function traer(avisar) {
+  var cli = window._asagiLan, p = P();
+  if (_copiando || !cli || !cli.bajarArchivo || !p || !p.wikiParte) return { ok: false, error: 'no disponible' };
+  _copiando = true;
+  try {
+    var e = await estado(); if (e && e.wiki) return { ok: true, ya: true };
+    var r = await cli.enviar({ t: 'wiki', accion: 'info' });
+    var w = r && r.ok && r.resp && r.resp.wiki;
+    if (!w || !w.en_pc || !w.sha256) return { ok: false, error: 'ARIA aún no la tiene lista' };
+    for (var intento = 0; intento < 4; intento++) {
+      var parte = (await p.wikiParte()).bytes || 0;
+      if (parte > w.tam) { await p.wikiActivar({ ok: false }); parte = 0; }
+      if (avisar) avisar('📚 Copiando la Wikipedia desde ARIA por WiFi (' + (w.tam / 1e9).toFixed(1) + ' GB' + (parte ? ', sigo desde ' + Math.round(parte * 100 / w.tam) + '%' : '') + ')…');
+      var b = await cli.bajarArchivo({ t: 'wiki', accion: 'archivo', desde: parte });
+      if (b && b.ok && b.total === w.tam) {
+        if (b.sha256 !== w.sha256) { await p.wikiActivar({ ok: false }); return { ok: false, error: 'la copia llegó dañada; la borré' }; }
+        await p.wikiActivar({ ok: true });
+        return { ok: true };
+      }
+    }
+    return { ok: false, error: 'se cortó varias veces; sigo la próxima vez' };
+  } finally { _copiando = false; }
+}
+
+var API = { traer: traer, parsear: parsear, pregunta: pregunta, resumen: resumen, estado: estado, buscar: buscar, preparar: preparar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiWiki = API;
 })();

@@ -3,7 +3,8 @@
 «prepara wikipedia» (en ARIA, o en ASAGI que se lo pide a ARIA):
   1. baja de Kiwix la Wikipedia en español «mini» (la introducción de cada artículo, ~2 GB);
   2. la convierte aquí en la PC en una base SQLite con búsqueda (FTS4) — el trabajo pesado no lo hace el celular;
-  3. la copia por USB (adb) a la SD del celular, en la carpeta de ASAGI.
+  3. ASAGI se la trae sola por WiFi (enlace cifrado con ARIA) a su carpeta en la SD; el archivo se
+     comprueba con sha256 y la copia se reanuda si se corta.
 ASAGI luego busca ahí con el SQLite de Android: casi nada de RAM, sin internet.
 Dependencia nueva (aprobada): libzim (para leer el archivo de Kiwix). Se instala sola.
 """
@@ -261,6 +262,25 @@ def copiar_al_celular(avisar=None, ruta=DB):
     return destino + "/wiki_es.db"
 
 
+def huella(ruta=DB):
+    """sha256 del archivo, guardado al lado para no recalcularlo (2 GB tardan)."""
+    import hashlib
+    cache = ruta + ".sha256"
+    try:
+        h, tam, mt = open(cache, encoding="utf-8").read().split()
+        if int(tam) == os.path.getsize(ruta) and float(mt) == os.path.getmtime(ruta):
+            return h
+    except Exception:
+        pass
+    d = hashlib.sha256()
+    with open(ruta, "rb") as f:
+        for b in iter(lambda: f.read(4 << 20), b""):
+            d.update(b)
+    with open(cache, "w", encoding="utf-8") as g:
+        g.write("%s %d %r" % (d.hexdigest(), os.path.getsize(ruta), os.path.getmtime(ruta)))
+    return d.hexdigest()
+
+
 def preparar(avisar=None):
     """Todo el proceso. Bloqueante: llamar en un hilo."""
     if not _lock.acquire(blocking=False):
@@ -277,10 +297,10 @@ def preparar(avisar=None):
                 os.remove(zim)                    # ya no hace falta el original
             except Exception:
                 pass
-        dest = copiar_al_celular(avisar)
+        huella()
         estado.update(fase="listo", pct=100)
-        _avisar(avisar, "📚 Listo: Wikipedia en el celular (%s). En ASAGI: «wiki fotosíntesis»." % dest)
-        return dest
+        _avisar(avisar, "📚 Wikipedia lista en la PC. ASAGI se la trae sola por WiFi la próxima vez que me vea.")
+        return DB
     except Exception as exc:
         estado.update(fase="error", error=str(exc))
         _avisar(avisar, "⚠ Wikipedia: %s" % exc)

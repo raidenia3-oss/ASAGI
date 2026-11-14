@@ -79,7 +79,7 @@ _VOLUMEN_POR_PERSONAJE = {
 
 def _piper_ok():
     try:
-        import voz_piper
+        import voz_natural as voz_piper
         return voz_piper.listo()
     except Exception:
         return False
@@ -180,7 +180,7 @@ def hablar(texto, personaje="aria", rol="default"):
             # Voz natural (Piper) si ya se instaló; si falla, sigue con la de Windows.
             if _piper_ok():
                 try:
-                    import voz_piper
+                    import voz_natural as voz_piper
                     _hablando_ahora[0] = True
                     vel = _ritmo_para(personaje, rol) / 175.0
                     for f in frases(texto):

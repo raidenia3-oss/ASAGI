@@ -128,7 +128,7 @@ async function _trabajoARIA(carga, aviso, progreso) {
 }
 function youtube(url, progreso) { return _trabajoARIA({ accion: 'youtube', url: url }, '📺 ARIA está viendo el video (lee sus subtítulos en la PC)…', progreso); }
 // «crea una web de …»: ARIA la arma en la PC (su cerebro escribe, plantilla probada) y la abre allá.
-function crearSitio(tema, progreso) { return _trabajoARIA({ accion: 'crear_sitio', tema: tema }, '🛠 ARIA está armando la web en la PC…', progreso); }
+function crearSitio(tema, progreso) { return _trabajoARIA({ accion: 'crear_sitio', tema: tema }, '🛠 ARIA trabaja en la web en la PC…', progreso); }
 
 window.AsagiNavegador = { youtube: youtube, crearSitio: crearSitio, ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
   investigar: _investigar, viaPC: function () { return _viaPC; }, ultima: function () { return ultima; }, nativo: function () { return !!nativo(); } };

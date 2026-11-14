@@ -100,10 +100,15 @@ def limpiar(c, tema):
     return o
 
 
-def render(c, tema, tel=None):
+def paleta_de(tema):
+    """PURO."""
+    return int(hashlib.md5(_norm(tema).encode()).hexdigest(), 16) % len(PALETAS)
+
+
+def render(c, tema, tel=None, paleta=None):
     """HTML completo de una página. PURO."""
     e = lambda x: html.escape(str(x or ""))
-    fondo, sup, txt, ac, ac2 = PALETAS[int(hashlib.md5(_norm(tema).encode()).hexdigest(), 16) % len(PALETAS)]
+    fondo, sup, txt, ac, ac2 = PALETAS[(paleta_de(tema) if paleta is None else paleta) % len(PALETAS)]
     wa = ("https://wa.me/%s?text=%s" % (tel, "Hola%2C%20vi%20su%20p%C3%A1gina%20web")) if tel else "#contacto"
     serv = "\n".join('<article class="card"><h3>%s</h3><p>%s</p></article>' % (e(s["titulo"]), e(s["texto"])) for s in c["servicios"])
     porque = "\n".join("<li>%s</li>" % e(p) for p in c["porque"])
@@ -158,15 +163,185 @@ def crear(tema, pensar=None, abrir=True, carpeta=SITIOS):
             c = None
     c = limpiar(c, tema)
     destino = os.path.join(carpeta, slug(c["nombre"] if con_cerebro else tema))
+    datos = {"tema": tema, "contenido": c, "telefono": telefono(tema), "paleta": paleta_de(tema), "historial": []}
+    ruta = _escribir(destino, datos)
+    _abrir(ruta, abrir)
+    return {"ruta": ruta, "nombre": c["nombre"], "con_cerebro": con_cerebro}
+
+
+def _escribir(destino, datos):
     os.makedirs(destino, exist_ok=True)
     ruta = os.path.join(destino, "index.html")
+    datos["fecha"] = time.strftime("%Y-%m-%d %H:%M")
     with open(ruta, "w", encoding="utf-8") as f:
-        f.write(render(c, tema, telefono(tema)))
+        f.write(render(datos["contenido"], datos["tema"], datos.get("telefono"), datos.get("paleta")))
     with open(os.path.join(destino, "contenido.json"), "w", encoding="utf-8") as f:
-        json.dump({"tema": tema, "contenido": c, "fecha": time.strftime("%Y-%m-%d %H:%M")}, f, ensure_ascii=False, indent=1)
+        json.dump(datos, f, ensure_ascii=False, indent=1)
+    return ruta
+
+
+def _abrir(ruta, abrir=True):
     if abrir and os.name == "nt":
         try:
             os.startfile(ruta)          # se abre en tu navegador; no cierra nada tuyo
         except Exception:
             pass
-    return {"ruta": ruta, "nombre": c["nombre"], "con_cerebro": con_cerebro}
+
+
+# ---------------- editar una web ya hecha ----------------
+def mis_webs(carpeta=SITIOS):
+    out = []
+    if os.path.isdir(carpeta):
+        for d in sorted(os.listdir(carpeta)):
+            j = os.path.join(carpeta, d, "contenido.json")
+            if os.path.exists(j):
+                try:
+                    with open(j, encoding="utf-8") as f:
+                        x = json.load(f)
+                    out.append({"slug": d, "nombre": x["contenido"]["nombre"], "fecha": x.get("fecha", ""), "url": x.get("url", "")})
+                except Exception:
+                    pass
+    return out
+
+
+def encontrar(nombre, carpeta=SITIOS):
+    """La web cuyo nombre o carpeta se parece más a «nombre» (o la última si dice «la web»). """
+    webs = mis_webs(carpeta)
+    if not webs:
+        return None
+    n = slug(re.sub(r"^(?:la|mi|esta|ultima)?\s*(?:web|pagina|sitio)?\s*", "", _norm(nombre or "")).strip())
+    if not n or n in ("sitio", "ultima"):
+        return max(webs, key=lambda w: w["fecha"])["slug"]
+    for w in webs:
+        if n == w["slug"] or n == slug(w["nombre"]):
+            return w["slug"]
+    cand = [w for w in webs if n in w["slug"] or w["slug"] in n or set(n.split("-")) & set(w["slug"].split("-")) - {"de", "la", "el", "en", "y"}]
+    return max(cand, key=lambda w: w["fecha"])["slug"] if cand else None
+
+
+def parsear_edicion(t):
+    """PURO. «cambia el color de la web pollería» · «edita la web pollería: agrega la carta» · «mis webs» ·
+    «deshaz el cambio de la web pollería» · «publica la web pollería» · «confirmo publicar pollería»."""
+    s = re.sub(r"[¿?¡!]", "", str(t or "")).strip()
+    n = _norm(s)
+    if re.match(r"^(mis webs|mis paginas|mis sitios|que webs (tienes|hiciste))$", n):
+        return {"accion": "listar"}
+    m = re.match(r"^confirmo publicar(?: la web)?\s*(.*)$", n)
+    if m:
+        return {"accion": "confirmar_publicar", "web": m.group(1).strip()}
+    m = re.match(r"^(?:publica|sube)(?: a internet)?(?: la)? (?:web|pagina|sitio)\s*(.*?)(?: a internet| en internet)?$", n)
+    if m:
+        return {"accion": "publicar", "web": m.group(1).strip()}
+    m = re.match(r"^(?:deshaz|revierte)(?: el)?(?: ultimo)? cambio(?: de| en)?(?: la)? (?:web|pagina)\s*(.*)$", n)
+    if m:
+        return {"accion": "deshacer", "web": m.group(1).strip()}
+    m = re.match(r"^cambia(?: el)? colou?r(?:es)?(?: de| en)?(?: la)? (?:web|pagina)\s*(.*?)(?:\s+a\s+(\w+))?$", n)
+    if m:
+        return {"accion": "editar", "web": m.group(1).strip(), "cambio": "color" + ((" " + m.group(2)) if m.group(2) else "")}
+    m = re.match(r"^(?:edita|cambia|modifica|mejora|corrige|agrega a|anade a|pon en)(?: la)? (?:web|pagina|sitio)\s*([^:]*?)\s*:\s*(.{2,400})$", s, re.I)
+    if m:
+        return {"accion": "editar", "web": m.group(1).strip(), "cambio": m.group(2).strip()}
+    return None
+
+
+COLORES = {"naranja": 0, "oscuro": 0, "rojo": 4, "negro": 4, "azul": 2, "turquesa": 2, "verde": 3, "claro": 1, "crema": 1, "blanco": 5, "dorado": 5, "amarillo": 5}
+
+
+def cambio_simple(datos, cambio):
+    """Cambios que no necesitan cerebro: color, teléfono/WhatsApp. Devuelve True si lo aplicó. """
+    n = _norm(cambio)
+    if n.startswith("color"):
+        pal = next((v for k, v in COLORES.items() if k in n), None)
+        datos["paleta"] = pal if pal is not None else (int(datos.get("paleta") or 0) + 1) % len(PALETAS)
+        return True
+    tel = telefono(cambio)
+    if tel and re.search(r"whats|telefono|celular|numero", n):
+        datos["telefono"] = tel
+        return True
+    return False
+
+
+def prompt_edicion(c, cambio):
+    return ("Este es el contenido actual de una página web, en JSON:\n%s\n\nAplica este cambio pedido por Daniel: %s\n"
+            "Responde SOLO el JSON completo actualizado, con las mismas claves (nombre, eslogan, intro, servicios, porque, cta, "
+            "horario, direccion). Sin markdown." % (json.dumps(c, ensure_ascii=False), cambio))
+
+
+def editar(web, cambio, pensar=None, abrir=True, carpeta=SITIOS):
+    sl = encontrar(web, carpeta)
+    if not sl:
+        raise ValueError("no encuentro esa web (di «mis webs» para verlas)")
+    destino = os.path.join(carpeta, sl)
+    with open(os.path.join(destino, "contenido.json"), encoding="utf-8") as f:
+        datos = json.load(f)
+    previo = {k: datos.get(k) for k in ("contenido", "telefono", "paleta")}
+    if not cambio_simple(datos, cambio):
+        if not pensar:
+            raise RuntimeError("para ese cambio necesito mi cerebro y no está listo")
+        nuevo = _json_de(pensar(prompt_edicion(datos["contenido"], cambio)))
+        if not nuevo:
+            raise RuntimeError("no entendí cómo aplicar el cambio; dilo de otra forma")
+        datos["contenido"] = limpiar(nuevo, datos["tema"])
+    datos["historial"] = (datos.get("historial") or [])[-4:] + [previo]
+    ruta = _escribir(destino, datos)
+    _abrir(ruta, abrir)
+    return {"ruta": ruta, "nombre": datos["contenido"]["nombre"], "url": datos.get("url", "")}
+
+
+def deshacer(web, abrir=True, carpeta=SITIOS):
+    sl = encontrar(web, carpeta)
+    if not sl:
+        raise ValueError("no encuentro esa web")
+    destino = os.path.join(carpeta, sl)
+    with open(os.path.join(destino, "contenido.json"), encoding="utf-8") as f:
+        datos = json.load(f)
+    if not datos.get("historial"):
+        raise ValueError("no hay cambios para deshacer")
+    datos.update(datos["historial"].pop())
+    ruta = _escribir(destino, datos)
+    _abrir(ruta, abrir)
+    return {"ruta": ruta, "nombre": datos["contenido"]["nombre"]}
+
+
+# ---------------- una sola entrada para ARIA y para ASAGI ----------------
+def es_comando(t):
+    return bool(parsear(t) or parsear_edicion(t))
+
+
+def ejecutar_texto(t, pensar=None, abrir=True, carpeta=SITIOS):
+    """Hace lo que pide el texto y devuelve el mensaje para Daniel (o None si no es del taller)."""
+    o = parsear(t)
+    if o:
+        r = crear(o["tema"], pensar=pensar, abrir=abrir, carpeta=carpeta)
+        return "🛠 Lista: «%s». La abrí en el navegador de la PC.\nCarpeta: %s%s\nPuedes decir «edita la web %s: …», «cambia el color de la web %s» o «publica la web %s»." % (
+            r["nombre"], os.path.dirname(r["ruta"]), "" if r["con_cerebro"] else "\n(usé textos base: mi cerebro no respondió)",
+            slug(r["nombre"]), slug(r["nombre"]), slug(r["nombre"]))
+    e = parsear_edicion(t)
+    if not e:
+        return None
+    if e["accion"] == "listar":
+        ws = mis_webs(carpeta)
+        return ("🛠 Mis webs:\n" + "\n".join("• %s (%s)%s" % (w["nombre"], w["slug"], (" → " + w["url"]) if w["url"] else "") for w in ws)) if ws else "Aún no hice webs. Di «crea una web de …»."
+    if e["accion"] == "editar":
+        r = editar(e["web"], e["cambio"], pensar=pensar, abrir=abrir, carpeta=carpeta)
+        return "✏ Cambié «%s» y la volví a abrir.%s Si no te gusta: «deshaz el cambio de la web %s»." % (
+            r["nombre"], (" (Está publicada: di «publica la web %s» para subir el cambio.)" % e["web"]) if r.get("url") else "", e["web"] or "")
+    if e["accion"] == "deshacer":
+        r = deshacer(e["web"], abrir=abrir, carpeta=carpeta)
+        return "↩ Deshice el último cambio de «%s»." % r["nombre"]
+    import publicar_web as pw
+    sl = encontrar(e["web"], carpeta)
+    if not sl:
+        return "No encuentro esa web. Di «mis webs»."
+    if e["accion"] == "publicar":
+        pw.pedir(sl)
+        return ("🌐 Ojo: «%s» quedará PÚBLICA en internet (GitHub Pages de tu cuenta, repositorio web-%s). "
+                "Si falta GitHub CLI lo instalo. Para hacerlo escribe: «confirmo publicar %s» (vale 10 minutos)." % (sl, sl, sl))
+    if not pw.confirmado(sl):
+        return "Primero pide «publica la web %s» y luego confirma." % sl
+    try:
+        url = pw.publicar(os.path.join(carpeta, sl), sl)
+        return "🌐 Publicada: %s\n(GitHub tarda 1 o 2 minutos en mostrarla la primera vez.)" % url
+    except PermissionError as exc:
+        pw.pedir(sl)                       # la confirmación sigue vigente tras conectar GitHub
+        return "🔑 " + str(exc)

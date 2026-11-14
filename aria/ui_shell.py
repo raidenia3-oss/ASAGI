@@ -690,26 +690,74 @@ if _QT:
             except Exception as exc:
                 print("[UI] extras: %s" % exc, flush=True)
 
+        def _cmd_habilidades(self, t):
+            """Habilidades enseñadas (cadenas de comandos): aprender, listar, olvidar y ejecutar."""
+            try:
+                import habilidades_pc as _hp
+            except Exception:
+                return False
+            if getattr(self, "_hab_paso", False):          # un paso de una habilidad: no se vuelve a interpretar como habilidad
+                return False
+            o = _hp.parsear(t)
+            if o:
+                self.entrada.clear(); self._linea(t, "user")
+                if o["accion"] == "aprender":
+                    ok, err = _hp.aprender(o["nombre"], o["pasos"])
+                    self._linea(("🧠 Aprendí «%s»:\n%s\nDi «%s» para usarla." % (o["nombre"], "\n".join("%d. %s" % (i + 1, p) for i, p in enumerate(o["pasos"])), o["nombre"]))
+                                if ok else "⚠ " + err, "aria")
+                elif o["accion"] == "listar":
+                    self._linea(_hp.listar(), "aria")
+                else:
+                    self._linea(("🗑 Olvidé «%s»." % o["nombre"]) if _hp.olvidar(o["nombre"]) else "No tengo una habilidad llamada «%s»." % o["nombre"], "aria")
+                return True
+            hab = _hp.buscar(t)
+            if not hab:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if getattr(self, "_hab_corriendo", False):
+                self._linea("⏳ Ya estoy haciendo otra habilidad.", "aria"); return True
+            _hp.usar(hab["clave"])
+            self._hab_corriendo = True
+            self._linea("🧠 «%s»: %d paso(s)." % (hab["nombre"], len(hab["pasos"])), "aria")
+            pasos = list(hab["pasos"])
+
+            def _siguiente():
+                if not pasos:
+                    self._hab_corriendo = False
+                    return
+                p = pasos.pop(0)
+                if _hp.buscar(p):
+                    self._linea("↷ salto «%s» (es otra habilidad)" % p, "sys")
+                else:
+                    self._hab_paso = True
+                    try:
+                        self.entrada.setText(p)
+                        self._enviar()
+                    except Exception as exc:
+                        self._linea("⚠ paso «%s»: %s" % (p, exc), "sys")
+                    finally:
+                        self._hab_paso = False
+                QTimer.singleShot(2500, _siguiente)
+            QTimer.singleShot(300, _siguiente)
+            return True
+
         def _cmd_taller(self, t):
             """«crea una web de pollería en Breña» -> sitio en ARIA_APP/sitios/, se abre en tu navegador."""
             try:
                 import taller_web as _tw
             except Exception:
                 return False
-            o = _tw.parsear(t)
-            if not o:
+            if not _tw.es_comando(t):
                 return False
             self.entrada.clear(); self._linea(t, "user")
-            self._linea("🛠 Armo la web de «%s»… (escribo el contenido y lo pongo en una plantilla)" % o["tema"], "sys")
+            self._linea("🛠 Trabajo en eso…", "sys")
             cola = getattr(self, "_bots_cola", None)
             pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
             import threading as _th
 
             def _h():
                 try:
-                    r = _tw.crear(o["tema"], pensar=pensar)
-                    msg = "🛠 Lista: «%s». La abrí en tu navegador.\nCarpeta: %s%s" % (
-                        r["nombre"], os.path.dirname(r["ruta"]), "" if r["con_cerebro"] else "\n(usé textos base: mi cerebro no respondió)")
+                    msg = _tw.ejecutar_texto(t, pensar=pensar) or "?"
                 except Exception as exc:
                     msg = "⚠ Taller web: %s" % exc
                 if cola is not None:
@@ -1444,6 +1492,8 @@ if _QT:
                 self.entrada.clear(); return
             if _re.match(r"^(?:mascota|modo mascota)$", t.strip(), _re.I):
                 self.entrada.clear(); self._toggle("mascota"); return
+            if self._cmd_habilidades(t):
+                return
             if self._cmd_voz_extra(t):
                 return
             if self._cmd_wiki(t):

@@ -981,8 +981,10 @@ chatForm.addEventListener('submit', (event) => {
   // Taller web: «crea una web de pollería en Breña» -> la arma ARIA en la PC.
   {
     const m = text.replace(/[¿?¡!]/g, '').trim().match(/^(?:crea(?:me)?|haz(?:me)?|arma(?:me)?|genera(?:me)?|dise[nñ]a(?:me)?)\s+(?:una?\s+)?(?:p[aá]gina(?:\s+web)?|web|sitio(?:\s+web)?|landing(?:\s+page)?)\s+(?:de|para|sobre|del|de la)\s+(.{3,200})$/i);
-    if (m && window.AsagiNavegador && window.AsagiNavegador.crearSitio) {
-      window.AsagiNavegador.crearSitio(m[1], (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
+    // también editar/publicar: «edita la web pollería: …», «cambia el color de la web …», «publica la web …», «confirmo publicar …», «mis webs»
+    const ed = !m && /^(?:mis (?:webs|paginas|páginas|sitios)|confirmo publicar\b.*|(?:edita|cambia|modifica|mejora|corrige|agrega a|añade a|anade a|pon en|publica|sube|deshaz|revierte)\b.*\b(?:web|pagina|página|sitio)\b.*)$/i.test(text.trim());
+    if ((m || ed) && window.AsagiNavegador && window.AsagiNavegador.crearSitio) {
+      window.AsagiNavegador.crearSitio(m ? m[1] : text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
         .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
       return;
     }

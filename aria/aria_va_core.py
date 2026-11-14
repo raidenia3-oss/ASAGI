@@ -938,9 +938,9 @@ class LocalAIBrain:
                             def _ts(tema=str(c.get("tema", ""))[:200], jid=jid):
                                 try:
                                     import taller_web
-                                    r = taller_web.crear(tema, pensar=lambda p: self.generate_chat(p))
-                                    trab[jid] = {"listo": True, "titulo": r["nombre"],
-                                                 "texto": "🛠 Web «%s» lista en la PC y abierta en el navegador.\nCarpeta: %s" % (r["nombre"], os.path.dirname(r["ruta"]))}
+                                    txt = taller_web.ejecutar_texto(tema if taller_web.es_comando(tema) else "crea una web de " + tema,
+                                                                     pensar=lambda p: self.generate_chat(p))
+                                    trab[jid] = {"listo": True, "titulo": "Taller web", "texto": txt or "?"}
                                 except Exception as exc:
                                     trab[jid] = {"listo": True, "error": str(exc)}
                             threading.Thread(target=_ts, daemon=True).start()

@@ -132,12 +132,13 @@ function ayudaTexto() {
     '• «hazlo tú: <objetivo>» (modo autónomo: piensa y usa sus herramientas sola), «detén el modo autónomo»\n' +
     '• «cómo va el clima», «clima en Arequipa», «convierte 50 dólares a soles», «cuánto falta para navidad», «sube el volumen»\n' +
     '• «resumen del día», «qué tengo hoy», «buenas noches»\n' +
+    '• «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan»\n' +
     '• «pon música», «pon canciones de Soda Stereo», «pausa», «siguiente», «mi música», «apaga la música en 30 minutos»\n' +
     '• «qué notificaciones tengo», «cuánto gasté esta semana», «cuánto me yapearon hoy»\n' +
     '• «aprende buenos días: clima; mis gastos hoy» (y luego «buenos días»), «mis habilidades»\n' +
     '• «wiki fotosíntesis», «espacio», «prepara wikipedia»\n' +
     '• Con ARIA en el WiFi: «revisa mi correo», «resume este video <enlace>», «crea una web de …», «claude: …»\n' +
-    'Para charlar de todo: descarga mi modelo (botón ⬇ en el chat) o pon una key gratis de Gemini.';
+    'Para charlar de todo: descarga mi modelo (botón «Descargar modelo» arriba del chat) o pon una key gratis de Gemini.';
 }
 
 function charla(clave, ahora) {

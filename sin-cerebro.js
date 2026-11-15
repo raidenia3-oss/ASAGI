@@ -110,7 +110,8 @@ function entender(texto) {
   if ((m = n.match(/^(?:quiz|examen|preguntas|repaso)\s+(?:de|sobre)\s+(.{2,60})$/))) return { tipo: 'reescribir', texto: 'pregúntame sobre ' + _orig(texto, m[1]) };
   if ((m = n.match(/^(?:estudiemos|vamos a estudiar|quiero estudiar|ensename|explicame lo basico de)\s+(.{2,60})$/))) return { tipo: 'reescribir', texto: 'estudia sobre ' + _orig(texto, m[1]) };
   var c = aCuenta(n); if (c) return { tipo: 'cuenta', cuenta: c, original: texto };
-  if (/(examen|admision).*\buni\b|\buni\b.*(examen|admision)/.test(n)) return { tipo: 'uni' };
+  // solo pedidos de práctica («mi examen de la UNI es en agosto» es un dato, no un pedido)
+  if (/^(?:ayudame|preparame|practiquemos|estudiemos|repasemos|quiero (?:estudiar|practicar|prepararme)|vamos a (?:estudiar|practicar))\b.*\b(?:uni|admision)\b/.test(n)) return { tipo: 'uni' };
   if (/^(cuentame|dime|cuentate) (un )?chiste|^chiste$/.test(n)) return { tipo: 'chiste' };
   if ((m = n.match(/^traduce(?:me)?\s+(.+)$/))) return { tipo: 'traducir', texto: _orig(texto, m[1]) };
   if (/^(como estas|que tal|como te va|como andas|todo bien)$/.test(n)) return { tipo: 'charla', clave: 'estado' };
@@ -134,7 +135,7 @@ var AYUDA = {
   celular: ['📱 Tu celular', ['abre YouTube', 'llama a 987654321', 'cuánta batería tengo', 'enciende la linterna', 'sube el volumen', 'pon música', 'pon canciones de Soda Stereo', 'apaga la música en 30 minutos', 'qué notificaciones tengo', 'cuánto gasté esta semana']],
   cuentas: ['🧮 Cuentas', ['cuánto es 15% de 230', 'raíz de 144', 'convierte 50 dólares a soles', 'convierte 10 km a millas', '30 grados a fahrenheit', 'cuenta de 150 con 10% de propina entre 3', 'qué día será en 45 días', 'cuánto falta para navidad']],
   info: ['🌎 Información', ['cómo va el clima', 'clima en Arequipa', 'qué hora es en Japón', 'traduce buenos días al inglés', 'qué significa awesome', 'wiki fotosíntesis', 'busca recetas de lomo saltado', 'dato curioso']],
-  ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],
+  ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'dónde anoté lo del examen', 'busca en mis cosas internet', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],
   estudio: ['📚 Estudio', ['estudiemos física', 'quiz de química', 'ayúdame a estudiar para la UNI', 'táctica del día', 'práctica de cita']],
   juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
   avanzado: ['⚙ Avanzado', ['investiga qué piden para postular a la UNI', 'hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]

@@ -74,5 +74,12 @@ ok(AG.parsear('investiga qué piden para postular a la UNI').investigar && AG.pa
   const a = new M.Memoria(ls), b = new M.Memoria(ls); a.aprender('vivo en Breña', 'dato'); b.todos(); a.aprender('tengo un gato', 'dato'); b.aprender('me gusta el anime', 'preferencia');
   ok(new M.Memoria(ls).todos().length === 3, 'memoria: dos copias no se pisan'); }
 
+{ const BM = R('buscar-mis-cosas.js');
+  ok(BM.parsear('dónde anoté lo del examen').q === 'examen' && BM.parsear('busca en mis cosas internet').q === 'internet' && BM.parsear('busca en la web gatos') === null, 'mis cosas: entiende');
+  const r = BM.buscar([{ tipo: 'pendiente', texto: 'Pagar internet' }, { tipo: 'chat', texto: 'mi examen de la UNI es en agosto' }, { tipo: 'compras', texto: 'pan' }], 'examen');
+  ok(r.length === 1 && r[0].tipo === 'chat', 'mis cosas: encuentra'); }
+
+ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayúdame a estudiar para la UNI').tipo === 'uni', 'UNI: dato vs pedido');
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

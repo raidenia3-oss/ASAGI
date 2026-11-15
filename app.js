@@ -1138,6 +1138,12 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // «busca en mis cosas X» / «dónde anoté X» (idea de Khoj): en mis datos, no en internet.
+  {
+    const BM = window.AsagiBuscarMio, c = !reesc && BM && BM.parsear(text);
+    if (c) { appendMessage('bot', BM.formato(c.q, BM.buscar(BM.fuentes(state.messages.slice(0, -1)), c.q, 6))); return; }
+  }
+
   // Lo que ASAGI sabe de ti: «recuerda que mi cumpleaños es…», «qué sabes de mí», «olvida …».
   {
     const SM = window.AsagiSobreMi, c = !reesc && SM && SM.parsear(text, false);
@@ -1257,7 +1263,7 @@ chatForm.addEventListener('submit', (event) => {
     const qz = JSON.parse(localStorage.getItem('asagi-quiz') || 'null');
     if (qz && window.AsagiEstudia && !/^\s*(?:para|basta|ya no|salir)\b/i.test(text) && !window.AsagiEstudia.parsear(text)) {
       localStorage.removeItem('asagi-quiz');
-      const bien = window.AsagiEstudia.corregir(text, qz.respuesta);
+      const bien = qz.letra ? (String(text).trim().match(/^\(?([a-e])\b/i) || [])[1] && String(text).trim().match(/^\(?([a-e])\b/i)[1].toUpperCase() === qz.letra : window.AsagiEstudia.corregir(text, qz.respuesta);
       const fallos = JSON.parse(localStorage.getItem('asagi-quiz-fallos') || '{}');
       if (!bien) { fallos[qz.respuesta] = (fallos[qz.respuesta] || 0) + 1; localStorage.setItem('asagi-quiz-fallos', JSON.stringify(fallos)); }
       appendMessage('bot', (bien ? '✅ ¡Exacto!' : '❌ Era «' + qz.respuesta + '».') + '\n' + qz.completo + '\n\nOtra: «pregúntame de ' + qz.tema + '».');
@@ -1309,7 +1315,27 @@ chatForm.addEventListener('submit', (event) => {
     if (est.tipo === 'quiz') {
       const fallos = JSON.parse(localStorage.getItem('asagi-quiz-fallos') || '{}');
       const cands = delTema(est.tema).map((n) => ({ n: n, q: E.preguntaDe(n.texto) })).filter((x) => x.q);
-      if (!cands.length) { appendMessage('bot', '📚 No tengo apuntes de «' + est.tema + '» para preguntarte. Dime «aprende sobre ' + est.tema + '».'); return; }
+      if (!cands.length) {
+        // sin apuntes: con cerebro en la nube, una pregunta tipo examen de admisión hecha al momento
+        const bc = readBrainControls();
+        if ((bc.geminiKey || bc.atriaKey || bc.mistralKey || bc.clavesExtra) && window._asagiPensar) {
+          appendMessage('bot', '📚 Te preparo una pregunta de «' + est.tema + '» tipo examen de admisión…');
+          (async () => {
+            try {
+              const pr = 'Haz UNA pregunta de opción múltiple nivel examen de admisión de la UNI (Perú) sobre «' + est.tema + '», en español, con 5 alternativas A a E y una sola correcta. ' +
+                'Responde SOLO JSON: {"pregunta":"…","opciones":["A) …","B) …","C) …","D) …","E) …"],"correcta":"B","explicacion":"por qué, en 1-2 frases"}';
+              const r = window._asagiPensar ? await window._asagiPensar(pr) : '';
+              const m = String(r || '').match(/\{[\s\S]*\}/); const q = m && JSON.parse(m[0]);
+              if (!q || !q.pregunta || !/^[A-E]$/i.test(String(q.correcta || '').trim())) throw new Error('sin pregunta');
+              localStorage.setItem('asagi-quiz', JSON.stringify({ tema: est.tema, letra: String(q.correcta).trim().toUpperCase(), respuesta: String(q.correcta).trim().toUpperCase(), completo: String(q.explicacion || '') }));
+              appendMessage('bot', '🧠 ' + q.pregunta + '\n' + (q.opciones || []).join('\n') + '\n\n(responde con la letra, o «para»)');
+            } catch (e) { appendMessage('bot', '📚 No pude armar la pregunta ahora. Prueba «aprende sobre ' + est.tema + '» y te pregunto de mis apuntes.'); }
+          })();
+          return;
+        }
+        appendMessage('bot', '📚 Aún no tengo apuntes de «' + est.tema + '». Toca «aprende sobre ' + est.tema + '» (lo leo de Wikipedia) y luego te pregunto. Con «conecta gemini» te hago preguntas de cualquier tema.');
+        return;
+      }
       cands.sort((a, b) => (fallos[b.q.respuesta] || 0) - (fallos[a.q.respuesta] || 0) || Math.random() - 0.5);   // primero lo que fallaste
       const x = cands[0];
       localStorage.setItem('asagi-quiz', JSON.stringify({ tema: est.tema, respuesta: x.q.respuesta, completo: x.n.texto }));

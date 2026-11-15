@@ -113,7 +113,7 @@ function valeRecordar(texto, quien) {
   if (quien !== 'user' || t.length < 10 || t.length > 600) return null;
   if (_SALUDO.test(t) || _ORDEN.test(t)) return null;
   // preguntas sin «?» («cuándo es mi cumpleaños») y órdenes de olvidar no son datos
-  if (/^(?:cuando|como|cual|cuales|que|donde|quien|quienes|cuanto|cuantos|cuantas|por que|sabes|dime|olvida|olvidate|borra|ya no)\b/.test(t)) return null;
+  if (/^(?:cuando|como|cual|cuales|que|donde|quien|quienes|cuanto|cuantos|cuantas|por que|sabes|dime|olvida|olvidate|borra|ya no|recuerdame|recordarme|avisame|busca|buscar|donde anote|tengo algo|agrega|anota en)\b/.test(t)) return null;
   const pide = t.match(/^(?:recuerda|recuerdalo|acuerdate|no olvides|anota|apunta)(?:\s+que)?\s*[:,]?\s+(.{4,})$/);
   if (pide) return { texto: crudo.slice(crudo.length - pide[1].length).trim(), tema: 'pedido' };
   if (/\b(me gusta|me encanta|no me gusta|odio|prefiero|favorit[oa]s?|siempre uso|nunca uso)\b/.test(t)) return { texto: crudo, tema: 'preferencia' };

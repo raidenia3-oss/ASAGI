@@ -1324,7 +1324,7 @@ chatForm.addEventListener('submit', (event) => {
   if (window.AsagiPendientes && window.AsagiPendientes.esPendiente(text) && window._asagiAddPendiente) {
     const tarea = window._asagiAddPendiente(text);
     if (tarea) {
-      appendMessage('bot', '📌 Anotado en tus pendientes: ' + tarea + '.');
+      appendMessage('bot', '📌 Anotado en tus pendientes: ' + tarea + (/[.!?]$/.test(tarea) ? '' : '.'));
       return;
     }
   }
@@ -1686,7 +1686,8 @@ renderBrainControls();
     const t = (texto || '').trim(); if (!t) return '';
     lista = P.agregar(lista, t); guardar(); pintar();
     if (inp) inp.value = '';
-    return P.parsearEntrada(t);
+    const nuevo = lista[0];   // (agregar lo pone primero) lo que de verdad quedó anotado (sin «en 1 hora»…) y para cuándo
+    return nuevo && nuevo.texto ? nuevo.texto + (nuevo.etiqueta ? ' — ' + nuevo.etiqueta : '') : P.parsearEntrada(t);
   }
   // Hook global: el asistente añade un pendiente y recibe el texto limpio.
   window._asagiAddPendiente = function (texto) { return agregar(texto); };

@@ -114,10 +114,17 @@ function entender(texto) {
   if (/^(cuentame|dime|cuentate) (un )?chiste|^chiste$/.test(n)) return { tipo: 'chiste' };
   if ((m = n.match(/^traduce(?:me)?\s+(.+)$/))) return { tipo: 'traducir', texto: _orig(texto, m[1]) };
   if (/^(como estas|que tal|como te va|como andas|todo bien)$/.test(n)) return { tipo: 'charla', clave: 'estado' };
+  if (/^(oe|oye|ey|hey|hola|habla|que fue|q fue|holi|buenas)?( asagi)?$/.test(n) && n) return { tipo: 'charla', clave: 'hola' };
+  if (/^(gracias|grax|thanks|thank you)( (causa|pe|bro|hermano|hermana|asagi|amiga|mano|crack))+$/.test(n)) return { tipo: 'charla', clave: 'gracias' };
+  if (/^(ja){2,}j?a?$|^je(je)+$|^xd+$|^lol$/.test(n)) return { tipo: 'charla', clave: 'risa' };
+  if (/^(ok|okey|okay|oki|listo|ya|dale|bueno|perfecto|genial|chevere|bacan|de acuerdo|entendido|vale|si|no|ya ya|ah ok|aja)$/.test(n)) return { tipo: 'charla', clave: 'ack' };
+  if ((m = n.match(/^(?:manda(?:le)?|envia(?:le)?|escribe(?:le)?)\s+(?:un\s+)?(?:whatsapp|wsp|wasap|mensaje(?: de whatsapp)?)(?:\s+(?:a|para)\s+(.{2,40}))?$/))) return { tipo: 'abrir', app: 'WhatsApp', nota: '✍ Elige' + (m[1] ? ' a ' + _orig(texto, m[1]) : ' el chat') + ' y escribe tú: yo no envío mensajes sola.' };
+  if (/^(?:toma(?:me)?|saca(?:me)?)\s+(?:una\s+)?(?:foto|selfie|fotografia)$|^(?:abre|abrir)\s+(?:la\s+)?camara$/.test(n)) return { tipo: 'abrir', app: 'Cámara|Camera' };
+  if ((m = n.match(/^(?:como (?:llego|voy|se llega)|llevame|ruta|direcciones?) (?:a|al|a la|hasta|para) (.{2,60})$/))) return { tipo: 'ruta', a: _orig(texto, m[1]) };
   if (/^(gracias|muchas gracias|grax|thanks|te pasaste|eres lo maximo)$/.test(n)) return { tipo: 'charla', clave: 'gracias' };
   if (/^(buenas noches|me voy a dormir|a dormir|hasta manana)$/.test(n)) return { tipo: 'charla', clave: 'noches' };
   if (/^(buenos dias|buen dia)$/.test(n)) return { tipo: 'charla', clave: 'dias' };
-  if (/^(estoy aburrido|me aburro|que hago|no se que hacer)$/.test(n)) return { tipo: 'charla', clave: 'aburrido' };
+  if (/^(estoy aburrido|me aburro|que hago|no se que hacer|tengo tiempo libre|estoy libre|que hago ahora)$/.test(n)) return { tipo: 'charla', clave: 'aburrido' };
   if (/^(estoy (cansado|estresado|triste|mal)|me siento (mal|triste|cansado))$/.test(n)) return { tipo: 'charla', clave: 'animo' };
   return null;
 }
@@ -152,6 +159,9 @@ function charla(clave, ahora) {
     dias: ['Buenos días, Daniel. Di «qué tengo hoy» y te digo lo pendiente.'],
     aburrido: ['Ideas rápidas: «quiz de matemáticas», «práctica de cita», «táctica del día» o «cuéntame un chiste».',
       '¿Reto aceptado? Di «modo concentración 25 minutos» y avanzamos algo que tengas pendiente.'],
+    hola: ['¡Hola, Daniel! ¿Qué hacemos?', '¡Aquí estoy! Dime.', '¿Qué fue, Daniel? ¿En qué te ayudo?'],
+    risa: ['😄', '¡Jaja! 😄'],
+    ack: ['👍', 'Listo. ¿Algo más?', 'Ok 👌'],
     animo: ['Lo siento. Respira lento un minuto; si quieres, cuéntame qué pasó. Y si es cansancio: 20 minutos de descanso valen oro.']
   };
   var l = R[clave] || ['…'];
@@ -202,12 +212,16 @@ async function responder(texto, ctx) {
       await acc({ tipo: 'contactos' });
       return { texto: '📞 Aún no leo tus contactos sin cerebro; te abrí Contactos para que elijas a ' + o.quien + '. (También: «llama a 987654321».)' };
     case 'abrir': {
-      var apps = ctx.apps || [], q = _n(o.app);
-      var hit = apps.find(function (a) { return _n(a.label) === q; }) || apps.find(function (a) { return _n(a.label).indexOf(q) === 0; }) ||
-        apps.find(function (a) { return _n(a.label).indexOf(q) >= 0; });
-      if (!hit) return { texto: apps.length ? 'No encuentro «' + o.app + '» entre tus apps.' : 'Abrir apps funciona en la app instalada (APK).' };
+      var apps = ctx.apps || [], hit = null;
+      o.app.split('|').some(function (nom) {
+        var q = _n(nom);
+        hit = apps.find(function (a) { return _n(a.label) === q; }) || apps.find(function (a) { return _n(a.label).indexOf(q) === 0; }) ||
+          apps.find(function (a) { return _n(a.label).indexOf(q) >= 0; });
+        return !!hit;
+      });
+      if (!hit) return { texto: apps.length ? 'No encuentro «' + o.app.split('|')[0] + '» entre tus apps.' : 'Abrir apps funciona en la app instalada (APK).' };
       if (ctx.abrirApp) await ctx.abrirApp(hit);
-      return { texto: '↗ Abriendo ' + hit.label + '.' };
+      return { texto: '↗ Abriendo ' + hit.label + '.' + (o.nota ? ' ' + o.nota : '') };
     }
     case 'bateria': {
       var rb = acc ? await acc({ tipo: 'bateria' }) : null;
@@ -247,6 +261,11 @@ async function responder(texto, ctx) {
       return { texto: rp && rp.ok ? '⚙ Android no deja que una app ' + (o.encender ? 'lo encienda' : 'lo apague') + ' sola: te abrí el ajuste de ' + o.que + ', ' + verbo + ' con un toque.'
         : '⚠ No pude abrir el ajuste de ' + o.que + '.' };
     }
+    case 'ruta': {
+      var url = 'https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=' + encodeURIComponent(o.a + ', Lima, Perú');
+      if (acc) { var rr = await acc({ tipo: 'url', url: url }); if (rr && rr.ok) return { texto: '🗺 Te abrí la ruta a ' + o.a + ' en Maps (en transporte público; puedes cambiarlo a auto o a pie).' }; }
+      return { texto: '🗺 Ruta a ' + o.a + ': ' + url };
+    }
     case 'reescribir': return { reescribir: o.texto };
     case 'uni': return { reescribir: 'pregúntame sobre ' + (/fisica/.test(_n(texto)) ? 'física' : /quimica/.test(_n(texto)) ? 'química' : 'razonamiento matemático') };
     case 'chiste': return { texto: CHISTES[Math.floor(Math.random() * CHISTES.length)] };
@@ -257,8 +276,8 @@ async function responder(texto, ctx) {
 }
 
 function noEntendi(texto) {
-  return 'Para eso necesito mi cerebro. Toca «Descargar modelo» (funciona sin internet) o pon una key gratis de Gemini en Ajustes. ' +
-    'Mientras, di «qué puedes hacer» para ver lo que sí hago sola.';
+  return 'Para eso necesito cerebro. Toca «conecta gemini» (gratis, 2 min) o descarga mi modelo en Ajustes. ' +
+    'Mientras, mira «qué puedes hacer» sin cerebro.';
 }
 
 var API = { entender: entender, responder: responder, parsearHora: parsearHora, parsearDuracion: parsearDuracion, aCuenta: aCuenta,

@@ -17,6 +17,7 @@ function parsear(t, activo) {
     return { accion: 'todo', aleatorio: /aleat|azar|mezcl/.test(n) };
   if ((m = n.match(/^(?:pon(?:me)?|reproduce|toca|quiero escuchar) (?:la cancion|canciones de|musica de|el album|algo de|a) (.{2,60})$/)) ||
       (m = n.match(/^reproduce (.{2,60})$/))) return { accion: 'buscar', q: m[1] };
+  if ((m = n.match(/^(?:pon(?:me)?|toca|reproduce|quiero escuchar) (?:un poco de |algo de |musica )?(reggaeton|salsa|rock|cumbia|pop|bachata|baladas?|trap|rap|electronica|k-?pop|lofi|lo-fi|jazz|clasica|merengue|huayno|criolla|chicha|rock en espanol|anime|indie|metal|romanticas?)$/))) return { accion: 'buscar', q: m[1], genero: true };
   if (/^(?:modo )?aleatorio$|^mezcla(?: las canciones)?$/.test(n)) return { accion: 'aleatorio' };
   if (/^(?:pausa|pausa la musica|para la musica|deten la musica|detén la musica|silencio|calla la musica)$/.test(n) && (activo || /musica/.test(n))) return { accion: 'pausa' };
   if (/^(?:sigue|continua|reanuda|play|dale play)(?: la musica)?$/.test(n) && (activo || /musica/.test(n))) return { accion: 'seguir' };
@@ -193,7 +194,14 @@ async function ejecutar(c, decir) {
     return;
   }
   var enc = buscar(todas, c.q);
-  if (!enc.length) { decir('No encontré «' + c.q + '» en tu música. Di «mi música» para ver la lista.'); return; }
+  if (!enc.length) {
+    if (c.genero) {   // los géneros casi nunca están en el nombre del archivo: búscalo en YouTube Music
+      var C2 = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl, u = 'https://music.youtube.com/search?q=' + encodeURIComponent(c.q);
+      try { if (C2 && C2.accion) { await C2.accion({ tipo: 'url', url: u }); decir('🎵 No tengo ' + c.q + ' guardado en el celular: te lo abrí en YouTube Music.'); return; } } catch (e) {}
+      decir('🎵 No tengo ' + c.q + ' en tu música. Escúchalo aquí: ' + u); return;
+    }
+    decir('No encontré «' + c.q + '» en tu música. Di «mi música» para ver la lista.'); return;
+  }
   var pr2 = await tocar(enc, 0, false);
   decir('🎵 «' + pr2.titulo + '» de ' + pr2.artista + (enc.length > 1 ? ' (+' + (enc.length - 1) + ' más en cola)' : '') + '.');
 }

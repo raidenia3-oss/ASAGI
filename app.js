@@ -147,6 +147,28 @@ function setActiveSection(sectionName) {
   saveState();
 }
 
+// Las frases de ejemplo de ASAGI («pon música») se pueden tocar: se envían (o, si llevan «…», quedan para completarlas).
+function pintarConFrases(el, texto) {
+  const t = String(texto || ''), re = /«([^«»\n]{2,70})»/g;
+  let i = 0, m;
+  while ((m = re.exec(t))) {
+    if (m.index > i) el.appendChild(document.createTextNode(t.slice(i, m.index)));
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'frase-tap'; b.dataset.f = m[1]; b.textContent = '«' + m[1] + '»';
+    b.setAttribute('aria-label', 'Usar: ' + m[1]);
+    el.appendChild(b); i = re.lastIndex;
+  }
+  if (i < t.length) el.appendChild(document.createTextNode(t.slice(i)));
+}
+chat.addEventListener('click', (e) => {
+  const b = e.target.closest('.frase-tap'); if (!b) return;
+  const f = b.dataset.f, inp = document.getElementById('message-input'); if (!inp) return;
+  if (/…|\.\.\.|<|>/.test(f)) {               // tiene un hueco: que Daniel lo complete
+    inp.value = f.replace(/\s*(?:…|\.\.\.|<[^>]*>)\s*/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+    inp.focus(); try { inp.setSelectionRange(inp.value.length, inp.value.length); } catch (x) {}
+  } else { inp.value = f; chatForm.requestSubmit(); }
+});
+
 function renderMessages() {
   // con conversación empezada, la cabecera se compacta para dar espacio al chat
   try {
@@ -163,7 +185,8 @@ function renderMessages() {
 
     const textEl = document.createElement('div');
     textEl.className = 'msg-text';
-    textEl.textContent = message.text;
+    if (message.sender === 'bot') pintarConFrases(textEl, message.text);
+    else textEl.textContent = message.text;
     bubble.appendChild(textEl);
 
     const metaEl = document.createElement('div');
@@ -848,6 +871,21 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Ayuda por temas (siempre: con cerebro también, para que muestre lo que de verdad sabe hacer).
+  {
+    const SC = window.AsagiSinCerebro, c = !reesc && SC && SC.entender(text);
+    if (c && c.tipo === 'ayuda') {
+      const b = readBrainControls(), conCerebro = !!(b.geminiKey || b.atriaKey || b.mistralKey || b.clavesExtra || (getBrainBridge() || {}).loaded);
+      appendMessage('bot', SC.ayudaTexto(c.tema, conCerebro)); return;
+    }
+  }
+
+  // Cálculos de todos los días: conversiones, moneda/dado, dividir la cuenta, fechas.
+  {
+    const CA = window.AsagiCalculos, c = CA && CA.parsear(text);
+    if (c) { appendMessage('bot', CA.resolver(c, new Date())); return; }
+  }
+
   // Habilidades que le enseñas (macros): «aprende buenos días: clima; mis gastos hoy».
   {
     const H = window.AsagiHabilidades;
@@ -1026,12 +1064,6 @@ chatForm.addEventListener('submit', (event) => {
     window.AsagiNavegador.claude(text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
       .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
     return;
-  }
-
-  // Cálculos de todos los días: conversiones, moneda/dado, dividir la cuenta, fechas.
-  {
-    const CA = window.AsagiCalculos, c = CA && CA.parsear(text);
-    if (c) { appendMessage('bot', CA.resolver(c, new Date())); return; }
   }
 
   // Lo que ASAGI sabe de ti: «recuerda que mi cumpleaños es…», «qué sabes de mí», «olvida …».

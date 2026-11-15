@@ -360,3 +360,9 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .co-limpiar[hidden] { display: none !important; }
 .co-input { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(240, 240, 248, .04) !important; color: var(--text) !important; font-size: 15px; }
 .co-add { border-radius: 12px; border: none; background: var(--cyan) !important; color: #15070d !important; font-weight: 700; }
+/* frases tocables dentro de los mensajes de ASAGI */
+.frase-tap { display: inline; padding: 1px 4px; margin: 0 1px; border: 0; border-radius: 6px; background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; line-height: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.35); text-underline-offset: 3px; width: auto; min-height: 0; box-shadow: none; }
+.frase-tap:active { background: rgba(255, 215, 0, 0.25); }
+.frase-tap:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
+#assistant.conversando:not(.escribiendo) .panel-header h2 { font-size: 1.2rem !important; }
+#assistant.conversando .nivel-chip span { letter-spacing: 0 !important; font-size: 0.64rem !important; }

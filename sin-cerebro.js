@@ -80,7 +80,8 @@ function _orig(texto, frag) {
 function entender(texto) {
   var n = _n(texto), m;
   if (!n) return null;
-  if (/^(que (puedes|sabes) hacer|ayuda|help|comandos|que haces|para que sirves)$/.test(n)) return { tipo: 'ayuda' };
+  if (/^(que (puedes|sabes) hacer|ayuda|help|comandos|que haces|para que sirves|que mas puedes hacer|en que me ayudas)$/.test(n)) return { tipo: 'ayuda' };
+  if ((m = n.match(/^(?:ayuda (?:de|con|para|sobre)|que puedes hacer (?:con|en|para)) (.{2,30})$/)) && temaAyuda(m[1])) return { tipo: 'ayuda', tema: temaAyuda(m[1]) };
   if (/^(que hora es|que horas son|dime la hora|hora)$/.test(n)) return { tipo: 'hora' };
   if (/^(que (dia|fecha) es( hoy)?|a cuanto estamos|que dia estamos|fecha de hoy|hoy que dia es)$/.test(n)) return { tipo: 'fecha' };
   if ((m = n.match(/^(?:pon(?:me)?|programa|crea|activa)\s+(?:una\s+)?alarma(?:\s+(?:para|a|de))?\s*(.*)$/)) || (m = n.match(/^despiertame\s*(.*)$/))) {
@@ -121,28 +122,25 @@ function entender(texto) {
   return null;
 }
 
-function ayudaTexto() {
-  return 'Sin cerebro conectado igual puedo:\n' +
-    '• «qué hora es», «qué día es hoy», «cuánto es 15% de 230», «raíz de 144»\n' +
-    '• «abre YouTube», «llama a 987654321», «cuánta batería tengo»\n' +
-    '• «pon una alarma a las 7», «temporizador de 10 minutos», «modo concentración 25 minutos»\n' +
-    '• «recuérdame … mañana a las 8», «qué tengo hoy», «ya pagué internet», «borra el pendiente de …»\n' +
-    '• «qué hora es en Japón», «dato curioso», «me llamo …»\n' +
-    '• «convierte 10 km a millas», «30 grados a fahrenheit», «lanza una moneda», «tira un dado», «elige entre pizza y pollo»\n' +
-    '• «cuenta de 150 con 10% de propina entre 3», «divide 120 entre 4», «qué día será en 45 días», «cuántos días hay del 1 de enero al 15 de marzo»\n' +
-    '• «recuerda que mi cumpleaños es el 13 de mayo», «cuándo es mi cumpleaños», «qué sabes de mí», «olvida …»\n' +
-    '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
-    '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +
-    '• «hazlo tú: <objetivo>» (modo autónomo: piensa y usa sus herramientas sola), «detén el modo autónomo»\n' +
-    '• «cómo va el clima», «clima en Arequipa», «convierte 50 dólares a soles», «cuánto falta para navidad», «sube el volumen»\n' +
-    '• «resumen del día», «qué tengo hoy», «buenas noches»\n' +
-    '• «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan»\n' +
-    '• «pon música», «pon canciones de Soda Stereo», «pausa», «siguiente», «mi música», «apaga la música en 30 minutos»\n' +
-    '• «qué notificaciones tengo», «cuánto gasté esta semana», «cuánto me yapearon hoy»\n' +
-    '• «aprende buenos días: clima; mis gastos hoy» (y luego «buenos días»), «mis habilidades»\n' +
-    '• «wiki fotosíntesis», «espacio», «prepara wikipedia»\n' +
-    '• Con ARIA en el WiFi: «revisa mi correo», «resume este video <enlace>», «crea una web de …», «claude: …»\n' +
-    'Para charlar de todo: descarga mi modelo (botón «Descargar modelo» arriba del chat) o pon una key gratis de Gemini.';
+var AYUDA = {
+  dia: ['📅 Tu día', ['qué tengo hoy', 'recuérdame … mañana a las 8', 'ya pagué internet', 'resumen del día', 'pon una alarma a las 7', 'temporizador de 10 minutos', 'modo concentración 25 minutos', 'agrega pan y leche a la lista', 'mi lista de compras']],
+  celular: ['📱 Tu celular', ['abre YouTube', 'llama a 987654321', 'cuánta batería tengo', 'enciende la linterna', 'sube el volumen', 'pon música', 'pon canciones de Soda Stereo', 'apaga la música en 30 minutos', 'qué notificaciones tengo', 'cuánto gasté esta semana']],
+  cuentas: ['🧮 Cuentas', ['cuánto es 15% de 230', 'raíz de 144', 'convierte 50 dólares a soles', 'convierte 10 km a millas', '30 grados a fahrenheit', 'cuenta de 150 con 10% de propina entre 3', 'qué día será en 45 días', 'cuánto falta para navidad']],
+  info: ['🌎 Información', ['cómo va el clima', 'clima en Arequipa', 'qué hora es en Japón', 'wiki fotosíntesis', 'busca recetas de lomo saltado', 'dato curioso']],
+  ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],
+  estudio: ['📚 Estudio', ['estudiemos física', 'quiz de química', 'ayúdame a estudiar para la UNI', 'táctica del día', 'práctica de cita']],
+  juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
+  avanzado: ['⚙ Avanzado', ['hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]
+};
+var AYUDA_ALIAS = { dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
+  info: /info|clima|tiempo|wiki|busca|noticia/, ti: /\bmi\b|memoria|recuerd|sobre mi|ti\b/, estudio: /estudi|uni\b|examen|aprend/, juegos: /jueg|divert|aburr|rato/, avanzado: /avanzad|autonom|aria|web|claude|habilidad/ };
+function temaAyuda(t) { var n = _n(t); for (var k in AYUDA_ALIAS) if (AYUDA_ALIAS[k].test(n)) return k; return null; }
+// Sin tema: un índice corto. Con tema: sus frases (se pueden tocar en el chat).
+function ayudaTexto(tema, conCerebro) {
+  if (tema && AYUDA[tema]) return AYUDA[tema][0] + ' — toca una para usarla:\n' + AYUDA[tema][1].map(function (f) { return '• «' + f + '»'; }).join('\n');
+  return 'Puedo ayudarte con esto (toca un tema):\n' +
+    Object.keys(AYUDA).map(function (k) { return AYUDA[k][0].split(' ')[0] + ' «ayuda de ' + AYUDA[k][0].replace(/^\S+\s/, '').toLowerCase() + '»'; }).join('\n') +
+    (conCerebro ? '\nY de cualquier otra cosa, pregúntame normal: pienso, uso mis herramientas y te respondo.' : '\nPara charlar de todo: descarga mi modelo o pon una key gratis de Gemini en Ajustes.');
 }
 
 function charla(clave, ahora) {
@@ -173,7 +171,7 @@ async function responder(texto, ctx) {
   if (!o) return null;
   var acc = ctx.accion;
   switch (o.tipo) {
-    case 'ayuda': return { texto: ayudaTexto() };
+    case 'ayuda': return { texto: ayudaTexto(o.tema, ctx.conCerebro) };
     case 'hora': return { texto: 'Son las ' + hora12(ahora) };
     case 'fecha': return { texto: 'Hoy es ' + DIAS[ahora.getDay()] + ' ' + ahora.getDate() + ' de ' + MESES[ahora.getMonth()] + ' de ' + ahora.getFullYear() + '.' };
     case 'cuenta': {
@@ -264,7 +262,7 @@ function noEntendi(texto) {
 }
 
 var API = { entender: entender, responder: responder, parsearHora: parsearHora, parsearDuracion: parsearDuracion, aCuenta: aCuenta,
-  hora12: hora12, noEntendi: noEntendi, ayudaTexto: ayudaTexto };
+  hora12: hora12, noEntendi: noEntendi, ayudaTexto: ayudaTexto, AYUDA: AYUDA };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiSinCerebro = API;
 })();

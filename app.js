@@ -1686,6 +1686,30 @@ renderBrainControls();
       txt.appendChild(document.createElement('br'));
       txt.appendChild(b);
     }
+    // tocar el texto = editarlo (texto y hora: «pagar luz mañana 8 pm»)
+    txt.setAttribute('role', 'button'); txt.tabIndex = 0; txt.title = 'Toca para editar';
+    const editar = () => {
+      if (li.querySelector('.pend-edit')) return;
+      const e = document.createElement('input');
+      e.className = 'pend-edit'; e.type = 'text'; e.value = it.texto + (it.cuando && it.etiqueta ? ' ' + it.etiqueta : '');
+      e.setAttribute('aria-label', 'Editar pendiente');
+      txt.replaceWith(e); e.focus(); try { e.setSelectionRange(e.value.length, e.value.length); } catch (x) {}
+      let hecho = false;
+      const fin = (guardarlo) => {
+        if (hecho) return; hecho = true;
+        const v = e.value.trim();
+        if (guardarlo && v) {
+          const n = P.nuevo(v);
+          if (n) lista = lista.map((x) => (x.id === it.id ? Object.assign({}, x, { texto: n.texto, cuando: n.cuando, etiqueta: n.etiqueta, avisado: false }) : x));
+          guardar();
+        }
+        pintar();
+      };
+      e.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); fin(true); } else if (ev.key === 'Escape') fin(false); });
+      e.addEventListener('blur', () => fin(true));
+    };
+    txt.addEventListener('click', editar);
+    txt.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); editar(); } });
     const del = document.createElement('button');
     del.className = 'pend-del'; del.type = 'button'; del.textContent = '✕'; del.setAttribute('aria-label', 'Borrar');
     del.addEventListener('click', () => { lista = P.borrar(lista, it.id); guardar(); pintar(); });

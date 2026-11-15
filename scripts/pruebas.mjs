@@ -41,5 +41,10 @@ ok(av.length === 1 && /Mañana es el cumpleaños de tu mamá/.test(av[0].texto),
 
 ok(U.parsear('traduce buenos días al inglés').a === 'en' && U.parsear('qué significa la vida') === null, 'traducir');
 
+const PE = R('pendientes.js'), base = new Date(2026, 10, 15, 7, 30);
+const t1 = PE.parsearTiempo('pagar luz mañana 8 am', base); ok(t1.limpio === 'pagar luz' && t1.etiqueta === 'mañana 8:00 a. m.', 'hora «8 am»');
+const t2 = PE.parsearTiempo('pagar agua el viernes 6 pm', base); ok(t2.limpio === 'pagar agua' && new Date(t2.cuando).getDay() === 5 && new Date(t2.cuando).getHours() === 18, 'día de la semana');
+ok(PE.parsearTiempo('comprar 2 panes', base).cuando === null, 'sin hora no inventa');
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

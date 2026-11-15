@@ -107,6 +107,16 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(CP.parsear('resume este enlace https://es.wikipedia.org/wiki/Lima').url === 'https://es.wikipedia.org/wiki/Lima', 'compartir: resume este enlace'); }
 
 { const PR = R('precios.js');
+  {
+    const VG = require('../vigia-web.js');
+    ok(VG.parsear('vigila esta página https://ejemplo.pe/x').tipo === 'cambios' && VG.parsear('avísame si baja el precio de https://falabella.com.pe/p/1').tipo === 'precio' &&
+       VG.parsear('deja de vigilar 2').cual === 2 && VG.parsear('vigila ese precio').accion === 'ultimoPrecio' && VG.parsear('qué páginas vigilas').accion === 'lista' && !VG.parsear('vigila a mi perro'), 'vigía: frases');
+    const a = VG.textoDe('<html><script>x=1</script><p>Noticia uno del día</p><p>Actualizado 10:31</p><p>Noticia dos importante</p></html>');
+    const b = VG.textoDe('<p>Noticia uno del día</p><p>Actualizado 11:02</p><p>Noticia dos importante</p>');
+    const c = VG.textoDe('<p>Noticia NUEVA de última hora</p><p>Otra cosa distinta aquí</p><p>Actualizado 11:02</p>');
+    ok(!VG.comparar(VG.huellas(a), VG.huellas(b), b).real && VG.comparar(VG.huellas(a), VG.huellas(c), c).real && !a.some((l) => /x=1/.test(l)), 'vigía: ignora horas, detecta cambios');
+    ok(VG.precioHtml('<meta property="product:price:amount" content="1299.90">') === 1299.9 && VG.precioHtml('{"price":"849.00","priceCurrency":"PEN"}') === 849 && VG.precioHtml('<div>Precio S/ 2,499</div>') === 2499, 'vigía: precio');
+  }
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
 

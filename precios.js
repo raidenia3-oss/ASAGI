@@ -68,8 +68,9 @@ async function comparar(q, decir) {
   try { if (NV.cerrar) await NV.cerrar(); } catch (e) {}
   if (!filas.length) { decir('🛒 Encontré tiendas pero no pude leer los precios (algunas los cargan con imágenes). Revisa: ' + tiendas.slice(0, 3).map(function (r) { return r.url; }).join(' ')); return; }
   filas.sort(function (a, b) { return a.precio - b.precio; });
+  try { localStorage.setItem('asagi-precio-ultimo', JSON.stringify({ q: q, url: filas[0].url, precio: filas[0].precio })); } catch (e) {}
   decir('🛒 «' + q + '» — del más barato al más caro:\n' + filas.map(function (f, i) { return (i === 0 ? '🏆 ' : '• ') + f.tienda + ': ' + soles(f.precio) + ' — ' + String(f.titulo).slice(0, 60) + '\n  ' + f.url; }).join('\n') +
-    '\nOjo: revisa que sea el mismo modelo y el precio final en la tienda (cambian rápido).');
+    '\nOjo: revisa que sea el mismo modelo y el precio final en la tienda (cambian rápido).\n«vigila ese precio» y te aviso si baja.');
 }
 
 var API = { parsear: parsear, tiendaDe: tiendaDe, precios: precios, precioPrincipal: precioPrincipal, comparar: comparar };

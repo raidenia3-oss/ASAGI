@@ -3587,6 +3587,11 @@ if ('serviceWorker' in navigator) {
   if (!window.AsagiGestos) return;
   const home = document.getElementById('launcher');
   function hayOverlay() { return document.querySelector('.panel.overlay.open'); }
+  // Al soltar el dedo tras un deslizamiento, Android a veces manda además un «clic» donde quedó el dedo:
+  // caía sobre la pantalla recién abierta (o la casa) y la cerraba. Se ignoran los clics 450 ms.
+  let ignorarHasta = 0;
+  function sinToqueFantasma() { ignorarHasta = Date.now() + 450; }
+  document.addEventListener('click', (e) => { if (Date.now() < ignorarHasta) { e.stopPropagation(); e.preventDefault(); } }, true);
   // gestos en la casa (no en la barra de búsqueda, para no estorbar al escribir)
   // Si el dedo está desplazando la lista de apps, el gesto es para la lista: solo abre el chat
   // cuando la lista ya llegó al final (o el dedo empezó abajo, en la zona de "desliza…"), y Status
@@ -3608,8 +3613,8 @@ if ('serviceWorker' in navigator) {
     const sc = desplazable(info && info.target);
     const abajoDePantalla = info && info.sy > window.innerHeight * 0.78;
     window.__gesto.sc = sc ? (sc.id || sc.className || '?').toString().slice(0, 20) + ' ' + sc.scrollTop + '/' + (sc.scrollHeight - sc.clientHeight) : ''; window.__gesto.abajo = abajoDePantalla;
-    if (dir === 'arriba' && (!sc || abajoDePantalla || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4)) setActiveSection('assistant');
-    else if (dir === 'abajo' && (!sc || sc.scrollTop <= 2)) setActiveSection('status');
+    if (dir === 'arriba' && (!sc || abajoDePantalla || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4)) { sinToqueFantasma(); setActiveSection('assistant'); }
+    else if (dir === 'abajo' && (!sc || sc.scrollTop <= 2)) { sinToqueFantasma(); setActiveSection('status'); }
   }, { umbral: 70, maxMs: 1200 });
   // cerrar overlays con el gesto natural (asistente/grok: abajo; status: arriba)
   document.querySelectorAll('.panel.overlay').forEach(function (ov) {
@@ -3620,7 +3625,7 @@ if ('serviceWorker' in navigator) {
       const sc = desplazable(info && info.target);
       if (sc && (cerrarDir === 'abajo' ? sc.scrollTop > 2 : sc.scrollTop + sc.clientHeight < sc.scrollHeight - 4)) return;
       if (info && info.target && info.target.closest && info.target.closest('input, textarea')) return;
-      setActiveSection('launcher');
+      sinToqueFantasma(); setActiveSection('launcher');
     }, { umbral: 80 });
   });
 })();

@@ -316,7 +316,7 @@ function describeBrain() {
       descargar: !!window._asagiDescargarModelo,
       alert: espera
         ? 'Estás con datos móviles, así que no descargo solo el modelo (~400 MB). Con Wi-Fi arranca solo; si prefieres ya, toca el botón.'
-        : 'El modelo local aún no está descargado (~400 MB). Pon una key gratis (Gemini, Groq, OpenRouter…) para responder sin descargarlo, o descárgalo.'
+        : 'Aún no tengo mi modelo (~400 MB). Descárgalo o pon una key gratis de Gemini.'
     };
   }
 
@@ -519,7 +519,7 @@ async function startBotStreaming(userText) {
           if (last) {
             const tag = document.createElement('div');
             tag.className = 'msg-meta';
-            tag.textContent = 'backend: ' + backend + (res && res.degradado ? ' (degradado)' : '');
+            tag.textContent = 'vía: ' + backend + (res && res.degradado ? ' (respuesta simple)' : '');
             last.appendChild(tag);
           }
         } catch (e) {}
@@ -996,6 +996,12 @@ chatForm.addEventListener('submit', (event) => {
     window.AsagiNavegador.claude(text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
       .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
     return;
+  }
+
+  // Lista de compras (sin internet): «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan».
+  {
+    const CO = window.AsagiCompras, c = CO && CO.parsear(text);
+    if (c) { appendMessage('bot', CO.hacer(c)); return; }
   }
 
   // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».

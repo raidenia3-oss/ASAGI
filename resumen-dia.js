@@ -15,6 +15,7 @@ function parsear(t) {
 }
 function saludo(momento, h) {
   if (momento === 'noche') return '🌙 Cierre del día';
+  if (h < 5) return '🌙 Buenas noches, Daniel';
   if (h < 12) return '☀ Buenos días, Daniel';
   if (h < 19) return '🌤 Buenas tardes, Daniel';
   return '🌙 Buenas noches, Daniel';
@@ -29,6 +30,7 @@ function armar(d, momento, x) {
   var pen = x.pendientes || [];
   if (momento === 'noche') l.push(pen.length ? '📌 Quedan ' + pen.length + ' pendiente(s): ' + pen.slice(0, 3).map(function (p) { return p.texto; }).join(' · ') + '.' : '📌 Sin pendientes: día cerrado.');
   else l.push(pen.length ? '📌 Para hoy (' + pen.length + '): ' + pen.slice(0, 4).map(function (p) { return p.texto; }).join(' · ') + '.' : '📌 Nada pendiente hoy. Dime «recuérdame…» si algo surge.');
+  if (x.compras && x.compras.length) l.push('🛒 Por comprar (' + x.compras.length + '): ' + x.compras.slice(0, 4).join(', ') + (x.compras.length > 4 ? '…' : '') + '.');
   if (x.gastoHoy != null) l.push('💸 Hoy: gastaste S/ ' + x.gastoHoy.toFixed(2) + (x.ingresoHoy ? ' y recibiste S/ ' + x.ingresoHoy.toFixed(2) : '') + '.');
   if (x.notif && x.notif.total) l.push('🔔 ' + x.notif.total + ' notificación(es)' + (x.notif.top ? ', sobre todo de ' + x.notif.top : '') + '.');
   if (x.bateria != null) l.push((x.bateria <= 20 ? '🪫 Batería baja: ' : '🔋 Batería: ') + x.bateria + '%' + (x.cargando ? ' (cargando)' : '') + '.');
@@ -44,6 +46,7 @@ async function datos() {
     var l = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'), fin = new Date(); fin.setHours(23, 59, 59, 999);
     x.pendientes = (Array.isArray(l) ? l : []).filter(function (p) { return p && !p.hecho && (!p.cuando || p.cuando <= fin.getTime()); });
   } catch (e) { x.pendientes = []; }
+  try { var CO = window.AsagiCompras; if (CO) x.compras = CO.faltantes().map(function (it) { return it.texto; }); } catch (e) {}
   var C = window.Capacitor && window.Capacitor.Plugins, AC = C && C.AsagiControl;
   try {
     var b = AC && AC.accion ? await AC.accion({ tipo: 'bateria' }) : null;

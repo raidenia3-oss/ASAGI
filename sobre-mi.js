@@ -16,14 +16,15 @@ function parsear(t, sinCerebro) {
   var n = norm(t), m;
   if (!n) return null;
   if (/^(?:que sabes de mi|que recuerdas de mi|que sabes sobre mi|que sabes de mi vida|que has aprendido de mi|lo que sabes de mi)$/.test(n)) return { accion: 'listar' };
-  if ((m = String(t).trim().match(/^(?:recuerda|acu[eé]rdate|no olvides|anota|apunta|guarda)(?:\s+(?:de\s+)?que)\s+((?:mi|mis|yo|soy|me|estoy|tengo|vivo|estudio|trabajo|nac[ií])\b.{3,200})$/i)))
+  if ((m = String(t).trim().match(/^(?:recuerda|acu[eé]rdate|no olvides|anota|apunta|guarda)(?:\s+(?:de\s+)?que)\s+((?:mi|mis|yo|soy|me|estoy|tengo|vivo|estudio|trabajo|nac[ií]|el cumplea[ñn]os|la boda|el aniversario|el santo)\b.{3,200})$/i)))
     return { accion: 'guardar', texto: m[1].replace(/[.!]+$/, '').trim() };
   if ((m = n.match(/^(?:olvida|olvidate de|borra de tu memoria|ya no recuerdes)(?: que)? (.{3,80})$/)) && !/(?:lista|compras|pendiente|recordatorio|musica)/.test(n))
     return { accion: 'olvidar', que: m[1] };
   if (!sinCerebro) return null;
   if (/^(?:cuando es|cual es|cuales son|como se llama|como se llaman|donde (?:vivo|estudio|trabajo|naci)|que me gusta|que (?:musica|comida|color|anime|deporte) me gusta|cuantos anos tengo|a que me dedico)\b/.test(n) && /\b(?:mi|mis|me|vivo|estudio|trabajo|naci|tengo)\b/.test(n))
     return { accion: 'preguntar', q: t };
-  if (/^(?:mi|mis) [a-z ]{2,40} (?:es|son|se llama|se llaman|esta|queda)\b.{2,}$/.test(n) || /^(?:me gusta|me encanta|no me gusta|odio|prefiero|soy|vivo en|estudio|trabajo en|trabajo de|naci)\b.{3,}$/.test(n))
+  if (/^(?:el|la) (?:cumpleanos|aniversario|santo|boda) de .{2,40} (?:es|cae) (?:el )?\d{1,2} de [a-z]+/.test(n) ||
+      /^(?:mi|mis) [a-z ]{2,40} (?:es|son|se llama|se llaman|esta|queda)\b.{2,}$/.test(n) || /^(?:me gusta|me encanta|no me gusta|odio|prefiero|soy|vivo en|estudio|trabajo en|trabajo de|naci)\b.{3,}$/.test(n))
     return { accion: 'guardar', texto: String(t).trim().replace(/[.!]+$/, ''), suelto: true };
   return null;
 }
@@ -60,7 +61,8 @@ function ejecutar(c, decir) {
     var t0 = Date.now() / 1000, k = c.texto.trim().toLowerCase();
     var reciente = me.todos().some(function (n) { return (n.texto || '').trim().toLowerCase() === k && t0 - (n.ts || 0) < 10; });
     var nuevo = me.aprender(c.texto, 'dato', 'Daniel') || reciente;
-    decir((nuevo ? '🧠 Lo recordaré: ' : '🧠 Ya lo sabía: ') + aTi(c.texto) + '.' + (c.suelto && nuevo ? ' (Di «qué sabes de mí» para ver todo.)' : ''));
+    var fecha = /(cumplea|aniversario|santo|boda)/i.test(c.texto) && /\d{1,2} de [a-záéíóú]+/i.test(c.texto);
+    decir((nuevo ? '🧠 Lo recordaré: ' : '🧠 Ya lo sabía: ') + aTi(c.texto) + '.' + (fecha ? ' Te aviso un día antes 🎂' : c.suelto && nuevo ? ' (Di «qué sabes de mí» para ver todo.)' : ''));
     return;
   }
   var todos = me.todos().filter(function (n) { return n && PERSONAL[n.tema] && !/^(?:cuando|como|cual|que|donde|quien|cuanto|olvida)\b/.test(norm(n.texto)); });

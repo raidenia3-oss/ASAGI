@@ -36,5 +36,8 @@ ok(SC.entender('cómo llego a Miraflores').tipo === 'ruta', 'ruta');
 ok(CO.parsear('agrega pan y leche a la lista').tipo === 'agregar', 'compras');
 ok(RZ.necesitaDatos('quién es el presidente del perú') && !RZ.necesitaDatos('explícame las derivadas'), 'actualidad');
 
+const av = AG.vigilar({ ahora: new Date(2026, 10, 19, 10).getTime(), vistos: {}, datos: ['el cumpleaños de mi mamá es el 20 de noviembre'] });
+ok(av.length === 1 && /Mañana es el cumpleaños de tu mamá/.test(av[0].texto), 'aviso de cumpleaños');
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

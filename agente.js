@@ -134,10 +134,38 @@ function vigilar(e) {
       av.push({ clave: k, valor: 1, texto: '💳 Vi un gasto grande: S/ ' + g.valor.toFixed(2) + (g.quien ? ' en ' + g.quien : '') + ' (' + g.app + '). Si no lo reconoces, llama a tu banco ya.' });
     }
   });
+  // fechas importantes que Daniel contó («el cumpleaños de mi mamá es el 20 de noviembre»): aviso el día antes y el mismo día
+  fechasImportantes(e.datos || [], e.ahora).forEach(function (f) {
+    var k = 'f' + f.anio + '_' + f.clave;
+    var propio = /^tu (?:cumpleanos|cumple|santo)\b/.test(norm(f.que));
+    if (f.dias === 1 && !vis[k + 'a']) av.push({ clave: k + 'a', valor: 1, texto: '🎂 Mañana es ' + f.que + '.' + (propio ? ' 🎉' : ' ¿Te anoto comprar un regalo o llamar?') });
+    if (f.dias === 0 && !vis[k + 'h']) av.push({ clave: k + 'h', valor: 1, texto: propio ? '🎉 ¡Feliz cumpleaños, Daniel! Que tengas un gran día.' : '🎉 ¡Hoy es ' + f.que + '! No te olvides de saludar.' });
+  });
   return av;
 }
 
-var API = { parsear: parsear, permitido: permitido, prompt: prompt, leerJSON: leerJSON, correr: correr, detener: detener, vigilar: vigilar,
+var MESES_N = { enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5, julio: 6, agosto: 7, septiembre: 8, setiembre: 8, octubre: 9, noviembre: 10, diciembre: 11 };
+// De los datos guardados, los que tienen fecha de cumpleaños/aniversario. -> [{texto, dias, anio, clave}]. PURO.
+function fechasImportantes(datos, ahora) {
+  var hoy = new Date(ahora); hoy.setHours(0, 0, 0, 0);
+  var out = [];
+  (datos || []).forEach(function (t) {
+    var n = norm(t);
+    if (!/(cumpleanos|cumple|aniversario|santo|dia de)/.test(n)) return;
+    var m = n.match(/(\d{1,2}) de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)/);
+    if (!m) return;
+    var d = new Date(hoy.getFullYear(), MESES_N[m[2]], +m[1]);
+    if (d < hoy) d.setFullYear(d.getFullYear() + 1);
+    var dias = Math.round((d - hoy) / 864e5);
+    var txt = String(t).trim().replace(/^(?:recuerda que|acuerdate que)\s+/i, '').replace(/\bmi\b/gi, 'tu').replace(/\bmis\b/gi, 'tus').replace(/[.!]+$/, '');
+    var que = txt.replace(/\s+(?:es|cae|sera)\s+(?:el\s+)?\d{1,2} de [a-záéíóú]+.*$/i, '').trim();
+    que = que.charAt(0).toLowerCase() + que.slice(1);
+    out.push({ texto: txt.charAt(0).toUpperCase() + txt.slice(1), que: que, dias: dias, anio: d.getFullYear(), clave: m[1] + m[2].slice(0, 3) + '_' + n.length });
+  });
+  return out;
+}
+
+var API = { fechasImportantes: fechasImportantes, parsear: parsear, permitido: permitido, prompt: prompt, leerJSON: leerJSON, correr: correr, detener: detener, vigilar: vigilar,
   HERRAMIENTAS: HERRAMIENTAS, ocupado: function () { return !!corriendo; } };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiAgente = API;

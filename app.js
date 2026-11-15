@@ -3970,6 +3970,7 @@ window._asagiEjecutarFrase = function (frase) {
         e.gastos = NT.unicos(((f && f.lista) || []).map(NT.movimiento).filter(Boolean)).filter((m) => m.moneda === 'PEN');
       }
     } catch (x) {}
+    try { if (window._asagiMem || window.AsagiMemoria) { const me = window._asagiMem || (window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage)); e.datos = me.todos().filter((n) => n && n.tema !== 'chat' && n.tema !== 'asagi').map((n) => n.texto); } } catch (x) {}
     const av = AG.vigilar(e);
     if (!av.length) return;
     av.forEach((a) => { e.vistos[a.clave] = a.valor; appendMessage('bot', a.texto); if (window._asagiAviso) window._asagiAviso(a.texto, false, '👁'); });

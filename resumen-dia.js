@@ -34,6 +34,8 @@ function armar(d, momento, x) {
   if (x.compras && x.compras.length) l.push('🛒 Por comprar (' + x.compras.length + '): ' + x.compras.slice(0, 4).join(', ') + (x.compras.length > 4 ? '…' : '') + '.');
   if (x.gastoHoy != null) l.push('💸 Hoy: gastaste S/ ' + x.gastoHoy.toFixed(2) + (x.ingresoHoy ? ' y recibiste S/ ' + x.ingresoHoy.toFixed(2) : '') + '.');
   if (x.notif && x.notif.total) l.push('🔔 ' + x.notif.total + ' notificación(es)' + (x.notif.top ? ', sobre todo de ' + x.notif.top : '') + '.');
+  if (x.redes && x.redes.length) l.push('📲 Redes: ' + x.redes.map(function (r) { return r[0] + ' ' + r[1]; }).join(' · ') + ' («resumen de mis redes»).');
+  if (x.ytDespues) l.push('📺 Tienes ' + x.ytDespues + ' video(s) para después («qué veo hoy»).');
   if (x.bateria != null) l.push((x.bateria <= 20 ? '🪫 Batería baja: ' : '🔋 Batería: ') + x.bateria + '%' + (x.cargando ? ' (cargando)' : '') + '.');
   if (x.musica) l.push('🎵 ' + (x.musica.sonando ? 'Suena' : 'En pausa') + ': «' + x.musica.titulo + '».');
   if (momento === 'manana' && !x.musica) l.push('¿Algo de música para empezar? Di «pon música».');
@@ -47,6 +49,7 @@ async function datos() {
     var l = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'), fin = new Date(); fin.setHours(23, 59, 59, 999);
     x.pendientes = (Array.isArray(l) ? l : []).filter(function (p) { return p && !p.hecho && (!p.cuando || p.cuando <= fin.getTime()); });
   } catch (e) { x.pendientes = []; }
+  try { x.ytDespues = (JSON.parse(localStorage.getItem('asagi-yt-despues') || '[]') || []).length; } catch (e) {}
   try { var CO = window.AsagiCompras; if (CO) x.compras = CO.faltantes().map(function (it) { return it.texto; }); } catch (e) {}
   var C = window.Capacitor && window.Capacitor.Plugins, AC = C && C.AsagiControl;
   try {
@@ -66,6 +69,8 @@ async function datos() {
       nl.forEach(function (o) { var k = o.nombre || o.app; por[k] = (por[k] || 0) + 1; });
       var top = Object.keys(por).sort(function (a, b) { return por[b] - por[a]; })[0];
       x.notif = { total: nl.length, top: top };
+      var RD = window.AsagiRedes;
+      if (RD) x.redes = Object.keys(RD.REDES).map(function (k) { return [RD.REDES[k].nombre, RD.deRed(nl, k).length]; }).filter(function (r) { return r[1] > 0; });
     }
   } catch (e) {}
   // clima de hoy (ciudad elegida o Lima), con tope de 4 s para no hacer esperar

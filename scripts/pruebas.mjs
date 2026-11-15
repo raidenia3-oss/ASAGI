@@ -96,6 +96,8 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(E.estafaTexto('Hola mamá, cambié de número, yapéame 200 urgente que estoy en problemas').nivel === 'peligro' && E.estafaTexto('Te llegó un código de verificación por SMS, pásame el código porfa es urgente').nivel === 'peligro' &&
      E.estafaTexto('BCP: Tu tarjeta será bloqueada. Verifica tus datos en bcp-seguro.xyz').nivel === 'peligro' && E.estafaTexto('Mañana almorzamos a la 1, avisa si llegas tarde').nivel === 'ok' &&
      E.parsearTexto('¿esto es estafa? Ganaste un premio, reclama aquí con tus datos').texto.startsWith('Ganaste'), 'escudo: mensajes de estafa');
+  { const RDm = require('../resumen-dia.js'); const t = RDm.armar(new Date(2026, 10, 15, 9), 'manana', { redes: [['Instagram', 3], ['WhatsApp', 12]], ytDespues: 2 });
+    ok(/Redes: Instagram 3 · WhatsApp 12/.test(t) && /2 video\(s\) para después/.test(t), 'mi día: redes y videos'); }
   { const CPm = require('../compartir.js'); ok(CPm.parsearCopia('¿Qué copié?') && CPm.parsearCopia('revisa lo que copié') && !CPm.parsearCopia('copia esto'), 'compartir: portapapeles'); }
   }
 

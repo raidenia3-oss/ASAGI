@@ -1344,9 +1344,20 @@ chatForm.addEventListener('submit', (event) => {
 });
 
 resetButton.addEventListener('click', () => {
+  // se puede deshacer 6 s (un toque sin querer borraba toda la charla); lo aprendido sigue en la memoria
+  const antes = state.messages;
   state.messages = structuredClone(defaultState.messages);
   saveState();
   renderMessages();
+  if (!antes.some((m) => m.sender === 'user')) return;
+  let aviso = document.getElementById('deshacer-chat');
+  if (aviso) aviso.remove();
+  aviso = document.createElement('div'); aviso.id = 'deshacer-chat'; aviso.className = 'deshacer-chat'; aviso.setAttribute('role', 'status');
+  aviso.innerHTML = '<span>Chat nuevo. Lo que aprendí de ti sigue guardado.</span>';
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = '↩ Deshacer';
+  b.addEventListener('click', () => { state.messages = antes; saveState(); renderMessages(); aviso.remove(); });
+  aviso.appendChild(b); document.body.appendChild(aviso);
+  setTimeout(() => { if (aviso.isConnected) aviso.remove(); }, 6000);
 });
 
 ensureWelcomeMessage();

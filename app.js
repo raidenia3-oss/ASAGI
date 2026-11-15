@@ -3837,3 +3837,19 @@ window._asagiEjecutarFrase = function (frase) {
   setInterval(revisar, 15 * 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(revisar, 3000); });
 })();
+
+// Teclado abierto (o pantalla baja): cabecera mínima para que el chat se lea.
+(function () {
+  const asis = document.getElementById('assistant'), inp = document.getElementById('message-input');
+  if (!asis || !inp) return;
+  const vv = window.visualViewport;
+  const revisar = () => {
+    const tecladoAbierto = vv ? vv.height < window.innerHeight * 0.78 : false;
+    asis.classList.toggle('escribiendo', document.activeElement === inp || tecladoAbierto || window.innerHeight < 560);
+  };
+  inp.addEventListener('focus', revisar);
+  inp.addEventListener('blur', () => setTimeout(revisar, 150));
+  if (vv) vv.addEventListener('resize', revisar);
+  window.addEventListener('resize', revisar);
+  revisar();
+})();

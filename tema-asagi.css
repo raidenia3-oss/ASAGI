@@ -264,7 +264,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .ov-pie { color: rgba(240,240,248,.6); font-size: .7rem; padding-top: 8px; text-align: center; }
 
 /* revisión como usuario (14-nov) */
-#assistant.conversando .brain-alert { display: block !important; max-height: calc(2 * 1.45em + 14px); padding-bottom: 0; overflow: hidden; position: relative; padding-right: 38px; }
+#assistant.conversando .brain-alert:not([hidden]) { display: block; max-height: calc(2 * 1.45em + 14px); padding-bottom: 0; overflow: hidden; position: relative; padding-right: 38px; }
 #assistant.conversando .brain-alert.abierta { max-height: none; }
 #assistant.conversando .nivel-chip span { white-space: nowrap; letter-spacing: 0.16em; }
 .sugerencias { display: flex; gap: 8px; overflow-x: auto; padding: 4px 14px 8px; scrollbar-width: none; }
@@ -319,3 +319,18 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .sugerencias { flex-wrap: wrap; overflow: visible; }
 
 .mu-casa { margin: 10px 0 0; width: 100%; max-width: 420px; align-self: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* ---- Chat legible en el celular (15-nov): con el teclado abierto la cabecera se encoge a una barra
+   fina y el chat se queda con casi toda la pantalla. El aviso vacío ya no ocupa una fila. ---- */
+.brain-alert[hidden] { display: none !important; }
+#assistant.escribiendo .panel-header { padding-top: 6px; padding-bottom: 6px; gap: 6px; }
+#assistant.escribiendo .eyebrow, #assistant.escribiendo .brain-mode, #assistant.escribiendo .brain-hint,
+#assistant.escribiendo .panel-brain, #assistant.escribiendo #reset-chat, #assistant.escribiendo .brain-alert,
+#assistant.escribiendo .sugerencias, #assistant.escribiendo .mu-mini, #assistant.escribiendo .nivel-chip i { display: none !important; }
+#assistant.escribiendo .avatar-wrap { width: 40px !important; height: 40px !important; flex: 0 0 40px; }
+#assistant.escribiendo .avatar-wrap canvas { width: 40px !important; height: 40px !important; }
+#assistant.escribiendo .panel-header h2 { font-size: 1.15rem !important; margin: 0; }
+#assistant.escribiendo .nivel-chip span { font-size: 0.62rem; }
+#assistant.escribiendo .ov-back { top: 6px !important; transform: scale(.85) !important; }
+#assistant.escribiendo .chat { flex: 1 1 auto; min-height: 0; }
+.bot-reply-status { padding-top: 4px !important; padding-bottom: 4px !important; }

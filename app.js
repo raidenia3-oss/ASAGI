@@ -1453,7 +1453,7 @@ renderBrainControls();
   setInterval(function () {
     if (!lbl) return;
     let hablando = false;
-    try { hablando = !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch (_) {}
+    try { hablando = !!((window.speechSynthesis && window.speechSynthesis.speaking) || window._asagiHablando); } catch (_) {}
     if (hablando) lbl.textContent = NOM.hablando;
     else if (av.estado !== 'pensando') lbl.textContent = NOM[av.estado] || NOM.reposo;
   }, 300);
@@ -2114,10 +2114,11 @@ if ('serviceWorker' in navigator) {
     clearInterval(_guardia);
     _guardia = setInterval(async () => {
       let hablando = false;
-      try { hablando = !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch (e) {}
+      try { hablando = !!((window.speechSynthesis && window.speechSynthesis.speaking) || window._asagiHablando); } catch (e) {}
       if (!hablando) { clearInterval(_guardia); _guardia = null; return; }
       if (!(await audifonos())) {
         try { window.speechSynthesis.cancel(); } catch (e) {}
+        try { const N = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiHablar; if (N) N.callar(); } catch (e) {}
         clearInterval(_guardia); _guardia = null;
         if (window._asagiAviso) window._asagiAviso('Corté la voz: te quitaste los audífonos.', false, '🔇');
       }

@@ -41,8 +41,12 @@ function hablar(texto, opts = {}) {
     return { hablado: false, motivo: motivo(estado) };
   }
   try {
+    var N = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiHablar;
     if (typeof opts.speak === 'function') {
       opts.speak(texto, opts);
+    } else if (N) {                       // app instalada: lector de voz de Android (la WebView no trae uno)
+      window._asagiHablando = true;
+      N.hablar({ texto: texto, velocidad: opts.rate || 1 }).then(function () { window._asagiHablando = false; }, function () { window._asagiHablando = false; });
     } else if (typeof window !== 'undefined' && window.speechSynthesis) {
       const u = new window.SpeechSynthesisUtterance(texto);
       u.lang = opts.lang || 'es-ES';

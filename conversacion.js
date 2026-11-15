@@ -33,6 +33,8 @@ function barra(texto) {
 function quitarBarra() { var b = document.getElementById('conv-barra'); if (b) b.remove(); }
 
 function decirEnVoz(texto) {
+  var N = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiHablar;
+  if (N && texto) return N.hablar({ texto: paraVoz(texto).slice(0, 600) }).then(function () {}, function () {});   // espera a que termine
   return new Promise(function (ok) {
     try {
       var s = window.speechSynthesis; if (!s || !texto) { ok(); return; }
@@ -82,6 +84,7 @@ function terminar(msg) {
   if (!activo) return;
   activo.vivo = false; activo = null;
   try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+  try { var N = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiHablar; if (N) N.callar(); } catch (e) {}
   quitarBarra();
   if (msg && window._asagiDecir) window._asagiDecir('📞 ' + msg);
 }

@@ -70,7 +70,7 @@ function crearAvatar(canvas, opts) {
   var P = { asagi: '#de183f', oro: '#ffd700', carmin: '#f03c5c', tinta: '#300b18', tinta2: '#541228', piel: '#f3ece6', piel2: '#e6d6cf' };
 
   var hablandoFn = opts.speaking || function () {
-    try { return !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch (e) { return false; }
+    try { return !!((window.speechSynthesis && window.speechSynthesis.speaking) || window._asagiHablando); } catch (e) { return false; }
   };
 
   function medir() {

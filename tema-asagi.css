@@ -395,3 +395,8 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .deshacer-chat span { flex: 1 1 auto; }
 .deshacer-chat button { width: auto !important; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 0; background: #FFD700; color: #080408; font: inherit; font-weight: 700; }
 .deshacer-chat button { white-space: nowrap; }
+/* frases tocables: zona de toque de ~44 px sin mover el texto (reporte del emulador: medían 27 px) */
+.frase-tap { position: relative; }
+.frase-tap::before { content: ''; position: absolute; left: -2px; right: -2px; top: -9px; bottom: -9px; }
+/* nivel compacto legible (≥11 px) */
+#assistant.conversando .nivel-chip span { font-size: 0.7rem !important; }

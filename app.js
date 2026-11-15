@@ -3543,10 +3543,13 @@ if ('serviceWorker' in navigator) {
   // escucha en todo el documento: en el celular el dedo puede caer sobre capas encima de la casa
   // (fondo animado, rejilla de apps) y antes el gesto no llegaba a #launcher.
   if (home) window.AsagiGestos.crear(document, function (dir, info) {
+    // diagnóstico para el emulador de CI: por qué se abrió (o no) el chat
+    window.__gesto = { dir, sy: info && Math.round(info.sy), dy: info && Math.round(info.dy), H: window.innerHeight, overlay: (hayOverlay() || {}).id || '', t: ((info && info.target && (info.target.id || info.target.className)) || '').toString().slice(0, 20) };
     if (hayOverlay()) return;
-    if (info && info.target && info.target.closest && info.target.closest('input, textarea, .panel.overlay')) return;
+    if (info && info.target && info.target.closest && info.target.closest('input, textarea, .panel.overlay')) { window.__gesto.no = 'dentro de input/overlay'; return; }
     const sc = desplazable(info && info.target);
     const abajoDePantalla = info && info.sy > window.innerHeight * 0.78;
+    window.__gesto.sc = sc ? (sc.id || sc.className || '?').toString().slice(0, 20) + ' ' + sc.scrollTop + '/' + (sc.scrollHeight - sc.clientHeight) : ''; window.__gesto.abajo = abajoDePantalla;
     if (dir === 'arriba' && (!sc || abajoDePantalla || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4)) setActiveSection('assistant');
     else if (dir === 'abajo' && (!sc || sc.scrollTop <= 2)) setActiveSection('status');
   }, { umbral: 70, maxMs: 1200 });

@@ -40,9 +40,10 @@ function crear(el, onSwipe, opts) {
     const x = p ? p.clientX : lx, y = p ? p.clientY : ly;
     const dx = x - sx, dy = y - sy;
     const dt = Date.now() - st;
-    if (dt > (opts.maxMs || 800)) return;            // muy lento, no es swipe
+    if (dt > (opts.maxMs || 800)) { try { window.__gestoLento = dt; } catch (e3) {} return; }            // muy lento, no es swipe
     const dir = direccion(dx, dy, opts.umbral);
-    if (dir) { try { onSwipe(dir, { dx: dx, dy: dy, sy: sy, target: dentro }); } catch (e2) {} }
+    if (dir) { try { onSwipe(dir, { dx: dx, dy: dy, sy: sy, target: dentro }); } catch (e2) { try { window.__gestoError = String(e2 && e2.message || e2); } catch (e3) {} } }
+    else { try { window.__gestoCorto = { dx: Math.round(dx), dy: Math.round(dy), dt: dt }; } catch (e3) {} }
   }
   el.addEventListener('touchstart', start, { passive: true });
   el.addEventListener('touchmove', move, { passive: true });

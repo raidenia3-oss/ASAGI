@@ -74,6 +74,33 @@ async function tocar(lista, indice, aleatorio) {
 var mini = null, hoja = null;
 function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function boton(txt, etiqueta, fn, cls) { var b = el('button', cls || 'mu-b', txt); b.type = 'button'; b.setAttribute('aria-label', etiqueta); b.title = etiqueta; b.onclick = fn; return b; }
+function armarBarra(cls) {
+  var m = el('div', 'mu-mini ' + (cls || '')); m.setAttribute('role', 'region'); m.setAttribute('aria-label', 'Música');
+  var info = el('button', 'mu-info'); info.type = 'button'; info.setAttribute('aria-label', 'Abrir la lista de música'); info.onclick = function () { abrirHoja(); };
+  info.appendChild(el('span', 'mu-nota', '♪')); var tx = el('span', 'mu-tx'); tx.appendChild(el('b', 'mu-ti')); tx.appendChild(el('small', 'mu-ar')); info.appendChild(tx);
+  m.appendChild(info);
+  m.appendChild(boton('⏮', 'Anterior', function () { ctl('anterior'); }));
+  m.appendChild(boton('▶', 'Reproducir o pausar', function () { ctl('alternar'); }, 'mu-b mu-pp'));
+  m.appendChild(boton('⏭', 'Siguiente', function () { ctl('siguiente'); }));
+  return m;
+}
+// también en la pantalla de inicio, debajo del buscador (controlas la música sin abrir el chat)
+var casa = null;
+function crearCasa() {
+  if (casa) return casa;
+  var ancla = document.getElementById('pend-open');
+  if (!ancla || !ancla.parentNode) return null;
+  casa = armarBarra('mu-casa');
+  ancla.parentNode.insertBefore(casa, ancla.nextSibling);
+  return casa;
+}
+function llenar(m, p) {
+  m.hidden = false;
+  m.querySelector('.mu-ti').textContent = p.titulo || 'Sin título';
+  m.querySelector('.mu-ar').textContent = p.artista || '';
+  var pp = m.querySelector('.mu-pp'); pp.textContent = est.sonando ? '⏸' : '▶'; pp.setAttribute('aria-label', est.sonando ? 'Pausar' : 'Reproducir');
+  m.classList.toggle('mu-sonando', !!est.sonando);
+}
 function crearMini() {
   if (mini) return mini;
   mini = el('div', 'mu-mini'); mini.setAttribute('role', 'region'); mini.setAttribute('aria-label', 'Música');
@@ -89,12 +116,9 @@ function crearMini() {
 }
 function pintar() {
   var p = est && est.pista;
-  if (!est || !est.activo || !p) { if (mini) mini.hidden = true; return; }
-  crearMini(); mini.hidden = false;
-  mini.querySelector('.mu-ti').textContent = p.titulo || 'Sin título';
-  mini.querySelector('.mu-ar').textContent = p.artista || '';
-  var pp = mini.querySelector('.mu-pp'); pp.textContent = est.sonando ? '⏸' : '▶'; pp.setAttribute('aria-label', est.sonando ? 'Pausar' : 'Reproducir');
-  mini.classList.toggle('mu-sonando', !!est.sonando);
+  if (!est || !est.activo || !p) { if (mini) mini.hidden = true; if (casa) casa.hidden = true; return; }
+  llenar(crearMini(), p);
+  var c = crearCasa(); if (c) llenar(c, p);
   if (hoja) marcarActual();
 }
 async function ctl(a) { try { est = await P()[a](); pintar(); } catch (e) {} }
@@ -181,7 +205,7 @@ async function ejecutar(c, decir) {
   p.estado().then(function (e) { est = e; pintar(); }).catch(function () {});
 })();
 
-var API = { parsear: parsear, buscar: buscar, ejecutar: ejecutar, abrir: abrirHoja, activo: function () { return !!(est && est.activo); }, mmss: mmss };
+var API = { estado: function () { return est; }, parsear: parsear, buscar: buscar, ejecutar: ejecutar, abrir: abrirHoja, activo: function () { return !!(est && est.activo); }, mmss: mmss };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiMusica = API;
 })();

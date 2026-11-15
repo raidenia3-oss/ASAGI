@@ -317,3 +317,5 @@ html, body { font-family: var(--sans); color: var(--papel); }
 #pendientes .pend-add { margin: 0 12px 12px; }
 #pendientes .pend-add .mic-btn { flex: 0 0 44px; width: 44px; height: 44px; }
 .sugerencias { flex-wrap: wrap; overflow: visible; }
+
+.mu-casa { margin: 10px 0 0; width: 100%; max-width: 420px; align-self: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }

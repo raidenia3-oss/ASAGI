@@ -985,6 +985,12 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».
+  {
+    const RD = window.AsagiResumenDia, c = RD && RD.parsear(text);
+    if (c) { RD.decir(c, (t) => appendMessage('bot', t)).catch(() => {}); return; }
+  }
+
   // Música del celular: «pon música», «pon canciones de …», «pausa», «siguiente», «mi música».
   {
     const MU = window.AsagiMusica, c = MU && MU.parsear(text, MU.activo());

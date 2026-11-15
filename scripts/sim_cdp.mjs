@@ -64,7 +64,9 @@ await di('wifi', 25000);
 await di('bluetooth', 25000);
 // Sin cerebro: lo cotidiano que ASAGI resuelve sola (intents reales de Android).
 for (const t of ['qué hora es', 'cuánto es 15% de 230', 'cuánta batería tengo', 'pon una alarma a las 7', 'temporizador de 1 minuto',
-                 'abre Settings', 'enciende la linterna', 'apaga la linterna', 'qué puedes hacer', 'cuéntame un chiste']) {
+                 'abre Settings', 'enciende la linterna', 'apaga la linterna', 'qué puedes hacer', 'cuéntame un chiste',
+                 'ayuda de cuentas', 'convierte 10 km a millas', 'qué hora es en Japón', 'recuerda que mi perro se llama Toby',
+                 'cómo se llama mi perro', 'agrega pan y leche a la lista', 'busca en mis cosas pan', 'recuérdame pagar luz mañana 8 am']) {
   await di(t, 8000);
   if (/alarma|temporizador|abre/.test(t)) { adb('shell input keyevent KEYCODE_BACK'); await sleep(1500);
     adb('shell am start -n com.asagi.app/.MainActivity'); await sleep(2000); }

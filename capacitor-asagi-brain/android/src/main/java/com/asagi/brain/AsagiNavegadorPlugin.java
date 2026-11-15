@@ -48,7 +48,9 @@ public class AsagiNavegadorPlugin extends Plugin {
         "ads-twitter.com", "static.ads-twitter.com", "analytics.twitter.com", "scorecardresearch.com", "quantserve.com",
         "taboola.com", "outbrain.com", "criteo.com", "criteo.net", "adnxs.com", "rubiconproject.com", "pubmatic.com",
         "amazon-adsystem.com", "hotjar.com", "mouseflow.com", "clarity.ms", "mixpanel.com", "segment.io", "segment.com",
-        "branch.io", "appsflyer.com", "adjust.com", "moatads.com", "yieldmo.com", "zedo.com", "popads.net", "propellerads.com"));
+        "branch.io", "appsflyer.com", "adjust.com", "moatads.com", "yieldmo.com", "zedo.com", "popads.net", "propellerads.com",
+        "openx.net", "smartadserver.com", "teads.tv", "adform.net", "media.net", "casalemedia.com", "sharethrough.com", "bidswitch.net",
+        "exoclick.com", "adsterra.com", "popcash.net", "onclickads.net", "trafficjunky.net", "juicyads.com", "hilltopads.net", "admaven.com"));
     private volatile int bloqueados = 0;
     private static boolean bloqueado(String host) {
         if (host == null) return false;

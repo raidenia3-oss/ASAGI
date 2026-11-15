@@ -267,6 +267,12 @@ function setBrainMode(mode) {
 }
 
 window._asagiDecir = (t) => appendMessage('bot', t);
+// «Compartir con ASAGI» (lo llama MainActivity con lo que compartiste desde otra app)
+window._asagiCompartido = (texto, asunto) => {
+  try { setActiveSection('assistant'); } catch (e) {}
+  const CP = window.AsagiCompartir; if (!CP) return;
+  CP.recibir(String(texto || ''), String(asunto || ''), (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '📤 No pude: ' + ((e && e.message) || e)));
+};
 // keys de Gemini (para resumir videos de YouTube con Gemini); nunca se muestran
 window._asagiClavesGemini = () => String((readBrainControls() || {}).geminiKey || '').split(/[\s,]+/).filter(Boolean);
 // avisos de videos nuevos de los canales que sigues (cada 2 h con la app abierta)
@@ -980,6 +986,11 @@ chatForm.addEventListener('submit', (event) => {
   {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
     if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
+  }
+  // «resume este enlace https://…» (lee la página con el escudo y la resume)
+  {
+    const CP = window.AsagiCompartir, c = !reesc && CP && CP.parsear(text);
+    if (c) { CP.recibir(c.url, '', (t) => appendMessage('bot', t)).catch(() => {}); return; }
   }
   // Chrome como herramienta, YouTube y redes (solo lectura; usan TU Chrome con tus sesiones)
   {

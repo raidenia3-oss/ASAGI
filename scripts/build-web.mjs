@@ -63,6 +63,7 @@ const files = [
   'chrome.js',
   'youtube.js',
   'redes.js',
+  'compartir.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

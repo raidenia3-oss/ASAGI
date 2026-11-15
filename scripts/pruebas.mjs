@@ -102,5 +102,9 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(RD.parsear('qué me llegó de Instagram').red === 'instagram' && RD.parsear('resumen de mis redes').accion === 'todas' && RD.parsear('qué hay en mi casa') === null, 'redes: entiende');
   ok(CH.juntar([{ nodos: [{ t: 'Inicio' }, { t: 'Video genial de pan' }] }, { nodos: [{ t: 'Video genial de pan' }, { t: 'Otro video' }] }]).length === 2 && CH.pideLogin(['Iniciar sesión', 'Contraseña']), 'chrome: junta y detecta login'); }
 
+{ const CP = R('compartir.js');
+  ok(CP.plan('mira https://youtu.be/dQw4w9WgXcQ?si=x').tipo === 'youtube' && CP.plan('https://es.wikipedia.org/wiki/Lima').tipo === 'pagina' && CP.plan('hola qué tal').tipo === 'texto', 'compartir: decide');
+  ok(CP.parsear('resume este enlace https://es.wikipedia.org/wiki/Lima').url === 'https://es.wikipedia.org/wiki/Lima', 'compartir: resume este enlace'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

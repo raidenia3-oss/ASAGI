@@ -1,6 +1,9 @@
 package com.asagi.app;
 
+import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Bundle;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -36,6 +39,40 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         ajustarABarrasDelSistema();
         botonAtras();
+        recibirCompartido(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        recibirCompartido(intent);
+    }
+
+    /**
+     * «Compartir con ASAGI»: el texto/enlace compartido se pasa a la app web (window._asagiCompartido).
+     * Si la app aún no terminó de cargar, reintenta cada segundo (máx. 15 s). Es DATO, nunca una orden.
+     */
+    private void recibirCompartido(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
+        CharSequence cs = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+        String texto = cs == null ? "" : cs.toString();
+        String asunto = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+        if (texto.trim().isEmpty()) return;
+        if (texto.length() > 4000) texto = texto.substring(0, 4000);
+        final String js = "(function(){try{if(!window._asagiCompartido)return 'espera';window._asagiCompartido(" +
+                org.json.JSONObject.quote(texto) + "," + org.json.JSONObject.quote(asunto == null ? "" : asunto) + ");return 'ok'}catch(e){return 'error'}})()";
+        intent.setAction(Intent.ACTION_MAIN);   // que no se repita al girar o volver
+        final Handler h = new Handler(Looper.getMainLooper());
+        final int[] intentos = {0};
+        Runnable r = new Runnable() {
+            @Override public void run() {
+                WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+                if (wv == null) { if (++intentos[0] < 15) h.postDelayed(this, 1000); return; }
+                wv.evaluateJavascript(js, (res) -> { if (res != null && res.contains("espera") && ++intentos[0] < 15) h.postDelayed(this, 1000); });
+            }
+        };
+        h.postDelayed(r, 600);
     }
 
     /**

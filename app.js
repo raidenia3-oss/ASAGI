@@ -910,8 +910,12 @@ chatForm.addEventListener('submit', (event) => {
       const decir = (t) => appendMessage('bot', t);
       if (c.accion === 'detener') { decir(AG.detener() ? '⏹ Deteniendo…' : 'No estaba trabajando en nada.'); return; }
       if (c.accion === 'vigilante') { try { localStorage.setItem('asagi-vigilante', c.on ? '1' : '0'); } catch (e) {} decir(c.on ? '👁 Vigilante activo: te aviso de batería baja, pendientes vencidos y gastos grandes.' : 'Vigilante apagado.'); return; }
+      if (c.investigar) {   // investigar necesita un cerebro fuerte; sin él, una búsqueda simple
+        const bc = readBrainControls();
+        if (!(bc.geminiKey || bc.atriaKey || bc.mistralKey || bc.clavesExtra)) { window._asagiReescribir = 'busca en la web ' + text.replace(/^\S+\s+(?:sobre\s+|acerca de\s+|bien\s+|a fondo\s+)?/i, ''); chatForm.requestSubmit(); return; }
+      }
       if (!window._asagiPensar) { decir('Para el modo autónomo necesito un cerebro: descarga el modelo o pon una key gratis en el Asistente.'); return; }
-      AG.correr(c.objetivo, (p) => window._asagiPensar(p), window._asagiEjecutarFrase, decir).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
+      AG.correr(c.objetivo, (p) => window._asagiPensar(p), window._asagiEjecutarFrase, decir, { titulo: c.titulo }).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
       return;
     }
   }

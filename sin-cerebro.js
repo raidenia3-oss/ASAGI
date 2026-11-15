@@ -137,7 +137,7 @@ var AYUDA = {
   ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],
   estudio: ['📚 Estudio', ['estudiemos física', 'quiz de química', 'ayúdame a estudiar para la UNI', 'táctica del día', 'práctica de cita']],
   juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
-  avanzado: ['⚙ Avanzado', ['hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]
+  avanzado: ['⚙ Avanzado', ['investiga qué piden para postular a la UNI', 'hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]
 };
 var AYUDA_ALIAS = { dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
   info: /info|clima|tiempo|wiki|busca|noticia/, ti: /\bmi\b|memoria|recuerd|sobre mi|ti\b/, estudio: /estudi|uni\b|examen|aprend/, juegos: /jueg|divert|aburr|rato/, avanzado: /avanzad|autonom|aria|web|claude|habilidad/ };

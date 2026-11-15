@@ -52,6 +52,8 @@ function parsear(t) {
   if (/^(?:activa|enciende)\s+(?:el\s+)?vigilante$/i.test(s)) return { accion: 'vigilante', on: true };
   if (/^(?:apaga|desactiva)\s+(?:el\s+)?vigilante$/i.test(s)) return { accion: 'vigilante', on: false };
   if ((m = s.match(/^(?:hazlo t[uú]|objetivo|modo aut[oó]nomo|encárgate de|encargate de|trabaja en)\s*:?\s+([\s\S]{4,600})$/i))) return { accion: 'objetivo', objetivo: m[1].trim() };
+  if ((m = s.match(/^(?:inv[eé]st[ií]ga(?:me)?|averig[uü]a(?:me)?)\s+(?:sobre\s+|acerca de\s+|bien\s+|a fondo\s+)?(?!en internet\b)([\s\S]{4,300})$/i)))
+    return { accion: 'objetivo', investigar: true, titulo: 'investigar ' + m[1].trim().replace(/[?¿]+/g, ''), objetivo: 'Investiga en la web (haz 2 o 3 búsquedas distintas con «busca en la web …») y dame un resumen claro, con lo más importante primero y las fuentes al final: ' + m[1].trim().replace(/[?¿]+/g, '') };
   return null;
 }
 
@@ -87,7 +89,7 @@ async function correr(objetivo, pensar, ejecutar, decir, opts) {
   if (corriendo) { decir('⏳ Ya estoy trabajando en otro objetivo. Di «detén el modo autónomo» para cambiarlo.'); return null; }
   var yo = corriendo = { detener: false };
   var hist = [], fallos = 0;
-  decir('🧠 Modo autónomo: «' + objetivo + '». Pienso, uso mis herramientas y te cuento.');
+  decir(opts.titulo ? '🔎 Voy a ' + opts.titulo + ': busco en varias fuentes y te resumo.' : '🧠 Modo autónomo: «' + objetivo + '». Pienso, uso mis herramientas y te cuento.');
   try {
     for (var i = 0; i < MAX_PASOS && !yo.detener; i++) {
       var r = null;

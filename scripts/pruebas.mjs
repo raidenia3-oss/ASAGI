@@ -46,5 +46,7 @@ const t1 = PE.parsearTiempo('pagar luz mañana 8 am', base); ok(t1.limpio === 'p
 const t2 = PE.parsearTiempo('pagar agua el viernes 6 pm', base); ok(t2.limpio === 'pagar agua' && new Date(t2.cuando).getDay() === 5 && new Date(t2.cuando).getHours() === 18, 'día de la semana');
 ok(PE.parsearTiempo('comprar 2 panes', base).cuando === null, 'sin hora no inventa');
 
+ok(AG.parsear('investiga qué piden para postular a la UNI').investigar && AG.parsear('investiga en internet gatos') === null, 'investigar');
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

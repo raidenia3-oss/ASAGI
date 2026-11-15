@@ -232,6 +232,17 @@ function setBrainMode(mode) {
   refreshBrainStatus();
 }
 
+window._asagiDecir = (t) => appendMessage('bot', t);
+// La guía «Usar Gemini gratis» guarda aquí la key ya probada (sin tocar el modo ni otras keys).
+window._asagiGuardarKeyGemini = function (k) {
+  k = String(k || '').trim(); if (!k) return;
+  const actuales = (state.brain.geminiKey || '').split(/[\s,]+/).filter(Boolean);
+  if (!actuales.includes(k)) actuales.unshift(k);
+  state.brain.geminiKey = actuales.join('\n');
+  if (brainGeminiKey) brainGeminiKey.value = state.brain.geminiKey;
+  saveState(); refreshBrainStatus();
+};
+
 function readBrainControls() {
   return {
     mode: state.brain.mode,
@@ -341,7 +352,7 @@ function describeBrain() {
       descargar: !!window._asagiDescargarModelo,
       alert: espera
         ? 'Estás con datos móviles, así que no descargo solo el modelo (~400 MB). Con Wi-Fi arranca solo; si prefieres ya, toca el botón.'
-        : 'Aún no tengo mi modelo (~400 MB). Descárgalo o pon una key gratis de Gemini.'
+        : 'Aún no tengo cerebro. Toca aquí para usar Gemini gratis (2 min), o descarga mi modelo (~400 MB).'
     };
   }
 
@@ -352,7 +363,7 @@ function describeBrain() {
   }
   return {
     detail: 'Remoto · sin key ni URL',
-    alert: 'Pon tu key de Gemini o Atria en Cerebro para que ASAGI responda. Mientras tanto usa respuestas de prueba.'
+    alert: 'Sin cerebro conectado. Toca aquí para usar Gemini gratis (2 min).'
   };
 }
 
@@ -375,6 +386,7 @@ function refreshBrainStatus() {
       brainAlert.appendChild(x);
     }
     brainAlert.hidden = !info.alert || cerrado === info.alert;
+    brainAlert.classList.toggle('abre-guia', /gemini/i.test(info.alert || ''));
   }
   const dlBtn = document.getElementById('brain-dl');
   if (dlBtn) {
@@ -871,6 +883,10 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // «conecta gemini» / «usar gemini gratis» / «quiero un cerebro»: la guía de 3 pasos.
+  if (!reesc && window.AsagiGeminiGuia && /^(?:conecta(?:r)?|activa(?:r)?|usa(?:r)?|pon(?:er)?|configura(?:r)?) (?:a )?gemini(?: gratis)?$|^(?:quiero|dame) (?:un )?cerebro$|^como te (?:pongo|doy) (?:un )?cerebro$/i.test(text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[¿?¡!.]/g, '').trim())) {
+    appendMessage('bot', '🔑 Te abro la guía: 3 pasos y quedo con cerebro gratis.'); window.AsagiGeminiGuia.abrir(); return;
+  }
   // Ayuda por temas (siempre: con cerebro también, para que muestre lo que de verdad sabe hacer).
   {
     const SC = window.AsagiSinCerebro, c = !reesc && SC && SC.entender(text);

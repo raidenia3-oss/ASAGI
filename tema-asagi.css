@@ -366,3 +366,23 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .frase-tap:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
 #assistant.conversando:not(.escribiendo) .panel-header h2 { font-size: 1.2rem !important; }
 #assistant.conversando .nivel-chip span { letter-spacing: 0 !important; font-size: 0.64rem !important; }
+/* guía «Usar Gemini gratis» */
+#brain-alert.abre-guia { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.4); text-underline-offset: 3px; }
+.gg-fondo { position: fixed; inset: 0; z-index: 9000; background: rgba(8, 4, 8, 0.78); display: flex; align-items: flex-end; justify-content: center; }
+.gg-hoja { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; background: #120a10; border: 1px solid rgba(220, 20, 60, 0.45); border-bottom: 0; border-radius: 20px 20px 0 0; padding: 20px 18px calc(18px + env(safe-area-inset-bottom)); color: #F0F0F8; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.6); }
+.gg-hoja h3 { margin: 0 0 12px; font-size: 1.2rem; color: #FFD700; }
+.gg-pasos { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 14px; font-size: 0.98rem; line-height: 1.45; }
+.gg-pasos b { color: #F0F0F8; }
+.gg-pasos li::marker { color: #DC143C; font-weight: 700; }
+.gg-abrir { margin-top: 8px; width: auto !important; min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.5); background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; font-weight: 600; }
+.gg-fila { display: flex; gap: 8px; margin-top: 8px; }
+.gg-key { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.2); background: rgba(240, 240, 248, 0.05); color: #F0F0F8; font: 0.95rem var(--mono, monospace); }
+.gg-pegar { width: auto !important; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.25); background: transparent; color: #F0F0F8; font: inherit; }
+.gg-msg { min-height: 1.4em; margin: 14px 0 0; font-size: 0.92rem; color: #FFD700; }
+.gg-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+.gg-acciones button { width: auto !important; min-height: 48px; padding: 0 18px; border-radius: 14px; font: inherit; font-weight: 700; }
+.gg-guardar { border: 0; background: #DC143C; color: #F0F0F8; }
+.gg-guardar:disabled { opacity: 0.6; }
+.gg-cerrar { background: transparent; border: 1px solid rgba(240, 240, 248, 0.2); color: #F0F0F8; }
+.gg-nota { margin: 12px 0 0; font-size: 0.8rem; color: rgba(240, 240, 248, 0.6); text-align: center; }
+.gg-hoja button:focus-visible, .gg-key:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }

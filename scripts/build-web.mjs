@@ -58,6 +58,7 @@ const files = [
   'memoria-ia.js',
   'buscar-mis-cosas.js',
   'conversacion.js',
+  'rutinas.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

@@ -83,5 +83,10 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
 
 { const CV = R('conversacion.js'); ok(CV.parsear('hablemos') && CV.parsear('modo conversación') && !CV.parsear('hablemos de física') && CV.esFin('basta') && !CV.esFin('qué hora es'), 'modo conversación'); }
 
+{ const RU = R('rutinas.js'); let reg = []; const d = (dia, h, m) => new Date(2026, 10, dia, h, m).getTime();
+  for (const dia of [10, 11, 12]) { reg = RU.anotar(reg, 'clima', d(dia, 7, 30)); reg = RU.anotar(reg, 'mis pendientes', d(dia, 7, 33)); reg = RU.anotar(reg, 'paga 50 a juan', d(dia, 7, 34)); }
+  const s = RU.descubrir(reg, {}); ok(s && s.pasos.join(',') === 'clima,mis pendientes' && s.nombre === 'mi mañana', 'rutinas: descubre y no incluye pagos');
+  ok(RU.descubrir(reg.slice(0, 4), {}) === null, 'rutinas: no propone con pocos días'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

@@ -920,6 +920,8 @@ chatForm.addEventListener('submit', (event) => {
   if (!text) return;
 
   if (!reesc) appendMessage('user', text);
+  // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
+  if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, (t) => appendMessage('bot', t));
   input.value = '';
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   // Modo autónomo: «hazlo tú: …», «objetivo: …», «detén el modo autónomo», «activa/apaga el vigilante».

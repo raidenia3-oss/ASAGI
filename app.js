@@ -1479,9 +1479,15 @@ renderBrainControls();
         }
       }, 700);
     },
-    onEstado(e) {
+    onEstado(e, cod) {
       mic.classList.toggle('escuchando', e === 'escuchando');
       if (e === 'error') mic.classList.remove('escuchando');
+      // decir por qué no escucha (antes el botón no hacía nada y no se sabía por qué)
+      if (e === 'error' && cod && cod !== 'no-speech' && cod !== 'aborted') {
+        appendMessage('bot', /not-allowed/.test(cod) ? '🎙 Necesito permiso de micrófono. Acéptalo cuando Android lo pida (o en Ajustes de Android › Apps › ASAGI › Permisos).'
+          : /service-not-allowed/.test(cod) ? '🎙 Este celular no tiene reconocimiento de voz activo. Instala o actualiza la app «Google» y vuelve a intentar.'
+          : /network/.test(cod) ? '🎙 El reconocimiento de voz necesita internet en este celular.' : '🎙 No pude escucharte (' + cod + '). Intenta otra vez.');
+      }
       if (window._asagiAvatarEstado) window._asagiAvatarEstado(e === 'escuchando' ? 'escuchando' : 'reposo');
     },
   });

@@ -15,7 +15,35 @@ function _Reco() {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
-function soportado() { return !!_Reco(); }
+// En la app instalada: reconocimiento de voz NATIVO de Android (plugin AsagiOir). La WebView no trae uno propio.
+function _Nativo() {
+  try { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiOir) || null; } catch (e) { return null; }
+}
+function soportado() { return !!(_Nativo() || _Reco()); }
+
+var ERRORES = { sinPermiso: 'not-allowed', sinServicio: 'service-not-allowed', sinRed: 'network' };
+function crearNativo(N, opts) {
+  var escuchando = false, oyente = null;
+  function estado(e, c) { if (typeof opts.onEstado === 'function') opts.onEstado(e, c); }
+  function iniciar() {
+    if (escuchando) return;
+    escuchando = true; estado('escuchando');
+    Promise.resolve(N.addListener ? N.addListener('oir', function (ev) {
+      if (ev && ev.tipo === 'parcial' && typeof opts.onParcial === 'function') opts.onParcial(ev.valor);
+    }) : null).then(function (h) { oyente = h; });
+    N.escuchar({ lang: opts.lang === 'es-ES' ? 'es-PE' : (opts.lang || 'es-PE') }).then(function (r) {
+      escuchando = false; if (oyente && oyente.remove) oyente.remove();
+      if (r && r.texto && typeof opts.onFinal === 'function') opts.onFinal(r.texto);
+      estado('detenido');
+    }).catch(function (e) {
+      escuchando = false; if (oyente && oyente.remove) oyente.remove();
+      var m = String((e && (e.message || e.code)) || e);
+      estado('error', ERRORES[m] || m); estado('detenido');
+    });
+  }
+  function detener() { try { N.detener(); } catch (e) {} }
+  return { iniciar: iniciar, detener: detener, alternar: function () { escuchando ? detener() : iniciar(); return escuchando; }, get escuchando() { return escuchando; } };
+}
 
 // Arma el texto a partir de la lista de resultados del evento. PURA.
 // 'resultados' imita SpeechRecognitionResultList: array de items con
@@ -52,6 +80,8 @@ function componer(base, extra) {
 //   continuo (default false: una frase y para).
 function crearDictado(opts) {
   opts = opts || {};
+  var N = _Nativo();
+  if (N) return crearNativo(N, opts);
   var Reco = _Reco();
   if (!Reco) return null;
   var rec = new Reco();

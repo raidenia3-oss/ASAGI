@@ -90,6 +90,37 @@ function explicar(url, r) {
     (r.nivel !== 'ok' ? '\nNunca pongas tu clave, Yape o tarjeta en un enlace que te llegó por mensaje: entra tú directo a la app o al sitio oficial.' : '');
 }
 
+// Mensajes de estafa típicos en Perú (WhatsApp, SMS, correo). Cada señal suma; 2+ = probable estafa. PURO.
+var ESTAFAS = [
+  [/(ganaste|ganador|has sido seleccionad[oa]|premio|sorteo)[\s\S]{0,80}(reclama|cobra|ingresa|click|clic|enlace|link|datos|deposit)/i, 'promete un premio y te pide hacer algo'],
+  [/(tu cuenta|tu tarjeta|tu yape|tu plin|tu banca|tu clave)[\s\S]{0,60}(bloquead|suspendid|desactivad|vencid|restringid|ser[aá] cerrad)/i, 'dice que tu cuenta o tarjeta será bloqueada'],
+  [/(verifica|actualiza|confirma|valida)\s+(tus|sus)\s+(datos|clave|informaci[oó]n|identidad|tarjeta)/i, 'pide verificar o actualizar tus datos'],
+  [/(c[oó]digo|clave|token|pin)\s+(de\s+)?(verificaci[oó]n|seguridad|sms|de 6 d[ií]gitos|que te (lleg|envi))[\s\S]{0,60}(p[aá]same|env[ií]a|m[aá]ndame|dime|comp[aá]rte|reenv)/i, 'te pide un código que te llegó (así roban WhatsApp y bancos)'],
+  [/(p[aá]same|env[ií]ame|m[aá]ndame|dime)\s+(el|ese|tu)\s+(c[oó]digo|token|pin)/i, 'te pide un código que te llegó (así roban WhatsApp y bancos)'],
+  [/(cambi[eé] de n[uú]mero|este es mi nuevo n[uú]mero|perd[ií] mi (celular|cel|tel[eé]fono))[\s\S]{0,120}(yape|plin|deposit|transfer|prest|urgente|plata|dinero)/i, '«cambié de número» y pide plata (suplantan a un familiar)'],
+  [/(te (deposit[eé]|yape[eé]|transfer[ií]) por error|deposit[eé] por equivocaci[oó]n)[\s\S]{0,80}(devu[eé]lve|regr[eé]sa|retorna)/i, '«te deposité por error, devuélvelo»'],
+  [/(pr[eé]stamo|cr[eé]dito)\s+(inmediato|al instante|sin aval|sin garant[ií]a|sin revisar|aprobado)/i, 'préstamo fácil sin requisitos'],
+  [/(trabajo|chamba|empleo)\s+(desde casa|remoto|online)[\s\S]{0,80}(gana|S\/|soles|d[oó]lares|al d[ií]a|diario)|gana\s+(S\/\s?)?\d{2,4}\s*(soles|diarios|al d[ií]a)/i, 'trabajo fácil ganando mucho (suelen pedir un pago o tu cuenta)'],
+  [/(paga|abona|deposita|yapea)[\s\S]{0,40}(para (liberar|recibir|desbloquear|retirar)|comisi[oó]n|derecho de tr[aá]mite)/i, 'te pide pagar para recibir algo'],
+  [/(urgente|inmediatamente|en las pr[oó]ximas \d+ horas|hoy mismo|[uú]ltimo aviso)/i, 'mete prisa'],
+  [/(sunat|sunarp|reniec|bcp|interbank|bbva|scotiabank|yape|plin|serpost|olva)[\s\S]{0,100}(https?:\/\/|www\.|\.xyz|\.top|bit\.ly|clic|click)/i, 'se hace pasar por una entidad y trae un enlace']
+];
+function estafaTexto(texto) {
+  var t = String(texto || ''), mot = [];
+  ESTAFAS.forEach(function (e) { if (e[0].test(t) && mot.indexOf(e[1]) < 0) mot.push(e[1]); });
+  var fuertes = mot.filter(function (m) { return m !== 'mete prisa'; }).length;
+  return { nivel: fuertes >= 2 || (fuertes >= 1 && mot.length >= 2) ? 'peligro' : fuertes === 1 ? 'ojo' : 'ok', motivos: mot };
+}
+function explicarTexto(r) {
+  if (r.nivel === 'ok') return '✅ No veo señales típicas de estafa. Igual: nunca des claves ni códigos por chat.';
+  return (r.nivel === 'peligro' ? '⛔ Muy probable ESTAFA:' : '⚠️ Ojo, tiene señales de estafa:') + '\n' + r.motivos.map(function (m) { return '• ' + m; }).join('\n') +
+    '\nNo respondas, no pagues ni des códigos. Si dice ser alguien que conoces, llámalo tú a su número de siempre. Si es tu banco, entra tú a su app.';
+}
+// «¿esto es estafa? …texto…» PURO
+function parsearTexto(t) {
+  var m = String(t || '').match(/^\s*(?:¿\s*)?(?:esto es (?:una )?estafa|es (?:una )?estafa|es estafa esto|ser[aá] estafa|me quieren estafar)\s*\??\s*[:,\-]?\s*([\s\S]{15,})$/i);
+  return m ? { texto: m[1].trim() } : null;
+}
 // «¿es seguro este link? …» PURO
 function parsear(t) {
   var s = String(t || ''), u = s.match(/\b((?:https?|ftp|javascript|data):\/?\/?[^\s«»"'<>]+|(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^\s«»"'<>]*)?)/i);
@@ -99,7 +130,7 @@ function parsear(t) {
   return { url: url };
 }
 
-var API = { analizarUrl: analizarUrl, limpiarUrl: limpiarUrl, neutralizar: neutralizar, explicar: explicar, parsear: parsear };
+var API = { analizarUrl: analizarUrl, limpiarUrl: limpiarUrl, neutralizar: neutralizar, explicar: explicar, parsear: parsear, estafaTexto: estafaTexto, explicarTexto: explicarTexto, parsearTexto: parsearTexto };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiEscudo = API;
 })();

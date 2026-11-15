@@ -986,6 +986,8 @@ chatForm.addEventListener('submit', (event) => {
   // Escudo: «¿es seguro este link? …» (phishing, marcas falsas, acortadores…)
   {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
+    const ct = !reesc && E && E.parsearTexto && E.parsearTexto(text);
+    if (ct) { const u = (ct.texto.match(/https?:\/\/\S+/) || [])[0]; appendMessage('bot', E.explicarTexto(E.estafaTexto(ct.texto)) + (u ? '\n\nEl enlace:\n' + E.explicar(u, E.analizarUrl(u)) : '')); return; }
     if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
   }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
@@ -4171,7 +4173,8 @@ window._asagiEjecutarFrase = function (frase) {
         const ES = window.AsagiEscudo;
         if (ES && AC.notifLista) {
           const nl = ((await AC.notifLista()) || {}).lista || [];
-          e.enlaces = [];
+          e.enlaces = []; e.estafas = [];
+          nl.forEach((o) => { if (!/(bcp|interbank|bbva|scotia|yape|plin|bancaribe)\.(?:android|app)|com\.(?:bcp|interbank|bbva|scotiabank)/i.test(String(o.app || ''))) { const r = ES.estafaTexto(o.texto); if (r.nivel === 'peligro') e.estafas.push({ de: o.titulo || o.nombre || o.app, app: o.nombre || o.app, texto: String(o.texto || ''), r }); } });
           nl.forEach((o) => { String(o.texto || '').replace(/\b(?:https?:\/\/|www\.)[^\s<>"'«»]+|\b(?:[a-z0-9-]+\.)+(?:xyz|top|click|link|zip|mov|gq|tk|ml|cf|ga|icu|buzz|sbs|cfd|lat|info|online|site|live)(?:\/[^\s<>"'«»]*)?/gi, (u) => {
             const url = /^https?:/i.test(u) ? u : 'https://' + u.replace(/^www\./i, 'www.');
             const r = ES.analizarUrl(url); if (r.nivel === 'peligro') e.enlaces.push({ url, de: o.titulo || o.nombre || o.app, app: o.nombre || o.app, r });
@@ -4185,6 +4188,10 @@ window._asagiEjecutarFrase = function (frase) {
     (e.enlaces || []).forEach((l) => {
       const k = 'link_' + l.url.slice(0, 80);
       if (!e.vistos[k]) av.push({ clave: k, valor: 1, texto: '⛔ Ojo: te llegó un enlace PELIGROSO de ' + l.de + ' (' + l.app + '): ' + l.r.host + '\n' + l.r.motivos.slice(0, 2).map((m) => '• ' + m).join('\n') + '\nNo lo abras ni pongas datos ahí.' });
+    });
+    (e.estafas || []).forEach((s) => {
+      const k = 'estafa_' + s.texto.slice(0, 60);
+      if (!e.vistos[k]) av.push({ clave: k, valor: 1, texto: '⛔ Ojo: un mensaje de ' + s.de + ' (' + s.app + ') parece ESTAFA:\n' + s.r.motivos.slice(0, 3).map((m) => '• ' + m).join('\n') + '\nNo respondas, no pagues ni des códigos.' });
     });
     if (!av.length) return;
     av.forEach((a) => { e.vistos[a.clave] = a.valor; appendMessage('bot', a.texto); if (window._asagiAviso) window._asagiAviso(a.texto, false, '👁'); });

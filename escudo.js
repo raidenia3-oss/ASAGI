@@ -104,6 +104,10 @@ var ESTAFAS = [
   [/(pr[eé]stamo|cr[eé]dito)\s+(inmediato|al instante|sin aval|sin garant[ií]a|sin revisar|aprobado)/i, 'préstamo fácil sin requisitos'],
   [/(trabajo|chamba|empleo)\s+(desde casa|remoto|online)[\s\S]{0,80}(gana|S\/|soles|d[oó]lares|al d[ií]a|diario)|gana\s+(S\/\s?)?\d{2,4}\s*(soles|diarios|al d[ií]a)/i, 'trabajo fácil ganando mucho (suelen pedir un pago o tu cuenta)'],
   [/(paga|abona|deposita|yapea)[\s\S]{0,40}(para (liberar|recibir|desbloquear|retirar)|comisi[oó]n|derecho de tr[aá]mite)/i, 'te pide pagar para recibir algo'],
+  [/(bono|subsidio)\s+(yape|del estado|familiar|universal|electrico|el[eé]ctrico|\d{3})[\s\S]{0,120}(link|enlace|clic|click|registr|inscr[ií]b|https?:|www\.)/i, 'falso bono con enlace para «registrarte»'],
+  [/(gana|ganar|ganas|te pagamos|pagamos)[\s\S]{0,50}(por (dar )?likes?|por seguir (cuentas|canales)|por ver videos|por (hacer |completar )?tareas|por calificar|por rese[ñn]as)/i, 'te pagan por dar likes o tareas (estafa de tareas)'],
+  [/(portabilidad|cambio de (operador|chip)|duplicado de chip)[\s\S]{0,80}(c[oó]digo|clave|pin)/i, 'te pide un código por «portabilidad» o cambio de chip'],
+  [/cheque[\s\S]{0,80}(a tu nombre|a su nombre|para cobrar|por cobrar|deposit)/i, 'un «cheque a tu nombre» (estafa del Banco de la Nación)'],
   [/(urgente|inmediatamente|en las pr[oó]ximas \d+ horas|hoy mismo|[uú]ltimo aviso)/i, 'mete prisa'],
   [/(sunat|sunarp|reniec|bcp|interbank|bbva|scotiabank|yape|plin|serpost|olva)[\s\S]{0,100}(https?:\/\/|www\.|\.xyz|\.top|bit\.ly|clic|click)/i, 'se hace pasar por una entidad y trae un enlace']
 ];

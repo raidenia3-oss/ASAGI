@@ -52,7 +52,12 @@ function escucharUnaVez() {
     var d = D && D.crearDictado({ lang: 'es-ES', continuo: false,
       onParcial: function (t) { barra('🎙 ' + t); },
       onFinal: function (t) { final = t; },
-      onEstado: function (e) { if ((e === 'detenido' || e === 'error') && !listo) { listo = true; ok(final.trim()); } } });
+      onEstado: function (e, cod) {
+        if (listo) return;
+        // sin permiso o sin servicio de voz: no es silencio, es que el micrófono no funciona
+        if (e === 'error' && /not-allowed|service-not-allowed|audio-capture|network/.test(String(cod || ''))) { listo = true; ok(null); return; }
+        if (e === 'detenido' || e === 'error') { listo = true; ok(final.trim()); }
+      } });
     if (!d) { ok(null); return; }
     d.iniciar();
     setTimeout(function () { if (!listo) { try { d.detener(); } catch (e) {} } }, 12000);
@@ -91,7 +96,7 @@ async function iniciar(enviar, estado) {
     barra('🎙 Te escucho…');
     var t = await escucharUnaVez();
     if (!yo.vivo) break;
-    if (t === null) { terminar('No pude usar el micrófono.'); break; }
+    if (t === null) { terminar('No pude usar el micrófono (¿le diste permiso a ASAGI? Ajustes de Android › Apps › ASAGI › Permisos › Micrófono).'); break; }
     if (!t) { if (++silencios >= 2) { terminar('Como no dijiste nada, terminé la conversación.'); break; } continue; }
     silencios = 0;
     if (esFin(t)) { await decirEnVoz('Listo, hasta luego.'); terminar('Conversación terminada.'); break; }

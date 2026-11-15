@@ -29,7 +29,12 @@ var HERRAMIENTAS = [
   ['pon música | pon canciones de <artista> | pausa la música', 'música del celular', /^(?:pon musica(?: aleatoria)?|pon canciones de .{2,60}|pausa la musica|sigue la musica)$/],
   ['alarma a las <hora>', 'poner una alarma', /^(?:pon una )?alarma (?:a las|para las) .{1,20}$/],
   ['temporizador de <N> minutos', 'temporizador', /^temporizador de \d{1,3} minutos?$/],
-  ['mis habilidades', 'ver habilidades enseñadas', /^mis habilidades$/]
+  ['mis habilidades', 'ver habilidades enseñadas', /^mis habilidades$/],
+  ['clima <hoy|mañana> en <ciudad>', 'clima y pronóstico (sin ciudad = Lima)', /^(?:clima|va a llover)(?: (?:hoy|manana))?(?: en .{2,40})?$/],
+  ['a cuánto está el <dólar|euro|bitcoin> | convierte <N> <moneda> a <moneda>', 'tipo de cambio de hoy', /^(?:a cuanto esta el (?:dolar|euro|bitcoin)|convierte \d+(?:[.,]\d+)? .{2,20} a .{2,20})$/],
+  ['cuánto falta para <fecha o fiesta>', 'días que faltan', /^cuanto falta para .{3,40}$/],
+  ['mi lista de compras', 'lo que falta comprar', /^mi lista de compras$/],
+  ['hay que comprar <cosas>', 'anotar en la lista de compras', /^hay que comprar .{1,120}$/]
 ];
 var PROHIBIDO = /^(?:paga|pagar|transfier|yapea|envia|enviar|manda|publica|confirmo|borra|elimina|olvida|toca|escribe en|desinstala|claude|crea una web|instala)/;   // además de la lista blanca
 

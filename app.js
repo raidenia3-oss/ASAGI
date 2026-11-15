@@ -443,6 +443,21 @@ function ctxMemoria(q) {
   } catch (e) { return ''; }
 }
 
+// Lo que pasa ahora en el celular de Daniel, en líneas cortas, para que el cerebro responda con datos reales.
+function estadoVivo() {
+  const l = [];
+  try {
+    const fin = new Date(); fin.setHours(23, 59, 59, 999);
+    const pen = (JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || []).filter((p) => p && !p.hecho);
+    if (pen.length) l.push('Pendientes (' + pen.length + '): ' + pen.slice(0, 6).map((p) => p.texto + (p.cuando ? ' [' + new Date(p.cuando).toLocaleString('es-PE', { weekday: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) + (p.cuando < Date.now() ? ', vencido' : '') + ']' : '')).join(' · '));
+    else l.push('Pendientes: ninguno.');
+  } catch (e) {}
+  try { const C = window.AsagiCompras; const f = C ? C.faltantes() : []; if (f.length) l.push('Lista de compras: ' + f.slice(0, 8).map((x) => x.texto).join(', ')); } catch (e) {}
+  try { const M = window.AsagiMusica, e2 = M && M.estado && M.estado(); if (e2 && e2.activo && e2.pista) l.push('Música: ' + (e2.sonando ? 'suena' : 'en pausa') + ' «' + e2.pista.titulo + '»'); } catch (e) {}
+  try { const c = localStorage.getItem('asagi-ciudad'); l.push('Ciudad: ' + (c || 'Lima')); } catch (e) {}
+  return l;
+}
+
 // El modelo del celular como función prompt -> texto ('' si no está cargado). Lo usan el chat, los bots y las manos.
 function localResponder(p) {
   const brain = getBrainBridge();
@@ -490,8 +505,13 @@ async function startBotStreaming(userText) {
       let pen = null;
       if (P) {
         try {
-          pen = await P.pensar(userText, pedir, { fuerte: !!(gk || ak || mk || nube.hay), persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '',
-            daniel: sab.daniel, saber: sab.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular });
+          const fuerte = !!(gk || ak || mk || nube.hay), AG = window.AsagiAgente;
+          pen = await P.pensar(userText, pedir, { fuerte, persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '',
+            daniel: sab.daniel, saber: sab.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular,
+            // memoria de la charla (el modelo del celular es chico: menos), lo que pasa ahora y sus herramientas
+            historial: P.historial ? P.historial(state.messages, userText, fuerte ? 8 : 4, fuerte ? 280 : 140) : '',
+            estado: estadoVivo(),
+            herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase });
         } catch (e) { pen = null; }
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);

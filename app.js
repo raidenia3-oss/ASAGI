@@ -3594,7 +3594,13 @@ if ('serviceWorker' in navigator) {
   // caía sobre la pantalla recién abierta (o la casa) y la cerraba. Se ignoran los clics 450 ms.
   let ignorarHasta = 0;
   function sinToqueFantasma() { ignorarHasta = Date.now() + 450; }
-  document.addEventListener('click', (e) => { if (Date.now() < ignorarHasta) { e.stopPropagation(); e.preventDefault(); } }, true);
+  document.addEventListener('click', (e) => {
+    if (Date.now() < ignorarHasta) { e.stopPropagation(); e.preventDefault(); return; }
+    // con una pantalla abierta encima, la casa de atrás no recibe toques (un clic tardío de Android
+    // caía en «Pendientes» de la casa y cambiaba de pantalla tras deslizar)
+    const enCasa = e.target && e.target.closest && e.target.closest('#launcher');
+    if (enCasa && hayOverlay() && !e.target.closest('.panel.overlay')) { e.stopPropagation(); e.preventDefault(); }
+  }, true);
   // gestos en la casa (no en la barra de búsqueda, para no estorbar al escribir)
   // Si el dedo está desplazando la lista de apps, el gesto es para la lista: solo abre el chat
   // cuando la lista ya llegó al final (o el dedo empezó abajo, en la zona de "desliza…"), y Status

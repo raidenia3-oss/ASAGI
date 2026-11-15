@@ -400,3 +400,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .frase-tap::before { content: ''; position: absolute; left: -2px; right: -2px; top: -9px; bottom: -9px; }
 /* nivel compacto legible (≥11 px) */
 #assistant.conversando .nivel-chip span { font-size: 0.7rem !important; }
+@media (max-width: 359px) {
+  #assistant.conversando .panel-header-text { flex-direction: column !important; align-items: flex-start !important; gap: 2px !important; }
+  #assistant.conversando .nivel-chip span { white-space: nowrap; overflow: visible; }
+}

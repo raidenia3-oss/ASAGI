@@ -30,6 +30,7 @@ function armar(d, momento, x) {
   var pen = x.pendientes || [];
   if (momento === 'noche') l.push(pen.length ? '📌 Quedan ' + pen.length + ' pendiente(s): ' + pen.slice(0, 3).map(function (p) { return p.texto; }).join(' · ') + '.' : '📌 Sin pendientes: día cerrado.');
   else l.push(pen.length ? '📌 Para hoy (' + pen.length + '): ' + pen.slice(0, 4).map(function (p) { return p.texto; }).join(' · ') + '.' : '📌 Nada pendiente hoy. Dime «recuérdame…» si algo surge.');
+  if (x.clima) l.push(x.clima);
   if (x.compras && x.compras.length) l.push('🛒 Por comprar (' + x.compras.length + '): ' + x.compras.slice(0, 4).join(', ') + (x.compras.length > 4 ? '…' : '') + '.');
   if (x.gastoHoy != null) l.push('💸 Hoy: gastaste S/ ' + x.gastoHoy.toFixed(2) + (x.ingresoHoy ? ' y recibiste S/ ' + x.ingresoHoy.toFixed(2) : '') + '.');
   if (x.notif && x.notif.total) l.push('🔔 ' + x.notif.total + ' notificación(es)' + (x.notif.top ? ', sobre todo de ' + x.notif.top : '') + '.');
@@ -65,6 +66,22 @@ async function datos() {
       nl.forEach(function (o) { var k = o.nombre || o.app; por[k] = (por[k] || 0) + 1; });
       var top = Object.keys(por).sort(function (a, b) { return por[b] - por[a]; })[0];
       x.notif = { total: nl.length, top: top };
+    }
+  } catch (e) {}
+  // clima de hoy (ciudad elegida o Lima), con tope de 4 s para no hacer esperar
+  try {
+    if (typeof navigator === 'undefined' || navigator.onLine !== false) {
+      var ciudad = 'Lima'; try { ciudad = localStorage.getItem('asagi-ciudad') || 'Lima'; } catch (e) {}
+      var tope = function (p) { return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej(new Error('lento')); }, 4000); })]); };
+      var g = await tope(fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=es&name=' + encodeURIComponent(ciudad)).then(function (r) { return r.json(); }));
+      var pl = g && g.results && g.results[0];
+      if (pl) {
+        var w = await tope(fetch('https://api.open-meteo.com/v1/forecast?latitude=' + pl.latitude + '&longitude=' + pl.longitude + '&current=temperature_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1').then(function (r) { return r.json(); }));
+        if (w && w.daily) {
+          var ll = (w.daily.precipitation_probability_max || [0])[0] || 0;
+          x.clima = (ll >= 50 ? '🌧 ' : '🌤 ') + pl.name + ': ' + Math.round(w.daily.temperature_2m_min[0]) + '° a ' + Math.round(w.daily.temperature_2m_max[0]) + '°' + (ll >= 30 ? ', ' + ll + '% de lluvia' + (ll >= 50 ? ' (lleva paraguas)' : '') : '') + '.';
+        }
+      }
     }
   } catch (e) {}
   try { var M = window.AsagiMusica, e2 = M && M.estado && M.estado(); if (e2 && e2.activo && e2.pista) x.musica = { titulo: e2.pista.titulo, sonando: e2.sonando }; } catch (e) {}

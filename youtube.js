@@ -44,11 +44,15 @@ function canalDeHtml(html) {
 }
 // Primer canal en una página de resultados de búsqueda (channelRenderer). PURO.
 function canalDeBusqueda(html) {
+  html = desescapar(html);
   var m = String(html || '').match(/"channelRenderer":\{"channelId":"(UC[\w-]{22})","title":\{"simpleText":"([^"]{1,80})"/);
   if (!m) m = String(html || '').match(/"compactChannelRenderer":\{"channelId":"(UC[\w-]{22})"[\s\S]{0,2000}?"(?:displayName|title)":\{(?:"runs":\[\{"text"|"simpleText"):"([^"]{1,80})"/);
   return m ? { id: m[1], nombre: decodificar(m[2]) } : canalDeHtml(html);
 }
+// m.youtube.com manda ytInitialData como texto con escapes \xNN: lo desescapo para poder leerlo. PURO.
+function desescapar(html) { var h = String(html || ''); return /\\x7b\\x22/.test(h) ? h.replace(/\\x([0-9a-fA-F]{2})/g, function (_, x) { return String.fromCharCode(parseInt(x, 16)); }) : h; }
 function videosDeBusqueda(html, k) {
+  html = desescapar(html);
   var out = [], re = /"videoRenderer":\{"videoId":"([\w-]{11})"[\s\S]{0,2500}?"title":\{"runs":\[\{"text":"([^"]{1,140})"/g, m, vistos = {};
   while ((m = re.exec(String(html || ''))) && out.length < (k || 5)) { if (!vistos[m[1]]) { vistos[m[1]] = 1; out.push({ id: m[1], titulo: decodificar(m[2]) }); } }
   // m.youtube.com (lo que llega con user-agent de celular) usa «videoWithContextRenderer»: título primero, id después

@@ -59,8 +59,9 @@ await di('prioridades');
 // Protección, YouTube y navegación liviana (descargas nativas, sin abrir navegador)
 await di('es seguro este link https://bcp-verifica.xyz/login', 6000);
 await di('esto es estafa: Hola mamá, cambié de número, yapéame 200 urgente', 6000);
+out(`- YouTube por descarga nativa: ${await ev("Capacitor.Plugins.AsagiNavegador.traer({url:'https://www.youtube.com/results?search_query=lofi'}).then(r=>'estado '+r.estado+', '+(r.texto||'').length+' letras, url '+r.url+', videoRenderer:'+/videoRenderer/.test(r.texto)+', compacto:'+/videoWithContextRenderer/.test(r.texto)+', escapado:'+/\\\\x7b/.test(r.texto)+', videos leídos: '+AsagiYouTube.videosDeBusqueda(r.texto,3).map(v=>v.titulo).join(' | ')).catch(e=>'error '+e.message)")}`);
 await di('busca en youtube música lofi para estudiar', 25000);
-await di('explora Machu Picchu', 50000);
+await di('explora Machu Picchu', 90000);
 await di('qué es tendencia en Perú', 20000);
 await di('vigila esta página https://example.com', 25000);
 await di('qué páginas vigilas', 6000);

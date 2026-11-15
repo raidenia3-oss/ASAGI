@@ -411,3 +411,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .message.bot.herr .msg-text { font-size: 0.86em; opacity: 0.72; max-height: 3.1em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
 .message.bot.herr .msg-text::before { content: '🔧 '; }
 .message.bot.herr.abierta .msg-text { max-height: none; -webkit-mask-image: none; mask-image: none; opacity: 0.9; }
+/* frases tocables: el relleno vertical cuenta como zona de toque (~45 px) y no mueve las líneas */
+.frase-tap { padding: 9px 3px !important; margin: -9px 0 !important; vertical-align: baseline; background: none !important; border-radius: 0 !important; }
+.frase-tap::before { content: none !important; }
+.frase-tap:active { background: rgba(255, 215, 0, 0.18) !important; border-radius: 6px !important; }

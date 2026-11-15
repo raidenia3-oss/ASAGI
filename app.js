@@ -993,6 +993,11 @@ chatForm.addEventListener('submit', (event) => {
     const VG = window.AsagiVigia, c = !reesc && VG && VG.parsear(text);
     if (c) { VG.ejecutar(c, (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '👁 No pude: ' + ((e && e.message) || e))); return; }
   }
+  // Modo explorador: «explora …» (Wikipedia + noticias + videos, sin abrir navegador)
+  {
+    const EX = window.AsagiExplorar, c = !reesc && EX && EX.parsear(text);
+    if (c) { EX.explorar(c.q, (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '🧭 No pude: ' + ((e && e.message) || e))); return; }
+  }
   // «compara precios de …» en tiendas del Perú
   {
     const PR = window.AsagiPrecios, c = !reesc && PR && PR.parsear(text);

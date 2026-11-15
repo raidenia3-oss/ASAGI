@@ -76,7 +76,7 @@ function limpiarUrl(url) {
 }
 
 // Texto de una página que va al cerebro: neutraliza órdenes escondidas (prompt injection). PURO.
-var ORDENES = /(ignora|ignore|olvida|forget|disregard)\s+(todas?\s+)?(las\s+)?(instrucciones|instructions|reglas|rules)[^.\n]*|(eres|you are) (ahora|now)\b[^.\n]*|system prompt[^.\n]*|(nuevas? instrucciones|new instructions)\s*:[^\n]*|(env[ií]a|send|transfiere|transfer|paga|pay)\s+(tus?|your|el|la|los)?\s*(datos|data|contraseñ|password|claves?|tokens?|dinero|money)[^.\n]*/gi;
+var ORDENES = /(ignora|ignore|olvida|forget|disregard)\s+(?:(?:todas?|todo|las|lo|tus|sus|your|all|the|any|previous|prior|anteriores?)\s+){0,3}(instrucciones|instructions|reglas|rules|indicaciones|lo anterior|lo que te dijeron)[^.\n]*|(eres|you are) (ahora|now)\b[^.\n]*|system prompt[^.\n]*|(nuevas? instrucciones|new instructions)\s*:[^\n]*|(env[ií]a|send|transfiere|transfer|paga|pay)\s+(tus?|your|el|la|los)?\s*(datos|data|contraseñ|password|claves?|tokens?|dinero|money)[^.\n]*/gi;
 function neutralizar(texto) {
   var n = 0;
   var t = String(texto || '').replace(ORDENES, function (m) { n++; return '[texto de la página que intentaba dar órdenes: ignorado]'; });

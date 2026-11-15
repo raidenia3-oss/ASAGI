@@ -66,6 +66,7 @@ const files = [
   'compartir.js',
   'precios.js',
   'vigia-web.js',
+  'explorar.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

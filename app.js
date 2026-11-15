@@ -1083,9 +1083,9 @@ chatForm.addEventListener('submit', (event) => {
         return;
       }
       if (o.accion === 'investigar') {
-        appendMessage('bot', '🔎 Busco «' + o.pregunta + '» en la web…');
+        appendMessage('bot', o.profundo ? '🔬 Investigo «' + o.pregunta + '» a fondo: varias búsquedas y 6 páginas (1-3 min)…' : '🔎 Busco «' + o.pregunta + '» en la web…');
         const pensarNav = async (p) => { if (!window._asagiPensar) return null; const r = await window._asagiPensar(p); return r && String(r).trim() ? String(r).trim() : null; };
-        NV.investigar(o.pregunta, pensarNav, (t) => appendMessage('bot', t)).then((r) =>
+        NV.investigar(o.pregunta, pensarNav, (t) => appendMessage('bot', t), 0, !!o.profundo).then((r) =>
           appendMessage('bot', r.texto + (r.fuentes.length ? '\n\nFuentes:\n' + r.fuentes.join('\n') : ''))).catch(fallo);
         return;
       }

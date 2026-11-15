@@ -76,14 +76,30 @@ async function buscar(q) {
 }
 
 // Busca, abre las mejores páginas, las lee y resume con fuentes. pensar(prompt) -> texto (o null sin cerebro).
-async function investigar(pregunta, pensar, progreso, n) {
-  n = n || 3;
-  var res = (await buscar(pregunta)).filter(function (r) { return /^https?:/.test(r.url); }).slice(0, 6);
+async function investigar(pregunta, pensar, progreso, n, profundo) {
+  n = n || (profundo ? 4 : 3);
+  var res = (await buscar(pregunta)).filter(function (r) { return /^https?:/.test(r.url); }).slice(0, 8);
   if (!res.length) return { texto: 'No encontré resultados para «' + pregunta + '».', fuentes: [] };
-  var paginas = [];
-  for (var i = 0; i < res.length && paginas.length < n; i++) {
-    if (progreso) progreso('📖 Leyendo ' + (paginas.length + 1) + '/' + n + ': ' + res[i].titulo.slice(0, 60));
-    try { var p = await ir(res[i].url); if (p && p.texto && p.texto.length > 120 && !/^(un momento|just a moment|attention required|access denied|verifica)/i.test(p.titulo || '')) paginas.push({ url: p.url || res[i].url, titulo: p.titulo || res[i].titulo, texto: p.texto }); } catch (e) {}
+  var paginas = [], vistas = {};
+  async function leerDe(lista, cuantas, total) {
+    for (var i = 0, hechas = 0; i < lista.length && hechas < cuantas; i++) {
+      if (vistas[lista[i].url]) continue; vistas[lista[i].url] = 1;
+      var E0 = window.AsagiEscudo; if (E0 && E0.analizarUrl(lista[i].url).nivel === 'peligro') continue;   // ni lo abro
+      if (progreso) progreso('📖 Leyendo ' + (paginas.length + 1) + '/' + total + ': ' + lista[i].titulo.slice(0, 60));
+      try { var p = await ir(lista[i].url); if (p && p.texto && p.texto.length > 120 && !/^(un momento|just a moment|attention required|access denied|verifica)/i.test(p.titulo || '')) { paginas.push({ url: p.url || lista[i].url, titulo: p.titulo || lista[i].titulo, texto: p.texto }); hechas++; } } catch (e) {}
+    }
+  }
+  await leerDe(res, n, profundo ? n + 2 : n);
+  // A fondo: el cerebro ve lo leído, decide UNA búsqueda que falta y se leen 2 páginas más.
+  if (profundo && pensar && paginas.length) {
+    var falta = null;
+    try { falta = await pensar('Pregunta de Daniel: «' + pregunta + '». Ya leí esto (DATOS):\n' + paginas.map(function (p) { return '- ' + p.titulo + ': ' + String(p.texto).slice(0, 500); }).join('\n') +
+      '\n¿Qué UNA búsqueda en la web (máx. 8 palabras, en español) falta para responder completo y con datos actuales? Responde SOLO la búsqueda, o NADA si ya está completo.'); } catch (e) {}
+    falta = String(falta || '').split('\n')[0].replace(/^["«»'\s-]+|["«»'\s.]+$/g, '').slice(0, 90);
+    if (falta && !/^nada\b/i.test(falta) && falta.length > 3) {
+      if (progreso) progreso('🔎 Me falta algo: busco «' + falta + '»…');
+      try { await leerDe((await buscar(falta)).filter(function (r) { return /^https?:/.test(r.url); }).slice(0, 5), 2, n + 2); } catch (e) {}
+    }
   }
   if (!paginas.length) paginas = res.slice(0, n).map(function (r) { return { url: r.url, titulo: r.titulo, texto: r.resumen }; });
   var fuentes = paginas.map(function (p, i) { return '[' + (i + 1) + '] ' + p.titulo + ' — ' + p.url; });
@@ -117,12 +133,12 @@ var _leer = _conPC('leer', leer, function () { return { accion: 'leer' }; }, fun
 var _clic = _conPC('clic', clic, function (n) { return { accion: 'clic', n: n }; }, function (w) { if (w.pagina) ultima = w.pagina; return w.ok === undefined ? Object.assign({ ok: !!w.pagina }, w) : w; });
 var _escribir = _conPC('escribir', escribir, function (n, t, e) { return { accion: 'escribir', n: n, texto: t, enviar: !!e }; }, function (w) { if (w.pagina) ultima = w.pagina; return w.ok === undefined ? Object.assign({ ok: !!w.pagina }, w) : w; });
 var _volver = _conPC('volver', volver, function () { return { accion: 'volver' }; }, function (w) { ultima = w.pagina; return w.pagina; });
-var _investigar = async function (pregunta, pensar, progreso, n) {
+var _investigar = async function (pregunta, pensar, progreso, n, profundo) {
   if (progreso && window._asagiLan) progreso('🖥 Le pido a ARIA que lo busque en la PC (no gasto RAM del celular)…');
-  var w = await _aria({ accion: 'investigar', pregunta: pregunta });
+  var w = await _aria({ accion: 'investigar', pregunta: pregunta, profundo: !!profundo });
   if (w && !w.error && w.texto) { _viaPC = true; return { texto: w.texto, fuentes: w.fuentes || [], via: 'ARIA' }; }
   _viaPC = false; _ocioso();
-  return investigar(pregunta, pensar, progreso, n);
+  return investigar(pregunta, pensar, progreso, n, profundo);
 };
 
 // YouTube: lo resume ARIA en la PC (lee los subtítulos con su navegador y piensa con su modelo).

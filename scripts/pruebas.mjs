@@ -81,5 +81,7 @@ ok(AG.parsear('investiga qué piden para postular a la UNI').investigar && AG.pa
 
 ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayúdame a estudiar para la UNI').tipo === 'uni', 'UNI: dato vs pedido');
 
+{ const CV = R('conversacion.js'); ok(CV.parsear('hablemos') && CV.parsear('modo conversación') && !CV.parsear('hablemos de física') && CV.esFin('basta') && !CV.esFin('qué hora es'), 'modo conversación'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

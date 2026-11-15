@@ -57,6 +57,7 @@ const files = [
   'gemini-guia.js',
   'memoria-ia.js',
   'buscar-mis-cosas.js',
+  'conversacion.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

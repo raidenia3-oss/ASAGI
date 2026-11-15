@@ -132,7 +132,7 @@ function entender(texto) {
 
 var AYUDA = {
   dia: ['📅 Tu día', ['qué tengo hoy', 'recuérdame … mañana a las 8', 'ya pagué internet', 'resumen del día', 'pon una alarma a las 7', 'temporizador de 10 minutos', 'modo concentración 25 minutos', 'agrega pan y leche a la lista', 'mi lista de compras']],
-  celular: ['📱 Tu celular', ['abre YouTube', 'llama a 987654321', 'cuánta batería tengo', 'enciende la linterna', 'sube el volumen', 'pon música', 'pon canciones de Soda Stereo', 'apaga la música en 30 minutos', 'qué notificaciones tengo', 'cuánto gasté esta semana']],
+  celular: ['📱 Tu celular', ['hablemos', 'abre YouTube', 'llama a 987654321', 'cuánta batería tengo', 'enciende la linterna', 'sube el volumen', 'pon música', 'pon canciones de Soda Stereo', 'apaga la música en 30 minutos', 'qué notificaciones tengo', 'cuánto gasté esta semana']],
   cuentas: ['🧮 Cuentas', ['cuánto es 15% de 230', 'raíz de 144', 'convierte 50 dólares a soles', 'convierte 10 km a millas', '30 grados a fahrenheit', 'cuenta de 150 con 10% de propina entre 3', 'qué día será en 45 días', 'cuánto falta para navidad']],
   info: ['🌎 Información', ['cómo va el clima', 'clima en Arequipa', 'qué hora es en Japón', 'traduce buenos días al inglés', 'qué significa awesome', 'wiki fotosíntesis', 'busca recetas de lomo saltado', 'dato curioso']],
   ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'dónde anoté lo del examen', 'busca en mis cosas internet', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],

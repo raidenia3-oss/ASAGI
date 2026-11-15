@@ -943,6 +943,15 @@ chatForm.addEventListener('submit', (event) => {
   if (!reesc && window.AsagiGeminiGuia && /^(?:conecta(?:r)?|activa(?:r)?|usa(?:r)?|pon(?:er)?|configura(?:r)?) (?:a )?gemini(?: gratis)?$|^(?:quiero|dame) (?:un )?cerebro$|^como te (?:pongo|doy) (?:un )?cerebro$/i.test(text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[¿?¡!.]/g, '').trim())) {
     appendMessage('bot', '🔑 Te abro la guía: 3 pasos y quedo con cerebro gratis.'); window.AsagiGeminiGuia.abrir(); return;
   }
+  // «hablemos»: conversación a manos libres (escucha → responde en voz → escucha).
+  {
+    const CV = window.AsagiConversacion, c = !reesc && CV && CV.parsear(text);
+    if (c) {
+      appendMessage('bot', '📞 Modo conversación: habla cuando veas “Te escucho”. Para terminar di “basta” o toca la barra de arriba.');
+      setTimeout(() => CV.iniciar((t) => { const i = document.getElementById('message-input'); if (i) { i.value = t; chatForm.requestSubmit(); } }, state), 300);
+      return;
+    }
+  }
   // Ayuda por temas (siempre: con cerebro también, para que muestre lo que de verdad sabe hacer).
   {
     const SC = window.AsagiSinCerebro, c = !reesc && SC && SC.entender(text);

@@ -98,6 +98,7 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
      E.parsearTexto('¿esto es estafa? Ganaste un premio, reclama aquí con tus datos').texto.startsWith('Ganaste'), 'escudo: mensajes de estafa');
   { const RDm = require('../resumen-dia.js'); const t = RDm.armar(new Date(2026, 10, 15, 9), 'manana', { redes: [['Instagram', 3], ['WhatsApp', 12]], ytDespues: 2 });
     ok(/Redes: Instagram 3 · WhatsApp 12/.test(t) && /2 video\(s\) para después/.test(t), 'mi día: redes y videos'); }
+  { const CHm = require('../chrome.js'); ok(CHm.parsear('busca el clima de mañana en Lima en Chrome').q === 'el clima de mañana en Lima' && CHm.parsear('googlea dólar hoy').q === 'dólar hoy' && CHm.parsear('abre youtube en chrome').accion === 'abrir', 'chrome: buscar en Google'); }
   { const CPm = require('../compartir.js'); ok(CPm.parsearCopia('¿Qué copié?') && CPm.parsearCopia('revisa lo que copié') && !CPm.parsearCopia('copia esto'), 'compartir: portapapeles'); }
   }
 

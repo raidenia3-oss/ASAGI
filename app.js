@@ -20,7 +20,7 @@ const defaultState = {
     {
       id: uid(),
       sender: 'bot',
-      text: 'Hola. Soy ASAGI. ¿En qué puedo ayudarte hoy?',
+      text: 'Hola, Daniel. Soy ASAGI. Pídeme lo que necesites, o toca «mi día» o «¿qué puedes hacer?».',
       time: horaCorta()
     }
   ],

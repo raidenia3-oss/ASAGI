@@ -15,7 +15,10 @@ var MARCAS = {
   instagram: ['instagram.com'], whatsapp: ['whatsapp.com', 'wa.me', 'whatsapp.net'], tiktok: ['tiktok.com'], netflix: ['netflix.com'],
   paypal: ['paypal.com'], microsoft: ['microsoft.com', 'live.com', 'outlook.com', 'office.com'], apple: ['apple.com', 'icloud.com'],
   amazon: ['amazon.com'], mercadolibre: ['mercadolibre.com.pe', 'mercadolibre.com'], steam: ['steampowered.com', 'steamcommunity.com'],
-  binance: ['binance.com'], discord: ['discord.com', 'discord.gg'], roblox: ['roblox.com']
+  binance: ['binance.com'], discord: ['discord.com', 'discord.gg'], roblox: ['roblox.com'],
+  falabella: ['falabella.com.pe', 'falabella.com'], ripley: ['ripley.com.pe'], oechsle: ['oechsle.pe'], plazavea: ['plazavea.com.pe'], tottus: ['tottus.com.pe'],
+  claro: ['claro.com.pe'], movistar: ['movistar.com.pe'], entel: ['entel.pe'], bitel: ['bitel.com.pe'], sedapal: ['sedapal.com.pe'], 'luz del sur': ['luzdelsur.com.pe'], enel: ['enel.pe', 'enel.com'],
+  olva: ['olvacourier.com', 'olva.com.pe'], serpost: ['serpost.com.pe'], shein: ['shein.com', 'shein.com.pe'], temu: ['temu.com'], spotify: ['spotify.com'], openai: ['openai.com', 'chatgpt.com']
 };
 var ACORTADORES = ['bit.ly', 'tinyurl.com', 't.co', 'cutt.ly', 'is.gd', 'rebrand.ly', 'ow.ly', 'shorturl.at', 'rb.gy', 'tiny.cc', 'linktr.ee', 'acortar.link'];
 var TLD_RARO = /\.(zip|mov|xyz|top|click|link|gq|tk|ml|cf|ga|work|support|rest|cam|icu|buzz|monster|quest|sbs|cfd|lat)$/;

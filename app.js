@@ -276,8 +276,8 @@ window._asagiCompartido = (texto, asunto) => {
 // keys de Gemini (para resumir videos de YouTube con Gemini); nunca se muestran
 window._asagiClavesGemini = () => String((readBrainControls() || {}).geminiKey || '').split(/[\s,]+/).filter(Boolean);
 // avisos de videos nuevos de los canales que sigues (cada 2 h con la app abierta)
-setTimeout(() => { const tick = () => { if (window.AsagiVigia) window.AsagiVigia.vigilar((t) => appendMessage('bot', t)).catch(() => {}); }; setInterval(tick, 30 * 60 * 1000); setTimeout(tick, 60000); }, 1000);
-setTimeout(() => { const tick = () => { if (window.AsagiYouTube) window.AsagiYouTube.vigilar((t) => appendMessage('bot', t)).catch(() => {}); }; tick(); setInterval(tick, 20 * 60 * 1000); }, 15000);
+setTimeout(() => { const tick = () => { if (window.AsagiVigia) window.AsagiVigia.vigilar((t) => { appendMessage('bot', t); if (window._asagiAviso) window._asagiAviso(t.split('\n')[0].replace(/^\S+\s/, ''), false, '👁'); }).catch(() => {}); }; setInterval(tick, 30 * 60 * 1000); setTimeout(tick, 60000); }, 1000);
+setTimeout(() => { const tick = () => { if (window.AsagiYouTube) window.AsagiYouTube.vigilar((t) => { appendMessage('bot', t); if (window._asagiAviso) window._asagiAviso(t.split('\n')[0].replace(/^\S+\s/, '').slice(0, 140), false, '📺'); }).catch(() => {}); }; tick(); setInterval(tick, 20 * 60 * 1000); }, 15000);
 // La guía «Usar Gemini gratis» guarda aquí la key ya probada (sin tocar el modo ni otras keys).
 window._asagiGuardarKeyGemini = function (k) {
   k = String(k || '').trim(); if (!k) return;

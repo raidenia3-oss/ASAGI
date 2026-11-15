@@ -39,5 +39,7 @@ ok(RZ.necesitaDatos('quién es el presidente del perú') && !RZ.necesitaDatos('e
 const av = AG.vigilar({ ahora: new Date(2026, 10, 19, 10).getTime(), vistos: {}, datos: ['el cumpleaños de mi mamá es el 20 de noviembre'] });
 ok(av.length === 1 && /Mañana es el cumpleaños de tu mamá/.test(av[0].texto), 'aviso de cumpleaños');
 
+ok(U.parsear('traduce buenos días al inglés').a === 'en' && U.parsear('qué significa la vida') === null, 'traducir');
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

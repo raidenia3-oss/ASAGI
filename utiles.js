@@ -30,6 +30,14 @@ function parsear(t) {
   if ((m = n.match(/^(?:a cuanto esta|cuanto esta|precio del|como esta) (?:el |la )?(dolar|euro|bitcoin|peso chileno|peso mexicano|real)(?: hoy)?$/))) return { accion: 'cambio', monto: 1, de: MONEDAS[m[1]], a: 'PEN' };
   if ((m = n.match(/^(?:cuanto falta|cuantos dias faltan|cuanto queda|cuantos dias quedan) (?:para|pa) (?:el |la )?(.{3,40})$/))) return { accion: 'falta', que: m[1] };
   if ((m = n.match(/^(?:que dia (?:cae|es|sera)|cuando (?:cae|es)) (?:el |la )?(navidad|ano nuevo|dia de la madre|dia del padre|fiestas patrias|halloween|san valentin|semana santa|\d{1,2} de [a-z]+)$/))) return { accion: 'falta', que: m[1] };
+  // traducir (frases cortas; lo largo lo hace el cerebro): «traduce buenos días al inglés», «cómo se dice gato en japonés», «qué significa thank you»
+  var LANG = '(ingles|espanol|castellano|frances|portugues|italiano|aleman|japones|chino|coreano|ruso|quechua)';
+  if ((m = String(t).trim().replace(/[¿?¡!]+/g, '').match(new RegExp('^(?:traduce(?:me)?|traducir)\\s+[«"\']?(.{1,120}?)[»"\']?\\s+(?:al?|en)\\s+' + LANG.replace(/a/g, '[aá]').replace(/e/g, '[eé]') + '$', 'i'))))
+    return { accion: 'traducir', texto: m[1], a: IDIOMA[norm(m[2])] };
+  if ((m = String(t).trim().replace(/[¿?¡!]+/g, '').match(new RegExp('^c[oó]mo se dice\\s+[«"\']?(.{1,80}?)[»"\']?\\s+en\\s+' + LANG.replace(/a/g, '[aá]').replace(/e/g, '[eé]') + '$', 'i'))))
+    return { accion: 'traducir', texto: m[1], a: IDIOMA[norm(m[2])] };
+  if ((m = String(t).trim().replace(/[¿?¡!]+/g, '').match(/^qu[eé] significa\s+[«"']?([a-z' ]{2,60}?)[»"']?(?:\s+en (?:español|espanol|castellano))?$/i)) && /^[a-z' ]+$/i.test(m[1]) && !/\b(?:la|el|los|las|de|del|que|y|mi|tu|un|una|es|ser|estar|vida|amor)\b/i.test(m[1]))
+    return { accion: 'traducir', texto: m[1], a: 'es', de: 'en' };
   if ((m = n.match(/^(?:que hora es|que horas son|hora) (?:en|de) (.{3,30})$/))) return { accion: 'horaen', lugar: m[1], nombre: String(t).replace(/[¿?¡!.]+/g, '').trim().split(/\s(?:en|de)\s/i).pop() };
   if ((m = n.match(/^ya (?:pague|hice|termine|llame a|llame|envie|mande|estudie|fui a|lave|limpie|saque|complete|acabe|cumpli con|entregue) (.{2,80})$/))) return { accion: 'hecho', que: m[1], verbo: n.split(' ')[1] };
   if ((m = n.match(/^(?:marca|pon) (?:como hecho|como listo|hecho) (?:el pendiente (?:de )?)?(.{2,80})$/))) return { accion: 'hecho', que: m[1] };
@@ -92,6 +100,8 @@ var FRASES = ['No tienes que verlo todo claro; solo da el siguiente paso.', 'Lo 
 
 async function getJSON(url) { var r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
+var IDIOMA = { ingles: 'en', espanol: 'es', castellano: 'es', frances: 'fr', portugues: 'pt', italiano: 'it', aleman: 'de', japones: 'ja', chino: 'zh-CN', coreano: 'ko', ruso: 'ru', quechua: 'qu' };
+var NOMBRE_IDIOMA = { en: 'inglés', es: 'español', fr: 'francés', pt: 'portugués', it: 'italiano', de: 'alemán', ja: 'japonés', 'zh-CN': 'chino', ko: 'coreano', ru: 'ruso', qu: 'quechua' };
 var ZONAS = { 'japon': 'Asia/Tokyo', 'tokio': 'Asia/Tokyo', 'china': 'Asia/Shanghai', 'pekin': 'Asia/Shanghai', 'corea': 'Asia/Seoul', 'seul': 'Asia/Seoul', 'india': 'Asia/Kolkata',
   'espana': 'Europe/Madrid', 'madrid': 'Europe/Madrid', 'barcelona': 'Europe/Madrid', 'francia': 'Europe/Paris', 'paris': 'Europe/Paris', 'italia': 'Europe/Rome', 'roma': 'Europe/Rome',
   'alemania': 'Europe/Berlin', 'berlin': 'Europe/Berlin', 'inglaterra': 'Europe/London', 'londres': 'Europe/London', 'reino unido': 'Europe/London', 'rusia': 'Europe/Moscow', 'moscu': 'Europe/Moscow',
@@ -167,6 +177,16 @@ async function ejecutar(c, decir, ctx) {
   if (c.accion === 'motivar') { decir('💪 ' + FRASES[Math.floor(Math.random() * FRASES.length)]); return; }
   if (c.accion === 'estudiar') {
     decir('📖 Vamos. Te propongo:\n1. «temporizador de 25 minutos» (concentración) y luego 5 de descanso.\n2. «quiz de matemáticas» para practicar.\n3. «qué es …» o «wiki …» para repasar conceptos.\n4. «recuérdame estudiar mañana a las 7» para no perder el ritmo.');
+    return;
+  }
+  if (c.accion === 'traducir') {
+    var de = c.de || (c.a === 'es' ? 'en' : 'es');
+    try {
+      var j = await getJSON('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(c.texto) + '&langpair=' + de + '|' + c.a);
+      var tr = j && j.responseData && j.responseData.translatedText;
+      if (tr && !/MYMEMORY WARNING|INVALID/i.test(tr)) { decir('🌐 «' + c.texto + '» en ' + NOMBRE_IDIOMA[c.a] + ':\n' + tr); return; }
+    } catch (e) {}
+    decir('🌐 No pude traducir ahora (¿sin internet?). Prueba aquí: https://translate.google.com/?sl=' + de + '&tl=' + c.a + '&text=' + encodeURIComponent(c.texto));
     return;
   }
   if (c.accion === 'horaen') {

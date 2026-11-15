@@ -1110,7 +1110,7 @@ chatForm.addEventListener('submit', (event) => {
   // Lo cotidiano sin cerebro: clima, cambio de moneda, cuánto falta para…, volumen.
   {
     const U = window.AsagiUtiles, c = U && U.parsear(text);
-    if (c && ['clima', 'cambio', 'falta', 'volumen', 'horaen', 'hecho', 'borrarpend', 'nombre', 'minombre'].includes(c.accion)) {
+    if (c && ['clima', 'cambio', 'falta', 'volumen', 'traducir', 'horaen', 'hecho', 'borrarpend', 'nombre', 'minombre'].includes(c.accion)) {
       U.ejecutar(c, (t) => appendMessage('bot', t)).catch(() => appendMessage('bot', c.accion === 'volumen' ? 'No pude cambiar el volumen.' : 'No pude consultarlo (¿sin internet?).'));
       return;
     }

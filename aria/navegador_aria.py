@@ -232,22 +232,50 @@ class Navegador:
         self.cerrar()
         self.headless = not si
 
-    def investigar(self, pregunta, pensar=None, progreso=None, n=3):
-        res = [r for r in (self.buscar(pregunta) or []) if str(r.get("url", "")).startswith("http")][:6]
+    def investigar(self, pregunta, pensar=None, progreso=None, n=3, profundo=False):
+        if profundo:
+            n = max(n, 4)
+        res = [r for r in (self.buscar(pregunta) or []) if str(r.get("url", "")).startswith("http")][:8]
         if not res:
             return {"texto": "No encontré resultados para «%s»." % pregunta, "fuentes": []}
-        paginas = []
-        for r in res:
-            if len(paginas) >= n:
-                break
-            if progreso:
-                progreso("📖 Leyendo %d/%d: %s" % (len(paginas) + 1, n, r["titulo"][:60]))
+        paginas, vistas = [], set()
+        total = n + 2 if profundo else n
+
+        def leer_de(lista, cuantas):
+            hechas = 0
+            for r in lista:
+                if hechas >= cuantas:
+                    break
+                if r["url"] in vistas:
+                    continue
+                vistas.add(r["url"])
+                if progreso:
+                    progreso("📖 Leyendo %d/%d: %s" % (len(paginas) + 1, total, r["titulo"][:60]))
+                try:
+                    p = self.ir(r["url"])
+                    if p and len(p.get("texto") or "") > 120 and not re.match(r"(?i)^(un momento|just a moment|attention required|access denied|verifica)", p.get("titulo") or ""):
+                        paginas.append({"url": p.get("url") or r["url"], "titulo": p.get("titulo") or r["titulo"], "texto": p["texto"]})
+                        hechas += 1
+                except Exception:
+                    pass
+
+        leer_de(res, n)
+        # A fondo: el cerebro decide UNA búsqueda que falta y se leen 2 páginas más.
+        if profundo and pensar and paginas:
+            falta = ""
             try:
-                p = self.ir(r["url"])
-                if p and len(p.get("texto") or "") > 120 and not re.match(r"(?i)^(un momento|just a moment|attention required|access denied|verifica)", p.get("titulo") or ""):
-                    paginas.append({"url": p.get("url") or r["url"], "titulo": p.get("titulo") or r["titulo"], "texto": p["texto"]})
+                falta = (pensar("Pregunta de Daniel: «%s». Ya leí esto (DATOS):\n%s\n¿Qué UNA búsqueda en la web (máx. 8 palabras, en español) falta para responder completo y con datos actuales? Responde SOLO la búsqueda, o NADA si ya está completo." % (
+                    pregunta, "\n".join("- %s: %s" % (p["titulo"], str(p["texto"])[:500]) for p in paginas))) or "")
             except Exception:
-                pass
+                falta = ""
+            falta = (falta.strip().splitlines() or [""])[0].strip(" \"«»'-.")[:90]
+            if len(falta) > 3 and not re.match(r"(?i)^nada\b", falta):
+                if progreso:
+                    progreso("🔎 Me falta algo: busco «%s»…" % falta)
+                try:
+                    leer_de([r for r in (self.buscar(falta) or []) if str(r.get("url", "")).startswith("http")][:5], 2)
+                except Exception:
+                    pass
         if not paginas:
             paginas = [{"url": r["url"], "titulo": r["titulo"], "texto": r.get("resumen", "")} for r in res[:n]]
         fuentes = ["[%d] %s — %s" % (i + 1, p["titulo"], p["url"]) for i, p in enumerate(paginas)]

@@ -897,7 +897,7 @@ class LocalAIBrain:
                         import navegador_aria as _na
                         nv, a = _na.nav(), c.get("accion")
                         if a == "investigar":
-                            r = nv.investigar(str(c.get("pregunta", ""))[:200], pensar=lambda p: self.generate_chat(p))
+                            r = nv.investigar(str(c.get("pregunta", ""))[:200], pensar=lambda p: self.generate_chat(p), profundo=bool(c.get("profundo")))
                             res["r"] = {"texto": r["texto"], "fuentes": r["fuentes"]}
                         elif a == "ir":
                             res["r"] = {"pagina": nv.ir(str(c.get("url", "")))}

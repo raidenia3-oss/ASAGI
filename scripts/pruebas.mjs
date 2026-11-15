@@ -138,6 +138,7 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   {
     const Y = require('../youtube.js');
     ok(Y.parsear('guarda este video para después https://youtu.be/dQw4w9WgXcQ').accion === 'despues' && Y.idDe('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=3') === 'dQw4w9WgXcQ' &&
+       Y.datosVideo('"videoDetails":{"videoId":"x","title":"Cómo hacer pan","lengthSeconds":"600","shortDescription":"Receta fácil\\nIngredientes: harina","author":"Cocina Pe"}').minutos === 10 && Y.datosVideo('"videoDetails":{"title":"Cómo hacer pan","shortDescription":"Receta fácil\\nIngredientes"}').descripcion === 'Receta fácil\nIngredientes' &&
        Y.parsear('qué veo hoy').accion === 'queVeo' && Y.parsear('mis videos para después').accion === 'listaDespues' && Y.parsear('resume este video https://youtu.be/dQw4w9WgXcQ').accion === 'resumir', 'youtube: ver después y qué veo hoy');
   }
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');

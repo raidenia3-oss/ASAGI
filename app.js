@@ -1464,7 +1464,7 @@ renderBrainControls();
 // --- Dictado por voz: hablarle a ASAGI y que se transcriba al chat ---
 (function initDictado() {
   const mic = document.getElementById('mic-btn');
-  if (!mic || !window.AsagiDictado || !window.AsagiDictado.soportado()) return;
+  if (!mic || !window.AsagiDictado || !window.AsagiDictado.soportado()) { const i = document.getElementById('message-input'); if (i) i.placeholder = 'Escribe aquí…'; return; }
   mic.hidden = false;                       // solo si el WebView lo soporta
   let enviarTimer = null;
   const dic = window.AsagiDictado.crearDictado({
@@ -1493,7 +1493,7 @@ renderBrainControls();
       if (window._asagiAvatarEstado) window._asagiAvatarEstado(e === 'escuchando' ? 'escuchando' : 'reposo');
     },
   });
-  if (!dic) { mic.hidden = true; return; }
+  if (!dic) { mic.hidden = true; input.placeholder = 'Escribe aquí…'; return; }
   mic.addEventListener('click', function () { dic.alternar(); });
 })();
 

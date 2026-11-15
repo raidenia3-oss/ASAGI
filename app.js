@@ -138,6 +138,9 @@ function installHeaderPinning() {
 // Núcleo v5: el Launcher es la casa (siempre visible). Asistente/Status/Grok son
 // overlays ambientales que suben/bajan sobre la casa. 'launcher' = volver a casa.
 function setActiveSection(sectionName) {
+  // registro corto (diagnóstico del emulador de CI): quién cambió de pantalla y desde dónde
+  try { const st = (new Error().stack || '').split('\n').slice(2, 4).map((x) => x.trim().replace(/https?:\/\/[^/]+\//, '').slice(0, 60)).join(' < ');
+    (window.__secciones = window.__secciones || []).push(Math.round(performance.now()) + 'ms ' + sectionName + ' ← ' + st); if (window.__secciones.length > 8) window.__secciones.shift(); } catch (e) {}
   state.activeSection = sectionName;
   const overlays = document.querySelectorAll('.panel.overlay');
   const aCasa = !sectionName || sectionName === 'launcher' || sectionName === 'home';

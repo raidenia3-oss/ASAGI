@@ -96,6 +96,7 @@ adb(`shell input swipe ${SW / 2} ${Math.round(SH * 0.9)} ${SW / 2} ${Math.round(
 await sleep(1200);
 const enChat = await ev("document.getElementById('assistant').classList.contains('open')");
 out(`- Deslizar hacia arriba abre el chat: ${enChat ? 'sí ✓' : 'NO ✗ (lo abro a mano)'}`);
+if (!enChat) out('    · cambios de pantalla: ' + JSON.stringify(await ev('window.__secciones || null')));
 if (!enChat) out('    · decisión del gesto: ' + JSON.stringify(await ev('({ gesto: window.__gesto || null, error: window.__gestoError || null, corto: window.__gestoCorto || null, lento: window.__gestoLento || null })')));
 if (!enChat) { out('    · toques que llegaron a la página: ' + ((await ev("(window.__toques||[]).filter((t,i,a)=>!t.startsWith('touchmove')||i===a.findIndex(x=>x.startsWith('touchmove'))).join(' ')")) || 'ninguno')); await ev("setActiveSection('assistant')"); }
 await revisar('Chat', 'p02_chat');

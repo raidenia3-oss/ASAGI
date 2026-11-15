@@ -339,6 +339,22 @@ public class AsagiControlPlugin extends Plugin {
                     call.resolve(r);
                     return;
                 }
+                case "volumen": {          // sube/baja/silencio/al N% del volumen de música, mostrando la barra de Android
+                    android.media.AudioManager am = (android.media.AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+                    String dir = call.getString("dir", "subir");
+                    int st = android.media.AudioManager.STREAM_MUSIC, max = am.getStreamMaxVolume(st);
+                    int fl = android.media.AudioManager.FLAG_SHOW_UI;
+                    try {
+                        if ("subir".equals(dir)) { am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_RAISE, fl); am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_RAISE, fl); }
+                        else if ("bajar".equals(dir)) { am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_LOWER, fl); am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_LOWER, fl); }
+                        else if ("silencio".equals(dir)) am.setStreamVolume(st, 0, fl);
+                        else if ("poner".equals(dir)) am.setStreamVolume(st, Math.round(max * Math.max(0, Math.min(100, call.getInt("valor", 50))) / 100f), fl);
+                    } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); call.resolve(r); return; }
+                    r.put("ok", true);
+                    r.put("porcentaje", Math.round(am.getStreamVolume(st) * 100f / Math.max(1, max)));
+                    call.resolve(r);
+                    return;
+                }
                 default:
                     call.reject("accion desconocida: " + tipo);
                     return;

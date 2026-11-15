@@ -496,12 +496,14 @@ async function startBotStreaming(userText) {
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
       // sin ningún cerebro: lo que ASAGI sabe hacer sola (charla corta, chistes, ayuda, búsquedas…) en vez de la respuesta de prueba
-      // sin cerebro ni internet, «qué es X» se responde con la Wikipedia de la SD
-      if (res && res.backend === 'prueba' && window.AsagiWiki && window.AsagiWiki.pregunta(userText)) {
-        try {
-          const rs = await window.AsagiWiki.buscar(window.AsagiWiki.pregunta(userText), 1);
-          if (rs.length) res = { texto: window.AsagiWiki.resumen(rs[0]) + '\n(de tu Wikipedia sin internet)', backend: 'Wikipedia local' };
-        } catch (e) {}
+      // sin cerebro: «qué es X» (Wikipedia de la SD o en línea), «quién eres», «motívame», «ayúdame a estudiar»…
+      if (res && res.backend === 'prueba' && window.AsagiUtiles) {
+        const cu = window.AsagiUtiles.parsear(userText);
+        if (cu) {
+          let txt = '';
+          try { await window.AsagiUtiles.ejecutar(cu, (t) => { txt += (txt ? '\n' : '') + t; }); } catch (e) {}
+          if (txt) res = { texto: txt, backend: cu.accion === 'quees' ? 'Wikipedia' : 'sin cerebro' };
+        }
       }
       if (res && res.backend === 'prueba' && window.AsagiSinCerebro) {
         try {
@@ -996,6 +998,15 @@ chatForm.addEventListener('submit', (event) => {
     window.AsagiNavegador.claude(text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
       .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
     return;
+  }
+
+  // Lo cotidiano sin cerebro: clima, cambio de moneda, cuánto falta para…, volumen.
+  {
+    const U = window.AsagiUtiles, c = U && U.parsear(text);
+    if (c && ['clima', 'cambio', 'falta', 'volumen'].includes(c.accion)) {
+      U.ejecutar(c, (t) => appendMessage('bot', t)).catch(() => appendMessage('bot', c.accion === 'volumen' ? 'No pude cambiar el volumen.' : 'No pude consultarlo (¿sin internet?).'));
+      return;
+    }
   }
 
   // Lista de compras (sin internet): «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan».

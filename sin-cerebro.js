@@ -129,6 +129,7 @@ function ayudaTexto() {
     '• «recuérdame … mañana a las 8», «qué tengo hoy», «guarda en la bandeja: …»\n' +
     '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
     '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +
+    '• «hazlo tú: <objetivo>» (modo autónomo: piensa y usa sus herramientas sola), «detén el modo autónomo»\n' +
     '• «resumen del día», «qué tengo hoy», «buenas noches»\n' +
     '• «pon música», «pon canciones de Soda Stereo», «pausa», «siguiente», «mi música», «apaga la música en 30 minutos»\n' +
     '• «qué notificaciones tengo», «cuánto gasté esta semana», «cuánto me yapearon hoy»\n' +

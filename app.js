@@ -805,6 +805,19 @@ chatForm.addEventListener('submit', (event) => {
   if (!reesc) appendMessage('user', text);
   input.value = '';
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
+  // Modo autónomo: «hazlo tú: …», «objetivo: …», «detén el modo autónomo», «activa/apaga el vigilante».
+  {
+    const AG = window.AsagiAgente, c = !reesc && AG && AG.parsear(text);
+    if (c) {
+      const decir = (t) => appendMessage('bot', t);
+      if (c.accion === 'detener') { decir(AG.detener() ? '⏹ Deteniendo…' : 'No estaba trabajando en nada.'); return; }
+      if (c.accion === 'vigilante') { try { localStorage.setItem('asagi-vigilante', c.on ? '1' : '0'); } catch (e) {} decir(c.on ? '👁 Vigilante activo: te aviso de batería baja, pendientes vencidos y gastos grandes.' : 'Vigilante apagado.'); return; }
+      if (!window._asagiPensar) { decir('Para el modo autónomo necesito un cerebro: descarga el modelo o pon una key gratis en el Asistente.'); return; }
+      AG.correr(c.objetivo, (p) => window._asagiPensar(p), window._asagiEjecutarFrase, decir).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
+      return;
+    }
+  }
+
   // Habilidades que le enseñas (macros): «aprende buenos días: clima; mis gastos hoy».
   {
     const H = window.AsagiHabilidades;
@@ -3758,3 +3771,52 @@ document.getElementById('sugerencias')?.addEventListener('click', (e) => {
   const inp = document.getElementById('message-input'); if (!inp) return;
   inp.value = b.dataset.di; chatForm.requestSubmit();
 });
+
+// Ejecuta una frase como si Daniel la escribiera (sin mostrarla) y devuelve lo que ASAGI respondió.
+// Lo usa el modo autónomo para «observar» el resultado de cada herramienta.
+window._asagiEjecutarFrase = function (frase) {
+  return new Promise((resolve) => {
+    const desde = state.messages.length, lenta = /busca en la web|wiki/i.test(frase);
+    let ult = desde, quieto = 0, t0 = Date.now();
+    window._asagiReescribir = frase;
+    try { chatForm.requestSubmit(); } catch (e) { chatForm.dispatchEvent(new Event('submit', { cancelable: true })); }
+    const iv = setInterval(() => {
+      const n = state.messages.length;
+      if (n !== ult) { ult = n; quieto = 0; } else quieto += 400;
+      const nuevos = state.messages.slice(desde).filter((m) => m.sender === 'bot');
+      const listo = nuevos.length && quieto >= (lenta ? 6000 : 2000);
+      if (listo || Date.now() - t0 > (lenta ? 90000 : 25000)) {
+        clearInterval(iv);
+        resolve(nuevos.map((m) => m.text).join('\n').slice(0, 1500) || '(sin respuesta)');
+      }
+    }, 400);
+  });
+};
+
+// Vigilante autónomo: cada 15 min con la app a la vista (sin cerebro, sin internet). Encendido por defecto.
+(function vigilante() {
+  const AG = window.AsagiAgente; if (!AG) return;
+  async function revisar() {
+    let on = '1'; try { on = localStorage.getItem('asagi-vigilante') || '1'; } catch (e) {}
+    if (on !== '1' || document.hidden) return;
+    const C = window.Capacitor && window.Capacitor.Plugins, AC = C && C.AsagiControl;
+    const e = { ahora: Date.now(), vistos: {} };
+    try { e.vistos = JSON.parse(localStorage.getItem('asagi-vigilante-vistos') || '{}'); } catch (x) {}
+    try { e.pendientes = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'); } catch (x) {}
+    try { if (AC && AC.accion) { const b = await AC.accion({ tipo: 'bateria' }); if (b && b.ok) e.bateria = b; } } catch (x) {}
+    try {
+      const NT = window.AsagiNotif;
+      if (AC && AC.notifEstado && NT && (await AC.notifEstado()).activo) {
+        const f = await AC.notifFinanzas({ desde: Date.now() - 864e5 });
+        e.gastos = NT.unicos(((f && f.lista) || []).map(NT.movimiento).filter(Boolean)).filter((m) => m.moneda === 'PEN');
+      }
+    } catch (x) {}
+    const av = AG.vigilar(e);
+    if (!av.length) return;
+    av.forEach((a) => { e.vistos[a.clave] = a.valor; appendMessage('bot', a.texto); if (window._asagiAviso) window._asagiAviso(a.texto, false, '👁'); });
+    try { localStorage.setItem('asagi-vigilante-vistos', JSON.stringify(e.vistos)); } catch (x) {}
+  }
+  setTimeout(revisar, 20000);
+  setInterval(revisar, 15 * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(revisar, 3000); });
+})();

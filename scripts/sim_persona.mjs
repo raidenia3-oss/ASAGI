@@ -37,7 +37,9 @@ const REVISAR = `(() => {
   const inter = [...panel.querySelectorAll('button, a[href], input, textarea, select, [role=button]')].filter(vis);
   const nombre = (e) => (e.id ? '#' + e.id : e.tagName.toLowerCase()) + (e.innerText || e.placeholder || e.getAttribute('aria-label') || '').trim().slice(0, 22).replace(/^/, ' «') + '»';
   inter.forEach((e) => { const r = e.getBoundingClientRect();
-    if (r.right > W + 1 || r.left < -1) prob.push('se sale por el lado: ' + nombre(e));
+    // dentro de una fila que se desliza de lado (atajos del chat) es a propósito
+    const enFila = (() => { for (let x = e.parentElement; x; x = x.parentElement) { const cs = getComputedStyle(x); if (/(auto|scroll)/.test(cs.overflowX) && x.scrollWidth > x.clientWidth) return true; } return false; })();
+    if (!enFila && (r.right > W + 1 || r.left < -1)) prob.push('se sale por el lado: ' + nombre(e));
     if ((r.width < 36 || r.height < 36) && e.type !== 'checkbox' && e.type !== 'range') prob.push('chico para el dedo (' + Math.round(r.width) + '×' + Math.round(r.height) + '): ' + nombre(e)); });
   const chicos = new Set();
   [...panel.querySelectorAll('*')].filter((e) => e.childElementCount === 0 && (e.innerText || '').trim() && vis(e)).forEach((e) => {

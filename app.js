@@ -912,7 +912,7 @@ chatForm.addEventListener('submit', (event) => {
       if (c.accion === 'vigilante') { try { localStorage.setItem('asagi-vigilante', c.on ? '1' : '0'); } catch (e) {} decir(c.on ? '👁 Vigilante activo: te aviso de batería baja, pendientes vencidos y gastos grandes.' : 'Vigilante apagado.'); return; }
       if (c.investigar) {   // investigar necesita un cerebro fuerte; sin él, una búsqueda simple
         const bc = readBrainControls();
-        if (!(bc.geminiKey || bc.atriaKey || bc.mistralKey || bc.clavesExtra)) { window._asagiReescribir = 'busca en la web ' + text.replace(/^\S+\s+(?:sobre\s+|acerca de\s+|bien\s+|a fondo\s+)?/i, ''); chatForm.requestSubmit(); return; }
+        if (!(bc.geminiKey || bc.atriaKey || bc.mistralKey || bc.clavesExtra)) { const q = 'busca en la web ' + text.replace(/^\S+\s+(?:sobre\s+|acerca de\s+|bien\s+|a fondo\s+)?/i, ''); setTimeout(() => { window._asagiReescribir = q; chatForm.requestSubmit(); }, 0); return; }   // (dentro de un submit, requestSubmit se ignora)
       }
       if (!window._asagiPensar) { decir('Para el modo autónomo necesito un cerebro: descarga el modelo o pon una key gratis en el Asistente.'); return; }
       AG.correr(c.objetivo, (p) => window._asagiPensar(p), window._asagiEjecutarFrase, decir, { titulo: c.titulo }).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
@@ -999,7 +999,7 @@ chatForm.addEventListener('submit', (event) => {
   // Lo cotidiano lo resuelve ASAGI sola, con o sin cerebro (hora, cuentas, alarmas, abrir apps, batería, hoy…).
   {
     const SC = window.AsagiSinCerebro, o = SC && SC.entender(text);
-    const DIRECTO = { hora: 1, fecha: 1, cuenta: 1, alarma: 1, temporizador: 1, enfoque: 1, marcar: 1, abrir: 1, bateria: 1, hoy: 1, reescribir: 1, uni: 1, panel: 1 };
+    const DIRECTO = { hora: 1, fecha: 1, cuenta: 1, alarma: 1, temporizador: 1, enfoque: 1, marcar: 1, abrir: 1, bateria: 1, hoy: 1, reescribir: 1, uni: 1, panel: 1, ruta: 1 };
     if (o && DIRECTO[o.tipo]) {
       SC.responder(text, ctxSinCerebro()).then((r) => {
         if (r && r.reescribir) { window._asagiReescribir = r.reescribir; chatForm.requestSubmit(); return; }

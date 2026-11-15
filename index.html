@@ -374,14 +374,21 @@
             </div>
           </header>
           <div class="pend-add">
-            <input id="pend-input" type="text" placeholder="Escribe o dicta: recuérdame… mañana a las 8" autocomplete="off">
+            <input id="pend-input" type="text" placeholder="Ej: pagar la luz mañana" autocomplete="off">
             <button id="pend-mic" class="mic-btn" type="button" hidden aria-label="Dictar pendiente">🎤</button>
             <button id="pend-go" type="button">Añadir</button>
           </div>
           <ul id="pend-list" class="pend-list"></ul>
-          <div id="pend-vacio" class="pend-vacio">Nada pendiente. Dile a ASAGI "recuérdame…" o escríbelo arriba.</div>
+          <div id="pend-vacio" class="pend-vacio">Nada pendiente. Escríbelo arriba o dile a ASAGI «recuérdame…».
+            <div class="pend-ejemplos"><button type="button" data-ej="Llamar a mamá hoy 7 pm">Llamar a mamá hoy 7 pm</button><button type="button" data-ej="Estudiar para la UNI mañana 4 pm">Estudiar mañana 4 pm</button><button type="button" data-ej="Pagar internet el viernes">Pagar internet el viernes</button></div></div>
           <div class="pend-foot">
             <button id="pend-limpiar" class="secondary" type="button" style="width:auto;">Limpiar hechos</button>
+          </div>
+          <div id="compras-panel" class="co-panel">
+            <div class="co-head"><h3>🛒 Compras</h3><span class="co-cnt"></span></div>
+            <div class="co-form"><input class="co-input" type="text" placeholder="Ej: pan, leche y huevos" autocomplete="off" aria-label="Añadir a compras"><button class="co-add" type="button">Añadir</button></div>
+            <ul class="co-lista"></ul>
+            <button class="co-limpiar secondary" type="button" hidden>Borrar lo comprado</button>
           </div>
         </section>
 

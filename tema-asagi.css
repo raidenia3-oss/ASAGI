@@ -272,7 +272,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .sugerencias button { flex: 0 0 auto; min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.35);
   background: rgba(255, 215, 0, 0.06); color: #F0F0F8; font: 500 0.82rem/1 var(--sans); cursor: pointer; }
 .sugerencias button:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
-#assistant.conversando .sugerencias { display: none; }
+#assistant.con-usuario .sugerencias { display: none; }
 
 /* ---------- Música: mini reproductor encima del cuadro de texto + hoja con la lista ---------- */
 .mu-mini { display: flex; align-items: center; gap: 4px; margin: 0 12px 8px; padding: 6px 6px 6px 10px; border-radius: 16px;
@@ -316,7 +316,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .panel.overlay > .panel-header { padding-right: 88px; }
 #pendientes .pend-add { margin: 0 12px 12px; }
 #pendientes .pend-add .mic-btn { flex: 0 0 44px; width: 44px; height: 44px; }
-.sugerencias { flex-wrap: wrap; overflow: visible; }
+.sugerencias { flex-wrap: nowrap; overflow-x: auto; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 40px; }
 
 .mu-casa { margin: 10px 0 0; width: 100%; max-width: 420px; align-self: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 
@@ -334,3 +334,29 @@ html, body { font-family: var(--sans); color: var(--papel); }
 #assistant.escribiendo .ov-back { top: 6px !important; transform: scale(.85) !important; }
 #assistant.escribiendo .chat { flex: 1 1 auto; min-height: 0; }
 .bot-reply-status { padding-top: 4px !important; padding-bottom: 4px !important; }
+#assistant.conversando:not(.escribiendo) .panel-header-text { margin-right: 66px !important; min-width: 0; }
+#assistant.conversando .nivel-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#assistant.conversando:not(.escribiendo) .panel-header-text { overflow: hidden; padding-right: 0; }
+#assistant.conversando .nivel-chip { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+#assistant.conversando .nivel-chip span { letter-spacing: 0.1em; }
+#assistant.conversando .nivel-chip span { letter-spacing: 0.05em; font-size: 0.68rem; }
+#assistant.conversando:not(.escribiendo) .panel-header-text { gap: 8px; }
+.pend-ejemplos { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+.pend-ejemplos button { min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.35); background: rgba(255, 215, 0, 0.06); color: #F0F0F8; font: inherit; font-size: 0.85rem; width: auto; }
+#pend-limpiar[hidden] { display: none !important; }
+.enj-feed-h { font-size: 0.72rem !important; }
+/* lista de compras dentro de Pendientes */
+.co-panel { margin: 18px 14px 24px; padding: 14px; border-radius: 16px; border: 1px solid rgba(220, 20, 60, 0.3); background: rgba(220, 20, 60, 0.05); }
+.co-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.co-head h3 { margin: 0; font-size: 1.05rem; color: #F0F0F8; }
+.co-cnt { font: 500 0.78rem var(--mono); color: #FFD700; }
+.co-form { display: flex; gap: 8px; }
+.co-input { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+.co-add { width: auto !important; min-height: 44px; padding: 0 16px; }
+.co-lista { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.co-item { width: 100%; text-align: left; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.12); background: rgba(8, 4, 8, 0.6); color: #F0F0F8; font: inherit; font-size: 0.95rem; }
+.co-item.hecho { color: rgba(240, 240, 248, 0.45); text-decoration: line-through; }
+.co-limpiar { width: auto !important; margin-top: 10px; }
+.co-limpiar[hidden] { display: none !important; }
+.co-input { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(240, 240, 248, .04) !important; color: var(--text) !important; font-size: 15px; }
+.co-add { border-radius: 12px; border: none; background: var(--cyan) !important; color: #15070d !important; font-weight: 700; }

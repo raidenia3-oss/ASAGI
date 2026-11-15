@@ -77,10 +77,43 @@ function aplicar(lista, c) {
 
 function leer() { try { var l = JSON.parse(localStorage.getItem(CLAVE) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
 function guardar(l) { try { localStorage.setItem(CLAVE, JSON.stringify(l)); } catch (e) {} }
-function hacer(c) { var r = aplicar(leer(), c); if (c.tipo !== 'ver') guardar(r.lista); return r.texto; }
+function hacer(c) { var r = aplicar(leer(), c); if (c.tipo !== 'ver') { guardar(r.lista); if (API.repintar) try { API.repintar(); } catch (e) {} } return r.texto; }
 function faltantes() { return leer().filter(function (it) { return !it.hecho; }); }
 
-var API = { parsear: parsear, aplicar: aplicar, hacer: hacer, faltantes: faltantes };
+// Panel visible en «Pendientes»: tocar = comprado/no comprado; campo para añadir («pan, leche y huevos»).
+function panel() {
+  if (typeof document === 'undefined') return;
+  var caja = document.getElementById('compras-panel'); if (!caja) return;
+  var ul = caja.querySelector('.co-lista'), inp = caja.querySelector('.co-input'), cnt = caja.querySelector('.co-cnt'), limp = caja.querySelector('.co-limpiar');
+  function pintar() {
+    var l = leer(); ul.innerHTML = '';
+    l.slice().sort(function (a, b) { return (a.hecho ? 1 : 0) - (b.hecho ? 1 : 0); }).forEach(function (it) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.className = 'co-item' + (it.hecho ? ' hecho' : '');
+      b.setAttribute('aria-pressed', it.hecho ? 'true' : 'false');
+      b.textContent = (it.hecho ? '✓ ' : '○ ') + it.texto;
+      b.addEventListener('click', function () {
+        var x = leer(), i = x.findIndex(function (o) { return o.texto === it.texto; });
+        if (i >= 0) { x[i] = { texto: x[i].texto, hecho: !x[i].hecho }; guardar(x); pintar(); }
+      });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    var f = l.filter(function (it) { return !it.hecho; }).length;
+    cnt.textContent = l.length ? f + ' por comprar' : 'vacía';
+    limp.hidden = !l.some(function (it) { return it.hecho; });
+  }
+  function anadir() { var t = inp.value.trim(); if (!t) return; var c = separar(t); if (c.length) { guardar(aplicar(leer(), { tipo: 'agregar', cosas: c }).lista); } inp.value = ''; pintar(); }
+  caja.querySelector('.co-add').addEventListener('click', anadir);
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); anadir(); } });
+  limp.addEventListener('click', function () { guardar(aplicar(leer(), { tipo: 'limpiar' }).lista); pintar(); });
+  window.addEventListener('storage', pintar);
+  document.addEventListener('asagi-compras', pintar);
+  pintar();
+  API.repintar = pintar;
+}
+
+var API = { parsear: parsear, aplicar: aplicar, hacer: hacer, faltantes: faltantes, separar: separar };
+if (typeof document !== 'undefined') { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', panel); else setTimeout(panel, 0); }
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiCompras = API;
 })();

@@ -151,7 +151,9 @@ function renderMessages() {
   // con conversación empezada, la cabecera se compacta para dar espacio al chat
   try {
     const asis = document.getElementById('assistant');
-    if (asis) asis.classList.toggle('conversando', state.messages.some((m) => m.sender === 'user'));
+    // cabecera compacta apenas haya algo que leer (la táctica del día, pendientes…): el chat es lo principal
+    const conUsuario = state.messages.some((m) => m.sender === 'user');
+    if (asis) { asis.classList.toggle('conversando', conUsuario || state.messages.filter((m) => m.sender === 'bot').length >= 2); asis.classList.toggle('con-usuario', conUsuario); }
   } catch (e) {}
   chat.innerHTML = '';
 
@@ -1541,6 +1543,7 @@ renderBrainControls();
   const CLAVE = 'asagi-pendientes';
   let lista = [];
 
+  if (vacio) vacio.addEventListener('click', (e) => { const b = e.target.closest('button[data-ej]'); if (b && inp) { inp.value = b.dataset.ej; inp.focus(); } });
   function cargar() { try { lista = P.deserializar(localStorage.getItem(CLAVE)); } catch (e) { lista = []; } }
   window._asagiPendAgregar = function (t) { cargar(); lista = P.agregar(lista, t); guardar(); try { pintar(); } catch (e) {} };
   function guardar() {
@@ -1563,6 +1566,7 @@ renderBrainControls();
       for (const it of ord) listEl.appendChild(fila(it));
     }
     if (vacio) vacio.hidden = lista.length > 0;
+    if (limpiar) limpiar.hidden = !lista.some((x) => x.hecho);
     pintarContador();
   }
 

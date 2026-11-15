@@ -74,6 +74,12 @@ class Memoria {
     return r.nuevo;
   }
   buscar(consulta, k = 8) { return buscarEn(this._leerStore(), consulta, k); }
+  // quita los nodos que cumplan pred(nodo); devuelve los quitados
+  olvidar(pred) {
+    const arr = this._leerStore(), fuera = arr.filter(pred);
+    if (fuera.length) this._guardarStore(arr.filter((n) => !pred(n)));
+    return fuera;
+  }
   todos() { return this._leerStore().slice(); }
   stats() { return statsDe(this._leerStore()); }
 
@@ -102,9 +108,11 @@ function valeRecordar(texto, quien) {
   const t = _n(crudo);
   if (quien !== 'user' || t.length < 10 || t.length > 600) return null;
   if (_SALUDO.test(t) || _ORDEN.test(t)) return null;
+  // preguntas sin «?» («cuándo es mi cumpleaños») y órdenes de olvidar no son datos
+  if (/^(?:cuando|como|cual|cuales|que|donde|quien|quienes|cuanto|cuantos|cuantas|por que|sabes|dime|olvida|olvidate|borra|ya no)\b/.test(t)) return null;
   const pide = t.match(/^(?:recuerda|recuerdalo|acuerdate|no olvides|anota|apunta)(?:\s+que)?\s*[:,]?\s+(.{4,})$/);
   if (pide) return { texto: crudo.slice(crudo.length - pide[1].length).trim(), tema: 'pedido' };
-  if (/\b(me gusta|me encanta|no me gusta|odio|prefiero|mi favorit|siempre uso|nunca uso)\b/.test(t)) return { texto: crudo, tema: 'preferencia' };
+  if (/\b(me gusta|me encanta|no me gusta|odio|prefiero|favorit[oa]s?|siempre uso|nunca uso)\b/.test(t)) return { texto: crudo, tema: 'preferencia' };
   if (/\b(soy|me llamo|vivo en|trabajo en|trabajo de|estudio|tengo|mi (?:novia|novio|esposa|mama|papa|hermano|hermana|hijo|hija|jefe|perro|gato|pc|celular|carro|casa|cumpleanos|correo|horario|examen)|mis \w+ son)\b/.test(t)
       && !/\?\s*$/.test(t)) return { texto: crudo, tema: 'dato' };
   if (/\b(\d{1,2} de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)|el (?:lunes|martes|miercoles|jueves|viernes|sabado|domingo))\b/.test(t)

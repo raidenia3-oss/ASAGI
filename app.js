@@ -519,6 +519,11 @@ async function startBotStreaming(userText) {
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
       // sin ningún cerebro: lo que ASAGI sabe hacer sola (charla corta, chistes, ayuda, búsquedas…) en vez de la respuesta de prueba
       // sin cerebro: «qué es X» (Wikipedia de la SD o en línea), «quién eres», «motívame», «ayúdame a estudiar»…
+      // sin cerebro: «cuándo es mi cumpleaños», «mi color favorito es el rojo»… desde la memoria local
+      if (res && res.backend === 'prueba' && window.AsagiSobreMi) {
+        const cs = window.AsagiSobreMi.parsear(userText, true);
+        if (cs) { let txt = ''; window.AsagiSobreMi.ejecutar(cs, (t) => { txt += (txt ? '\n' : '') + t; }); if (txt) res = { texto: txt, backend: 'memoria' }; }
+      }
       if (res && res.backend === 'prueba' && window.AsagiUtiles) {
         const cu = window.AsagiUtiles.parsear(userText);
         if (cu) {
@@ -1020,6 +1025,12 @@ chatForm.addEventListener('submit', (event) => {
     window.AsagiNavegador.claude(text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
       .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
     return;
+  }
+
+  // Lo que ASAGI sabe de ti: «recuerda que mi cumpleaños es…», «qué sabes de mí», «olvida …».
+  {
+    const SM = window.AsagiSobreMi, c = !reesc && SM && SM.parsear(text, false);
+    if (c) { SM.ejecutar(c, (t) => appendMessage('bot', t)); return; }
   }
 
   // Lo cotidiano sin cerebro: clima, cambio de moneda, cuánto falta para…, volumen.

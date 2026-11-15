@@ -128,6 +128,7 @@ function ayudaTexto() {
     '• «pon una alarma a las 7», «temporizador de 10 minutos», «modo concentración 25 minutos»\n' +
     '• «recuérdame … mañana a las 8», «qué tengo hoy», «ya pagué internet», «borra el pendiente de …»\n' +
     '• «qué hora es en Japón», «dato curioso», «me llamo …»\n' +
+    '• «recuerda que mi cumpleaños es el 13 de mayo», «cuándo es mi cumpleaños», «qué sabes de mí», «olvida …»\n' +
     '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
     '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +
     '• «hazlo tú: <objetivo>» (modo autónomo: piensa y usa sus herramientas sola), «detén el modo autónomo»\n' +

@@ -398,6 +398,20 @@ if _QT:
                     c["y"] = -_r.uniform(0, H * 0.4); c["v"] = _r.uniform(8, 22)
             b.end()
             p.drawPixmap(0, 0, self._buf)
+            # la lluvia no pasa por encima de las tarjetas ni del chat: se lee el texto (solo en modo matrix)
+            try:
+                from PyQt5.QtWidgets import QFrame as _QF, QTextEdit as _QT
+                from PyQt5.QtGui import QPainterPath as _PP
+                from PyQt5.QtCore import QRectF as _RF
+                raiz = self.parent()
+                for w in list(raiz.findChildren(_QF, "tarjeta")) + list(raiz.findChildren(_QT)):
+                    if not w.isVisible() or w.width() < 40:
+                        continue
+                    pt = w.mapTo(raiz, w.rect().topLeft())
+                    cam = _PP(); cam.addRoundedRect(_RF(pt.x(), pt.y(), w.width(), w.height()), 16, 16)
+                    p.fillPath(cam, QColor(10, 4, 8, 215))
+            except Exception:
+                pass
 
     # ---------------- widgets de sistema (barras pintadas) ----------------
     class _Barra(QWidget):
@@ -690,6 +704,27 @@ if _QT:
             except Exception as exc:
                 print("[UI] extras: %s" % exc, flush=True)
 
+        AYUDA = ("Esto sé hacer (escríbelo así):\n"
+                 "• «busca en la web …», «navega a …», «resume este video <enlace de YouTube>»\n"
+                 "• «revisa mi correo» · «fondo de lluvia» · «fondo» (tu foto) · «sonido de lluvia»\n"
+                 "• «crea una web de …», «mis webs», «edita la web …: …», «publica la web …»\n"
+                 "• «aprende buenos días: …; …» y luego «buenos días» · «mis habilidades»\n"
+                 "• «claude: …» (le paso trabajos de código a Claude) · «conecta claude»\n"
+                 "• «prepara wikipedia», «wiki …» · «instala voz» (dictado y voz natural)\n"
+                 "• Dictado en cualquier programa: %s\n"
+                 "• O pregúntame lo que quieras y te respondo con mi cerebro local.")
+
+        def _cmd_ayuda(self, t):
+            import re as _re, unicodedata as _ud
+            n = "".join(c for c in _ud.normalize("NFD", (t or "").lower()) if _ud.category(c) != "Mn")
+            n = _re.sub(r"[¿?¡!.,]", "", n).strip()
+            if not (_re.search(r"\bque (puedes|sabes) hacer\b", n) or n in ("ayuda", "comandos", "help", "que haces")):
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            atajo = getattr(getattr(self, "_dictado", None), "atajo", None) or "Ctrl+Alt+Espacio (cuando termine de instalarse)"
+            self._linea(self.AYUDA % atajo, "aria")
+            return True
+
         def _cmd_habilidades(self, t):
             """Habilidades enseñadas (cadenas de comandos): aprender, listar, olvidar y ejecutar."""
             try:
@@ -775,7 +810,9 @@ if _QT:
             if not _tw.es_comando(t):
                 return False
             self.entrada.clear(); self._linea(t, "user")
-            self._linea("🛠 Trabajo en eso…", "sys")
+            _e = _tw.parsear_edicion(t)
+            if not (_e and _e["accion"] == "listar"):
+                self._linea("🛠 Trabajo en eso…", "sys")
             cola = getattr(self, "_bots_cola", None)
             pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
             import threading as _th
@@ -822,7 +859,8 @@ if _QT:
             except Exception as exc:
                 self._linea("⚠ %s" % exc, "aria"); return True
             if n in ("como dicto", "dictado"):
-                self._linea("🎙 Pulsa Ctrl+Alt+Espacio en cualquier programa, habla y vuelve a pulsarlo: escribo lo que dijiste ahí mismo. "
+                atajo = getattr(getattr(self, "_dictado", None), "atajo", None) or "Ctrl+Alt+Espacio"
+                self._linea("🎙 Pulsa " + atajo + " en cualquier programa, habla y vuelve a pulsarlo: escribo lo que dijiste ahí mismo. "
                             + ("Ya está listo." if dictado_pc.disponible() else "Aún falta instalarlo: di «instala voz»."), "aria")
                 return True
             falta = extras_pc.faltan()
@@ -1517,6 +1555,8 @@ if _QT:
                 self.entrada.clear(); return
             if _re.match(r"^(?:mascota|modo mascota)$", t.strip(), _re.I):
                 self.entrada.clear(); self._toggle("mascota"); return
+            if self._cmd_ayuda(t):
+                return
             if self._cmd_habilidades(t):
                 return
             if self._cmd_voz_extra(t):
@@ -1847,9 +1887,35 @@ if _QT:
             self._hist[self._pend_idx] = self._fmt(self._acc, "aria")
             self._render()
 
+        @staticmethod
+        def _limpiar_respuesta(t):
+            """El modelo local a veces contesta «{'response': 'hola!'}» o un JSON: muestra solo el texto. PURO."""
+            import re as _re, json as _json, ast as _ast
+            s = (t or "").strip()
+            if s.startswith("```"):
+                s = _re.sub(r"^```\w*\s*|\s*```$", "", s).strip()
+            if s[:1] == "{" and s[-1:] == "}":
+                d = None
+                for f in (_json.loads, _ast.literal_eval):
+                    try:
+                        d = f(s); break
+                    except Exception:
+                        continue
+                if isinstance(d, dict):
+                    for k in ("response", "respuesta", "text", "texto", "content", "answer", "message", "mensaje"):
+                        v = d.get(k)
+                        if isinstance(v, str) and v.strip():
+                            return v.strip()
+            return t
+
         def _on_listo(self, completa):
             if self._pend_idx is None:
                 return
+            limpio = self._limpiar_respuesta(self._acc or completa)
+            if limpio != (self._acc or completa) and not self._pre_modo:
+                self._acc = limpio
+                self._hist[self._pend_idx] = self._fmt(self._acc, "aria")
+                self._render()
             if not self._acc.strip():
                 self._acc = completa or "(respuesta vacía)"
                 if not self._pre_modo:

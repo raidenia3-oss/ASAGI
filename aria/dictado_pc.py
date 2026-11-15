@@ -116,6 +116,7 @@ class Dictado:
         self._t0 = 0
         self._hilo = None
         self._tid = None
+        self.atajo = None
 
     def iniciar(self):
         if os.name != "nt" or (self._hilo and self._hilo.is_alive()):
@@ -147,7 +148,7 @@ class Dictado:
         _mci("record aria_dict")
         self.grabando, self._t0 = True, time.time()
         self._beep(880)
-        self.avisar("🎙 Dictando… vuelve a pulsar Ctrl+Alt+Espacio para terminar.")
+        self.avisar("🎙 Dictando… vuelve a pulsar %s para terminar." % (getattr(self, "atajo", None) or "el atajo"))
 
     def _terminar(self):
         self.grabando = False
@@ -184,9 +185,25 @@ class Dictado:
         from ctypes import wintypes
         user32 = ctypes.windll.user32
         self._tid = ctypes.windll.kernel32.GetCurrentThreadId()
-        if not user32.RegisterHotKey(None, 1, self.MOD_CONTROL | self.MOD_ALT | self.MOD_NOREPEAT, self.VK_SPACE):
-            self.avisar("⚠ Dictado: otro programa ya usa Ctrl+Alt+Espacio.")
+        # Ctrl+Alt+Espacio; si otro programa lo tiene (o la ARIA anterior aún no lo soltó), reintenta y luego
+        # prueba Ctrl+Shift+Espacio y Alt+Shift+D. Solo avisa del atajo que quedó, sin alarmar.
+        opciones = [(self.MOD_CONTROL | self.MOD_ALT, self.VK_SPACE, "Ctrl+Alt+Espacio"),
+                    (self.MOD_CONTROL | 0x4, self.VK_SPACE, "Ctrl+Shift+Espacio"),
+                    (self.MOD_ALT | 0x4, 0x44, "Alt+Shift+D")]
+        self.atajo = None
+        for intento in range(3):
+            for mods, vk, nombre in (opciones[:1] if intento < 2 else opciones):
+                if user32.RegisterHotKey(None, 1, mods | self.MOD_NOREPEAT, vk):
+                    self.atajo = nombre
+                    break
+            if self.atajo:
+                break
+            time.sleep(3)
+        if not self.atajo:
+            print("[dictado] ningún atajo libre", flush=True)
             return
+        if self.atajo != "Ctrl+Alt+Espacio":
+            self.avisar("🎙 Dictado: uso %s (Ctrl+Alt+Espacio lo tiene otro programa)." % self.atajo)
         msg = wintypes.MSG()
         try:
             while True:

@@ -41,7 +41,10 @@ function tono(ctx = {}) {
 }
 
 // Arma el mensaje de sistema final (persona + tono + extra opcional).
+// El modelo del celular (0,5B) se pierde con instrucciones largas: versión corta.
+const PERSONA_CORTA = 'Eres ASAGI, la asistente de Daniel (Lima, Perú). Responde en español, breve (1 a 3 frases), amable y honesta: si no sabes, dilo.';
 function systemPrompt(ctx = {}, extra = '') {
+  if (ctx.corto) return [PERSONA_CORTA, extra].filter(Boolean).join(' ').trim();
   return [PERSONA, tono(ctx), extra].filter(Boolean).join(' ').trim();
 }
 

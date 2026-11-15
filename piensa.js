@@ -53,6 +53,11 @@ function armarContexto(pregunta, o) {
   partes.push('Fecha y hora reales ahora: ' + fechaTexto(o.ahora) + ' (Lima, Perú). Úsala si la pregunta depende del día.');
   var cs = cuentas(pregunta, o.calcular);
   if (cs.length) partes.push('Cuentas ya hechas con calculadora (son EXACTAS, úsalas tal cual y no las rehagas): ' + cs.join('; ') + '.');
+  if (o.corto) {   // modelo chico: solo lo esencial
+    if (o.daniel && o.daniel.length) partes.push('Sabes de Daniel: ' + o.daniel.slice(0, 3).join('; ') + '.');
+    if (o.historial) partes.push('Charla reciente:\n' + o.historial);
+    return partes.join('\n\n');
+  }
   if (o.daniel && o.daniel.length) partes.push('Lo que sabes de Daniel (te lo dijo él):\n' + o.daniel.map(function (x) { return '- ' + x; }).join('\n'));
   if (o.saber && o.saber.length) partes.push('Lo que aprendiste estudiando (cita la fuente si lo usas):\n' + o.saber.map(function (x) { return '- ' + x.texto + (x.fuente ? ' (fuente: ' + x.fuente + ')' : ''); }).join('\n'));
   if (o.estado && o.estado.length) partes.push('Cómo están las cosas de Daniel ahora mismo (datos reales del celular):\n' + o.estado.map(function (x) { return '- ' + x; }).join('\n'));
@@ -131,7 +136,7 @@ function separarPlan(txt) {
 // Pensar: directo (1 llamada) o en pasos (3). responder(prompt) -> Promise<string>. fuerte: hay cerebro remoto.
 async function pensar(pregunta, responder, o) {
   o = o || {};
-  if (!o.fuerte) { o = Object.assign({}, o, { herramientas: null, ejecutar: null }); }   // el modelo del celular es chico: sin herramientas
+  if (!o.fuerte) { o = Object.assign({}, o, { herramientas: null, ejecutar: null, corto: true, saber: (o.saber || []).slice(0, 2) }); }   // el modelo del celular es chico: sin herramientas
   var ctx = armarContexto(pregunta, o);
   var m = o.forzar || (o.fuerte ? modo(pregunta) : 'directo');      // el modelo del celular es chico: 1 pasada
   var pasos = [];

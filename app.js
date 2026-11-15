@@ -561,7 +561,7 @@ async function startBotStreaming(userText) {
       if (P) {
         try {
           const fuerte = !!(gk || ak || mk || nube.hay), AG = window.AsagiAgente;
-          pen = await P.pensar(userText, pedir, { fuerte, persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt() : '',
+          pen = await P.pensar(userText, pedir, { fuerte, persona: window.AsagiPersona ? window.AsagiPersona.systemPrompt({ corto: !fuerte }) : '',
             daniel: sab.daniel, saber: sab.saber, calcular: window.AsagiPalette && window.AsagiPalette.calcular,
             // memoria de la charla (el modelo del celular es chico: menos), lo que pasa ahora y sus herramientas
             historial: P.historial ? P.historial(state.messages, userText, fuerte ? 8 : 4, fuerte ? 280 : 140) : '',

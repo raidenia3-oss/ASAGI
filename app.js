@@ -566,6 +566,7 @@ async function startBotStreaming(userText) {
             // memoria de la charla (el modelo del celular es chico: menos), lo que pasa ahora y sus herramientas
             historial: P.historial ? P.historial(state.messages, userText, fuerte ? 8 : 4, fuerte ? 280 : 140) : '',
             estado: estadoVivo(),
+            fresco: !!(window.AsagiRazon && window.AsagiRazon.necesitaDatos(userText)),
             herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase,
             avisar: (t) => showReplyStatus(t) });
         } catch (e) { pen = null; }

@@ -57,6 +57,7 @@ function armarContexto(pregunta, o) {
   if (o.saber && o.saber.length) partes.push('Lo que aprendiste estudiando (cita la fuente si lo usas):\n' + o.saber.map(function (x) { return '- ' + x.texto + (x.fuente ? ' (fuente: ' + x.fuente + ')' : ''); }).join('\n'));
   if (o.estado && o.estado.length) partes.push('Cómo están las cosas de Daniel ahora mismo (datos reales del celular):\n' + o.estado.map(function (x) { return '- ' + x; }).join('\n'));
   if (o.historial) partes.push('Conversación reciente (para entender a qué se refiere: «eso», «y él», «otra vez»…):\n' + o.historial);
+  if (o.fresco && o.herramientas && o.herramientas.length) partes.push('OJO: esta pregunta parece pedir datos ACTUALES (personas en un cargo, precios, resultados, noticias). Si la respuesta depende de eso y no está en el contexto, usa primero «busca en la web <pregunta>»: lo que sabes puede estar desactualizado.');
   if (o.herramientas && o.herramientas.length) partes.push('HERRAMIENTAS: si para responder bien te falta un dato real que no está aquí (clima, tipo de cambio, gastos, notificaciones, algo de internet o de la Wikipedia…), ' +
     'responde SOLO una línea así:\nUSAR: <frase>\neligiendo una de estas (cambia lo que está entre < >):\n' +
     o.herramientas.map(function (h) { return '- «' + h[0] + '»: ' + h[1]; }).join('\n') + '\nSi no te falta nada, responde directo. Nunca pagues, envíes, publiques ni borres nada.');

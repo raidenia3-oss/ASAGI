@@ -147,6 +147,6 @@ function youtube(url, progreso) { return _trabajoARIA({ accion: 'youtube', url: 
 function claude(texto, progreso) { return _trabajoARIA({ accion: 'claude', texto: texto }, '🤖 ARIA le pasó el trabajo a Claude Code en la PC (puede tardar unos minutos)…', progreso); }
 function crearSitio(tema, progreso) { return _trabajoARIA({ accion: 'crear_sitio', tema: tema }, '🛠 ARIA trabaja en la web en la PC…', progreso); }
 
-window.AsagiNavegador = { youtube: youtube, crearSitio: crearSitio, claude: claude, ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
+window.AsagiNavegador = { actual: function () { return ultima; }, youtube: youtube, crearSitio: crearSitio, claude: claude, ir: _ir, leer: _leer, clic: _clic, escribir: _escribir, volver: _volver, cerrar: cerrar, buscar: buscar,
   investigar: _investigar, viaPC: function () { return _viaPC; }, ultima: function () { return ultima; }, nativo: function () { return !!nativo(); } };
 })();

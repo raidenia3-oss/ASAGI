@@ -1021,7 +1021,8 @@ chatForm.addEventListener('submit', (event) => {
     if (cr) { RD.ejecutar(cr, decir).catch((e) => decir('📲 No pude: ' + ((e && e.message) || e))); return; }
     const CH = window.AsagiChrome, cc = !reesc && CH && CH.parsear(text);
     if (cc) {
-      if (cc.accion === 'buscar') CH.buscar(cc.q, decir).then(decir).catch((e) => decir('🔎 No pude: ' + ((e && e.message) || e)));
+      if (cc.accion === 'actual') { const pa = window.AsagiNavegador && window.AsagiNavegador.actual && window.AsagiNavegador.actual(); if (pa && pa.url) CH.abrir(pa.url).then(decir); else decir('🌐 No tengo ninguna página abierta. Di «abre … en Chrome».'); }
+      else if (cc.accion === 'buscar') CH.buscar(cc.q, decir).then(decir).catch((e) => decir('🔎 No pude: ' + ((e && e.message) || e)));
       else if (cc.accion === 'abrir') CH.abrir(cc.url).then(decir);
       else { decir('🌐 Lo abro en tu Chrome y lo leo (vuelvo sola)…'); CH.leer(cc.url).then((r) => decir(!r.ok ? r.error : r.login ? '🔐 Esa página pide iniciar sesión: hazlo tú en Chrome y vuelve a pedírmelo.' : '🌐 Leí:\n' + r.textos.slice(0, 15).map((t) => '• ' + t).join('\n'))); }
       return;

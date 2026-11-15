@@ -79,6 +79,7 @@ function parsear(t) {
     return { accion: 'abrir', url: url };
   }
   if ((m = s.match(/^(?:lee|leer|leeme|léeme|mira|revisa)\s+(?:en chrome\s+)?(https:\/\/\S+)(?:\s+en chrome)?$/i))) return { accion: 'leer', url: m[1] };
+  if (/^(?:abrela|abre(?:la)? esta pagina|abre esta web|pasala|llevala|continua|sigue) en (?:mi )?(?:chrome|google chrome)$/.test(n)) return { accion: 'actual' };
   var s2 = s.replace(/[¿?¡!]+/g, '').trim();
   if ((m = s2.match(/^(?:busca|b[uú]scame|googlea|googl[eé]ame)\s+(.{2,120}?)\s+(?:en|con)\s+(?:chrome|google|google chrome)$/i)) || (m = s2.match(/^(?:googlea|googl[eé]ame)\s+(.{2,120})$/i))) return { accion: 'buscar', q: m[1].trim() };
   return null;

@@ -48,5 +48,18 @@ ok(PE.parsearTiempo('comprar 2 panes', base).cuando === null, 'sin hora no inven
 
 ok(AG.parsear('investiga qué piden para postular a la UNI').investigar && AG.parsear('investiga en internet gatos') === null, 'investigar');
 
+// manos (Mobile-Agent-v2): notas que pasan de una app a otra + progreso + aviso de cambio de app
+{
+  const M = R('manos.js');
+  let app = 'Tienda', prompts = [];
+  const pantallas = { Tienda: [{ t: 'Zapatillas S/ 199', clic: false }, { t: 'Volver', clic: true }], WhatsApp: [{ t: 'Juan', clic: true }, { t: 'Mensaje', edit: true }] };
+  const driver = { leer: async () => ({ app, nodos: pantallas[app] }), tocar: async () => ({ ok: true }), escribir: async () => ({ ok: true }), abrir: async (n) => { app = n; return { ok: true }; },
+    global: async () => ({ ok: true }), desplazar: async () => ({ ok: true }), dormir: async () => {} };
+  const resp = ['{"accion":"abrir","app":"WhatsApp","nota":"precio zapatillas: S/ 199","progreso":"ya vi el precio; falta mandarlo"}', '{"accion":"listo","resumen":"listo"}'];
+  const r = await M.agente('mira el precio y pásaselo a Juan', driver, async (p) => { prompts.push(p); return resp[prompts.length - 1]; }, { max: 5 });
+  ok(r.ok && /S\/ 199/.test(prompts[1]) && /falta mandarlo/.test(prompts[1]), 'manos: nota y progreso pasan al siguiente paso');
+  ok(M.leerDecision('{"accion":"tocar","ref":2,"nota":"x"}').nota === 'x' && M.leerDecision('tocar Enviar'), 'manos: leer decisión');
+}
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

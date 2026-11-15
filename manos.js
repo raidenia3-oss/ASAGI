@@ -73,7 +73,7 @@ function describirPantalla(lec) {
 }
 
 // Respuesta del cerebro -> paso. Acepta JSON o "tocar: X". PURO.
-function leerDecision(txt) {
+function leerDecisionBase(txt) {
   var s = String(txt || '');
   var j = s.match(/\{[\s\S]*?\}/);
   if (j) {
@@ -94,12 +94,23 @@ function leerDecision(txt) {
   return p || null;
 }
 
+ // + campos opcionales «nota» y «progreso» (idea de Mobile-Agent-v2). PURO.
+function leerDecision(txt) {
+  var p = leerDecisionBase(txt);
+  if (!p) return null;
+  var j = String(txt || '').match(/\{[\s\S]*?\}/);
+  if (j) { try { var o = JSON.parse(j[0]); if (o.nota) p.nota = String(o.nota).slice(0, 200); if (o.progreso) p.progreso = String(o.progreso).slice(0, 300); } catch (e) {} }
+  return p;
+}
+
 var REGLAS_AGENTE = 'Controlas un celular Android por Daniel. Ves la lista de elementos de la pantalla. ' +
   'Cada elemento tiene un número (ref). Responde SOLO un JSON con UNA acción: {"accion":"tocar","ref":<número>} | ' +
   '{"accion":"escribir","ref":<número del campo>,"texto":"..."} | {"accion":"abrir","app":"<nombre>"} | {"accion":"atras"} | {"accion":"inicio"} | ' +
   '{"accion":"desplazar","dir":"abajo|arriba"} | {"accion":"esperar"} | {"accion":"listo","resumen":"<qué lograste>"} | ' +
   '{"accion":"imposible","resumen":"<por qué>"}. Nunca escribas claves ni datos de tarjetas. Si el objetivo ya se cumplió, responde listo. ' +
-  'Usa SOLO números de la pantalla actual; tras cada acción verás la pantalla nueva: si dice (sin cambio), prueba otra cosa.';
+  'Usa SOLO números de la pantalla actual; tras cada acción verás la pantalla nueva: si dice (sin cambio), prueba otra cosa; si dice (ahora en otra app) y no querías eso, vuelve atrás. ' +
+  'Puedes agregar al JSON dos campos opcionales: "nota" (un dato de esta pantalla que necesitarás después, p. ej. un precio o un número, para usarlo en otra app) ' +
+  'y "progreso" (en una línea: qué parte del objetivo ya está hecha y qué falta).';
 
 // Ref -> nodo de la lectura con la que decidió el modelo (agent-desktop: un ref vale solo para SU vista). PURO.
 function nodoPorRef(lec, ref) {
@@ -179,7 +190,7 @@ async function ejecutar(lista, driver, opts) {
 
 // Objetivo libre: mira -> decide -> actúa -> verifica, hasta "listo" o el tope.
 async function agente(objetivo, driver, pensar, opts) {
-  opts = opts || {}; var hist = [], max = Math.min(opts.max || MAX_PASOS, 20), igual = 0, ultima = '';
+  opts = opts || {}; var hist = [], max = Math.min(opts.max || MAX_PASOS, 20), igual = 0, ultima = '', notas = [], progreso = '';
   for (var i = 0; i < max; i++) {
     if (opts.cancelado && opts.cancelado()) return { ok: false, hechos: hist, motivo: 'detenido' };
     var lec = await driver.leer();
@@ -187,10 +198,14 @@ async function agente(objetivo, driver, pensar, opts) {
     var vista = describirPantalla(lec);
     igual = vista === ultima ? igual + 1 : 0; ultima = vista;
     if (igual >= 3) return { ok: false, hechos: hist, motivo: 'la pantalla no cambia; me detengo para no dar vueltas' };
-    var resp = await pensar(REGLAS_AGENTE + '\n\nObjetivo: ' + objetivo + '\n\nYa hice: ' + (hist.join(' → ') || 'nada') + '\n\nPantalla:\n' + vista);
+    // (Mobile-Agent-v2) progreso resumido + notas de pantallas anteriores + últimos pasos
+    var resp = await pensar(REGLAS_AGENTE + '\n\nObjetivo: ' + objetivo + (progreso ? '\n\nProgreso: ' + progreso : '') +
+      (notas.length ? '\n\nNotas que guardaste: ' + notas.join(' · ') : '') + '\n\nÚltimos pasos: ' + (hist.slice(-6).join(' → ') || 'ninguno') + '\n\nPantalla:\n' + vista);
     var p = leerDecision(resp);
     if (!p) return { ok: false, hechos: hist, motivo: 'no entendí qué hacer' };
-    if (p.a === 'listo') return { ok: true, hechos: hist, resumen: p.resumen };
+    if (p.nota && notas.indexOf(p.nota) < 0) { notas.push(p.nota); if (notas.length > 6) notas.shift(); }
+    if (p.progreso) progreso = p.progreso;
+    if (p.a === 'listo') return { ok: true, hechos: hist, resumen: p.resumen, notas: notas };
     if (p.a === 'imposible') return { ok: false, hechos: hist, motivo: p.resumen || 'no se puede' };
     var r; try { r = await hacer(p, driver, Object.assign({}, opts, { vista: lec })); } catch (e) { r = { ok: false, motivo: String(e.message || e) }; }
     if (opts.alPaso) opts.alPaso(p, r);
@@ -199,7 +214,11 @@ async function agente(objetivo, driver, pensar, opts) {
     // verificar (observar -> actuar -> observar): ¿cambió algo?
     var nota = '';
     if (r && r.ok && p.a !== 'esperar') {
-      try { var desp = describirPantalla(await driver.leer()); if (desp === vista) nota = ' (sin cambio)'; } catch (e) {}
+      try {
+        var lec2 = await driver.leer(), desp = describirPantalla(lec2);
+        if (desp === vista) nota = ' (sin cambio)';
+        else if (lec2 && lec.app && lec2.app && lec2.app !== lec.app && p.a !== 'abrir') nota = ' (ahora en otra app: ' + lec2.app + ')';
+      } catch (e) {}
     }
     hist.push(describir(p) + (r && r.ok ? nota : ' (falló: ' + ((r && r.motivo) || '?') + ')'));
   }
@@ -208,7 +227,8 @@ async function agente(objetivo, driver, pensar, opts) {
 
 function formato(r) {
   return (r.ok ? '🖐 Listo' + (r.resumen ? ': ' + r.resumen : '.') : '🖐 Paré' + (r.en ? ' en el paso ' + r.en + ' (' + r.paso + ')' : '') + ': ' + r.motivo) +
-    (r.hechos && r.hechos.length ? '\nHice: ' + r.hechos.join(' → ') : '');
+    (r.hechos && r.hechos.length ? '\nHice: ' + r.hechos.join(' → ') : '') +
+    (r.notas && r.notas.length ? '\nAnoté: ' + r.notas.join(' · ') : '');
 }
 
 var API = { paso: paso, pasos: pasos, riesgoso: riesgoso, esBanca: esBanca, resolverApp: resolverApp, describirPantalla: describirPantalla, nodoPorRef: nodoPorRef,

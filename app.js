@@ -3088,7 +3088,7 @@ if ('serviceWorker' in navigator) {
 (function () {
   const cont = document.getElementById('launcher-chips');
   if (!cont) return;
-  function chip(txt, cls) { return '<span class="lchip ' + (cls || '') + '">' + txt + '</span>'; }
+  function chip(txt, cls) { return '<span class="lchip ' + (cls || '') + '">' + String(txt).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])) + '</span>'; }
   function ultDefensa() {
     try {
       if (!window.AsagiMemoria || !window._asagiMem) return '';
@@ -3100,23 +3100,41 @@ if ('serviceWorker' in navigator) {
   // Geolocalización opcional: si se niega o falla, el chip simplemente no aparece.
   let clima = '';
   const ICONO = (c) => c === 0 ? '☀' : c < 4 ? '⛅' : c < 50 ? '☁' : c < 70 ? '🌧' : c < 80 ? '❄' : '⛈';
+  async function climaDe(lat, lon) {
+    const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + (+lat).toFixed(2) + '&longitude=' + (+lon).toFixed(2) + '&current=temperature_2m,weather_code';
+    const r = await fetch(u); const j = await r.json();
+    if (j && j.current) { clima = ICONO(j.current.weather_code) + ' ' + Math.round(j.current.temperature_2m) + '°'; pintar(); }
+  }
+  // sin permiso de ubicación (lo normal): la ciudad que Daniel eligió con «clima en …» o Lima
+  async function climaCiudad() {
+    try {
+      let ciudad = 'Lima'; try { ciudad = localStorage.getItem('asagi-ciudad') || 'Lima'; } catch (e) {}
+      const g = await (await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=es&name=' + encodeURIComponent(ciudad))).json();
+      const p = g && g.results && g.results[0]; if (p) await climaDe(p.latitude, p.longitude);
+    } catch (e) {}
+  }
   function cargarClima() {
     try {
-      if (!navigator.geolocation || !navigator.onLine) return;
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const u = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude.toFixed(2) +
-            '&longitude=' + longitude.toFixed(2) + '&current=temperature_2m,weather_code';
-          const r = await fetch(u); const j = await r.json();
-          if (j && j.current) { clima = ICONO(j.current.weather_code) + ' ' + Math.round(j.current.temperature_2m) + '°'; pintar(); }
-        } catch (e) {}
-      }, () => {}, { timeout: 8000, maximumAge: 1800000 });
-    } catch (e) {}
+      if (!navigator.onLine) return;
+      if (!navigator.geolocation) { climaCiudad(); return; }
+      navigator.geolocation.getCurrentPosition((pos) => { climaDe(pos.coords.latitude, pos.coords.longitude).catch(climaCiudad); }, () => { climaCiudad(); }, { timeout: 8000, maximumAge: 1800000 });
+    } catch (e) { climaCiudad(); }
+  }
+  // el próximo pendiente con hora (o vencido): lo primero que uno quiere ver al desbloquear
+  function proximo() {
+    try {
+      const l = (JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || []).filter((p) => p && !p.hecho && p.cuando).sort((a, b) => a.cuando - b.cuando);
+      const p = l[0]; if (!p) return '';
+      const d = new Date(p.cuando), hoy = new Date(), man = new Date(); man.setDate(man.getDate() + 1);
+      const h = d.toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true });
+      const cuando = p.cuando < Date.now() ? 'vencido' : d.toDateString() === hoy.toDateString() ? h : d.toDateString() === man.toDateString() ? 'mañana ' + h : d.toLocaleDateString('es-PE', { weekday: 'short' }) + ' ' + h;
+      const t = p.texto.length > 18 ? p.texto.slice(0, 17) + '…' : p.texto;
+      return { txt: '📌 ' + t + ' · ' + cuando, warn: p.cuando < Date.now() };
+    } catch (e) { return ''; }
   }
   async function pintar() {
     let html = '';
-    html += chip(navigator.onLine ? '● en línea' : '○ sin red', navigator.onLine ? 'ok' : 'warn');
+    if (!navigator.onLine) html += chip('○ sin red', 'warn');
     try {
       if (navigator.getBattery) {
         const b = await navigator.getBattery();
@@ -3125,6 +3143,7 @@ if ('serviceWorker' in navigator) {
       }
     } catch (e) {}
     if (clima) html += chip(clima);
+    const px = proximo(); if (px) html += chip(px.txt, px.warn ? 'warn' : 'ok');
     const d = ultDefensa(); if (d) html += chip(d, 'ok');
     cont.innerHTML = html;
   }

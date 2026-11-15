@@ -126,6 +126,11 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
     const ns = EX.noticiasDe('<rss><item><title>Perú clasifica al Mundial - RPP</title><link>https://news.google.com/a</link></item></rss>');
     ok(ns[0].titulo === 'Perú clasifica al Mundial' && ns[0].fuente === 'RPP' && EX.wikiDe('{"pages":[{"title":"Agujero negro","key":"Agujero_negro","excerpt":"Un <span>agujero</span> negro es"}]}').extracto === 'Un agujero negro es', 'explorar: noticias y wikipedia');
   }
+  {
+    const Y = require('../youtube.js');
+    ok(Y.parsear('guarda este video para después https://youtu.be/dQw4w9WgXcQ').accion === 'despues' && Y.idDe('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=3') === 'dQw4w9WgXcQ' &&
+       Y.parsear('qué veo hoy').accion === 'queVeo' && Y.parsear('mis videos para después').accion === 'listaDespues' && Y.parsear('resume este video https://youtu.be/dQw4w9WgXcQ').accion === 'resumir', 'youtube: ver después y qué veo hoy');
+  }
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
 

@@ -2101,12 +2101,14 @@ if ('serviceWorker' in navigator) {
   async function pintarEstado() {
     if (!elEstado) return;
     const c = cfg();
-    if (!c.enabled) { elEstado.textContent = 'Voz: desactivada (toca "Voz: sigilo" para activar)'; return; }
+    // el botón dice el modo actual en palabras simples; cada toque pasa al siguiente
+    if (elSigilo) elSigilo.textContent = !c.enabled ? '🔇 Voz: apagada' : c.sigilo ? '🎧 Voz: solo con audífonos' : '🔊 Voz: en voz alta';
+    if (!c.enabled) { elEstado.textContent = 'Te respondo solo por texto. Toca el botón para que te hable (primero solo con audífonos, luego en voz alta).'; return; }
     const sal = await window.asagiSalidaAudio();
     const quien = sal.nombre ? ' (' + sal.nombre + ')' : '';
-    elEstado.textContent = 'Voz: ' + (c.sigilo
-      ? (sal.privado ? 'sigilo · hablo por audífono ✓' + quien : 'sigilo · sin audífonos, solo texto')
-      : 'en voz alta' + (sal.privado ? ' · pero hay audífonos' + quien : ' · ⚠ por el altavoz'));
+    elEstado.textContent = c.sigilo
+      ? (sal.privado ? 'Te hablo por los audífonos ✓' + quien + '. Sin audífonos me quedo callada.' : 'Ahora no hay audífonos: te respondo solo por texto.')
+      : 'Te hablo en voz alta' + (sal.privado ? ' (por los audífonos' + quien + ')' : ' por el altavoz') + '. Toca otra vez para apagarla.';
   }
 
   if (elSigilo) elSigilo.addEventListener('click', () => {
@@ -2121,7 +2123,7 @@ if ('serviceWorker' in navigator) {
   if (elDns) elDns.addEventListener('click', () => {
     const plugin = C();
     if (plugin && plugin.openDnsSettings) plugin.openDnsSettings();
-    else alert('Ajustes > Red > DNS privado > pega: dns.adguard-dns.com');
+    else if (elEstado) elEstado.textContent = 'Para bloquear anuncios: Ajustes de Android › Red › DNS privado › escribe dns.adguard-dns.com';
   });
 
   pintarEstado();

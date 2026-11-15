@@ -51,11 +51,15 @@ class Memoria {
     this._cache = null;
   }
   _leerStore() {
-    if (this._cache) return this._cache;
+    // con localStorage: si otra copia de Memoria guardó algo, releer (si no, una pisaría a la otra)
+    if (this._cache && this._store && this._store.getItem) {
+      let raw = null; try { raw = this._store.getItem(CLAVE); } catch (e) {}
+      if (raw === this._raw) return this._cache;
+    } else if (this._cache) return this._cache;
     let arr = [];
     try {
       if (this._store && this._store.get) arr = this._store.get() || [];
-      else if (this._store && this._store.getItem) arr = JSON.parse(this._store.getItem(CLAVE) || '[]');
+      else if (this._store && this._store.getItem) { this._raw = this._store.getItem(CLAVE); arr = JSON.parse(this._raw || '[]'); }
     } catch (e) { arr = []; }
     this._cache = Array.isArray(arr) ? arr : [];
     return this._cache;
@@ -64,7 +68,7 @@ class Memoria {
     this._cache = arr;
     try {
       if (this._store && this._store.set) this._store.set(arr);
-      else if (this._store && this._store.setItem) this._store.setItem(CLAVE, JSON.stringify(arr));
+      else if (this._store && this._store.setItem) { this._raw = JSON.stringify(arr); this._store.setItem(CLAVE, this._raw); }
     } catch (e) { /* best-effort */ }
   }
 

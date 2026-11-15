@@ -61,5 +61,18 @@ ok(AG.parsear('investiga qué piden para postular a la UNI').investigar && AG.pa
   ok(M.leerDecision('{"accion":"tocar","ref":2,"nota":"x"}').nota === 'x' && M.leerDecision('tocar Enviar'), 'manos: leer decisión');
 }
 
+// memoria inteligente (Mem0)
+{
+  const MI = R('memoria-ia.js');
+  ok(MI.debeExtraer('me mudé a Surco el mes pasado', 0, 1e12) && !MI.debeExtraer('qué hora es?', 0, 1e12) && !MI.debeExtraer('me mudé a Surco', 1e12 - 1000, 1e12), 'mem0: cuándo revisar');
+  const con = [{ texto: 'vivo en Breña', tema: 'dato' }, { texto: 'me gusta el anime', tema: 'preferencia' }];
+  const p = MI.plan(MI.leer('{"agregar":["tengo un perro llamado Toby","mi clave es 1234"],"cambiar":[{"n":0,"ahora":"vivo en Surco"}],"borrar":[]}'), con);
+  ok(p.agregar.length === 1 && p.cambiar[0].viejo.texto === 'vivo en Breña' && p.cambiar[0].ahora === 'vivo en Surco', 'mem0: agrega, cambia y nunca guarda claves');
+}
+
+{ const M = R('memoria.js'), ls = { d: {}, getItem(k) { return this.d[k] ?? null; }, setItem(k, v) { this.d[k] = v; } };
+  const a = new M.Memoria(ls), b = new M.Memoria(ls); a.aprender('vivo en Breña', 'dato'); b.todos(); a.aprender('tengo un gato', 'dato'); b.aprender('me gusta el anime', 'preferencia');
+  ok(new M.Memoria(ls).todos().length === 3, 'memoria: dos copias no se pisan'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

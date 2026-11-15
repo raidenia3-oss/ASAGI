@@ -597,6 +597,8 @@ async function startBotStreaming(userText) {
             fresco: !!(window.AsagiRazon && window.AsagiRazon.necesitaDatos(userText)),
             herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase,
             avisar: (t) => showReplyStatus(t) });
+          // memoria inteligente (Mem0): en segundo plano, si Daniel contó algo de sí mismo
+          if (fuerte && pen && pen.texto && window.AsagiMemoriaIA) setTimeout(() => { window.AsagiMemoriaIA.revisar(state.messages, pedir, (t) => appendMessage('bot', t)).catch(() => {}); }, 1200);
         } catch (e) { pen = null; }
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);

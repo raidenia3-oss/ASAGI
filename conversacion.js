@@ -34,7 +34,10 @@ function quitarBarra() { var b = document.getElementById('conv-barra'); if (b) b
 
 function decirEnVoz(texto) {
   var N = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiHablar;
-  if (N && texto) return N.hablar({ texto: paraVoz(texto).slice(0, 600) }).then(function () {}, function () {});   // espera a que termine
+  if (N && texto) {   // espera a que termine (con tope, por si el teléfono no avisa)
+    var tope = new Promise(function (ok) { setTimeout(ok, 4000 + paraVoz(texto).length * 110); });
+    return Promise.race([N.hablar({ texto: paraVoz(texto).slice(0, 600) }).then(function () {}, function () {}), tope]);
+  }
   return new Promise(function (ok) {
     try {
       var s = window.speechSynthesis; if (!s || !texto) { ok(); return; }

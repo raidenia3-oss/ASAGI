@@ -29,6 +29,16 @@ function parsear(t) {
   }
   if ((m = n.match(/^(?:a cuanto esta|cuanto esta|precio del|como esta) (?:el |la )?(dolar|euro|bitcoin|peso chileno|peso mexicano|real)(?: hoy)?$/))) return { accion: 'cambio', monto: 1, de: MONEDAS[m[1]], a: 'PEN' };
   if ((m = n.match(/^(?:cuanto falta|cuantos dias faltan|cuanto queda|cuantos dias quedan) (?:para|pa) (?:el |la )?(.{3,40})$/))) return { accion: 'falta', que: m[1] };
+  if ((m = n.match(/^(?:que dia (?:cae|es|sera)|cuando (?:cae|es)) (?:el |la )?(navidad|ano nuevo|dia de la madre|dia del padre|fiestas patrias|halloween|san valentin|semana santa|\d{1,2} de [a-z]+)$/))) return { accion: 'falta', que: m[1] };
+  if ((m = n.match(/^(?:que hora es|que horas son|hora) (?:en|de) (.{3,30})$/))) return { accion: 'horaen', lugar: m[1], nombre: String(t).replace(/[¿?¡!.]+/g, '').trim().split(/\s(?:en|de)\s/i).pop() };
+  if ((m = n.match(/^ya (?:pague|hice|termine|llame a|llame|envie|mande|estudie|fui a|lave|limpie|saque|complete|acabe|cumpli con|entregue) (.{2,80})$/))) return { accion: 'hecho', que: m[1], verbo: n.split(' ')[1] };
+  if ((m = n.match(/^(?:marca|pon) (?:como hecho|como listo|hecho) (?:el pendiente (?:de )?)?(.{2,80})$/))) return { accion: 'hecho', que: m[1] };
+  if ((m = n.match(/^(?:borra|elimina|quita|cancela) (?:el |mi )?(?:pendiente|recordatorio) (?:de |del |para )?(.{2,80})$/))) return { accion: 'borrarpend', que: m[1] };
+  if ((m = n.match(/^(?:me llamo|mi nombre es|llamame) ([a-z ]{2,30})$/))) return { accion: 'nombre', nombre: String(t).trim().replace(/[.!¡¿?]+/g, '').split(/\s+/).slice(n.startsWith('mi nombre es') ? 3 : 2).join(' ') };
+  if (/^(?:como me llamo|cual es mi nombre|sabes como me llamo|sabes mi nombre|quien soy)$/.test(n)) return { accion: 'minombre' };
+  if (/^(?:adios|chau|chao|nos vemos|hasta luego|bye|me voy|ya me voy)(?: asagi)?$/.test(n)) return { accion: 'chau' };
+  if (/^(?:cuentame algo interesante|dime algo interesante|dato curioso|dame un dato curioso|sorprendeme|algo interesante)$/.test(n)) return { accion: 'curioso' };
+  if ((m = n.match(/^tengo (?:un |una )?(examen|cita|reunion|entrevista|clase|practica|exposicion|partido|evaluacion|tarea)(?: de [a-z ]{2,30})? (hoy|manana|pasado manana|el (?:lunes|martes|miercoles|jueves|viernes|sabado|domingo))(?: .{0,30})?$/))) return { accion: 'tengo', que: String(t).trim().replace(/[.!¿?]+$/, '').replace(/^tengo\s+/i, '') };
   if ((m = String(t || '').trim().replace(/[¿?¡!]+/g, '').match(/^(?:qu[eé]|qui[eé]n(?:es)?)\s+(?:es|son|era|eran|fue|fueron)\s+(?:(?:el|la|los|las|un|una)\s+)?(.{2,70})$/i)) && !/^(?:tu|vos|usted|asagi|hora|dia|eso|esto)\b/i.test(m[1]))
     return { accion: 'quees', q: m[1].trim() };
   if (/^(?:sube|subele|aumenta)(?: el| al)? volumen$|^mas volumen$|^volumen arriba$/.test(n)) return { accion: 'volumen', dir: 'subir' };
@@ -82,6 +92,31 @@ var FRASES = ['No tienes que verlo todo claro; solo da el siguiente paso.', 'Lo 
 
 async function getJSON(url) { var r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
+var ZONAS = { 'japon': 'Asia/Tokyo', 'tokio': 'Asia/Tokyo', 'china': 'Asia/Shanghai', 'pekin': 'Asia/Shanghai', 'corea': 'Asia/Seoul', 'seul': 'Asia/Seoul', 'india': 'Asia/Kolkata',
+  'espana': 'Europe/Madrid', 'madrid': 'Europe/Madrid', 'barcelona': 'Europe/Madrid', 'francia': 'Europe/Paris', 'paris': 'Europe/Paris', 'italia': 'Europe/Rome', 'roma': 'Europe/Rome',
+  'alemania': 'Europe/Berlin', 'berlin': 'Europe/Berlin', 'inglaterra': 'Europe/London', 'londres': 'Europe/London', 'reino unido': 'Europe/London', 'rusia': 'Europe/Moscow', 'moscu': 'Europe/Moscow',
+  'mexico': 'America/Mexico_City', 'colombia': 'America/Bogota', 'bogota': 'America/Bogota', 'chile': 'America/Santiago', 'santiago': 'America/Santiago', 'argentina': 'America/Argentina/Buenos_Aires',
+  'buenos aires': 'America/Argentina/Buenos_Aires', 'brasil': 'America/Sao_Paulo', 'sao paulo': 'America/Sao_Paulo', 'venezuela': 'America/Caracas', 'caracas': 'America/Caracas', 'ecuador': 'America/Guayaquil',
+  'bolivia': 'America/La_Paz', 'la paz': 'America/La_Paz', 'nueva york': 'America/New_York', 'miami': 'America/New_York', 'estados unidos': 'America/New_York', 'eeuu': 'America/New_York',
+  'los angeles': 'America/Los_Angeles', 'california': 'America/Los_Angeles', 'canada': 'America/Toronto', 'australia': 'Australia/Sydney', 'sidney': 'Australia/Sydney', 'dubai': 'Asia/Dubai',
+  'peru': 'America/Lima', 'lima': 'America/Lima', 'corea del sur': 'Asia/Seoul', 'tailandia': 'Asia/Bangkok', 'egipto': 'Africa/Cairo', 'israel': 'Asia/Jerusalem', 'turquia': 'Europe/Istanbul' };
+var CURIOSOS = ['Los pulpos tienen tres corazones y sangre azul.', 'Un día en Venus dura más que un año en Venus.', 'La miel bien guardada no se malogra: se ha encontrado miel comestible en tumbas egipcias.',
+  'El Perú tiene alrededor de 3 000 variedades de papa.', 'Los tiburones existen desde antes que los árboles.', 'Tu cerebro usa cerca del 20 % de la energía de tu cuerpo.',
+  'La Luna se aleja de la Tierra unos 3,8 cm cada año.', 'Machu Picchu se construyó sin usar mortero: las piedras encajan solas.', 'Las abejas pueden reconocer rostros humanos.',
+  'Un rayo es unas cinco veces más caliente que la superficie del Sol.', 'El primer programa de computadora lo escribió Ada Lovelace en el siglo XIX.', 'Las nutrias se toman de la mano al dormir para no separarse.'];
+var VACIAS = { el: 1, la: 1, los: 1, las: 1, de: 1, del: 1, a: 1, al: 1, un: 1, una: 1, mi: 1, en: 1, y: 1, que: 1, con: 1, para: 1, por: 1 };
+// El pendiente que más se parece a lo que dijo (por palabras, sin tildes). PURO.
+function buscarPendiente(lista, que) {
+  var pal = function (x) { return norm(x).split(' ').filter(function (w) { return w.length > 2 && !VACIAS[w]; }).map(function (w) { return w.replace(/(?:e|o|a)$/, ''); }); };
+  var q = pal(que); if (!q.length) return null;
+  var best = null, bs = 0;
+  (lista || []).forEach(function (p) {
+    var w = pal(p.texto), sc = q.filter(function (x) { return w.some(function (y) { return y === x || (x.length >= 4 && (y.indexOf(x) === 0 || x.indexOf(y) === 0)); }); }).length;
+    if (sc > bs) { bs = sc; best = p; }
+  });
+  return bs ? best : null;
+}
+
 async function ejecutar(c, decir, ctx) {
   ctx = ctx || {};
   if (c.accion === 'clima') {
@@ -134,10 +169,40 @@ async function ejecutar(c, decir, ctx) {
     decir('📖 Vamos. Te propongo:\n1. «temporizador de 25 minutos» (concentración) y luego 5 de descanso.\n2. «quiz de matemáticas» para practicar.\n3. «qué es …» o «wiki …» para repasar conceptos.\n4. «recuérdame estudiar mañana a las 7» para no perder el ritmo.');
     return;
   }
+  if (c.accion === 'horaen') {
+    var tz = ZONAS[c.lugar.replace(/^(?:el |la |los )/, '')];
+    if (!tz) { decir('No conozco la zona horaria de «' + c.lugar + '». Prueba con un país o capital (Japón, Madrid, México…).'); return; }
+    var ah = ctx.ahora || new Date();
+    var txt = ah.toLocaleTimeString('es-PE', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true });
+    var dia = ah.toLocaleDateString('es-PE', { timeZone: tz, weekday: 'long' }), hoyL = ah.toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long' });
+    var nomL = (c.nombre || c.lugar); nomL = nomL.charAt(0).toUpperCase() + nomL.slice(1);
+    decir('🕐 En ' + nomL + ' son las ' + txt + (dia !== hoyL ? ' (allá ya es ' + dia + ')' : ''));
+    return;
+  }
+  if (c.accion === 'hecho' || c.accion === 'borrarpend') {
+    var PA = ctx.pendientes || (function () { try { return JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'); } catch (e) { return []; } })();
+    var cand = PA.filter(function (p) { return p && (c.accion === 'borrarpend' || !p.hecho); });
+    var mejor = buscarPendiente(cand, (c.verbo && c.verbo !== 'hice' ? c.verbo + ' ' : '') + c.que);
+    if (!mejor) { decir(c.accion === 'hecho' ? '👍 Bien hecho. No lo tenía en tus pendientes.' : 'No encuentro un pendiente de «' + c.que + '».'); return; }
+    var fn = c.accion === 'hecho' ? (ctx.marcarHecho || window._asagiPendHecho) : (ctx.borrarPend || window._asagiPendBorrar);
+    if (fn) fn(mejor.id);
+    var quedan = cand.filter(function (p) { return p.id !== mejor.id && !p.hecho; }).length;
+    decir(c.accion === 'hecho' ? '✅ Listo, marqué «' + mejor.texto + '» como hecho.' + (quedan ? ' Te quedan ' + quedan + '.' : ' ¡No te queda nada pendiente!') : '🗑 Borré «' + mejor.texto + '».');
+    return;
+  }
+  if (c.accion === 'nombre') {
+    var nom = c.nombre.replace(/\b\w/g, function (x) { return x.toUpperCase(); });
+    try { localStorage.setItem('asagi-nombre', nom); } catch (e) {}
+    decir('Encantada, ' + nom + '. Lo recordaré.'); return;
+  }
+  if (c.accion === 'minombre') { var nn = 'Daniel'; try { nn = localStorage.getItem('asagi-nombre') || 'Daniel'; } catch (e) {} decir('Eres ' + nn + ' 😊'); return; }
+  if (c.accion === 'chau') { var hh = (ctx.ahora || new Date()).getHours(); decir(hh >= 19 || hh < 5 ? '¡Hasta luego! Descansa bien.' : '¡Nos vemos! Aquí estaré cuando me necesites.'); return; }
+  if (c.accion === 'curioso') { decir('💡 ' + CURIOSOS[Math.floor(Math.random() * CURIOSOS.length)]); return; }
+  if (c.accion === 'tengo') { decir('¡Éxito con eso! ¿Te lo anoto? Di «recuérdame ' + c.que + '» y te aviso a tiempo.'); return; }
   if (c.accion === 'carino') { decir('Gracias, Daniel 😊 Aquí sigo para ayudarte en lo que necesites.'); return; }
 }
 
-var API = { parsear: parsear, ejecutar: ejecutar, diasPara: diasPara, textoClima: textoClima, cielo: cielo };
+var API = { buscarPendiente: buscarPendiente, ZONAS: ZONAS, parsear: parsear, ejecutar: ejecutar, diasPara: diasPara, textoClima: textoClima, cielo: cielo };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiUtiles = API;
 })();

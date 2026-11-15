@@ -1025,7 +1025,7 @@ chatForm.addEventListener('submit', (event) => {
   // Lo cotidiano sin cerebro: clima, cambio de moneda, cuánto falta para…, volumen.
   {
     const U = window.AsagiUtiles, c = U && U.parsear(text);
-    if (c && ['clima', 'cambio', 'falta', 'volumen'].includes(c.accion)) {
+    if (c && ['clima', 'cambio', 'falta', 'volumen', 'horaen', 'hecho', 'borrarpend', 'nombre', 'minombre'].includes(c.accion)) {
       U.ejecutar(c, (t) => appendMessage('bot', t)).catch(() => appendMessage('bot', c.accion === 'volumen' ? 'No pude cambiar el volumen.' : 'No pude consultarlo (¿sin internet?).'));
       return;
     }
@@ -1545,6 +1545,8 @@ renderBrainControls();
 
   if (vacio) vacio.addEventListener('click', (e) => { const b = e.target.closest('button[data-ej]'); if (b && inp) { inp.value = b.dataset.ej; inp.focus(); } });
   function cargar() { try { lista = P.deserializar(localStorage.getItem(CLAVE)); } catch (e) { lista = []; } }
+  window._asagiPendHecho = function (id) { cargar(); lista = lista.map((x) => (x.id === id ? Object.assign({}, x, { hecho: true }) : x)); guardar(); try { pintar(); } catch (e) {} };
+  window._asagiPendBorrar = function (id) { cargar(); lista = P.borrar(lista, id); guardar(); try { pintar(); } catch (e) {} };
   window._asagiPendAgregar = function (t) { cargar(); lista = P.agregar(lista, t); guardar(); try { pintar(); } catch (e) {} };
   function guardar() {
     try { localStorage.setItem(CLAVE, P.serializar(lista)); } catch (e) {}

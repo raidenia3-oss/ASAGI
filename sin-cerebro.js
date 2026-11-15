@@ -49,7 +49,7 @@ function parsearDuracion(n) {
 
 // Expresión matemática en lenguaje natural -> texto para AsagiPalette.calcular. PURO.
 function aCuenta(n) {
-  var t = n.replace(/^(?:cuanto es|cuanto da|calcula|calcular|resuelve|cuanto son)\s+/, '');
+  var t = n.replace(/^(?:cuanto es|cuanto da|calcula|calcular|resuelve|cuanto son)\s+/, '').replace(/^(?:la|el)\s+/, '');
   var m = t.match(/^raiz(?: cuadrada)? de (\d+(?:[.,]\d+)?)$/);
   if (m) return { raiz: parseFloat(m[1].replace(',', '.')) };
   m = t.match(/^(\d+(?:[.,]\d+)?) (?:al cuadrado|elevado a la 2)$/);
@@ -105,7 +105,7 @@ function entender(texto) {
   }
   if (/^(cuanta bateria( tengo| me queda)?|bateria|nivel de bateria|como esta (la|mi) bateria)$/.test(n)) return { tipo: 'bateria' };
   if ((m = n.match(/^(?:busca(?:me)?|buscar|googlea|investiga en internet)\s+(?:en (?:internet|google|la web)\s+)?(.{2,120})$/))) return { tipo: 'buscar', texto: _orig(texto, m[1]) };
-  if (/^(que tengo (para )?hoy|mis pendientes de hoy|que hay para hoy|agenda de hoy|que tengo pendiente|mis pendientes|pendientes)$/.test(n)) return { tipo: 'hoy' };
+  if (/^(que tengo (para )?hoy|mis pendientes de hoy|que hay para hoy|agenda de hoy|que tengo pendiente|mis pendientes|pendientes|cuantos pendientes tengo|tengo pendientes|que tengo que hacer( hoy)?|que me toca( hoy)?|que me falta hacer|ver (mis )?pendientes)$/.test(n)) return { tipo: 'hoy' };
   if ((m = n.match(/^(?:quiz|examen|preguntas|repaso)\s+(?:de|sobre)\s+(.{2,60})$/))) return { tipo: 'reescribir', texto: 'pregúntame sobre ' + _orig(texto, m[1]) };
   if ((m = n.match(/^(?:estudiemos|vamos a estudiar|quiero estudiar|ensename|explicame lo basico de)\s+(.{2,60})$/))) return { tipo: 'reescribir', texto: 'estudia sobre ' + _orig(texto, m[1]) };
   var c = aCuenta(n); if (c) return { tipo: 'cuenta', cuenta: c, original: texto };
@@ -126,7 +126,8 @@ function ayudaTexto() {
     '• «qué hora es», «qué día es hoy», «cuánto es 15% de 230», «raíz de 144»\n' +
     '• «abre YouTube», «llama a 987654321», «cuánta batería tengo»\n' +
     '• «pon una alarma a las 7», «temporizador de 10 minutos», «modo concentración 25 minutos»\n' +
-    '• «recuérdame … mañana a las 8», «qué tengo hoy», «guarda en la bandeja: …»\n' +
+    '• «recuérdame … mañana a las 8», «qué tengo hoy», «ya pagué internet», «borra el pendiente de …»\n' +
+    '• «qué hora es en Japón», «dato curioso», «me llamo …»\n' +
     '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
     '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +
     '• «hazlo tú: <objetivo>» (modo autónomo: piensa y usa sus herramientas sola), «detén el modo autónomo»\n' +

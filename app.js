@@ -380,6 +380,14 @@ function describeBrain() {
 function refreshBrainStatus() {
   if (!brainHeader) return;
   const info = describeBrain();
+  // Ajustes › Cerebro: el mismo estado, en palabras simples, con los botones para arreglarlo
+  try {
+    const est = document.getElementById('aj-cerebro-estado'), bg = document.getElementById('aj-gemini'), bm = document.getElementById('aj-modelo');
+    const b = readBrainControls(), hayNube = !!(b.geminiKey || b.atriaKey || b.mistralKey || b.clavesExtra);
+    if (est) est.textContent = hayNube ? '✅ Pienso con la nube (' + info.detail.replace(/^.*usando\s*|^Remoto · /, '') + '). Funciona con internet.' : (/descargando/i.test(info.detail) ? '⏳ ' + info.detail : '⚠ Sin cerebro: solo hago lo básico. Elige una opción:');
+    if (bg) { bg.textContent = hayNube ? '🔑 Agregar otra key de Gemini' : '🔑 Usar Gemini gratis'; if (!bg._ok) { bg._ok = true; bg.addEventListener('click', () => window.AsagiGeminiGuia && window.AsagiGeminiGuia.abrir()); } }
+    if (bm) { bm.hidden = !info.descargar; if (!bm._ok) { bm._ok = true; bm.addEventListener('click', () => { const d = document.getElementById('brain-dl'); if (d) d.click(); }); } }
+  } catch (e) {}
   brainHeader.setAttribute('aria-label', 'Cerebro ' + info.detail);
   if (brainHint) {
     brainHint.textContent = info.detail;

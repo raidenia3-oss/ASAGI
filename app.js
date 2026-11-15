@@ -1494,7 +1494,23 @@ renderBrainControls();
     },
   });
   if (!dic) { mic.hidden = true; input.placeholder = 'Escribe aquí…'; return; }
-  mic.addEventListener('click', function () { dic.alternar(); });
+  // mantener presionado 🎤 (0,6 s) = modo conversación a manos libres; un toque = dictar una frase
+  let largo = null, fueLargo = false;
+  mic.title = 'Toca para dictar · mantén presionado para conversar';
+  mic.addEventListener('pointerdown', function () {
+    fueLargo = false; clearTimeout(largo);
+    largo = setTimeout(function () {
+      fueLargo = true;
+      const CV = window.AsagiConversacion;
+      if (CV && !CV.activo()) {
+        appendMessage('bot', '📞 Modo conversación: habla cuando veas “Te escucho”. Para terminar di “basta” o toca la barra de arriba.');
+        CV.iniciar((t) => { input.value = t; chatForm.requestSubmit(); }, state);
+      }
+    }, 600);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) { mic.addEventListener(ev, function () { clearTimeout(largo); }); });
+  mic.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  mic.addEventListener('click', function () { if (fueLargo) { fueLargo = false; return; } dic.alternar(); });
 })();
 
 // --- Niveles de aprendizaje: chip bajo el nombre + aviso al subir ---

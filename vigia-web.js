@@ -98,7 +98,7 @@ async function ejecutar(c, decir) {
     if (!v.precio) { decir('💲 No encontré el precio en esa página (algunas tiendas lo cargan después). Si quieres, vigilo sus cambios: «vigila esta página ' + c.url + '».'); return; }
   } else {
     v.huellas = huellas(lin);
-    if (v.huellas.length < 3) { decir('👁 Esa página casi no tiene texto que pueda leer sin navegador (¿pide iniciar sesión?).'); return; }
+    if (v.huellas.length < 1) { decir('👁 Esa página casi no tiene texto que pueda leer sin navegador (¿pide iniciar sesión?).'); return; }
   }
   l.push(v); guardar(l);
   decir(c.tipo === 'precio' ? '💲 Listo: vigilo «' + tit.slice(0, 60) + '», ahora a ' + soles(v.precio) + '. Te aviso si baja (reviso cada 3 h mientras uses ASAGI).' :

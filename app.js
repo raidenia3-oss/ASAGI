@@ -591,7 +591,10 @@ async function startBotStreaming(userText) {
         try {
           const sc = await window.AsagiSinCerebro.responder(userText, ctxSinCerebro());
           if (sc && sc.reescribir) { window._asagiReescribir = sc.reescribir; chatForm.requestSubmit(); return; }
-          res = { texto: (sc && sc.texto) || createBotReply(userText), backend: 'ASAGI sin cerebro' };
+          // con key puesta pero la nube no respondió: decirlo claro (no «necesito cerebro», que confunde)
+          const caida = !(sc && sc.texto) && nube.hay ? (navigator.onLine === false ? '📡 Estás sin internet, así que mi cerebro en la nube no responde. Lo básico (pendientes, alarmas, cuentas…) sí lo hago.' :
+            '⚠ Mi cerebro en la nube no respondió ahora (la key gratis pudo agotarse por un rato). Reintento sola en unos minutos; si pasa seguido, agrega otra key en Ajustes › Cerebro.') : '';
+          res = { texto: caida || (sc && sc.texto) || createBotReply(userText), backend: caida ? 'sin respuesta de la nube' : 'ASAGI sin cerebro' };
         } catch (e) {}
       }
       {

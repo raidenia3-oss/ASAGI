@@ -52,6 +52,7 @@ const files = [
   'musica.js',
   'resumen-dia.js',
   'agente.js',
+  'utiles.js',
   'piensa.js',
   'discord.js',
   'app.js',

@@ -130,6 +130,7 @@ function ayudaTexto() {
     '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
     '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +
     '• «hazlo tú: <objetivo>» (modo autónomo: piensa y usa sus herramientas sola), «detén el modo autónomo»\n' +
+    '• «cómo va el clima», «clima en Arequipa», «convierte 50 dólares a soles», «cuánto falta para navidad», «sube el volumen»\n' +
     '• «resumen del día», «qué tengo hoy», «buenas noches»\n' +
     '• «pon música», «pon canciones de Soda Stereo», «pausa», «siguiente», «mi música», «apaga la música en 30 minutos»\n' +
     '• «qué notificaciones tengo», «cuánto gasté esta semana», «cuánto me yapearon hoy»\n' +
@@ -253,8 +254,8 @@ async function responder(texto, ctx) {
 }
 
 function noEntendi(texto) {
-  return 'Eso necesita mi cerebro y ahora no tengo ninguno conectado. Puedes: tocar ⬇ para descargar mi modelo (funciona sin internet), ' +
-    'poner una key gratis de Gemini en Estado, o abrir ARIA en la PC. Mientras, di «qué puedes hacer» para ver lo que sí hago sola.';
+  return 'Para eso necesito mi cerebro. Toca «Descargar modelo» (funciona sin internet) o pon una key gratis de Gemini en Ajustes. ' +
+    'Mientras, di «qué puedes hacer» para ver lo que sí hago sola.';
 }
 
 var API = { entender: entender, responder: responder, parsearHora: parsearHora, parsearDuracion: parsearDuracion, aCuenta: aCuenta,

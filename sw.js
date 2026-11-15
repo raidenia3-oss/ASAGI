@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v91';
+const CACHE_NAME = 'asagi-pwa-v92';
 const APP_SHELL = [
   './',
   './index.html',
@@ -52,6 +52,7 @@ const APP_SHELL = [
   './musica.js',
   './resumen-dia.js',
   './agente.js',
+  './utiles.js',
   './personajes/indice.json',
   './personajes/patrick-jane.json',
   './personajes/barney-stinson.json',

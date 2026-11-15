@@ -488,6 +488,14 @@ function paraVoz(t) {
 }
 window._asagiParaVoz = paraVoz;
 
+// Mensajes de avance («📖 Leyendo 2/6…»): si el último mensaje ya es de avance, se reemplaza en vez de apilar.
+function progresoBot(text) {
+  const u = state.messages[state.messages.length - 1];
+  if (u && u.prog && u.sender === 'bot') { u.text = text; u.time = horaCorta(); saveState(); renderMessages(); return; }
+  state.messages.push({ id: uid(), sender: 'bot', text, time: horaCorta(), prog: true });
+  saveState(); renderMessages();
+}
+window._asagiProgreso = progresoBot;
 function appendMessage(sender, text) {
   const message = {
     id: uid(),
@@ -1086,7 +1094,7 @@ chatForm.addEventListener('submit', (event) => {
       if (o.accion === 'investigar') {
         appendMessage('bot', o.profundo ? '🔬 Investigo «' + o.pregunta + '» a fondo: varias búsquedas y 6 páginas (1-3 min)…' : '🔎 Busco «' + o.pregunta + '» en la web…');
         const pensarNav = async (p) => { if (!window._asagiPensar) return null; const r = await window._asagiPensar(p); return r && String(r).trim() ? String(r).trim() : null; };
-        NV.investigar(o.pregunta, pensarNav, (t) => appendMessage('bot', t), 0, !!o.profundo).then((r) =>
+        NV.investigar(o.pregunta, pensarNav, (t) => (/^(📖|🔎 Me falta|🖥)/.test(t) ? progresoBot(t) : appendMessage('bot', t)), 0, !!o.profundo).then((r) =>
           appendMessage('bot', r.texto + (r.fuentes.length ? '\n\nFuentes:\n' + r.fuentes.join('\n') : ''))).catch(fallo);
         return;
       }

@@ -406,3 +406,8 @@ html, body { font-family: var(--sans); color: var(--papel); }
 }
 .pend-txt { cursor: text; }
 .pend-edit { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.5); background: rgba(240, 240, 248, 0.06); color: #F0F0F8; font: inherit; font-size: 15px; }
+/* resultados de herramientas que ASAGI usó sola: compactos, la respuesta final es la que destaca */
+.message.bot.herr { cursor: pointer; }
+.message.bot.herr .msg-text { font-size: 0.86em; opacity: 0.72; max-height: 3.1em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
+.message.bot.herr .msg-text::before { content: '🔧 '; }
+.message.bot.herr.abierta .msg-text { max-height: none; -webkit-mask-image: none; mask-image: none; opacity: 0.9; }

@@ -191,7 +191,8 @@ function renderMessages() {
 
   state.messages.forEach((message) => {
     const bubble = document.createElement('div');
-    bubble.className = `message ${message.sender}`;
+    bubble.className = `message ${message.sender}` + (message.herr ? ' herr' : '');
+    if (message.herr) { bubble.title = 'Dato que consulté (toca para ver todo)'; bubble.addEventListener('click', (e) => { if (!e.target.closest('.frase-tap')) bubble.classList.toggle('abierta'); }); }
 
     const textEl = document.createElement('div');
     textEl.className = 'msg-text';
@@ -460,6 +461,8 @@ function appendMessage(sender, text) {
     text,
     time: horaCorta()
   };
+  // resultado de una herramienta que ASAGI usó sola (clima, búsqueda…): se muestra compacto
+  if (sender === 'bot' && window._asagiHerr > 0) message.herr = true;
 
   state.messages.push(message);
   saveState();
@@ -3981,6 +3984,7 @@ document.getElementById('sugerencias')?.addEventListener('click', (e) => {
 window._asagiEjecutarFrase = function (frase) {
   return new Promise((resolve) => {
     const desde = state.messages.length, lenta = /busca en la web|wiki/i.test(frase);
+    window._asagiHerr = (window._asagiHerr || 0) + 1;
     let ult = desde, quieto = 0, t0 = Date.now();
     window._asagiReescribir = frase;
     try { chatForm.requestSubmit(); } catch (e) { chatForm.dispatchEvent(new Event('submit', { cancelable: true })); }
@@ -3991,6 +3995,7 @@ window._asagiEjecutarFrase = function (frase) {
       const listo = nuevos.length && quieto >= (lenta ? 6000 : 2000);
       if (listo || Date.now() - t0 > (lenta ? 90000 : 25000)) {
         clearInterval(iv);
+        window._asagiHerr = Math.max(0, (window._asagiHerr || 1) - 1);
         resolve(nuevos.map((m) => m.text).join('\n').slice(0, 1500) || '(sin respuesta)');
       }
     }, 400);

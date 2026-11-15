@@ -1009,6 +1009,7 @@ chatForm.addEventListener('submit', (event) => {
   {
     const CP = window.AsagiCompartir, c = !reesc && CP && CP.parsear(text);
     if (c) { CP.recibir(c.url, '', (t) => appendMessage('bot', t)).catch(() => {}); return; }
+    if (!reesc && CP && CP.parsearCopia && CP.parsearCopia(text)) { CP.revisarCopia((t) => appendMessage('bot', t)).catch(() => {}); return; }
   }
   // Chrome como herramienta, YouTube y redes (solo lectura; usan TU Chrome con tus sesiones)
   {

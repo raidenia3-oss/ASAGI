@@ -26,6 +26,15 @@ function plan(texto) {
   if (esYouTube(u)) return { tipo: 'youtube', url: u };
   return { tipo: 'pagina', url: E ? E.limpiarUrl(u) : u, ojo: r.nivel === 'ojo' ? r : null };
 }
+function parsearCopia(t) {
+  return /^(?:revisa|lee|analiza|que es|mira) (?:lo que (?:copie|tengo copiado)|mi portapapeles|el portapapeles)$|^que (?:copie|tengo copiado|hay en (?:mi|el) portapapeles)$/.test(String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[¿?¡!.]+/g, '').trim());
+}
+async function revisarCopia(decir) {
+  var t = '';
+  try { t = await navigator.clipboard.readText(); } catch (e) {}
+  if (!t || !t.trim()) { decir('📋 No pude leer lo que copiaste (o está vacío). Copia el texto o enlace y vuelve a pedírmelo.'); return; }
+  await recibir(t, '', function (x) { decir(String(x).replace(/^📤 Me compartiste/, '📋 Copiaste')); });
+}
 function parsear(t) {
   var m = String(t || '').match(/^(?:resume|resumen de|resumeme|lee y resume|de que trata)\s+(?:este |esta |el |la )?(?:enlace|link|pagina|página|articulo|artículo|nota)?\s*(https?:\/\/\S+)$/i);
   return m ? { url: m[1] } : null;
@@ -64,6 +73,8 @@ async function recibir(texto, asunto, decir) {
     return;
   }
   var t = pl.texto.slice(0, 600);
+  var ES = window.AsagiEscudo, est = ES && ES.estafaTexto ? ES.estafaTexto(pl.texto) : null;
+  if (est && est.nivel !== 'ok') { decir('🛡 Revisé el texto.\n' + ES.explicarTexto(est)); return; }
   var P = window._asagiPensar;
   if (P && t.length > 40) {
     decir('📤 Me compartiste un texto. Te digo de qué trata…');
@@ -72,7 +83,7 @@ async function recibir(texto, asunto, decir) {
   decir('📤 Me compartiste: «' + t.slice(0, 60) + (t.length > 60 ? '…' : '') + '». ¿Lo guardo? Toca «guarda en la bandeja: ' + t.slice(0, 40) + '».');
 }
 
-var API = { recordar: recordar, plan: plan, parsear: parsear, recibir: recibir, resumirPagina: resumirPagina, urlDe: urlDe };
+var API = { parsearCopia: parsearCopia, revisarCopia: revisarCopia, recordar: recordar, plan: plan, parsear: parsear, recibir: recibir, resumirPagina: resumirPagina, urlDe: urlDe };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiCompartir = API;
 })();

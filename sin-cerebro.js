@@ -137,10 +137,12 @@ var AYUDA = {
   info: ['🌎 Información', ['cómo va el clima', 'clima en Arequipa', 'qué hora es en Japón', 'traduce buenos días al inglés', 'qué significa awesome', 'wiki fotosíntesis', 'busca recetas de lomo saltado', 'dato curioso']],
   ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'dónde anoté lo del examen', 'busca en mis cosas internet', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],
   estudio: ['📚 Estudio', ['estudiemos física', 'quiz de química', 'ayúdame a estudiar para la UNI', 'táctica del día', 'práctica de cita']],
+  redes: ['📺 YouTube y redes', ['qué hay nuevo en YouTube', 'sigue el canal …', 'importa mis canales de YouTube', 'mis suscripciones', 'resume este video …', 'busca en youtube …', 'resumen de mis redes', 'qué me llegó de Instagram', 'qué hay en mi Instagram', 'abre YouTube en Chrome']],
+  escudo: ['🛡 Protección', ['es seguro este link …', 'revisa este enlace …']],
   juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
   avanzado: ['⚙ Avanzado', ['investiga qué piden para postular a la UNI', 'hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]
 };
-var AYUDA_ALIAS = { dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
+var AYUDA_ALIAS = { redes: /redes|youtube|instagram|tiktok|social|chrome|video/, escudo: /protec|seguridad|escudo|estafa|link|enlace/, dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
   info: /info|clima|tiempo|wiki|busca|noticia/, ti: /\bmi\b|memoria|recuerd|sobre mi|ti\b/, estudio: /estudi|uni\b|examen|aprend/, juegos: /jueg|divert|aburr|rato/, avanzado: /avanzad|autonom|aria|web|claude|habilidad/ };
 function temaAyuda(t) { var n = _n(t); for (var k in AYUDA_ALIAS) if (AYUDA_ALIAS[k].test(n)) return k; return null; }
 // Sin tema: un índice corto. Con tema: sus frases (se pueden tocar en el chat).

@@ -16,17 +16,32 @@ async function _ejecutar(fn, args) {
   return v;
 }
 
+// Escudo: revisa el enlace antes de abrirlo (los peligrosos no se abren) y le quita rastreadores.
+function revisar(url) {
+  var E = window.AsagiEscudo; if (!E) return url;
+  var r = E.analizarUrl(url);
+  if (r.nivel === 'peligro') { var e = new Error(E.explicar(url, r)); e.escudo = r; throw e; }
+  return E.limpiarUrl(url);
+}
+// El texto de la página es DATO: se neutralizan órdenes escondidas antes de que llegue al cerebro.
+function limpiar(p) {
+  var E = window.AsagiEscudo;
+  if (p && E && typeof p.texto === 'string') { var n = E.neutralizar(p.texto); p.texto = n.texto; if (n.intentos) p.inyeccion = n.intentos; }
+  return p;
+}
+
 async function ir(url) {
+  url = revisar(url);
   var N = nativo();
   if (N) { await N.abrir({ url: url }); return leer(); }
   var html = await (await fetch(url)).text();                        // respaldo sin app: solo lectura
   var doc = new DOMParser().parseFromString(html, 'text/html');
-  ultima = { titulo: doc.title, url: url, texto: (doc.body ? doc.body.textContent : '').replace(/\s+/g, ' ').trim().slice(0, 6000), elementos: [] };
+  ultima = limpiar({ titulo: doc.title, url: url, texto: (doc.body ? doc.body.textContent : '').replace(/\s+/g, ' ').trim().slice(0, 6000), elementos: [] });
   return ultima;
 }
 async function leer() {
   if (!nativo()) { if (!ultima) throw new Error('no hay página abierta'); return ultima; }
-  ultima = await _ejecutar(L.LECTOR, [6000]);
+  ultima = limpiar(await _ejecutar(L.LECTOR, [6000]));
   return ultima;
 }
 async function clic(n) {

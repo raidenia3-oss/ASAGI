@@ -258,6 +258,10 @@ function setBrainMode(mode) {
 }
 
 window._asagiDecir = (t) => appendMessage('bot', t);
+// keys de Gemini (para resumir videos de YouTube con Gemini); nunca se muestran
+window._asagiClavesGemini = () => String((readBrainControls() || {}).geminiKey || '').split(/[\s,]+/).filter(Boolean);
+// avisos de videos nuevos de los canales que sigues (cada 2 h con la app abierta)
+setTimeout(() => { const tick = () => { if (window.AsagiYouTube) window.AsagiYouTube.vigilar((t) => appendMessage('bot', t)).catch(() => {}); }; tick(); setInterval(tick, 20 * 60 * 1000); }, 15000);
 // La guía «Usar Gemini gratis» guarda aquí la key ya probada (sin tocar el modo ni otras keys).
 window._asagiGuardarKeyGemini = function (k) {
   k = String(k || '').trim(); if (!k) return;
@@ -960,6 +964,26 @@ chatForm.addEventListener('submit', (event) => {
     if (c && c.tipo === 'ayuda') {
       const b = readBrainControls(), conCerebro = !!(b.geminiKey || b.atriaKey || b.mistralKey || b.clavesExtra || (getBrainBridge() || {}).loaded);
       appendMessage('bot', SC.ayudaTexto(c.tema, conCerebro)); return;
+    }
+  }
+
+  // Escudo: «¿es seguro este link? …» (phishing, marcas falsas, acortadores…)
+  {
+    const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
+    if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
+  }
+  // Chrome como herramienta, YouTube y redes (solo lectura; usan TU Chrome con tus sesiones)
+  {
+    const decir = (t) => appendMessage('bot', t);
+    const Y = window.AsagiYouTube, cy = !reesc && Y && Y.parsear(text);
+    if (cy) { Y.ejecutar(cy, decir).catch((e) => decir('📺 No pude: ' + ((e && e.message) || e))); return; }
+    const RD = window.AsagiRedes, cr = !reesc && RD && RD.parsear(text);
+    if (cr) { RD.ejecutar(cr, decir).catch((e) => decir('📲 No pude: ' + ((e && e.message) || e))); return; }
+    const CH = window.AsagiChrome, cc = !reesc && CH && CH.parsear(text);
+    if (cc) {
+      if (cc.accion === 'abrir') CH.abrir(cc.url).then(decir);
+      else { decir('🌐 Lo abro en tu Chrome y lo leo (vuelvo sola)…'); CH.leer(cc.url).then((r) => decir(!r.ok ? r.error : r.login ? '🔐 Esa página pide iniciar sesión: hazlo tú en Chrome y vuelve a pedírmelo.' : '🌐 Leí:\n' + r.textos.slice(0, 15).map((t) => '• ' + t).join('\n'))); }
+      return;
     }
   }
 

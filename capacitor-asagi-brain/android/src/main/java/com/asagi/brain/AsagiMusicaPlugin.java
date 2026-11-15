@@ -164,6 +164,15 @@ public class AsagiMusicaPlugin extends Plugin {
 
     @PluginMethod public void estado(PluginCall call) { call.resolve(estadoObj()); }
 
+    /** Temporizador para dormir: pausa la música en «min» minutos (0 = cancelar). */
+    @PluginMethod
+    public void dormir(PluginCall call) {
+        AsagiMusicaService s = AsagiMusicaService.yo;
+        if (s == null) { call.reject("noSuena"); return; }
+        final int min = Math.max(0, Math.min(600, call.getInt("min", 0)));
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> { s.programarDormir(min); call.resolve(estadoObj()); });
+    }
+
     private JSObject estadoObj() {
         JSObject r = new JSObject();
         AsagiMusicaService s = AsagiMusicaService.yo;
@@ -174,6 +183,7 @@ public class AsagiMusicaPlugin extends Plugin {
         r.put("aleatorio", AsagiMusicaService.aleatorio);
         r.put("repetir", AsagiMusicaService.repetir);
         r.put("enCola", AsagiMusicaService.cola.size());
+        r.put("dormirA", AsagiMusicaService.dormirA);
         if (p != null) r.put("pista", pista(p));
         return r;
     }

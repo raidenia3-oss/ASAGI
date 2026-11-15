@@ -22,6 +22,10 @@ function parsear(t, activo) {
   if (/^(?:sigue|continua|reanuda|play|dale play)(?: la musica)?$/.test(n) && (activo || /musica/.test(n))) return { accion: 'seguir' };
   if (/^(?:siguiente|siguiente cancion|pasa la cancion|otra cancion|cambia la cancion|salta(?: la cancion)?)$/.test(n) && (activo || /cancion/.test(n))) return { accion: 'siguiente' };
   if (/^(?:anterior|cancion anterior|la de antes|vuelve a la anterior)$/.test(n) && (activo || /cancion/.test(n))) return { accion: 'anterior' };
+  if ((m = n.match(/^(?:apaga|para|pausa|deten) la musica (?:en|dentro de) (\d{1,3}) ?(?:min|minutos?)$/)) ||
+      (m = n.match(/^(?:temporizador|timer) (?:de |para )?(?:dormir|sueno|la musica)(?: de| en)? (\d{1,3}) ?(?:min|minutos?)$/)))
+    return { accion: 'dormir', min: parseInt(m[1], 10) };
+  if (/^(?:cancela|quita) (?:el )?(?:temporizador de (?:dormir|sueno|la musica)|apagado de la musica)$/.test(n)) return { accion: 'dormir', min: 0 };
   if (/^(?:que suena|que cancion es(?: esta)?|que esta sonando|que estoy escuchando)$/.test(n)) return { accion: 'quesuena' };
   if (/^(?:apaga la musica|quita la musica|cierra la musica)$/.test(n)) return { accion: 'parar' };
   return null;
@@ -149,6 +153,12 @@ async function ejecutar(c, decir) {
   if (c.accion === 'seguir') { await ctl('seguir'); decir('▶ Sigo.'); return; }
   if (c.accion === 'siguiente' || c.accion === 'anterior') { await ctl(c.accion); setTimeout(function () { ctl('estado'); }, 600); return; }
   if (c.accion === 'parar') { await ctl('parar'); if (mini) mini.hidden = true; decir('🔇 Música apagada.'); return; }
+  if (c.accion === 'dormir') {
+    try { est = await p.dormir({ min: c.min }); }
+    catch (e) { decir('No está sonando música. Primero di «pon música».'); return; }
+    decir(c.min ? '😴 Pauso la música en ' + c.min + ' minutos.' : 'Cancelé el apagado de la música.');
+    return;
+  }
   if (c.accion === 'aleatorio') { est = await p.modo({ aleatorio: !est.aleatorio }); decir(est.aleatorio ? '🔀 Aleatorio activado.' : 'Aleatorio desactivado.'); return; }
   if (!(await asegurarPermiso(decir))) return;
   var todas = await biblioteca();

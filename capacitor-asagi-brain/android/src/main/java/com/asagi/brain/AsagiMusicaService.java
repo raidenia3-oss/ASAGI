@@ -45,6 +45,16 @@ public class AsagiMusicaService extends Service {
     static int indice = 0;
     static boolean aleatorio = false, repetir = false;
     static Escucha escucha;
+    static long dormirA = 0;                                   // hora (ms) en que la música se pausa sola; 0 = no
+    private final android.os.Handler reloj = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable dormir = () -> { dormirA = 0; pausar(); };
+
+    void programarDormir(long minutos) {
+        reloj.removeCallbacks(dormir);
+        dormirA = minutos > 0 ? System.currentTimeMillis() + minutos * 60000L : 0;
+        if (minutos > 0) reloj.postDelayed(dormir, minutos * 60000L);
+        avisar();
+    }
 
     interface Escucha { void cambio(); }
 
@@ -103,6 +113,7 @@ public class AsagiMusicaService extends Service {
 
     @Override
     public void onDestroy() {
+        reloj.removeCallbacks(dormir); dormirA = 0;
         try { unregisterReceiver(ruido); } catch (Throwable ignored) {}
         soltarFoco();
         if (mp != null) { mp.release(); mp = null; }

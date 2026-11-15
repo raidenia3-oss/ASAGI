@@ -23,6 +23,8 @@ jobs:
       - name: Ver Android SDK preinstalado
         run: echo "ANDROID_HOME=$ANDROID_HOME" && ls "$ANDROID_HOME"
       - run: npm install
+      - name: Pruebas de razonamiento
+        run: node scripts/pruebas.mjs
       - run: npm run build
       - run: |
           if [ ! -d android ]; then npx cap add android; fi

@@ -21,5 +21,6 @@ Dueño: Daniel (Lima, Perú). Habla en español; respuestas cortas y directas, s
 ## Al cambiar código
 - Un módulo JS nuevo se registra en `index.html`, `scripts/build-web.mjs` (FILES) y `sw.js`; subir `CACHE_NAME` en `sw.js`.
 - Compilar: `node scripts/build-web.mjs`. `node --check` en los JS tocados; `python3 -m py_compile` en los de `aria/`.
+- Pruebas: `node scripts/pruebas.mjs` (también corre en CI antes de compilar el APK; si fallan, no hay APK).
 - Trabajar en `main`. CI (`build-apk.yml`) compila el APK y `simular.yml` lo prueba en un emulador.
 - No subir claves ni contraseñas: van como GitHub Secrets.

@@ -83,7 +83,7 @@ async function explorar(q, decir) {
   else if (wiki) out += neu(wiki.extracto).slice(0, 400) + (wiki.extracto.length > 400 ? '…' : '') + '\n';
   if (nots.length) out += '\n📰 Noticias:\n' + nots.map(function (n) { return '• ' + neu(n.titulo).slice(0, 110) + (n.fuente ? ' — ' + n.fuente : ''); }).join('\n') + '\n';
   if (vids.length) out += '\n📺 Videos:\n' + vids.map(function (v) { return '• ' + neu(v.titulo).slice(0, 90) + '\n  https://youtu.be/' + v.id; }).join('\n') + '\n';
-  out += '\nSigue explorando: «investiga a fondo ' + q + '»' + (vids.length ? ' · «resume este video https://youtu.be/' + vids[0].id + '»' : '') + (wiki && wiki.url ? ' · «resume este enlace ' + wiki.url + '»' : '');
+  out += '\nSigue explorando:\n• «investiga a fondo ' + q + '»' + (vids.length ? '\n• «resume este video https://youtu.be/' + vids[0].id + '»' : '') + (wiki && wiki.url ? '\n• «resume este enlace ' + wiki.url + '»' : '');
   decir(out);
   if (window.AsagiCompartir) window.AsagiCompartir.recordar('explorado', 'Exploré: ' + q, 'explora:' + norm(q), (mapa || (wiki && wiki.extracto) || '').slice(0, 300));
 }

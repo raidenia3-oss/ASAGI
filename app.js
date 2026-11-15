@@ -170,7 +170,7 @@ function pintarConFrases(el, texto) {
     .replace(/^(\s*)[*-]\s+/gm, '$1• ')                  // viñetas
     .replace(/^\s*\|?\s*:?-{3,}.*$/gm, '')                // separadores de tabla
     .replace(/\n{3,}/g, '\n\n').trim();
-  const re = /«([^«»\n]{2,70})»|\*\*([^*\n]{1,120})\*\*|__([^_\n]{1,120})__/g;
+  const re = /«([^«»\n]{2,70})»|\*\*([^*\n]{1,120})\*\*|__([^_\n]{1,120})__|(https?:\/\/[^\s«»<>"')\]]{4,300})/g;
   let i = 0, m;
   while ((m = re.exec(t))) {
     if (m.index > i) el.appendChild(document.createTextNode(t.slice(i, m.index)));
@@ -179,12 +179,21 @@ function pintarConFrases(el, texto) {
       b.type = 'button'; b.className = 'frase-tap'; b.dataset.f = m[1]; b.textContent = '«' + m[1] + '»';
       b.setAttribute('aria-label', 'Usar: ' + m[1]);
       el.appendChild(b);
+    } else if (m[4]) {   // enlace: se toca, pasa por el escudo y se abre en Chrome
+      const a = document.createElement('button');
+      a.type = 'button'; a.className = 'enlace-tap'; a.dataset.url = m[4].replace(/[.,;:]+$/, '');
+      a.textContent = a.dataset.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 60) + (a.dataset.url.length > 70 ? '…' : '');
+      a.setAttribute('aria-label', 'Abrir enlace ' + a.dataset.url);
+      el.appendChild(a);
+      if (m[4].length > a.dataset.url.length) el.appendChild(document.createTextNode(m[4].slice(a.dataset.url.length)));
     } else { const s = document.createElement('strong'); s.textContent = m[2] || m[3]; el.appendChild(s); }
     i = re.lastIndex;
   }
   if (i < t.length) el.appendChild(document.createTextNode(t.slice(i)));
 }
 chat.addEventListener('click', (e) => {
+  const en = e.target.closest('.enlace-tap');
+  if (en) { const CH = window.AsagiChrome; if (CH) CH.abrir(en.dataset.url).then((t) => { if (/⛔|⚠️/.test(t)) appendMessage('bot', t); }); else window.open(en.dataset.url, '_blank'); return; }
   const b = e.target.closest('.frase-tap'); if (!b) return;
   const f = b.dataset.f, inp = document.getElementById('message-input'); if (!inp) return;
   if (/…|\.\.\.|<|>/.test(f)) {               // tiene un hueco: que Daniel lo complete
@@ -4131,10 +4140,25 @@ window._asagiEjecutarFrase = function (frase) {
       if (AC && AC.notifEstado && NT && (await AC.notifEstado()).activo) {
         const f = await AC.notifFinanzas({ desde: Date.now() - 864e5 });
         e.gastos = NT.unicos(((f && f.lista) || []).map(NT.movimiento).filter(Boolean)).filter((m) => m.moneda === 'PEN');
+        // enlaces que te llegaron (WhatsApp, SMS, correo…): el escudo los revisa y avisa si son peligrosos
+        const ES = window.AsagiEscudo;
+        if (ES && AC.notifLista) {
+          const nl = ((await AC.notifLista()) || {}).lista || [];
+          e.enlaces = [];
+          nl.forEach((o) => { String(o.texto || '').replace(/\b(?:https?:\/\/|www\.)[^\s<>"'«»]+|\b(?:[a-z0-9-]+\.)+(?:xyz|top|click|link|zip|mov|gq|tk|ml|cf|ga|icu|buzz|sbs|cfd|lat|info|online|site|live)(?:\/[^\s<>"'«»]*)?/gi, (u) => {
+            const url = /^https?:/i.test(u) ? u : 'https://' + u.replace(/^www\./i, 'www.');
+            const r = ES.analizarUrl(url); if (r.nivel === 'peligro') e.enlaces.push({ url, de: o.titulo || o.nombre || o.app, app: o.nombre || o.app, r });
+            return u;
+          }); });
+        }
       }
     } catch (x) {}
     try { if (window._asagiMem || window.AsagiMemoria) { const me = window._asagiMem || (window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage)); e.datos = me.todos().filter((n) => n && n.tema !== 'chat' && n.tema !== 'asagi').map((n) => n.texto); } } catch (x) {}
     const av = AG.vigilar(e);
+    (e.enlaces || []).forEach((l) => {
+      const k = 'link_' + l.url.slice(0, 80);
+      if (!e.vistos[k]) av.push({ clave: k, valor: 1, texto: '⛔ Ojo: te llegó un enlace PELIGROSO de ' + l.de + ' (' + l.app + '): ' + l.r.host + '\n' + l.r.motivos.slice(0, 2).map((m) => '• ' + m).join('\n') + '\nNo lo abras ni pongas datos ahí.' });
+    });
     if (!av.length) return;
     av.forEach((a) => { e.vistos[a.clave] = a.valor; appendMessage('bot', a.texto); if (window._asagiAviso) window._asagiAviso(a.texto, false, '👁'); });
     try { localStorage.setItem('asagi-vigilante-vistos', JSON.stringify(e.vistos)); } catch (x) {}

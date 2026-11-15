@@ -42,7 +42,8 @@ function resumen(k, ns) {
   var quien = {}, l = [];
   ns.forEach(function (o) { var q = o.titulo || '·'; (quien[q] = quien[q] || []).push(o); });
   Object.keys(quien).sort(function (a, b) { return quien[b].length - quien[a].length; }).slice(0, 6).forEach(function (q) {
-    l.push('• ' + q + (quien[q].length > 1 ? ' (' + quien[q].length + ')' : '') + ': «' + String(quien[q][0].texto || '').replace(/\s+/g, ' ').slice(0, 80) + '»');
+    var E = typeof window !== 'undefined' && window.AsagiEscudo, malo = E && E.estafaTexto && quien[q].some(function (o) { return E.estafaTexto(o.texto).nivel === 'peligro'; });
+    l.push((malo ? '⛔ ' : '• ') + q + (quien[q].length > 1 ? ' (' + quien[q].length + ')' : '') + ': «' + String(quien[q][0].texto || '').replace(/\s+/g, ' ').slice(0, 80) + '»' + (malo ? ' — parece ESTAFA, no respondas' : ''));
   });
   return '📲 ' + r.nombre + ' — ' + ns.length + ' notificación(es):\n' + l.join('\n');
 }

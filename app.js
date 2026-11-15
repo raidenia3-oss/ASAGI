@@ -147,6 +147,17 @@ function setActiveSection(sectionName) {
   saveState();
 }
 
+// Botón Atrás del celular (lo llama MainActivity): cierra lo que esté encima, paso a paso; en la casa no hace nada.
+window._asagiAtras = function () {
+  const hoja = document.querySelector('.gg-fondo, .deshacer-chat');
+  if (hoja) { hoja.remove(); return 'hoja'; }
+  if (window.AsagiMusica && window.AsagiMusica.cerrarHoja && window.AsagiMusica.cerrarHoja()) return 'musica';
+  const ae = document.activeElement;
+  if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { ae.blur(); return 'teclado'; }
+  if (document.querySelector('.panel.overlay.open')) { setActiveSection('launcher'); return 'casa'; }
+  return 'nada';
+};
+
 // Las frases de ejemplo de ASAGI («pon música») se pueden tocar: se envían (o, si llevan «…», quedan para completarlas).
 function pintarConFrases(el, texto) {
   // markdown que mandan los cerebros (Gemini, etc.) -> texto limpio para el celular

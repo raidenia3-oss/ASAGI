@@ -213,7 +213,7 @@ async function ejecutar(c, decir) {
   p.estado().then(function (e) { est = e; pintar(); }).catch(function () {});
 })();
 
-var API = { estado: function () { return est; }, parsear: parsear, buscar: buscar, ejecutar: ejecutar, abrir: abrirHoja, activo: function () { return !!(est && est.activo); }, mmss: mmss };
+var API = { cerrarHoja: function () { var h = !!hoja; cerrarHoja(); return h; }, estado: function () { return est; }, parsear: parsear, buscar: buscar, ejecutar: ejecutar, abrir: abrirHoja, activo: function () { return !!(est && est.activo); }, mmss: mmss };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiMusica = API;
 })();

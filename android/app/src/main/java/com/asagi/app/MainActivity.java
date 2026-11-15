@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -32,6 +33,22 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(com.asagi.brain.AsagiMusicaPlugin.class);
         super.onCreate(savedInstanceState);
         ajustarABarrasDelSistema();
+        botonAtras();
+    }
+
+    /**
+     * Botón Atrás del celular: ASAGI es la pantalla de inicio, así que Atrás nunca la cierra.
+     * Le pregunta a la app web (window._asagiAtras): cierra la hoja/ventana abierta o vuelve a la casa.
+     */
+    private void botonAtras() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                final WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+                if (wv == null) return;
+                wv.evaluateJavascript("(function(){try{return window._asagiAtras?window._asagiAtras():'casa'}catch(e){return 'error'}})()", null);
+            }
+        });
     }
 
     /**

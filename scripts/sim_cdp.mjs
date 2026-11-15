@@ -35,6 +35,8 @@ let listo = false;
 for (let i = 0; i < 60; i++) { if (await ev("(()=>{const b=document.getElementById('boot');return !b||b.hidden||getComputedStyle(b).display==='none'||getComputedStyle(b).opacity==='0'})()")) { listo = true; break; } await sleep(1000); }
 out(`- Arranque (pantalla de carga oculta): ${listo ? ((Date.now() - t0) / 1000).toFixed(1) + ' s desde que conecté' : 'NO en 60 s'}`);
 out(`- Módulos: ${await ev("['AsagiEnlace','AsagiLan','AsagiBandeja','AsagiHerr','AsagiDiscord'].map(k=>k+(window[k]?'✓':'✗')).join(' ')")}`);
+// voz y micrófono nativos (la WebView no trae los suyos)
+out(`- Voz/micrófono nativos: ${await ev("(async()=>{const P=(window.Capacitor&&Capacitor.Plugins)||{};const h=P.AsagiHablar?await P.AsagiHablar.disponible().catch(e=>({ok:'err '+e.message})):{ok:'falta'};const o=P.AsagiOir?await P.AsagiOir.disponible().catch(e=>({ok:'err '+e.message})):{ok:'falta'};return 'voz '+JSON.stringify(h)+' · oír '+JSON.stringify(o)})()")}`);
 out(`- Estado cerebro: ${await ev("(document.querySelector('#brain-status,.brain-status,[data-brain]')||{}).innerText||'?'")}`);
 
 async function di(texto, espera = 5000) {

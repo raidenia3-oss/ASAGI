@@ -80,10 +80,12 @@ var ORDENES = /(ignora|ignore|olvida|forget|disregard)\s+(?:(?:todas?|todo|las|l
 function neutralizar(texto) {
   var n = 0;
   var t = String(texto || '').replace(ORDENES, function (m) { n++; return '[texto de la página que intentaba dar órdenes: ignorado]'; });
+  if (n && typeof localStorage !== 'undefined') contar('inyeccion');
   return { texto: t, intentos: n };
 }
 
 function explicar(url, r) {
+  if (r.nivel === 'peligro' && typeof localStorage !== 'undefined') contar('enlace');
   var ic = r.nivel === 'peligro' ? '⛔' : r.nivel === 'ojo' ? '⚠️' : '✅';
   var t = r.nivel === 'peligro' ? 'PELIGROSO, no lo abras' : r.nivel === 'ojo' ? 'Sospechoso, con cuidado' : 'Se ve normal';
   return ic + ' ' + t + ': ' + (r.host || url) + (r.motivos.length ? '\n' + r.motivos.map(function (m) { return '• ' + m; }).join('\n') : '\n• dominio sin señales de estafa conocidas') +
@@ -112,9 +114,21 @@ function estafaTexto(texto) {
   return { nivel: fuertes >= 2 || (fuertes >= 1 && mot.length >= 2) ? 'peligro' : fuertes === 1 ? 'ojo' : 'ok', motivos: mot };
 }
 function explicarTexto(r) {
+  if (r.nivel === 'peligro' && typeof localStorage !== 'undefined') contar('estafa');
   if (r.nivel === 'ok') return '✅ No veo señales típicas de estafa. Igual: nunca des claves ni códigos por chat.';
   return (r.nivel === 'peligro' ? '⛔ Muy probable ESTAFA:' : '⚠️ Ojo, tiene señales de estafa:') + '\n' + r.motivos.map(function (m) { return '• ' + m; }).join('\n') +
     '\nNo respondas, no pagues ni des códigos. Si dice ser alguien que conoces, llámalo tú a su número de siempre. Si es tu banco, entra tú a su app.';
+}
+// Contadores del escudo (solo en el celular)
+function contar(k) { try { var s = JSON.parse(localStorage.getItem('asagi-escudo-stats') || '{}'); s[k] = (s[k] || 0) + 1; s.desde = s.desde || Date.now(); localStorage.setItem('asagi-escudo-stats', JSON.stringify(s)); } catch (e) {} }
+function parsearEstado(t) { return /^(?:estado del escudo|que bloqueaste|mi escudo|como va el escudo|que me protegiste|proteccion)$/.test(String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[¿?¡!.]+/g, '').trim()); }
+async function estado() {
+  var s = {}; try { s = JSON.parse(localStorage.getItem('asagi-escudo-stats') || '{}'); } catch (e) {}
+  var b = 0; try { var N = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiNavegador; if (N && N.escudo) b = ((await N.escudo()) || {}).bloqueados || 0; } catch (e) {}
+  return '🛡 Tu escudo' + (s.desde ? ' (desde el ' + new Date(s.desde).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }) + ')' : '') + ':\n' +
+    '• ' + (s.enlace || 0) + ' enlace(s) peligroso(s) detectado(s)\n• ' + (s.estafa || 0) + ' mensaje(s) de estafa detectado(s)\n• ' + (s.inyeccion || 0) + ' página(s) que intentaron darme órdenes (ignoradas)\n' +
+    '• ' + b + ' rastreador(es)/anuncio(s) bloqueado(s) en el navegador de ASAGI (desde que se abrió)\n' +
+    'Pruébame: «es seguro este link …» · «esto es estafa: …» · «revisa lo que copié».';
 }
 // «¿esto es estafa? …texto…» PURO
 function parsearTexto(t) {
@@ -130,7 +144,7 @@ function parsear(t) {
   return { url: url };
 }
 
-var API = { analizarUrl: analizarUrl, limpiarUrl: limpiarUrl, neutralizar: neutralizar, explicar: explicar, parsear: parsear, estafaTexto: estafaTexto, explicarTexto: explicarTexto, parsearTexto: parsearTexto };
+var API = { analizarUrl: analizarUrl, limpiarUrl: limpiarUrl, neutralizar: neutralizar, explicar: explicar, parsear: parsear, contar: contar, parsearEstado: parsearEstado, estado: estado, estafaTexto: estafaTexto, explicarTexto: explicarTexto, parsearTexto: parsearTexto };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiEscudo = API;
 })();

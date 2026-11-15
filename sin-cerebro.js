@@ -138,7 +138,7 @@ var AYUDA = {
   ti: ['🧠 Sobre ti', ['recuerda que mi cumpleaños es el 13 de mayo', 'qué sabes de mí', 'dónde anoté lo del examen', 'busca en mis cosas internet', 'cuándo es mi cumpleaños', 'olvida …', 'me llamo …']],
   estudio: ['📚 Estudio', ['estudiemos física', 'quiz de química', 'ayúdame a estudiar para la UNI', 'táctica del día', 'práctica de cita']],
   redes: ['📺 YouTube y redes', ['qué hay nuevo en YouTube', 'qué veo hoy', 'mis videos para después', 'sigue el canal …', 'importa mis canales de YouTube', 'mis suscripciones', 'resume este video …', 'busca en youtube …', 'resumen de mis redes', 'qué me llegó de Instagram', 'qué hay en mi Instagram', 'abre YouTube en Chrome']],
-  escudo: ['🛡 Protección', ['revisa lo que copié', 'esto es estafa: …texto…', 'es seguro este link …', 'revisa este enlace …']],
+  escudo: ['🛡 Protección', ['estado del escudo', 'revisa lo que copié', 'esto es estafa: …texto…', 'es seguro este link …', 'revisa este enlace …']],
   web: ['🌐 Navegar', ['explora …', 'busca … en Chrome', 'compara precios de …', 'vigila esta página https://…', 'qué páginas vigilas', 'resume este enlace …', 'qué leí', 'abre … en Chrome', 'investiga …', 'busca en la web …']],
   juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
   avanzado: ['⚙ Avanzado', ['investiga qué piden para postular a la UNI', 'hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]

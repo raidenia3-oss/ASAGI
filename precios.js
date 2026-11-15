@@ -14,7 +14,7 @@ function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace
 // PURO
 function parsear(t) {
   var n = norm(t), m;
-  if ((m = n.match(/^(?:compara(?:me)? (?:los )?precios? (?:de|del|de la|de un|de una)|donde (?:esta|sale|lo encuentro) mas barato (?:el |la |un |una )?|precio de (?:un |una |el |la )?|cuanto cuesta (?:un |una |el |la )?(?=.* en (?:peru|lima|tiendas)))(.{3,80}?)(?: en (?:peru|lima|tiendas))?$/))) return { q: m[1].trim() };
+  if ((m = n.match(/^(?:compara(?:me)? (?:los )?precios? (?:de|del|de la|de un|de una)|donde (?:esta|sale|lo encuentro) mas barato (?:el |la |un |una )?|precio de (?:un |una |el |la )?|cuanto cuesta (?:un |una |el |la )?(?=.* en (?:peru|lima|tiendas)))(.{3,80}?)(?: en (?:peru|lima|tiendas))?$/)) && !/^(?:luz|agua|gas|gasolina|petroleo|dolar|euro|bitcoin|cobre|oro|pasaje|taxi|metro|la luz|el dolar)$/.test(m[1].trim())) return { q: m[1].trim() };
   return null;
 }
 function tiendaDe(url) {

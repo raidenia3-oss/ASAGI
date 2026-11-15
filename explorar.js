@@ -11,7 +11,7 @@ function parsear(t) {
   var s = String(t || '').trim().replace(/[¿?¡!.]+$/g, ''), m;
   if ((m = s.match(/^(?:expl[oó]ra(?:me)?|modo explorador|quiero explorar|cu[eé]ntame todo sobre|todo sobre|qu[eé] hay de nuevo sobre)\s*:?\s+(?:sobre\s+|acerca de\s+)?(.{2,80})$/i))) {
     var q = m[1].trim();
-    if (/^(?:mi|mis)\s/i.test(q) || /^https?:/i.test(q)) return null;          // «explora mi Instagram» es de redes; un enlace va a «resume este enlace»
+    if (/^(?:mi|mis)\s/i.test(q) || /^https?:/i.test(q) || /^(?:m[ií]|ti|ella|[eé]l|nosotros|ustedes|eso|esto|todo|ti mism[oa]|m[ií] mism[oa])$/i.test(q)) return null;          // «explora mi Instagram» es de redes; un enlace va a «resume este enlace»
     return { q: q };
   }
   return null;

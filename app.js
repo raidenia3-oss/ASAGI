@@ -986,6 +986,7 @@ chatForm.addEventListener('submit', (event) => {
   // Escudo: «¿es seguro este link? …» (phishing, marcas falsas, acortadores…)
   {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
+    if (!reesc && E && E.parsearEstado && E.parsearEstado(text)) { E.estado().then((t) => appendMessage('bot', t)); return; }
     const ct = !reesc && E && E.parsearTexto && E.parsearTexto(text);
     if (ct) { const u = (ct.texto.match(/https?:\/\/\S+/) || [])[0]; appendMessage('bot', E.explicarTexto(E.estafaTexto(ct.texto)) + (u ? '\n\nEl enlace:\n' + E.explicar(u, E.analizarUrl(u)) : '')); return; }
     if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
@@ -4189,10 +4190,12 @@ window._asagiEjecutarFrase = function (frase) {
     const av = AG.vigilar(e);
     (e.enlaces || []).forEach((l) => {
       const k = 'link_' + l.url.slice(0, 80);
+      if (!e.vistos[k] && window.AsagiEscudo) window.AsagiEscudo.contar('enlace');
       if (!e.vistos[k]) av.push({ clave: k, valor: 1, texto: '⛔ Ojo: te llegó un enlace PELIGROSO de ' + l.de + ' (' + l.app + '): ' + l.r.host + '\n' + l.r.motivos.slice(0, 2).map((m) => '• ' + m).join('\n') + '\nNo lo abras ni pongas datos ahí.' });
     });
-    (e.estafas || []).forEach((s) => {
+    (e.estafas || []).filter((s) => !(e.enlaces || []).some((l) => s.texto.indexOf(l.r.host) >= 0)).forEach((s) => {
       const k = 'estafa_' + s.texto.slice(0, 60);
+      if (!e.vistos[k] && window.AsagiEscudo) window.AsagiEscudo.contar('estafa');
       if (!e.vistos[k]) av.push({ clave: k, valor: 1, texto: '⛔ Ojo: un mensaje de ' + s.de + ' (' + s.app + ') parece ESTAFA:\n' + s.r.motivos.slice(0, 3).map((m) => '• ' + m).join('\n') + '\nNo respondas, no pagues ni des códigos.' });
     });
     if (!av.length) return;

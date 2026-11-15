@@ -386,3 +386,8 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .gg-cerrar { background: transparent; border: 1px solid rgba(240, 240, 248, 0.2); color: #F0F0F8; }
 .gg-nota { margin: 12px 0 0; font-size: 0.8rem; color: rgba(240, 240, 248, 0.6); text-align: center; }
 .gg-hoja button:focus-visible, .gg-key:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.message.bot .msg-text strong { color: #FFD700; font-weight: 700; }
+/* arranque más rápido: la app ya está lista en <1 s; antes esperaba 2,6 s fijos */
+#boot { animation: boot-out 0.35s ease 0.8s forwards !important; }
+.boot-bar span { animation: boot-fill 0.8s ease forwards !important; }
+@media (prefers-reduced-motion: reduce) { #boot { animation: boot-out 0.2s ease 0.3s forwards !important; } .boot-bar span { animation: none !important; } }

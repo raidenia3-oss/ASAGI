@@ -149,14 +149,24 @@ function setActiveSection(sectionName) {
 
 // Las frases de ejemplo de ASAGI («pon música») se pueden tocar: se envían (o, si llevan «…», quedan para completarlas).
 function pintarConFrases(el, texto) {
-  const t = String(texto || ''), re = /«([^«»\n]{2,70})»/g;
+  // markdown que mandan los cerebros (Gemini, etc.) -> texto limpio para el celular
+  const t = String(texto || '')
+    .replace(/^```[a-z]*\n?|```$/gim, '')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')                 // títulos
+    .replace(/^(\s*)[*-]\s+/gm, '$1• ')                  // viñetas
+    .replace(/^\s*\|?\s*:?-{3,}.*$/gm, '')                // separadores de tabla
+    .replace(/\n{3,}/g, '\n\n').trim();
+  const re = /«([^«»\n]{2,70})»|\*\*([^*\n]{1,120})\*\*|__([^_\n]{1,120})__/g;
   let i = 0, m;
   while ((m = re.exec(t))) {
     if (m.index > i) el.appendChild(document.createTextNode(t.slice(i, m.index)));
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'frase-tap'; b.dataset.f = m[1]; b.textContent = '«' + m[1] + '»';
-    b.setAttribute('aria-label', 'Usar: ' + m[1]);
-    el.appendChild(b); i = re.lastIndex;
+    if (m[1]) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'frase-tap'; b.dataset.f = m[1]; b.textContent = '«' + m[1] + '»';
+      b.setAttribute('aria-label', 'Usar: ' + m[1]);
+      el.appendChild(b);
+    } else { const s = document.createElement('strong'); s.textContent = m[2] || m[3]; el.appendChild(s); }
+    i = re.lastIndex;
   }
   if (i < t.length) el.appendChild(document.createTextNode(t.slice(i)));
 }
@@ -445,7 +455,7 @@ function appendMessage(sender, text) {
   } catch (e) { /* memoria es best-effort */ }
   // voz: habla las respuestas del bot (si esta activada y el sigilo lo permite).
   try {
-    if (sender === 'bot' && text && text.trim() && window.asagiSpeak) window.asagiSpeak(text.trim());
+    if (sender === 'bot' && text && text.trim() && window.asagiSpeak) window.asagiSpeak(text.trim().replace(/[*#_`|]+/g, '').replace(/«|»/g, ''));
   } catch (e) { /* voz best-effort */ }
 }
 

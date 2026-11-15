@@ -442,6 +442,17 @@ function createBotReply(messageText) {
     'Eso necesita mi cerebro y ahora no tengo ninguno conectado. Di «qué puedes hacer».';
 }
 
+// Lo que se lee en voz alta: sin emojis, markdown ni enlaces; símbolos dichos como palabras.
+function paraVoz(t) {
+  return String(t || '')
+    .replace(/https?:\/\/\S+/g, 'el enlace')
+    .replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, '')
+    .replace(/[*#_`|•]+/g, '').replace(/«|»/g, '')
+    .replace(/S\/\s?(\d+(?:[.,]\d+)?)/g, '$1 soles').replace(/\s·\s/g, ', ').replace(/(\d)\s?°C?/g, '$1 grados').replace(/(\d)\s?%/g, '$1 por ciento')
+    .replace(/\s+/g, ' ').trim();
+}
+window._asagiParaVoz = paraVoz;
+
 function appendMessage(sender, text) {
   const message = {
     id: uid(),
@@ -463,7 +474,7 @@ function appendMessage(sender, text) {
   } catch (e) { /* memoria es best-effort */ }
   // voz: habla las respuestas del bot (si esta activada y el sigilo lo permite).
   try {
-    if (sender === 'bot' && text && text.trim() && window.asagiSpeak) window.asagiSpeak(text.trim().replace(/[*#_`|]+/g, '').replace(/«|»/g, ''));
+    if (sender === 'bot' && text && text.trim() && window.asagiSpeak) window.asagiSpeak(paraVoz(text));
   } catch (e) { /* voz best-effort */ }
 }
 

@@ -999,6 +999,7 @@ chatForm.addEventListener('submit', (event) => {
   // Modo explorador: «explora …» (Wikipedia + noticias + videos, sin abrir navegador)
   {
     const EX = window.AsagiExplorar, c = !reesc && EX && EX.parsear(text);
+    if (c && c.tendencias) { EX.tendencias((t) => appendMessage('bot', t)).catch(() => {}); return; }
     if (c) { EX.explorar(c.q, (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '🧭 No pude: ' + ((e && e.message) || e))); return; }
   }
   // «compara precios de …» en tiendas del Perú

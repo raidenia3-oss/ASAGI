@@ -132,6 +132,7 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
     const EX = require('../explorar.js');
     ok(EX.parsear('explora agujeros negros').q === 'agujeros negros' && EX.parsear('Cuéntame todo sobre Machu Picchu?').q === 'Machu Picchu' && !EX.parsear('explora mi Instagram') && !EX.parsear('hola'), 'explorar: frases');
     const ns = EX.noticiasDe('<rss><item><title>Perú clasifica al Mundial - RPP</title><link>https://news.google.com/a</link></item></rss>');
+    ok(EX.parsear('¿Qué es tendencia en Perú?').tendencias && EX.tendenciasDe('<rss><item><title>alianza lima</title><ht:approx_traffic>2000+</ht:approx_traffic><ht:news_item><ht:news_item_title>Alianza gana</ht:news_item_title><ht:news_item_source>RPP</ht:news_item_source></ht:news_item></item></rss>')[0].trafico === '2000+', 'explorar: tendencias de Google');
     ok(ns[0].titulo === 'Perú clasifica al Mundial' && ns[0].fuente === 'RPP' && EX.wikiDe('{"pages":[{"title":"Agujero negro","key":"Agujero_negro","excerpt":"Un <span>agujero</span> negro es"}]}').extracto === 'Un agujero negro es', 'explorar: noticias y wikipedia');
   }
   {

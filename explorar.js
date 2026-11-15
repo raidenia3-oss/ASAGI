@@ -9,6 +9,7 @@ function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace
 // PURO
 function parsear(t) {
   var s = String(t || '').trim().replace(/[¿?¡!.]+$/g, ''), m;
+  if (/^(?:tendencias(?: de hoy| en (?:el )?per[uú]| de google)?|qu[eé] es tendencia(?: en (?:el )?per[uú]| hoy)?|de qu[eé] se habla hoy|qu[eé] est[aá] buscando la gente|qu[eé] se busca hoy(?: en (?:el )?per[uú])?)$/i.test(s.replace(/^[¿¡]+/, ''))) return { tendencias: true };
   if ((m = s.match(/^(?:expl[oó]ra(?:me)?|modo explorador|quiero explorar|cu[eé]ntame todo sobre|todo sobre|qu[eé] hay de nuevo sobre)\s*:?\s+(?:sobre\s+|acerca de\s+)?(.{2,80})$/i))) {
     var q = m[1].trim();
     if (/^(?:mi|mis)\s/i.test(q) || /^https?:/i.test(q) || /^(?:m[ií]|ti|ella|[eé]l|nosotros|ustedes|eso|esto|todo|ti mism[oa]|m[ií] mism[oa])$/i.test(q)) return null;          // «explora mi Instagram» es de redes; un enlace va a «resume este enlace»
@@ -24,6 +25,23 @@ function noticiasDe(xml, k) {
     var p = n.titulo.match(/^(.*\S)\s+-\s+([^-]{2,40})$/);
     return { titulo: p ? p[1] : n.titulo, fuente: p ? p[2] : '', url: n.url, fecha: n.fecha };
   });
+}
+// Google Trends (RSS diario de Perú) -> [{tema, trafico, titular, fuente, url}]. PURO.
+function tendenciasDe(xml, k) {
+  var out = [], items = String(xml || '').match(/<item>[\s\S]*?<\/item>/g) || [];
+  items.slice(0, k || 8).forEach(function (it) {
+    var g = function (tag) { var m = it.match(new RegExp('<' + tag + '>([\\s\\S]*?)<\\/' + tag + '>')); return m ? limpiar(m[1].replace(/<!\[CDATA\[|\]\]>/g, '')) : ''; };
+    var tema = g('title'); if (!tema) return;
+    out.push({ tema: tema, trafico: g('ht:approx_traffic'), titular: g('ht:news_item_title'), fuente: g('ht:news_item_source'), url: g('ht:news_item_url') });
+  });
+  return out;
+}
+async function tendencias(decir) {
+  var xml; try { xml = await conTiempo(traer('https://trends.google.com/trending/rss?geo=PE'), 12000); } catch (e) { decir('📈 No pude ver las tendencias ahora (' + e.message + ').'); return; }
+  var ts = tendenciasDe(xml, 8), E = window.AsagiEscudo, neu = function (t) { return E ? E.neutralizar(t).texto : t; };
+  if (!ts.length) { decir('📈 Google no devolvió tendencias ahora. Prueba en un rato.'); return; }
+  decir('📈 Lo que más se busca hoy en Perú:\n' + ts.map(function (x) { return '• ' + neu(x.tema) + (x.trafico ? ' (' + x.trafico + ')' : '') + (x.titular ? '\n  ' + neu(x.titular).slice(0, 100) + (x.fuente ? ' — ' + x.fuente : '') : ''); }).join('\n') +
+    '\nPara saber más de uno: «explora ' + ts[0].tema + '».');
 }
 function wikiDe(json) {
   try { var j = typeof json === 'string' ? JSON.parse(json) : json; var p = j && j.pages && j.pages[0]; return p ? { titulo: p.title, key: p.key, extracto: limpiar(p.excerpt || p.description || '') } : null; } catch (e) { return null; }
@@ -70,7 +88,7 @@ async function explorar(q, decir) {
   if (window.AsagiCompartir) window.AsagiCompartir.recordar('explorado', 'Exploré: ' + q, 'explora:' + norm(q), (mapa || (wiki && wiki.extracto) || '').slice(0, 300));
 }
 
-var API = { parsear: parsear, noticiasDe: noticiasDe, wikiDe: wikiDe, explorar: explorar };
+var API = { tendencias: tendencias, tendenciasDe: tendenciasDe, parsear: parsear, noticiasDe: noticiasDe, wikiDe: wikiDe, explorar: explorar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiExplorar = API;
 })();

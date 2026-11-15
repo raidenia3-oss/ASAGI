@@ -70,6 +70,11 @@ public class AsagiNavegadorPlugin extends Plugin {
         s.setAllowContentAccess(false);
         s.setLoadsImagesAutomatically(false);           // más rápido y menos datos: ella lee texto
         s.setMediaPlaybackRequiresUserGesture(true);
+        s.setJavaScriptCanOpenWindowsAutomatically(false);   // sin pop-ups
+        s.setSupportMultipleWindows(false);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        s.setGeolocationEnabled(false);
+        s.setSaveFormData(false);
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {

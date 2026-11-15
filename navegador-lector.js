@@ -38,7 +38,7 @@ var LECTOR = function (maxTexto) {
     return o;
   });
   // texto principal: <main>/<article> si hay; si no, el body sin menús
-  var raiz = document.querySelector('main, article, [role=main]') || document.body;
+  var raiz = document.querySelector('main, article, [role=main]') || document.body || document.documentElement;
   // bloques de texto en orden (con saltos de línea), sin menús/pies/formularios
   var fuera = 'nav, footer, header, aside, form, script, style, noscript';
   var bloques = Array.prototype.slice.call(raiz.querySelectorAll('h1, h2, h3, h4, p, li, td, th, pre, blockquote, dt, dd, figcaption'))

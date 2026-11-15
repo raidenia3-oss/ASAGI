@@ -71,6 +71,14 @@ for (const t of ['qué hora es', 'cuánto es 15% de 230', 'cuánta batería teng
   if (/alarma|temporizador|abre/.test(t)) { adb('shell input keyevent KEYCODE_BACK'); await sleep(1500);
     adb('shell am start -n com.asagi.app/.MainActivity'); await sleep(2000); }
 }
+// Protección, YouTube y navegación liviana (descargas nativas, sin abrir navegador)
+await di('es seguro este link https://bcp-verifica.xyz/login', 6000);
+await di('esto es estafa: Hola mamá, cambié de número, yapéame 200 urgente', 6000);
+await di('busca en youtube música lofi para estudiar', 25000);
+await di('explora Machu Picchu', 40000);
+await di('vigila esta página https://example.com', 25000);
+await di('qué páginas vigilas', 6000);
+await di('deja de vigilar todas', 6000);
 await di('enlace pc', 12000);
 await di('dile a ARIA hola', 15000);
 // Modo manos: ASAGI usa otra app (Ajustes) por Accesibilidad y vuelve.

@@ -47,6 +47,8 @@ function parsear(t) {
   if (/^(?:adios|chau|chao|nos vemos|hasta luego|bye|me voy|ya me voy)(?: asagi)?$/.test(n)) return { accion: 'chau' };
   if (/^(?:cuentame algo interesante|dime algo interesante|dato curioso|dame un dato curioso|sorprendeme|algo interesante)$/.test(n)) return { accion: 'curioso' };
   if ((m = n.match(/^tengo (?:un |una )?(examen|cita|reunion|entrevista|clase|practica|exposicion|partido|evaluacion|tarea)(?: de [a-z ]{2,30})? (hoy|manana|pasado manana|el (?:lunes|martes|miercoles|jueves|viernes|sabado|domingo))(?: .{0,30})?$/))) return { accion: 'tengo', que: String(t).trim().replace(/[.!¿?]+$/, '').replace(/^tengo\s+/i, '') };
+  if ((m = String(t || '').trim().replace(/[¿?¡!.]+/g, '').match(/^(?:expl[ií]ca(?:me)?|h[aá]blame (?:de|sobre)|cu[eé]ntame (?:de|sobre))\s+(?:qu[eé] es\s+|c[oó]mo funciona\s+)?(?:(?:el|la|los|las|un|una)\s+)?(.{3,60})$/i)) && !/^(?:tu|vos|ti|mi)\b/i.test(m[1]))
+    return { accion: 'quees', q: m[1].trim() };
   if ((m = String(t || '').trim().replace(/[¿?¡!]+/g, '').match(/^(?:qu[eé]|qui[eé]n(?:es)?)\s+(?:es|son|era|eran|fue|fueron)\s+(?:(?:el|la|los|las|un|una)\s+)?(.{2,70})$/i)) && !/^(?:tu|vos|usted|asagi|hora|dia|eso|esto)\b/i.test(m[1]))
     return { accion: 'quees', q: m[1].trim() };
   if (/^(?:sube|subele|aumenta)(?: el| al)? volumen$|^mas volumen$|^volumen arriba$/.test(n)) return { accion: 'volumen', dir: 'subir' };
@@ -152,7 +154,9 @@ async function ejecutar(c, decir, ctx) {
     var f = diasPara(c.que);
     if (!f) { decir('Dime una fecha como «cuánto falta para el 20 de diciembre» o una fiesta (navidad, año nuevo, fiestas patrias…).'); return; }
     var fs = f.fecha.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
-    decir(f.dias === 0 ? '🎉 ¡Es hoy! (' + fs + ')' : f.dias < 0 ? 'Eso ya pasó (' + fs + ').' : '⏳ Faltan ' + f.dias + ' día' + (f.dias === 1 ? '' : 's') + ' para ' + f.nombre + ' (' + fs + ').');
+    var BONITO = { 'ano nuevo': 'Año Nuevo', 'navidad': 'Navidad', 'fiestas patrias': 'Fiestas Patrias', 'dia de la madre': 'el Día de la Madre', 'dia del padre': 'el Día del Padre', 'halloween': 'Halloween', 'san valentin': 'San Valentín', 'semana santa': 'Semana Santa' };
+    var nom = BONITO[norm(f.nombre)] || f.nombre;
+    decir(f.dias === 0 ? '🎉 ¡Es hoy! (' + fs + ')' : f.dias < 0 ? 'Eso ya pasó (' + fs + ').' : (f.dias === 1 ? '⏳ Falta 1 día' : '⏳ Faltan ' + f.dias + ' días') + ' para ' + nom + ' (' + fs + ').');
     return;
   }
   if (c.accion === 'quees') {
@@ -207,7 +211,7 @@ async function ejecutar(c, decir, ctx) {
     var fn = c.accion === 'hecho' ? (ctx.marcarHecho || window._asagiPendHecho) : (ctx.borrarPend || window._asagiPendBorrar);
     if (fn) fn(mejor.id);
     var quedan = cand.filter(function (p) { return p.id !== mejor.id && !p.hecho; }).length;
-    decir(c.accion === 'hecho' ? '✅ Listo, marqué «' + mejor.texto + '» como hecho.' + (quedan ? ' Te quedan ' + quedan + '.' : ' ¡No te queda nada pendiente!') : '🗑 Borré «' + mejor.texto + '».');
+    decir(c.accion === 'hecho' ? '✅ Listo, marqué «' + mejor.texto + '» como hecho.' + (quedan ? (quedan === 1 ? ' Te queda 1.' : ' Te quedan ' + quedan + '.') : ' ¡No te queda nada pendiente!') : '🗑 Borré «' + mejor.texto + '».');
     return;
   }
   if (c.accion === 'nombre') {

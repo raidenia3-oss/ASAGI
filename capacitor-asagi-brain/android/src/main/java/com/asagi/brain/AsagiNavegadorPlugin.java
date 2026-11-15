@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,6 +17,14 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Navegador propio de ASAGI: un WebView OCULTO (invisible, detrás de la app) que ella usa para leer
@@ -31,6 +40,22 @@ public class AsagiNavegadorPlugin extends Plugin {
     private final Handler main = new Handler(Looper.getMainLooper());
     private Runnable timeoutCarga;
     private volatile boolean navegando = false;
+
+    // Escudo: rastreadores y publicidad conocidos que el navegador de ASAGI no carga (privacidad y menos datos).
+    private static final Set<String> BLOQUEO = new HashSet<>(java.util.Arrays.asList(
+        "doubleclick.net", "googlesyndication.com", "googleadservices.com", "google-analytics.com", "googletagmanager.com",
+        "googletagservices.com", "adservice.google.com", "connect.facebook.net", "pixel.facebook.com", "analytics.tiktok.com",
+        "ads-twitter.com", "static.ads-twitter.com", "analytics.twitter.com", "scorecardresearch.com", "quantserve.com",
+        "taboola.com", "outbrain.com", "criteo.com", "criteo.net", "adnxs.com", "rubiconproject.com", "pubmatic.com",
+        "amazon-adsystem.com", "hotjar.com", "mouseflow.com", "clarity.ms", "mixpanel.com", "segment.io", "segment.com",
+        "branch.io", "appsflyer.com", "adjust.com", "moatads.com", "yieldmo.com", "zedo.com", "popads.net", "propellerads.com"));
+    private volatile int bloqueados = 0;
+    private static boolean bloqueado(String host) {
+        if (host == null) return false;
+        String h = host.toLowerCase();
+        while (h.contains(".")) { if (BLOQUEO.contains(h)) return true; h = h.substring(h.indexOf('.') + 1); }
+        return false;
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     private void asegurarWeb() {
@@ -48,6 +73,15 @@ public class AsagiNavegadorPlugin extends Plugin {
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 String esq = r.getUrl().getScheme();
                 return !("http".equals(esq) || "https".equals(esq));   // true = bloquear
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
+                if (bloqueado(r.getUrl().getHost())) {
+                    bloqueados++;
+                    return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream(new byte[0]));
+                }
+                return null;
             }
 
             @Override
@@ -99,6 +133,49 @@ public class AsagiNavegadorPlugin extends Plugin {
                 web.loadUrl(url);
             } catch (Throwable e) { call.reject(String.valueOf(e.getMessage())); }
         });
+    }
+
+    /**
+     * Trae una página/feed por HTTPS (solo GET, sin cookies, máx. 3 MB, 15 s) y devuelve el texto.
+     * Para feeds de YouTube y datos públicos que el navegador de la app no puede leer por CORS.
+     */
+    @PluginMethod
+    public void traer(PluginCall call) {
+        String url = call.getString("url", "");
+        if (url == null || !url.startsWith("https://")) { call.reject("solo https"); return; }
+        new Thread(() -> {
+            HttpURLConnection c = null;
+            try {
+                URL u = new URL(url);
+                if (bloqueado(u.getHost())) { call.reject("bloqueado por el escudo"); return; }
+                c = (HttpURLConnection) u.openConnection();
+                c.setInstanceFollowRedirects(true);
+                c.setConnectTimeout(15000); c.setReadTimeout(15000);
+                c.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36");
+                c.setRequestProperty("Accept-Language", "es-PE,es;q=0.9");
+                int code = c.getResponseCode();
+                InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                if (in != null) {
+                    byte[] b = new byte[16384]; int n, total = 0;
+                    while ((n = in.read(b)) > 0 && total < 3_000_000) { out.write(b, 0, n); total += n; }
+                    in.close();
+                }
+                JSObject r = new JSObject();
+                r.put("ok", code < 400); r.put("estado", code);
+                r.put("url", c.getURL().toString());
+                r.put("texto", out.toString("UTF-8"));
+                call.resolve(r);
+            } catch (Throwable e) {
+                call.reject(String.valueOf(e.getMessage()));
+            } finally { if (c != null) c.disconnect(); }
+        }).start();
+    }
+
+    /** Cuántos rastreadores/anuncios bloqueó el escudo desde que se abrió el navegador. */
+    @PluginMethod
+    public void escudo(PluginCall call) {
+        JSObject r = new JSObject(); r.put("bloqueados", bloqueados); call.resolve(r);
     }
 
     /** Ejecuta JS en la página y devuelve el resultado (JSON) como texto en «r». */

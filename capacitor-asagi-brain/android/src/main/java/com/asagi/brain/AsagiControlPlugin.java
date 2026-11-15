@@ -299,6 +299,15 @@ public class AsagiControlPlugin extends Plugin {
                     i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u));
                     break;
                 }
+                case "chrome": {          // abrir en el Chrome de Daniel (con sus sesiones); si no hay Chrome, en el navegador normal
+                    String u = call.getString("url", "");
+                    if (u == null || !u.startsWith("https://")) { call.reject("url invalida (solo https)"); return; }
+                    i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u));
+                    i.setPackage("com.android.chrome");
+                    if (i.resolveActivity(ctx.getPackageManager()) == null) i.setPackage(null);
+                    else r.put("chrome", true);
+                    break;
+                }
                 case "linterna": {
                     android.hardware.camera2.CameraManager cm = (android.hardware.camera2.CameraManager) ctx.getSystemService(Context.CAMERA_SERVICE);
                     boolean on = call.getBoolean("encender", true);

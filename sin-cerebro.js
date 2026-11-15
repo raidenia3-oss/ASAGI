@@ -81,6 +81,7 @@ function entender(texto) {
   var n = _n(texto), m;
   if (!n) return null;
   if (/^(que (puedes|sabes) hacer|ayuda|help|comandos|que haces|para que sirves|que mas puedes hacer|en que me ayudas)$/.test(n)) return { tipo: 'ayuda' };
+  if (/^(que hay de nuevo en asagi|novedades de asagi|que aprendiste|que cosas nuevas (puedes hacer|tienes)|que hay nuevo en asagi)$/.test(n)) return { tipo: 'ayuda', tema: 'nuevo' };
   if ((m = n.match(/^(?:ayuda (?:de|con|para|sobre)|que puedes hacer (?:con|en|para)) (.{2,30})$/)) && temaAyuda(m[1])) return { tipo: 'ayuda', tema: temaAyuda(m[1]) };
   if (/^(que hora es|que horas son|dime la hora|hora)$/.test(n)) return { tipo: 'hora' };
   if (/^(que (dia|fecha) es( hoy)?|a cuanto estamos|que dia estamos|fecha de hoy|hoy que dia es)$/.test(n)) return { tipo: 'fecha' };
@@ -143,11 +144,15 @@ var AYUDA = {
   juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
   avanzado: ['⚙ Avanzado', ['investiga qué piden para postular a la UNI', 'hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]
 };
+// Lo último que aprendió (no sale en el índice; «qué hay de nuevo en ASAGI»)
+var NUEVO = ['✨ Lo nuevo', ['explora agujeros negros', 'busca dólar hoy en Chrome', 'qué veo hoy', 'compara precios de audífonos JBL', 'vigila esta página https://…', 'estado del escudo', 'revisa lo que copié', 'esto es estafa: …texto…', 'resumen de mis redes', 'importa mis canales de YouTube']];
 var AYUDA_ALIAS = { web: /naveg|web|internet|precio|compra|pagina/, redes: /redes|youtube|instagram|tiktok|social|chrome|video/, escudo: /protec|seguridad|escudo|estafa|link|enlace/, dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
   info: /info|clima|tiempo|wiki|busca|noticia/, ti: /\bmi\b|memoria|recuerd|sobre mi|ti\b/, estudio: /estudi|uni\b|examen|aprend/, juegos: /jueg|divert|aburr|rato/, avanzado: /avanzad|autonom|aria|web|claude|habilidad/ };
 function temaAyuda(t) { var n = _n(t); for (var k in AYUDA_ALIAS) if (AYUDA_ALIAS[k].test(n)) return k; return null; }
 // Sin tema: un índice corto. Con tema: sus frases (se pueden tocar en el chat).
 function ayudaTexto(tema, conCerebro) {
+  if (tema === 'nuevo') return NUEVO[0] + ' — toca una para probarla:\n' + NUEVO[1].map(function (f) { return '• «' + f + '»'; }).join('\n') +
+    '\nY desde cualquier app: Compartir → ASAGI (videos, links, publicaciones de Instagram/TikTok, textos) y te digo de qué trata o si es estafa.';
   if (tema && AYUDA[tema]) return AYUDA[tema][0] + ' — toca una para usarla:\n' + AYUDA[tema][1].map(function (f) { return '• «' + f + '»'; }).join('\n');
   return 'Puedo ayudarte con esto (toca un tema):\n' +
     Object.keys(AYUDA).map(function (k) { return AYUDA[k][0].split(' ')[0] + ' «ayuda de ' + AYUDA[k][0].replace(/^\S+\s/, '').toLowerCase() + '»'; }).join('\n') +
@@ -162,6 +167,7 @@ function charla(clave, ahora) {
     noches: [h < 18 ? '¿Ya? Son las ' + hora12(ahora) + ' Igual, descansa bien.' : 'Buenas noches, Daniel. Mañana te ordeno el día.'],
     dias: ['Buenos días, Daniel. Di «qué tengo hoy» y te digo lo pendiente.'],
     aburrido: ['Ideas rápidas: «quiz de matemáticas», «práctica de cita», «táctica del día» o «cuéntame un chiste».',
+      '¿Exploramos algo? Di «explora …» (lo que quieras) o «qué veo hoy» y te recomiendo un video.',
       '¿Reto aceptado? Di «modo concentración 25 minutos» y avanzamos algo que tengas pendiente.'],
     hola: ['¡Hola, Daniel! ¿Qué hacemos?', '¡Aquí estoy! Dime.', '¿Qué fue, Daniel? ¿En qué te ayudo?'],
     risa: ['😄', '¡Jaja! 😄'],

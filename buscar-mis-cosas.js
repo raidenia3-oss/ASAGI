@@ -14,12 +14,15 @@ function parsear(t) {
   if ((m = n.match(/^(?:busca|buscar|encuentra) (?:en )?(?:mis cosas|mis notas|lo mio|mis datos|todo lo mio)(?: (?:sobre|de|por))? (.{2,60})$/))) return { q: m[1] };
   if ((m = n.match(/^donde (?:anote|apunte|guarde|puse) (?:lo (?:de|del|que) |algo (?:de|sobre) |la |el )?(.{2,60})$/))) return { q: m[1] };
   if ((m = n.match(/^que (?:dije|te dije|anote|guarde|tengo anotado) (?:de|del|sobre|acerca de) (.{2,60})$/))) return { q: m[1] };
+  if ((m = n.match(/^que (?:lei|vi|videos vi|paginas lei|me resumiste) (?:de|del|sobre|acerca de) (.{2,60})$/))) return { q: m[1] };
+  if (/^(?:que lei|mi historial de lecturas|que me resumiste|lo que lei)$/.test(n)) return { q: '*' };
   if ((m = n.match(/^tengo (?:algo|anotado algo|notas?) (?:sobre|de|del) (.{2,60})$/))) return { q: m[1] };
   return null;
 }
 
 // fuentes: [{tipo, texto, cuando?}] -> los que más se parecen. PURO.
 function buscar(fuentes, q, k) {
+  if (q === '*') return (fuentes || []).filter(function (f) { return f.tipo === 'leido' || f.tipo === 'video'; }).sort(function (a, b) { return (b.cuando || 0) - (a.cuando || 0); }).slice(0, k || 6);
   var qs = palabras(q); if (!qs.length) return [];
   var res = [];
   (fuentes || []).forEach(function (f) {
@@ -38,8 +41,9 @@ function buscar(fuentes, q, k) {
   }).slice(0, k || 6).map(function (r) { return r.f; });
 }
 
-var ICONO = { memoria: '🧠', pendiente: '📌', hecho: '✅', compras: '🛒', bandeja: '📥', chat: '💬' };
+var ICONO = { leido: '🌐', video: '📺', memoria: '🧠', pendiente: '📌', hecho: '✅', compras: '🛒', bandeja: '📥', chat: '💬' };
 function formato(q, encontrados) {
+  if (q === '*') return encontrados.length ? '🌐 Lo último que te leí o resumí:\n' + encontrados.map(function (f) { return (ICONO[f.tipo] || '•') + ' ' + String(f.texto).slice(0, 140); }).join('\n') : '🌐 Aún no te he resumido páginas ni videos. Compárteme uno desde Chrome o YouTube.';
   if (!encontrados.length) return '🔎 No encontré nada tuyo sobre «' + q + '». (Busco en lo que me contaste, pendientes, compras, bandeja y el chat.)';
   return '🔎 En tus cosas, sobre «' + q + '»:\n' + encontrados.map(function (f) {
     var t = String(f.texto).replace(/\s+/g, ' '); if (t.length > 140) t = t.slice(0, 139) + '…';
@@ -58,6 +62,7 @@ function fuentes(mensajes) {
   try { (JSON.parse(ls.getItem('asagi-pendientes') || '[]') || []).forEach(function (p) { if (p && p.texto) out.push({ tipo: p.hecho ? 'hecho' : 'pendiente', texto: p.texto + (p.etiqueta ? ' — ' + p.etiqueta : ''), cuando: p.creado || p.cuando || 0 }); }); } catch (e) {}
   try { (JSON.parse(ls.getItem('asagi-compras') || '[]') || []).forEach(function (c) { if (c && c.texto) out.push({ tipo: 'compras', texto: c.texto + (c.hecho ? ' (comprado)' : '') }); }); } catch (e) {}
   try { var b = JSON.parse(ls.getItem('asagi-bandeja') || '{}'); (b.items || []).forEach(function (i) { if (i && (i.texto || i.t)) out.push({ tipo: 'bandeja', texto: i.texto || i.t, cuando: i.ts || 0, fecha: i.ts ? fecha(i.ts) : '' }); }); } catch (e) {}
+  try { (JSON.parse(ls.getItem('asagi-lecturas') || '[]') || []).forEach(function (l) { if (l && l.titulo) out.push({ tipo: l.tipo === 'video' ? 'video' : 'leido', texto: l.titulo + ' — ' + l.resumen.slice(0, 120) + ' ' + l.url, cuando: l.ts || 0, fecha: l.ts ? fecha(l.ts) : '' }); }); } catch (e) {}
   // del chat solo lo que Daniel CONTÓ (no las órdenes, que ya están en pendientes/compras)
   var ORDEN = /^(?:recuerdame|agrega|anota|apunta|pon|ponme|busca|abre|traduce|convierte|calcula|cuanto|que|como|cuando|donde|quien|hazlo|investiga|manos|tira|lanza|elige|olvida)\b/;
   (mensajes || []).forEach(function (m) { if (m && m.sender === 'user' && m.text && m.text.length > 8 && !parsear(m.text) && !ORDEN.test(norm(m.text))) out.push({ tipo: 'chat', texto: m.text, fecha: m.time || '' }); });

@@ -123,7 +123,11 @@ async function resumirVideo(url, decir) {
 }
 
 async function ejecutar(c, decir) {
-  if (c.accion === 'resumir') { decir('📺 Mirando el video…'); decir(await resumirVideo(c.url, decir)); return; }
+  if (c.accion === 'resumir') {
+    decir('📺 Mirando el video…'); var rv = await resumirVideo(c.url, decir); decir(rv);
+    if (window.AsagiCompartir && !/necesito|no pudo/.test(rv)) window.AsagiCompartir.recordar('video', rv.split('\n')[0].replace(/^📺\s*/, '').slice(0, 120), c.url, rv);
+    return;
+  }
   if (c.accion === 'canales') {
     var cs = leerLS(K, []);
     decir(cs.length ? '📺 Sigo ' + cs.length + ' canal(es): ' + cs.map(function (x) { return x.nombre; }).join(' · ') + '\nDi «qué hay nuevo en YouTube» para ver sus videos.' :

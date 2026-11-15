@@ -106,5 +106,9 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(CP.plan('mira https://youtu.be/dQw4w9WgXcQ?si=x').tipo === 'youtube' && CP.plan('https://es.wikipedia.org/wiki/Lima').tipo === 'pagina' && CP.plan('hola qué tal').tipo === 'texto', 'compartir: decide');
   ok(CP.parsear('resume este enlace https://es.wikipedia.org/wiki/Lima').url === 'https://es.wikipedia.org/wiki/Lima', 'compartir: resume este enlace'); }
 
+{ const PR = R('precios.js');
+  ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
+  ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

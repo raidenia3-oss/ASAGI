@@ -987,6 +987,11 @@ chatForm.addEventListener('submit', (event) => {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
     if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
   }
+  // «compara precios de …» en tiendas del Perú
+  {
+    const PR = window.AsagiPrecios, c = !reesc && PR && PR.parsear(text);
+    if (c) { PR.comparar(c.q, (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '🛒 No pude: ' + ((e && e.message) || e))); return; }
+  }
   // «resume este enlace https://…» (lee la página con el escudo y la resume)
   {
     const CP = window.AsagiCompartir, c = !reesc && CP && CP.parsear(text);

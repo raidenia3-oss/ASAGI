@@ -64,6 +64,7 @@ const files = [
   'youtube.js',
   'redes.js',
   'compartir.js',
+  'precios.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

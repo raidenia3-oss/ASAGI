@@ -33,6 +33,7 @@ var HERRAMIENTAS = [
   ['clima <hoy|mañana> en <ciudad>', 'clima y pronóstico (sin ciudad = Lima)', /^(?:clima|va a llover)(?: (?:hoy|manana))?(?: en .{2,40})?$/],
   ['a cuánto está el <dólar|euro|bitcoin> | convierte <N> <moneda> a <moneda>', 'tipo de cambio de hoy', /^(?:a cuanto esta el (?:dolar|euro|bitcoin)|convierte \d+(?:[.,]\d+)? .{2,20} a .{2,20})$/],
   ['cuánto falta para <fecha o fiesta>', 'días que faltan', /^cuanto falta para .{3,40}$/],
+  ['compara precios de <producto>', 'precios en tiendas del Perú', /^compara precios de .{3,80}$/],
   ['qué hay nuevo en YouTube', 'videos nuevos de los canales que Daniel sigue', /^que hay nuevo en youtube$/],
   ['busca en youtube <tema>', 'buscar videos en YouTube', /^busca en youtube .{2,80}$/],
   ['resume este video <enlace de youtube>', 'resumir un video de YouTube', /^resume este video https:\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\/\S+$/],

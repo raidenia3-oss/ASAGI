@@ -15,9 +15,13 @@ var REDES = {
   whatsapp: { nombre: 'WhatsApp', paquete: 'com.whatsapp', notif: null, inicio: null },
   reddit: { nombre: 'Reddit', paquete: 'com.reddit.frontpage', notif: null, inicio: 'https://www.reddit.com/' },
   messenger: { nombre: 'Messenger', paquete: 'com.facebook.orca', notif: null, inicio: null },
-  discord: { nombre: 'Discord', paquete: 'com.discord', notif: null, inicio: null }
+  discord: { nombre: 'Discord', paquete: 'com.discord', notif: null, inicio: null },
+  youtube: { nombre: 'YouTube', paquete: 'com.google.android.youtube', notif: 'https://m.youtube.com/feed/notifications', inicio: null },
+  telegram: { nombre: 'Telegram', paquete: 'org.telegram.messenger', notif: null, inicio: null },
+  threads: { nombre: 'Threads', paquete: 'com.instagram.barcelona', notif: null, inicio: 'https://www.threads.net/' },
+  linkedin: { nombre: 'LinkedIn', paquete: 'com.linkedin.android', notif: 'https://www.linkedin.com/notifications/', inicio: 'https://www.linkedin.com/feed/' }
 };
-var ALIAS = { insta: 'instagram', ig: 'instagram', face: 'facebook', fb: 'facebook', twitter: 'x', wsp: 'whatsapp', wasap: 'whatsapp', whats: 'whatsapp', tik: 'tiktok', 'tik tok': 'tiktok' };
+var ALIAS = { insta: 'instagram', ig: 'instagram', face: 'facebook', fb: 'facebook', twitter: 'x', wsp: 'whatsapp', wasap: 'whatsapp', whats: 'whatsapp', tik: 'tiktok', 'tik tok': 'tiktok', yt: 'youtube', tele: 'telegram', linked: 'linkedin' };
 function red(nom) { var k = norm(nom).replace(/^(?:el|la|mi|mis)\s+/, ''); k = ALIAS[k] || k; return REDES[k] ? k : null; }
 
 // PURO

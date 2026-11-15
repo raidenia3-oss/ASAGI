@@ -74,7 +74,6 @@ public class AsagiNavegadorPlugin extends Plugin {
         s.setSupportMultipleWindows(false);
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         s.setGeolocationEnabled(false);
-        s.setSaveFormData(false);
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {

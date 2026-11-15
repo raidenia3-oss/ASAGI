@@ -118,6 +118,15 @@ function promptRevision(ctx, pregunta, respuesta) {
     'Si está bien, responde solo OK. Si no, devuelve SOLO la respuesta corregida completa.';
 }
 
+// «PLAN: … RESPUESTA: …» -> { plan, respuesta }. Si no vienen las marcas, todo es respuesta. PURO.
+function separarPlan(txt) {
+  var t = String(txt || '').trim();
+  var m = t.match(/RESPUESTA\s*(?:FINAL)?\s*\**\s*:\s*\**\s*([\s\S]+)$/i);
+  if (!m) return { plan: '', respuesta: t.replace(/^\**\s*PLAN\s*\**\s*:[\s\S]*?(?:\n\s*\n|$)/i, '').trim() || t };
+  var p = t.slice(0, m.index).replace(/^\**\s*PLAN\s*\**\s*:\s*/i, '').trim();
+  return { plan: p.slice(0, 700), respuesta: m[1].trim() };
+}
+
 // Pensar: directo (1 llamada) o en pasos (3). responder(prompt) -> Promise<string>. fuerte: hay cerebro remoto.
 async function pensar(pregunta, responder, o) {
   o = o || {};
@@ -131,24 +140,28 @@ async function pensar(pregunta, responder, o) {
     return { texto: d.texto, pasos: pasos, modo: m };
   }
   var av = function (t) { if (o.avisar) try { o.avisar(t); } catch (e) {} };
-  var plan = '';
-  av('🧠 planeando cómo responder…');
-  try { plan = String(await responder(promptPlan(pregunta)) || '').trim().slice(0, 700); pasos.push('plan'); } catch (e) {}
-  av('🧠 pensando la respuesta…');
-  var c = await conHerramientas(promptRespuesta(ctx, pregunta, plan), responder, o, pasos);
-  var resp = c.texto; pasos.push('respuesta');
+  // 1 sola llamada: el cerebro planea (PLAN) y responde (RESPUESTA). Ahorra cuota gratis y tiempo.
+  av('🧠 pensando paso a paso…');
+  var c = await conHerramientas(promptRespuesta(ctx, pregunta, '') + '\n\nPiensa así: primero escribe «PLAN:» con 2 a 4 pasos cortos de cómo resolverlo; ' +
+    'luego «RESPUESTA:» con la respuesta final para Daniel (lo único que él verá).', responder, o, pasos);
+  var partes = separarPlan(c.texto), plan = partes.plan, resp = partes.respuesta;
+  if (plan) pasos.unshift('plan');
+  pasos.push('respuesta');
   if (!resp) return { texto: '', pasos: pasos, modo: m };
-  var ctxRev = ctx + (c.datos.length ? '\n\nDatos reales que trajeron las herramientas:\n' + c.datos.join('\n\n') : '');
-  av('🔍 revisando que esté bien…');
-  try {
-    var rev = String(await responder(promptRevision(ctxRev, pregunta, resp)) || '').trim(); pasos.push('revisión');
-    if (rev && !/^\s*ok\.?\s*$/i.test(rev) && rev.length > 20) { resp = rev; pasos.push('corregida'); }
-  } catch (e) {}
+  // revisar solo cuando vale la pena: números, cuentas o decisiones (ahí es donde un modelo se equivoca)
+  if (/\d|calcul|cuant|deberia|conviene|compar|mejor|elijo|elegir|decid/.test(_n(pregunta)) || c.datos.length) {
+    var ctxRev = ctx + (c.datos.length ? '\n\nDatos reales que trajeron las herramientas:\n' + c.datos.join('\n\n') : '');
+    av('🔍 revisando que esté bien…');
+    try {
+      var rev = String(await responder(promptRevision(ctxRev, pregunta, resp)) || '').trim(); pasos.push('revisión');
+      if (rev && !/^\s*ok\.?\s*$/i.test(rev) && rev.length > 20) { resp = separarPlan(rev).respuesta || rev; pasos.push('corregida'); }
+    } catch (e) {}
+  }
   return { texto: resp, pasos: pasos, modo: m, plan: plan };
 }
 
 var API = { fechaTexto: fechaTexto, cuentas: cuentas, modo: modo, armarContexto: armarContexto, pensar: pensar,
-            promptPlan: promptPlan, historial: historial, pideHerramienta: pideHerramienta, sinUsar: sinUsar, conHerramientas: conHerramientas, promptRespuesta: promptRespuesta, promptRevision: promptRevision };
+            promptPlan: promptPlan, separarPlan: separarPlan, historial: historial, pideHerramienta: pideHerramienta, sinUsar: sinUsar, conHerramientas: conHerramientas, promptRespuesta: promptRespuesta, promptRevision: promptRevision };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiPiensa = API;
 })();

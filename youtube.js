@@ -61,7 +61,7 @@ function videosDeBusqueda(html, k) {
   return out;
 }
 function decodificar(s) {
-  return String(s || '').replace(/\\u0026/g, '&').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\"/g, '"');
+  return String(s || '').replace(/\\u0026/g, '&').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\"/g, '"').replace(/\\\//g, '/');
 }
 // Feed Atom de YouTube -> [{id, titulo, canal, fecha(ms)}]. PURO.
 function leerFeed(xml) {

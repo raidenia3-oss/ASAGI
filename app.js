@@ -513,7 +513,8 @@ async function startBotStreaming(userText) {
             // memoria de la charla (el modelo del celular es chico: menos), lo que pasa ahora y sus herramientas
             historial: P.historial ? P.historial(state.messages, userText, fuerte ? 8 : 4, fuerte ? 280 : 140) : '',
             estado: estadoVivo(),
-            herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase });
+            herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase,
+            avisar: (t) => showReplyStatus(t) });
         } catch (e) { pen = null; }
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
@@ -1025,6 +1026,12 @@ chatForm.addEventListener('submit', (event) => {
     window.AsagiNavegador.claude(text.trim(), (t) => appendMessage('bot', t)).then((r) => appendMessage('bot', r.texto))
       .catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e)));
     return;
+  }
+
+  // Cálculos de todos los días: conversiones, moneda/dado, dividir la cuenta, fechas.
+  {
+    const CA = window.AsagiCalculos, c = CA && CA.parsear(text);
+    if (c) { appendMessage('bot', CA.resolver(c, new Date())); return; }
   }
 
   // Lo que ASAGI sabe de ti: «recuerda que mi cumpleaños es…», «qué sabes de mí», «olvida …».

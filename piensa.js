@@ -98,6 +98,7 @@ async function conHerramientas(base, responder, o, pasos) {
     if (i === 2) return { texto: sinUsar(r), datos: datos };
     if (!(o.permitido && o.permitido(u))) { datos.push('«' + u + '» → NO PERMITIDA. Usa solo las de la lista o responde sin ella.'); continue; }
     pasos.push('usé «' + u + '»');
+    if (o.avisar) try { o.avisar('🔧 usando «' + u + '»…'); } catch (e) {}
     var res = '';
     try { res = await o.ejecutar(u); } catch (e) { res = 'error: ' + ((e && e.message) || e); }
     datos.push('«' + u + '» → ' + String(res || '(sin respuesta)').slice(0, 1200));
@@ -129,12 +130,16 @@ async function pensar(pregunta, responder, o) {
     pasos.push('respuesta');
     return { texto: d.texto, pasos: pasos, modo: m };
   }
+  var av = function (t) { if (o.avisar) try { o.avisar(t); } catch (e) {} };
   var plan = '';
+  av('🧠 planeando cómo responder…');
   try { plan = String(await responder(promptPlan(pregunta)) || '').trim().slice(0, 700); pasos.push('plan'); } catch (e) {}
+  av('🧠 pensando la respuesta…');
   var c = await conHerramientas(promptRespuesta(ctx, pregunta, plan), responder, o, pasos);
   var resp = c.texto; pasos.push('respuesta');
   if (!resp) return { texto: '', pasos: pasos, modo: m };
   var ctxRev = ctx + (c.datos.length ? '\n\nDatos reales que trajeron las herramientas:\n' + c.datos.join('\n\n') : '');
+  av('🔍 revisando que esté bien…');
   try {
     var rev = String(await responder(promptRevision(ctxRev, pregunta, resp)) || '').trim(); pasos.push('revisión');
     if (rev && !/^\s*ok\.?\s*$/i.test(rev) && rev.length > 20) { resp = rev; pasos.push('corregida'); }

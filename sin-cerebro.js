@@ -128,6 +128,8 @@ function ayudaTexto() {
     '• «pon una alarma a las 7», «temporizador de 10 minutos», «modo concentración 25 minutos»\n' +
     '• «recuérdame … mañana a las 8», «qué tengo hoy», «ya pagué internet», «borra el pendiente de …»\n' +
     '• «qué hora es en Japón», «dato curioso», «me llamo …»\n' +
+    '• «convierte 10 km a millas», «30 grados a fahrenheit», «lanza una moneda», «tira un dado», «elige entre pizza y pollo»\n' +
+    '• «cuenta de 150 con 10% de propina entre 3», «divide 120 entre 4», «qué día será en 45 días», «cuántos días hay del 1 de enero al 15 de marzo»\n' +
     '• «recuerda que mi cumpleaños es el 13 de mayo», «cuándo es mi cumpleaños», «qué sabes de mí», «olvida …»\n' +
     '• «estudiemos física», «quiz de química», «busca recetas de lomo saltado»\n' +
     '• «personajes», «práctica de cita», «fondo», «fondo de lluvia», «sonido de lluvia»\n' +

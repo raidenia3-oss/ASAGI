@@ -2,6 +2,9 @@
 
 Dueño: Daniel (Lima, Perú). Habla en español; respuestas cortas y directas, sin tecnicismos innecesarios.
 
+## Empieza aquí
+- Lee `docs/PARA-LA-PROXIMA-SESION.md`: estado actual, cómo verificar y lo que falta (prioridad: detalles que a Daniel no le gustan).
+
 ## Qué es esto
 - **ASAGI**: asistente personal Android (Capacitor). Código web en la raíz (`app.js`, módulos `*.js`), plugin nativo en `capacitor-asagi-brain/`.
 - **ARIA**: asistente de escritorio PyQt5 en la PC de Daniel. Su copia vive en `aria/`; ARIA se actualiza sola desde `aria/manifest.json` (regenerar con `python3 scripts/aria_manifest.py` tras tocar `aria/`).

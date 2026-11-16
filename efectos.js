@@ -36,12 +36,24 @@ function destello(x, y, fuerza) {
     if (k < 1 && vivo === c) requestAnimationFrame(cuadro); else { c.remove(); if (vivo === c) vivo = null; }
   })(t0);
 }
+// Onomatopeya estilo manga para momentos clave (subir de nivel…): letras grandes inclinadas que entran de golpe y se van.
+// Con moderación: como mucho una cada 20 s. Es solo adorno (aria-hidden).
+var ultGrito = 0;
+function grito(texto) {
+  if (quieto() || document.hidden || Date.now() - ultGrito < 20000) return false;
+  ultGrito = Date.now();
+  var d = document.createElement('div'); d.className = 'sk-grito'; d.setAttribute('aria-hidden', 'true'); d.textContent = String(texto).slice(0, 14);
+  document.body.appendChild(d);
+  destello(window.innerWidth / 2, window.innerHeight * 0.38, 2.2);
+  setTimeout(function () { d.remove(); }, 1300);
+  return true;
+}
 function sobre(el, fuerza) { if (!el || !el.getBoundingClientRect) return; var r = el.getBoundingClientRect(); if (r.width) destello(r.left + r.width / 2, r.top + r.height / 2, fuerza); }
 
 if (typeof document !== 'undefined') {
   document.addEventListener('submit', function (e) { if (e.target && e.target.id === 'chat-form') sobre(e.target.querySelector('button[type="submit"]') || e.target, 0.8); }, true);
 }
-var API = { rayos: rayos, destello: destello, sobre: sobre };
+var API = { rayos: rayos, destello: destello, sobre: sobre, grito: grito };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiEfectos = API;
 })();

@@ -1169,7 +1169,7 @@ chatForm.addEventListener('submit', (event) => {
         const di = tareaDecir(); di(o.profundo ? '🔬 Investigo «' + o.pregunta + '» a fondo: varias búsquedas y 6 páginas (1-3 min)…' : '🔎 Busco «' + o.pregunta + '» en la web…');
         const pensarNav = async (p) => { if (!window._asagiPensar) return null; const r = await window._asagiPensar(p); return r && String(r).trim() ? String(r).trim() : null; };
         NV.investigar(o.pregunta, pensarNav, (t) => di(/…\s*$/.test(t) ? t : t + '…'), 0, !!o.profundo).then((r) =>
-          di(r.texto + (r.fuentes.length ? '\n\nFuentes:\n' + r.fuentes.join('\n') : ''))).catch((e) => di('⚠ Navegador: ' + ((e && e.message) || e)));
+          di(r.texto + (L.notaValidacion ? L.notaValidacion(r.texto, r.fuentes.length) : '') + (r.fuentes.length ? '\n\nFuentes:\n' + r.fuentes.join('\n') : ''))).catch((e) => di('⚠ Navegador: ' + ((e && e.message) || e)));
         return;
       }
     }
@@ -1678,6 +1678,7 @@ renderBrainControls();
     if (e.nivel > previo) {
       if (previo > 0) {
         // aviso discreto arriba (no en medio de la conversación)
+        if (window.AsagiEfectos) window.AsagiEfectos.grito('¡NIVEL ' + e.nivel + '!');
         if (window._asagiAviso) window._asagiAviso('Subí a nivel ' + e.nivel + ': ' + e.nombre + '. ' + e.lema, false, '✨');
         else appendMessage('bot', '✨ Subí a nivel ' + e.nivel + ': ' + e.nombre + '. ' + e.lema + ' Ahora: ' + e.abre);
         if (window._asagiAvatarEstado) { window._asagiAvatarEstado('presumida'); setTimeout(() => window._asagiAvatarEstado('reposo'), 2600); }
@@ -4354,4 +4355,39 @@ document.addEventListener('click', (e) => {
   window._asagiLatido = latir;
   setTimeout(latir, 25000); setInterval(latir, 5 * 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(latir, 4000); });
+})();
+
+// Sueño de la memoria: una vez al día ordena los recuerdos (junta repetidos, suelta los apagados que nunca se usaron).
+setTimeout(() => {
+  try {
+    const hoy = new Date().toDateString(); if (localStorage.getItem('asagi-sueno-dia') === hoy || !window.AsagiMemoria) return;
+    localStorage.setItem('asagi-sueno-dia', hoy);
+    if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage);
+    const r = window._asagiMem.sonar();
+    if (r.juntados + r.soltados >= 3 && window._asagiAviso) window._asagiAviso('Ordené mi memoria: junté ' + r.juntados + ' recuerdo(s) repetido(s)' + (r.soltados ? ' y solté ' + r.soltados + ' que no usaba' : '') + '.', false, '🌙');
+  } catch (e) {}
+}, 45000);
+
+// Ajustes → «Cómo soy» (tu instrucción para mi forma de ser) y «Lo que sé de ti» (ver y borrar recuerdos).
+(function identidadEditable() {
+  const ta = document.getElementById('aj-alma'), ok = document.getElementById('aj-alma-ok'), lista = document.getElementById('aj-memoria');
+  if (!ta || !lista) return;
+  try { ta.value = localStorage.getItem('asagi-alma') || ''; } catch (e) {}
+  ok.addEventListener('click', () => { try { localStorage.setItem('asagi-alma', ta.value.trim().slice(0, 300)); } catch (e) {} ok.textContent = 'Guardado ✓'; setTimeout(() => { ok.textContent = 'Guardar'; }, 1600); });
+  function mem() { if (!window.AsagiMemoria) return null; if (!window._asagiMem) window._asagiMem = new window.AsagiMemoria.Memoria(window.localStorage); return window._asagiMem; }
+  function pintar() {
+    const m = mem(), todos = m ? m.todos().slice().reverse() : [];
+    lista.textContent = '';
+    if (!todos.length) { const v = document.createElement('small'); v.textContent = 'Aún no guardo nada de ti. Dime «recuerda que…» y aparecerá aquí.'; lista.appendChild(v); return; }
+    todos.slice(0, 40).forEach((n) => {
+      const f = document.createElement('div'); f.className = 'aj-mem-fila';
+      const t = document.createElement('span'); t.textContent = n.texto;
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'aj-mem-x'; x.textContent = '✕'; x.setAttribute('aria-label', 'Olvidar: ' + n.texto);
+      x.addEventListener('click', () => { m.olvidar((y) => y.texto === n.texto && y.ts === n.ts); pintar(); });
+      f.appendChild(t); f.appendChild(x); lista.appendChild(f);
+    });
+    if (todos.length > 40) { const v = document.createElement('small'); v.textContent = '…y ' + (todos.length - 40) + ' más (di «qué sabes de mí»).'; lista.appendChild(v); }
+  }
+  window._asagiPintarMemoria = pintar; pintar();
+  document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-panel-open="status"], [data-open="status"]')) setTimeout(pintar, 200); });
 })();

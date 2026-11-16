@@ -150,7 +150,20 @@ function promptInvestigar(pregunta, paginas) {
     paginas.map(function (p, i) { return '<pagina n="' + (i + 1) + '" url="' + p.url + '">\n' + String(p.texto || '').slice(0, paginas.length > 4 ? 1600 : 2500) + '\n</pagina>'; }).join('\n');
 }
 
-var API = { LECTOR: LECTOR, CLIC: CLIC, ESCRIBIR: ESCRIBIR, RESULTADOS: RESULTADOS, BUSCADORES: BUSCADORES, resumenPagina: resumenPagina, resultadosDDG: resultadosDDG,
+// Compuerta antes de mostrar una investigación (idea de las «compuertas de validación» de agentes): cuenta las frases
+// con cifras/fechas que NO citan fuente [n] y avisa, para que no se cuele un dato inventado como si estuviera confirmado. PURO.
+function sinFuente(texto) {
+  var frases = (String(texto || '').match(/[^.!?\n]+(?:[.!?]+(?=\s|$)|\.(?=\d)[^.!?\n]*)*[.!?]*/g) || []).map(function (f) { return f.trim(); }).filter(function (f) { return f.length > 20; });
+  var malas = frases.filter(function (f) { return /\d/.test(f.replace(/\[\d+\]/g, '')) && !/\[\d+\]/.test(f) && !/^(\[\d+\]|fuentes?:|https?:)/i.test(f); });
+  return { total: frases.length, sin: malas.length, ejemplo: malas[0] ? malas[0].slice(0, 90) : '' };
+}
+function notaValidacion(texto, nFuentes) {
+  if (!nFuentes) return '';
+  var r = sinFuente(texto);
+  if (!r.sin) return '\n✔ Cada dato con cifras cita su fuente.';
+  return '\n⚠ ' + r.sin + ' dato(s) con cifras no citan fuente (p. ej. «' + r.ejemplo + '…»): confírmalos antes de usarlos.';
+}
+var API = { sinFuente: sinFuente, notaValidacion: notaValidacion, LECTOR: LECTOR, CLIC: CLIC, ESCRIBIR: ESCRIBIR, RESULTADOS: RESULTADOS, BUSCADORES: BUSCADORES, resumenPagina: resumenPagina, resultadosDDG: resultadosDDG,
   parsear: parsear, promptInvestigar: promptInvestigar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiNavLector = API;

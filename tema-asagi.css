@@ -437,3 +437,19 @@ html, body { font-family: var(--sans); color: var(--papel); }
   button, .lchip, .enlace-tap, .frase-tap { transition: transform 0.38s cubic-bezier(0.34, 1.7, 0.5, 1); }
   button:active, .enlace-tap:active, .frase-tap:active { transform: scale(0.9, 0.86); transition: transform 0.06s ease-out; }
 }
+
+/* Ajustes: «Cómo soy» y «Lo que sé de ti» */
+#aj-alma { width: 100%; margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(8, 4, 8, 0.6); color: #F0F0F8; font: inherit; resize: vertical; }
+#aj-alma:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.aj-memoria { margin-top: 10px; max-height: 260px; overflow-y: auto; text-align: left; }
+.aj-mem-fila { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(240, 240, 248, 0.08); }
+.aj-mem-fila span { flex: 1; font-size: 0.9em; overflow-wrap: anywhere; }
+.aj-mem-x { width: 40px; min-width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid rgba(220, 20, 60, 0.5); background: transparent; color: #DC143C; box-shadow: none; }
+
+/* Onomatopeya manga (efectos.js → grito) */
+.sk-grito { position: fixed; left: 50%; top: 38%; z-index: 9998; pointer-events: none; white-space: nowrap;
+  font: italic 900 clamp(44px, 15vw, 76px)/1 'Arial Black', Impact, system-ui, sans-serif; letter-spacing: -1px; color: #FFD700;
+  -webkit-text-stroke: 2px #080408; text-shadow: 4px 4px 0 #DC143C, 7px 7px 0 #080408;
+  transform: translate(-50%, -50%) rotate(-8deg) scale(0); animation: sk-grito 1.25s cubic-bezier(0.2, 1.6, 0.4, 1) forwards; }
+@keyframes sk-grito { 0% { transform: translate(-50%, -50%) rotate(-14deg) scale(0); opacity: 0; } 18% { transform: translate(-50%, -50%) rotate(-8deg) scale(1.12); opacity: 1; }
+  30% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); } 75% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); opacity: 1; } 100% { transform: translate(-50%, -62%) rotate(-8deg) scale(1.05); opacity: 0; } }

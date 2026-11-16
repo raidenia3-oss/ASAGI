@@ -1276,6 +1276,9 @@ chatForm.addEventListener('submit', (event) => {
   {
     const SM = window.AsagiSobreMi, c = !reesc && SM && SM.parsear(text, false);
     if (c) { SM.ejecutar(c, tareaDecir()); return; }
+    // «¿cómo se llama mi perro?»: si ya me lo contaste, respondo al instante desde mi memoria (sin pasar por el cerebro)
+    const cq = !reesc && SM && SM.parsear(text, true);
+    if (cq && cq.accion === 'preguntar') { let r = ''; SM.ejecutar(cq, (t) => { r = t; }); if (r && /^🧠/.test(r)) { appendMessage('bot', r); return; } }
   }
 
   // Lo cotidiano sin cerebro: clima, cambio de moneda, cuánto falta para…, volumen.

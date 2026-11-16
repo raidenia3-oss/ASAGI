@@ -507,6 +507,7 @@ function appendMessage(sender, text) {
   if (sender === 'bot' && window._asagiHerr > 0) message.herr = true;
 
   state.messages.push(message);
+  window._asagiUltimoMsg = Date.now();
   saveState();
   renderMessages();
   // memoria local: guarda lo conversado (dedup) para recordar y sincronizar con ARIA.
@@ -1600,7 +1601,9 @@ renderBrainControls();
     if (bar) bar.style.width = Math.round(e.progreso * 100) + '%';
     if (e.nivel > previo) {
       if (previo > 0) {
-        appendMessage('bot', '✨ Subí a nivel ' + e.nivel + ': ' + e.nombre + '. ' + e.lema + ' Ahora: ' + e.abre);
+        // aviso discreto arriba (no en medio de la conversación)
+        if (window._asagiAviso) window._asagiAviso('Subí a nivel ' + e.nivel + ': ' + e.nombre + '. ' + e.lema, false, '✨');
+        else appendMessage('bot', '✨ Subí a nivel ' + e.nivel + ': ' + e.nombre + '. ' + e.lema + ' Ahora: ' + e.abre);
         if (window._asagiAvatarEstado) { window._asagiAvatarEstado('presumida'); setTimeout(() => window._asagiAvatarEstado('reposo'), 2600); }
       }
       previo = e.nivel; try { localStorage.setItem('asagi-nivel-visto', String(e.nivel)); } catch (x) {}
@@ -3590,6 +3593,14 @@ if ('serviceWorker' in navigator) {
     const hoy = new Date().toDateString();
     if (localStorage.getItem('asagi-tactica-dia') === hoy) return;
     await listo; const x = P.delDia(lista, new Date()); if (!x) return;
+    // no interrumpir: espera a que el chat esté tranquilo (último mensaje de ASAGI y 15 s sin nada nuevo)
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const u = state.messages[state.messages.length - 1], quieto = !u || (u.sender === 'bot' && !u.prog && Date.now() - (window._asagiUltimoMsg || 0) > 15000);
+      if (quieto) break;
+      if (i === 39) return;
+    }
+    if (localStorage.getItem('asagi-tactica-dia') === hoy) return;
     localStorage.setItem('asagi-tactica-dia', hoy);
     appendMessage('bot', '☀️ Táctica del día · ' + (x.p.apodo || x.p.nombre) + ' — ' + x.t.nombre + '\n' + x.t.que_es +
       '\nHoy: ' + String(x.t.practica || '').replace(/^\s*hoy\s*[:,]?\s*/i, '') + '\n(«táctica del día» para verla completa)');

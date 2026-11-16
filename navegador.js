@@ -134,7 +134,6 @@ var _clic = _conPC('clic', clic, function (n) { return { accion: 'clic', n: n };
 var _escribir = _conPC('escribir', escribir, function (n, t, e) { return { accion: 'escribir', n: n, texto: t, enviar: !!e }; }, function (w) { if (w.pagina) ultima = w.pagina; return w.ok === undefined ? Object.assign({ ok: !!w.pagina }, w) : w; });
 var _volver = _conPC('volver', volver, function () { return { accion: 'volver' }; }, function (w) { ultima = w.pagina; return w.pagina; });
 var _investigar = async function (pregunta, pensar, progreso, n, profundo) {
-  if (progreso && window._asagiLan) progreso('🖥 Le pido a ARIA que lo busque en la PC (no gasto RAM del celular)…');
   var w = await _aria({ accion: 'investigar', pregunta: pregunta, profundo: !!profundo });
   if (w && !w.error && w.texto) { _viaPC = true; return { texto: w.texto, fuentes: w.fuentes || [], via: 'ARIA' }; }
   _viaPC = false; _ocioso();

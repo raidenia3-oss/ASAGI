@@ -1063,6 +1063,35 @@ chatForm.addEventListener('submit', (event) => {
     if (ct) { const u = (ct.texto.match(/https?:\/\/\S+/) || [])[0]; appendMessage('bot', E.explicarTexto(E.estafaTexto(ct.texto)) + (u ? '\n\nEl enlace:\n' + E.explicar(u, E.analizarUrl(u)) : '')); return; }
     if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
   }
+  // Aprender de correcciones («no, es …», «te equivocaste…») e iniciativa propia / ideas
+  {
+    const AP = window.AsagiAprende, IN = window.AsagiIniciativa;
+    if (IN && !reesc) IN.observar(text);
+    const ca = !reesc && AP && AP.parsear(text);
+    if (ca) {
+      let ult = null;
+      if (ca.accion === 'corregir') {
+        const ms = state.messages; let ib = -1;
+        for (let i = ms.length - 1; i >= 0 && i > ms.length - 6; i--) { if (ms[i].sender === 'bot' && !ms[i].prog) { ib = i; break; } }
+        if (ib > 0) { let pu = ''; for (let j = ib - 1; j >= 0 && j > ib - 5; j--) { if (ms[j].sender === 'user') { pu = ms[j].text; break; } } if (pu) ult = { pregunta: pu, respuesta: ms[ib].text }; }
+      }
+      // una cuenta exacta no se «corrige» por las buenas: soy honesta y la mantengo
+      if (ca.accion === 'corregir' && ult && /^[^\n]{1,60} = -?[\d.,]+\s*%?$/.test(String(ult.respuesta).trim())) {
+        appendMessage('bot', '📐 Esa cuenta la hice exacta: ' + String(ult.respuesta).trim() + '. Si redondeas o te referías a otra cosa, dime cuál y la hago.'); return;
+      }
+      const da = tareaDecir(), reintenta = ca.accion === 'corregir' && ult && window._asagiPensar;
+      if (AP.ejecutar(ca, reintenta ? () => {} : da, ult)) {
+        if (reintenta) {
+          da('📝 Anotado. Lo intento de nuevo…');
+          window._asagiPensar('Daniel preguntó: «' + ult.pregunta + '». Respondiste mal y él te corrigió: «' + ca.correccion + '». Responde de nuevo, corto y en español, usando su corrección como verdad.')
+            .then((r) => da('📝 Anotado para no repetirlo. Ahora sí: ' + String(r || '').trim())).catch(() => da('📝 Anotado para no repetirlo: ' + ca.correccion));
+        }
+        return;
+      }
+    }
+    const ci = !reesc && IN && IN.parsear(text);
+    if (ci) { IN.ejecutar(ci, tareaDecir()).catch((e) => appendMessage('bot', '📦 No pude: ' + ((e && e.message) || e))); return; }
+  }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
   {
     const VG = window.AsagiVigia, c = !reesc && VG && VG.parsear(text);
@@ -4391,3 +4420,9 @@ setTimeout(() => {
   window._asagiPintarMemoria = pintar; pintar();
   document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('[data-panel-open="status"], [data-open="status"]')) setTimeout(pintar, 200); });
 })();
+
+// Iniciativa propia: una vez al día (con la app a la vista y el chat tranquilo) ASAGI prepara algo sobre tus intereses.
+setTimeout(() => {
+  const tick = () => { if (document.hidden || !window.AsagiIniciativa || Date.now() - (window._asagiUltimoMsg || 0) < 120000) return; window.AsagiIniciativa.trabajar(false).then((t) => { if (t) proactivo(t, '📦'); }).catch(() => {}); };
+  setTimeout(tick, 180000); setInterval(tick, 30 * 60000);
+}, 1000);

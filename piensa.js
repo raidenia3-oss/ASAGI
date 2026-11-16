@@ -60,6 +60,8 @@ function armarContexto(pregunta, o) {
   }
   if (o.daniel && o.daniel.length) partes.push('Lo que sabes de Daniel (te lo dijo él):\n' + o.daniel.map(function (x) { return '- ' + x; }).join('\n'));
   if (o.saber && o.saber.length) partes.push('Lo que aprendiste estudiando (cita la fuente si lo usas):\n' + o.saber.map(function (x) { return '- ' + x.texto + (x.fuente ? ' (fuente: ' + x.fuente + ')' : ''); }).join('\n'));
+  var lec = o.lecciones || (typeof window !== 'undefined' && window.AsagiAprende ? window.AsagiAprende.para(pregunta) : []);
+  if (lec && lec.length) partes.push('Daniel ya te corrigió antes (no repitas el error; su corrección manda):\n' + lec.map(function (x) { return '- ' + x; }).join('\n'));
   if (o.estado && o.estado.length) partes.push('Cómo están las cosas de Daniel ahora mismo (datos reales del celular):\n' + o.estado.map(function (x) { return '- ' + x; }).join('\n'));
   if (o.historial) partes.push('Conversación reciente (para entender a qué se refiere: «eso», «y él», «otra vez»…):\n' + o.historial);
   if (o.fresco && o.herramientas && o.herramientas.length) partes.push('OJO: esta pregunta parece pedir datos ACTUALES (personas en un cargo, precios, resultados, noticias). Si la respuesta depende de eso y no está en el contexto, usa primero «busca en la web <pregunta>»: lo que sabes puede estar desactualizado.');

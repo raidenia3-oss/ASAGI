@@ -139,3 +139,13 @@ Pendiente (buen valor, en orden):
 4. Capas con dependencias en un solo sentido (transporte → router → habilidades → núcleo): es el registro de intenciones del §3.1.
 5. Más sakuga: onomatopeyas manga en momentos clave (subir de nivel, racha), con moderación.
 6. La página de Notion «El mapa de mi Jarvis» no se pudo leer (privada/requiere sesión): pedirle a Daniel que pegue el texto.
+
+## 10. Aprendizaje, autonomía y creatividad — hecho el 16-nov (tarde)
+- `aprende.js`: lecciones de las correcciones de Daniel («no, es …», «te equivocaste…»); `piensa.armarContexto` las inyecta solas.
+  Una cuenta exacta no se deja «corregir» (honestidad). `memoria.sonar()` ordena la memoria 1 vez al día.
+- `iniciativa.js`: nota intereses (lo que explora/investiga), 1 vez al día prepara algo propio (noticias reales + una idea original)
+  y lo entrega con `proactivo()`; «dame ideas para …», «sorpréndeme», «qué hiciste sola», «pausa tu iniciativa».
+- Compuerta de investigación (`notaValidacion`), Ajustes «Cómo soy» (`asagi-alma` → systemPrompt) y «Lo que sé de ti», `grito()` manga.
+Siguiente (no hecho): que la iniciativa también CREE cosas (una mini web con `web-publica.js`/taller de ARIA, una rutina nueva
+propuesta en `rutinas.js`) siempre como borrador y con confirmación; revisión con cerebro de las lecciones que se contradicen;
+mostrar en la casa un chip «📦 nuevo» cuando haya una creación sin leer.

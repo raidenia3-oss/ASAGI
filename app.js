@@ -296,8 +296,8 @@ window._asagiCompartido = (texto, asunto) => {
 // keys de Gemini (para resumir videos de YouTube con Gemini); nunca se muestran
 window._asagiClavesGemini = () => String((readBrainControls() || {}).geminiKey || '').split(/[\s,]+/).filter(Boolean);
 // avisos de videos nuevos de los canales que sigues (cada 2 h con la app abierta)
-setTimeout(() => { const tick = () => { if (window.AsagiVigia) window.AsagiVigia.vigilar((t) => { appendMessage('bot', t); if (window._asagiAviso) window._asagiAviso(t.split('\n')[0].replace(/^\S+\s/, ''), false, '👁'); }).catch(() => {}); }; setInterval(tick, 30 * 60 * 1000); setTimeout(tick, 60000); }, 1000);
-setTimeout(() => { const tick = () => { if (window.AsagiYouTube) window.AsagiYouTube.vigilar((t) => { appendMessage('bot', t); if (window._asagiAviso) window._asagiAviso(t.split('\n')[0].replace(/^\S+\s/, '').slice(0, 140), false, '📺'); }).catch(() => {}); }; tick(); setInterval(tick, 20 * 60 * 1000); }, 15000);
+setTimeout(() => { const tick = () => { if (window.AsagiVigia) window.AsagiVigia.vigilar((t) => proactivo(t, '👁')).catch(() => {}); }; setInterval(tick, 30 * 60 * 1000); setTimeout(tick, 60000); }, 1000);
+setTimeout(() => { const tick = () => { if (window.AsagiYouTube) window.AsagiYouTube.vigilar((t) => proactivo(t, '📺')).catch(() => {}); }; tick(); setInterval(tick, 20 * 60 * 1000); }, 15000);
 // La guía «Usar Gemini gratis» guarda aquí la key ya probada (sin tocar el modo ni otras keys).
 window._asagiGuardarKeyGemini = function (k) {
   k = String(k || '').trim(); if (!k) return;
@@ -541,6 +541,24 @@ function tareaDecir() {
   };
 }
 window._asagiTareaDecir = tareaDecir;
+// Avisos por iniciativa propia (idea del «heartbeat» de OpenClaw: revisar en silencio y hablar solo si vale la pena, en horas activas).
+// De 11 p. m. a 7 a. m. no interrumpo: los guardo y te los doy juntos al despertar. Los de seguridad (estafas) no pasan por aquí.
+function proactivo(texto, icono) {
+  const h = new Date().getHours(), tranquilo = h >= 23 || h < 7;
+  if (tranquilo) {
+    try { const c = JSON.parse(localStorage.getItem('asagi-avisos-cola') || '[]'); c.push({ t: String(texto).slice(0, 600), ts: Date.now() }); localStorage.setItem('asagi-avisos-cola', JSON.stringify(c.slice(-20))); } catch (e) {}
+    return;
+  }
+  appendMessage('bot', texto);
+  if (window._asagiAviso) window._asagiAviso(String(texto).split('\n')[0].replace(/^\S+\s/, '').slice(0, 140), false, icono || '🔔');
+}
+function soltarAvisos() {
+  const h = new Date().getHours(); if (h >= 23 || h < 7) return;
+  let c = []; try { c = JSON.parse(localStorage.getItem('asagi-avisos-cola') || '[]'); localStorage.removeItem('asagi-avisos-cola'); } catch (e) {}
+  if (c.length) appendMessage('bot', '🌙 Mientras descansabas (' + c.length + '):\n' + c.map((x) => x.t).join('\n\n'));
+}
+window._asagiProactivo = proactivo;
+setTimeout(soltarAvisos, 20000); setInterval(soltarAvisos, 10 * 60000);
 function appendMessage(sender, text) {
   const message = {
     id: uid(),

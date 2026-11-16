@@ -23,7 +23,16 @@ function dedupInsertar(nodos, texto, tema = '', fuente = '') {
   return { nodos: nodos.concat([{ texto: t, tema, fuente, ts: _ahora() }]), nuevo: true };
 }
 
-function buscarEn(nodos, consulta, k = 8) {
+// Activación (idea de ACT-R, usada en asistentes como el de M. Kraus): un recuerdo pesa más si es reciente y si se usa seguido.
+// Devuelve 0..~0.95: solo desempata entre recuerdos que coinciden igual (lo que se usa sube; lo que no, se apaga). PURO.
+function activacion(n, ahora) {
+  const dias = Math.max(0, ((ahora || _ahora()) - (n.ult || n.ts || 0)) / 86400);
+  const recencia = Math.pow(1 + dias, -0.5);                 // decae como potencia: rápido al inicio, lento después
+  const uso = Math.min(1, Math.log(1 + (n.usos || 0)) / Math.log(21));
+  return 0.55 * recencia + 0.4 * uso;
+}
+
+function buscarEn(nodos, consulta, k = 8, ahora) {
   const q = (consulta || '').toLowerCase().trim();
   if (!q) return nodos.slice(-k).reverse();
   const palabras = q.split(/\s+/).filter((w) => w.length > 2);
@@ -32,7 +41,7 @@ function buscarEn(nodos, consulta, k = 8) {
     const txt = (n.texto || '').toLowerCase();
     let s = txt.includes(q) ? 5 : 0;
     for (const w of palabras) if (txt.includes(w)) s += 1;
-    if (s > 0) punt.push([s, n]);
+    if (s > 0) punt.push([s + activacion(n, ahora), n]);
   }
   punt.sort((a, b) => b[0] - a[0]);
   return punt.slice(0, k).map((x) => x[1]);
@@ -77,7 +86,16 @@ class Memoria {
     if (r.nuevo) this._guardarStore(r.nodos);
     return r.nuevo;
   }
-  buscar(consulta, k = 8) { return buscarEn(this._leerStore(), consulta, k); }
+  buscar(consulta, k = 8) {
+    const todos = this._leerStore(), r = buscarEn(todos, consulta, k);
+    // usar un recuerdo lo refuerza (máx. 1 vez por hora para no gastar almacenamiento)
+    if (r.length && (consulta || '').trim()) {
+      const t = _ahora(); let toco = false;
+      for (const n of r.slice(0, 3)) if (t - (n.ult || 0) > 3600) { n.usos = (n.usos || 0) + 1; n.ult = t; toco = true; }
+      if (toco) this._guardarStore(todos);
+    }
+    return r;
+  }
   // quita los nodos que cumplan pred(nodo); devuelve los quitados
   olvidar(pred) {
     const arr = this._leerStore(), fuera = arr.filter(pred);
@@ -124,7 +142,7 @@ function valeRecordar(texto, quien) {
   return null;
 }
 
-const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE, valeRecordar };
+const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE, valeRecordar, activacion };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiMemoria = API;
 

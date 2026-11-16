@@ -122,3 +122,20 @@ Propuestas pendientes (preguntar a Daniel antes de las grandes):
 - Reparto: celular = sensores, notificaciones, cámara, lo inmediato; PC = navegar pesado, investigar, correo, crear webs, modelos grandes.
 Siguiente paso natural: que ARIA pueda **mandar** cosas al celular (hoy solo ASAGI inicia; ARIA responde). Opciones sin servidor:
 cola de mensajes que ASAGI recoge en cada latido (`aria` → `{para_asagi:[...]}`), p. ej. «terminé tu informe», «llegó un correo importante».
+
+## 9. Ideas tomadas de otros proyectos (16-nov) y las que faltan
+Hecho en ASAGI:
+- **sakuga-vfx** → `efectos.js` propio: rebote de botones y destello al enviar/completar (sin librerías, respeta «reducir movimiento»).
+- **Agentic-Bug-Hunter** (es herramienta OFENSIVA: solo se tomaron patrones de diseño, nada de su código ni de sus técnicas):
+  «regla de los 5 minutos» → tareas atascadas avisan a los 4 min; «pickup» → tareas interrumpidas se retoman con un toque.
+- **OpenClaw** (heartbeat + horas activas + NO_REPLY) → `proactivo()` en app.js: avisos propios se guardan de 11 p. m. a 7 a. m.
+  y se entregan juntos al despertar.
+- **Asistente de M. Kraus** (memoria con activación ACT-R) → `activacion()` en memoria.js: lo reciente y lo usado pesa más.
+Pendiente (buen valor, en orden):
+1. «Sueño nocturno» (OpenClaw DREAMS.md): una vez al día, con el cerebro, condensar recuerdos repetidos y promover hechos durables.
+2. Compuerta de validación (Bug Hunter «7 preguntas»): antes de mostrar una investigación, una pasada corta que marque
+   afirmaciones sin fuente («no confirmado»). Solo con Gemini/ARIA (no con el modelo local).
+3. Archivos de identidad editables (SOUL.md/USER.md): que Daniel pueda ver y editar en Ajustes «cómo soy» y «lo que sé de ti».
+4. Capas con dependencias en un solo sentido (transporte → router → habilidades → núcleo): es el registro de intenciones del §3.1.
+5. Más sakuga: onomatopeyas manga en momentos clave (subir de nivel, racha), con moderación.
+6. La página de Notion «El mapa de mi Jarvis» no se pudo leer (privada/requiere sesión): pedirle a Daniel que pegue el texto.

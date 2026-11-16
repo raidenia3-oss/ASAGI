@@ -868,6 +868,22 @@ class LocalAIBrain:
                     return {"ok": True, "lista": [x for x in _pj.cargar() if x.get("creado")][-4:]}   # solo los creados (cabe en 64 KB)
                 except Exception:
                     return {"ok": False}
+            if c.get("t") == "latido":           # ASAGI cuenta cómo está (batería, pendientes) y ARIA responde cómo está ella
+                try:
+                    import json as _j
+                    os.makedirs(os.path.join(ARIA_APP, "data"), exist_ok=True)
+                    pend = [{"texto": str(p.get("texto", ""))[:80], "cuando": p.get("cuando")} for p in (c.get("pendientes") or [])[:6] if isinstance(p, dict)]
+                    with open(os.path.join(ARIA_APP, "data", "asagi_estado.json"), "w", encoding="utf-8") as f:
+                        _j.dump({"ts": int(time.time()), "bateria": c.get("bateria"), "cargando": bool(c.get("cargando")), "pendientes": pend, "total": c.get("total")}, f, ensure_ascii=False)
+                except Exception:
+                    pass
+                try:
+                    import bots_agenda as _ba
+                    e = _ba.resumen_estado(_ba.Agenda().bots())
+                except Exception:
+                    e = {"activos": 0, "proximo": None, "lista": []}
+                e["ocupada"] = bool(getattr(self, "_gen_lock", None) and self._gen_lock.locked())
+                return {"ok": True, "aria": e}
             if c.get("t") == "estado":           # ASAGI pregunta qué agentes tiene activos ARIA
                 try:
                     import bots_agenda as _ba
@@ -1228,7 +1244,8 @@ class LocalAIBrain:
         if any(g in lower for g in ["gracias", "thanks"]):
             return "De nada. ¿En qué más puedo ayudarte?"
         if any(g in lower for g in ["hora", "qué hora", "fecha", "qué día"]):
-            return datetime.now().strftime("Son las %H:%M del %d/%m/%Y.")
+            _n = datetime.now()
+            return "Son las %d:%02d %s del %s." % (_n.hour % 12 or 12, _n.minute, "a. m." if _n.hour < 12 else "p. m.", _n.strftime("%d/%m/%Y"))
         if any(g in lower for g in ["ayuda", "help", "comandos"]):
             return (
                 "Puedo hablar contigo, gestionar archivos, memoria, notas, "

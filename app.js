@@ -2849,18 +2849,23 @@ if ('serviceWorker' in navigator) {
       // destello de completado: anillo que se expande una vez al converger
       if (convT > 0.02 && convT < 0.6) {
         const rr = easeOut(convT / 0.6) * Math.min(W, H) * 0.42;
-        g.strokeStyle = 'rgba(55, 194, 199,' + (0.5 * (1 - convT / 0.6)).toFixed(2) + ')';
+        g.strokeStyle = 'rgba(255, 215, 0,' + (0.5 * (1 - convT / 0.6)).toFixed(2) + ')';
         g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke(); g.lineWidth = 1;
       }
-      // núcleo ASAGI
-      const pulse = 0.7 + 0.3 * Math.sin(tt * 2);
-      const grd = g.createRadialGradient(cx, cy, 0, cx, cy, 20);
-      grd.addColorStop(0, 'rgba(55, 194, 199,' + (0.9 * pulse).toFixed(2) + ')');
-      grd.addColorStop(1, 'rgba(219, 20, 60, 0)');
-      g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, 20, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#f6d8e0'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = 'rgba(255, 92, 118, 0.9)'; g.font = 'bold 8px monospace'; g.textAlign = 'center';
-      g.fillText('ASAGI', cx, cy + 3);
+      // núcleo ASAGI: más grande, con anillo que gira y nombre legible debajo (paleta fija: carmesí + oro)
+      const pulse = 0.7 + 0.3 * Math.sin(tt * 2), R = Math.max(16, Math.min(W, H) * 0.2);
+      const grd = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.6);
+      grd.addColorStop(0, 'rgba(255, 215, 0,' + (0.55 * pulse).toFixed(2) + ')');
+      grd.addColorStop(0.45, 'rgba(220, 20, 60,' + (0.35 * pulse).toFixed(2) + ')');
+      grd.addColorStop(1, 'rgba(220, 20, 60, 0)');
+      g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, R * 1.6, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = 'rgba(255, 215, 0, 0.75)'; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(cx, cy, R, tt * 0.8, tt * 0.8 + Math.PI * 1.3); g.stroke();
+      g.strokeStyle = 'rgba(220, 20, 60, 0.8)';
+      g.beginPath(); g.arc(cx, cy, R * 0.72, -tt * 1.1, -tt * 1.1 + Math.PI * 0.9); g.stroke(); g.lineWidth = 1;
+      g.fillStyle = '#F0F0F8'; g.beginPath(); g.arc(cx, cy, R * 0.3, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(255, 215, 0, 0.9)'; g.font = '600 10px monospace'; g.textAlign = 'center';
+      g.fillText('A S A G I', cx, Math.min(H - 6, cy + R * 1.6 + 12));
     }
     function run() { const ab = document.getElementById('grok'); if (ab && ab.classList.contains('open')) { if (!raf) { size(); draw(); } } else if (raf) { cancelAnimationFrame(raf); raf = null; } }
     window.addEventListener('resize', () => { if (raf) size(); });
@@ -3421,6 +3426,8 @@ if ('serviceWorker' in navigator) {
     if (clima) html += chip(clima);
     const px = proximo(); if (px) html += chip(px.txt, px.warn ? 'warn' : 'ok');
     const d = ultDefensa(); if (d) html += chip(d, 'ok');
+    // ARIA (la PC): se ve si está en línea ahora (latido por WiFi cada 5 min)
+    try { const v = parseInt(localStorage.getItem('asagi-aria-visto') || '0', 10); if (v) html += chip(Date.now() - v < 12 * 60000 ? '🖥 ARIA en línea' : '🖥 ARIA apagada', Date.now() - v < 12 * 60000 ? 'ok' : ''); } catch (e) {}
     cont.innerHTML = html;
   }
   pintar(); cargarClima(); setInterval(pintar, 30000); setInterval(cargarClima, 1800000);
@@ -4293,3 +4300,26 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest && e.target.closest('[data-enj]'); if (!b) return;
   const i = document.getElementById('grok-input'); if (i) { i.value = b.getAttribute('data-enj'); i.focus(); }
 });
+
+// Latido ASAGI → ARIA (WiFi cifrado, cada 5 min con la app a la vista): le cuenta batería y pendientes para que la PC
+// los muestre, y guarda cómo está ARIA (en línea, ocupada, agentes). Así las dos saben una de la otra sin que hagas nada.
+(function latidoARIA() {
+  async function latir() {
+    const cli = window._asagiLan; if (!cli || document.hidden) return;
+    let enlazada = false; try { enlazada = !!(localStorage.getItem('asagi-lan-clave') || localStorage.getItem('asagi-enlace-cfg')); } catch (e) {}
+    if (!enlazada) return;
+    const c = { t: 'latido' };
+    try { if (navigator.getBattery) { const b = await navigator.getBattery(); c.bateria = Math.round(b.level * 100); c.cargando = !!b.charging; } } catch (e) {}
+    try {
+      const l = (JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || []).filter((p) => p && !p.hecho);
+      c.total = l.length; c.pendientes = l.sort((a, b) => (a.cuando || 9e15) - (b.cuando || 9e15)).slice(0, 6).map((p) => ({ texto: String(p.texto || '').slice(0, 80), cuando: p.cuando || null }));
+    } catch (e) {}
+    let r = null; try { r = await cli.enviar(c); } catch (e) { r = null; }
+    if (r && r.ok) {
+      try { localStorage.setItem('asagi-aria-visto', String(Date.now())); if (r.resp && r.resp.aria) localStorage.setItem('asagi-aria-estado', JSON.stringify(r.resp.aria)); } catch (e) {}
+    }
+  }
+  window._asagiLatido = latir;
+  setTimeout(latir, 25000); setInterval(latir, 5 * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(latir, 4000); });
+})();

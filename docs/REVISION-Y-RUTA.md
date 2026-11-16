@@ -113,3 +113,12 @@ Propuestas pendientes (preguntar a Daniel antes de las grandes):
 4. ASAGI Sala de control: el núcleo «ASAGI» del gráfico es diminuto e ilegible; agrandarlo y darle vida.
 5. ASAGI casa: mucho espacio vacío bajo las apps → tarjeta «hoy» (pendiente siguiente, clima, video nuevo).
 6. ASAGI Ajustes: «Comprobar» no dice qué comprueba; textos de ayuda en gris muy tenue (contraste).
+
+## 8. Conexión y autonomía por dispositivo — hecho el 16-nov
+- **Latido** ASAGI→ARIA cada 5 min (`{t:'latido'}` en app.js / aria_va_core.py): batería y pendientes del celular van a
+  `ARIA_APP/data/asagi_estado.json`; ARIA responde con sus agentes. ASAGI muestra el chip «🖥 ARIA en línea» y lo dice en «mi día».
+- **ARIA cuida el celular desde la PC** (`_avisos_asagi` en ui_shell.py): recuerda pendientes que vencen en 15 min y avisa batería baja.
+- ARIA: pantalla inicial con tarjetas de hoy, botones con nombres claros, estado de ASAGI arriba (antes CPU/RAM repetido).
+- Reparto: celular = sensores, notificaciones, cámara, lo inmediato; PC = navegar pesado, investigar, correo, crear webs, modelos grandes.
+Siguiente paso natural: que ARIA pueda **mandar** cosas al celular (hoy solo ASAGI inicia; ARIA responde). Opciones sin servidor:
+cola de mensajes que ASAGI recoge en cada latido (`aria` → `{para_asagi:[...]}`), p. ej. «terminé tu informe», «llegó un correo importante».

@@ -1262,7 +1262,7 @@ if _QT:
             col.addWidget(self._orb_mini, 0, Qt.AlignHCenter)
             col.addWidget(self._card_reloj())
             col.addWidget(self._card_sistema())
-            col.addWidget(self._card_skills())
+            _cs = self._card_skills(); _cs.setVisible(bool(self.skills)); col.addWidget(_cs)
             col.addWidget(self._card_calendario())
             col.addStretch(1)
             return col
@@ -1370,7 +1370,7 @@ if _QT:
                 a = _j.load(open(os.path.join(_DIR, "data", "asagi_nivel.json"), encoding="utf-8"))
                 self._asagi_lbl.setText("ASAGI · NV %s · %s" % (a.get("nivel"), a.get("nombre")))
             except Exception:
-                self._asagi_lbl.setText("ASAGI · sin enlazar")
+                self._asagi_lbl.setText(self._txt_asagi())
 
         def _card_calendario(self):
             c = _tarjeta(); c.setFixedWidth(240)
@@ -1506,14 +1506,15 @@ if _QT:
         def _pintar_toggles(self):
             for key, b in self._btn.items():
                 val = self.toggles[key]
-                if key == "cuerpo":
-                    txt, on = "CUERPO:%s" % val, True
-                elif key == "fondo":
-                    txt, on = "FONDO:%s" % val, True
-                elif key == "crt":
-                    txt, on = "CRT:%s" % ("ON" if val else "OFF"), bool(val)
+                # nombres claros (antes: AUTO:OFF, MASC:OFF, CRT:ON…)
+                nombre = {"autonomia": "Autónoma", "cuerpo": "Cuerpo", "voz": "Voz", "mascota": "Mascota", "fondo": "Fondo", "crt": "Brillo retro"}.get(key, key.capitalize())
+                ayuda = {"autonomia": "Que ARIA actúe sola en tareas seguras", "cuerpo": "Cómo se ve ARIA: rostro, núcleo…", "voz": "Que ARIA hable sus respuestas",
+                         "mascota": "Su rostro flotando en el escritorio", "fondo": "Fondo animado de la ventana", "crt": "Líneas de pantalla antigua"}.get(key, "")
+                if key in ("cuerpo", "fondo"):
+                    txt, on = "%s: %s" % (nombre, val), True
                 else:
-                    txt, on = "%s:%s" % (key.upper()[:4], "ON" if val else "OFF"), bool(val)
+                    txt, on = "%s: %s" % (nombre, "sí" if val else "no"), bool(val)
+                b.setToolTip(ayuda)
                 col = CYAN if on else "#756e75"
                 b.setText(txt)
                 b.setStyleSheet(
@@ -1538,6 +1539,77 @@ if _QT:
                     '<span style="color:%s;font-family:\'%s\';font-size:13px;">%s</span></td>'
                     '<td width="12%%"></td></tr></table>') % (CYAN, CYAN, MONO, PAPEL, MONO, cuerpo)
 
+        def _estado_asagi(self):
+            """Lo último que ASAGI contó por WiFi (latido): {} si nunca. No falla."""
+            try:
+                import json as _j
+                return _j.load(open(os.path.join(_DIR, "data", "asagi_estado.json"), encoding="utf-8"))
+            except Exception:
+                return {}
+
+        def _txt_asagi(self):
+            a = self._estado_asagi(); hace = time.time() - (a.get("ts") or 0)
+            if not a:
+                return "ASAGI ○ sin enlazar"
+            if hace < 12 * 60:
+                return "ASAGI ● en línea" + ("  %s%%" % a["bateria"] if isinstance(a.get("bateria"), (int, float)) else "")
+            return "ASAGI ○ vista hace %s" % ("%d min" % (hace // 60) if hace < 3600 else "%d h" % (hace // 3600) if hace < 86400 else "%d d" % (hace // 86400))
+
+        def _avisos_asagi(self):
+            """ARIA cuida lo del celular mientras estás en la PC (cada ~30 s, sin pedirlo):
+            recuerda pendientes de ASAGI que vencen en 15 min y avisa si el celular se queda sin batería."""
+            ahora = time.time()
+            if ahora - getattr(self, "_av_t", 0) < 30:
+                return
+            self._av_t = ahora
+            a = self._estado_asagi()
+            if not a or ahora - (a.get("ts") or 0) > 6 * 3600:
+                return
+            dichos = getattr(self, "_av_dichos", None)
+            if dichos is None:
+                dichos = self._av_dichos = set()
+            try:
+                for p in a.get("pendientes") or []:
+                    c = p.get("cuando")
+                    if not isinstance(c, (int, float)):
+                        continue
+                    falta = c / 1000.0 - ahora
+                    clave = "p|%s|%s" % (p.get("texto"), c)
+                    if -120 <= falta <= 15 * 60 and clave not in dichos:
+                        dichos.add(clave)
+                        _t = time.localtime(c / 1000.0)
+                        hora = "%d:%02d %s" % (_t.tm_hour % 12 or 12, _t.tm_min, "a. m." if _t.tm_hour < 12 else "p. m.")
+                        self._linea("recordatorio de tu celular: «%s» a las %s" % (str(p.get("texto", ""))[:80], hora), "sys")
+                        self._estado_orb("curiosa", 2600)
+                b = a.get("bateria")
+                if isinstance(b, (int, float)) and b <= 15 and not a.get("cargando") and ahora - (a.get("ts") or 0) < 20 * 60 and "bat" not in dichos:
+                    dichos.add("bat")
+                    self._linea("tu celular está al %d%% y no está cargando: conéctalo." % b, "sys")
+                elif isinstance(b, (int, float)) and b > 30:
+                    dichos.discard("bat")
+            except Exception:
+                pass
+
+        def _hoy_html(self):
+            """Tarjetas de «hoy» para la pantalla inicial: celular, pendientes de ASAGI y agentes de ARIA."""
+            filas = []
+            a = self._estado_asagi()
+            if a:
+                pend = a.get("pendientes") or []
+                filas.append(("TU CELULAR", self._txt_asagi().replace("ASAGI ", "") + (" (cargando)" if a.get("cargando") else "")))
+                filas.append(("PENDIENTES", " · ".join(__import__("html").escape(str(p.get("texto", ""))) for p in pend[:3]) + (" y %d más" % (int(a.get("total") or len(pend)) - 3) if int(a.get("total") or len(pend)) > 3 else "") if pend else "nada pendiente en tu celular"))
+            else:
+                filas.append(("TU CELULAR", "ASAGI aún no se enlaza: en el celular di «enlace pc»"))
+            try:
+                import bots_agenda as _ba
+                e = _ba.resumen_estado(self._agenda.bots() if getattr(self, "_agenda", None) is not None else _ba.Agenda().bots())
+                filas.append(("AGENTES", ("%d programado(s)" % e["activos"]) if e.get("activos") else "ninguno programado · prueba «cada día a las 8 revisa mi correo»"))
+            except Exception:
+                pass
+            celdas = "".join('<td width="%d%%" style="padding:10px 12px;border:1px solid rgba(255,217,13,0.25);"><span style="color:%s;font-family:\'%s\';font-size:9px;letter-spacing:2px;">%s</span><br>'
+                             '<span style="color:%s;font-family:\'%s\';font-size:12px;">%s</span></td><td width="10"></td>' % (100 // len(filas) - 2, CYAN, MONO, t, PAPEL, MONO, v) for t, v in filas)
+            return '<table width="86%%" align="center" cellspacing="0" cellpadding="0" style="margin-top:30px;"><tr>%s</tr></table>' % celdas
+
         def _bienvenida(self):
             h = time.localtime().tm_hour
             saludo = "Buenos días" if 5 <= h < 12 else ("Buenas tardes" if h < 19 else "Buenas noches")
@@ -1548,7 +1620,7 @@ if _QT:
                     '<p style="color:%s;font-family:\'%s\';font-size:12px;margin-top:22px;">'
                     'Escríbeme abajo o toca una sugerencia. También: '
                     '<span style="color:%s">dile a asagi …</span></p></div>'
-                    ) % (PAPEL, DISPLAY, saludo, CYAN, MONO, LILA, MONO, ROSA)
+                    ) % (PAPEL, DISPLAY, saludo, CYAN, MONO, LILA, MONO, ROSA) + self._hoy_html()
 
         def _render(self):
             reales = [h for h in self._hist if "siempre presente" not in h.lower()]
@@ -1980,7 +2052,8 @@ if _QT:
             def tick():
                 self._lbl_rel.setText(_hora12(True))
                 cpu, ram = _stats()
-                self._lbl_sys.setText("CPU %2.0f%%  RAM %2.0f%%" % (cpu, ram))
+                self._lbl_sys.setText(self._txt_asagi())
+                self._avisos_asagi()
                 _h = _hora12(False).split(" ", 1)
                 self._reloj_big.setText("%s<span style='font-size:16px;letter-spacing:2px;'> %s</span>" % (_h[0], _h[1]))
                 _lt = time.localtime()

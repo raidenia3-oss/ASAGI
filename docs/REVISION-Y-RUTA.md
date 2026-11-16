@@ -45,7 +45,7 @@ CELULAR (ASAGI, Capacitor)                         PC Windows (ARIA, PyQt5, un s
 2. **Tareas asíncronas sin dueño**: responden con `appendMessage` cuando terminan y se mezclan con otras respuestas.
    Solución: cada tarea crea su burbuja (`const b = burbuja('🔎 Buscando…')`) y la actualiza (`b.texto(...)`, `b.fin(...)`).
    Ya existe `progresoBot()` (reemplaza el último si es de avance): generalízalo con id.
-3. **ARIA no tiene CI.** Agrega un job que haga `python -m py_compile aria/*.py aria/ui/*.py` y corra pruebas puras de Python
+3. **ARIA en CI: ya se compila `aria/` (build-apk.yml).** Falta correr pruebas puras de Python
    (las funciones marcadas PURO en lan.py, enlace.py, navegador_aria.py, taller_web.py). Sin dependencias nuevas: `unittest`.
 4. **Protocolo LAN sin versión.** Agrega `v` a los mensajes de `lan.py`/`enlace-lan.js` y que ambos respondan «actualízame»
    si la otra punta es vieja (ARIA se actualiza sola; ASAGI con `actualizador.js`).

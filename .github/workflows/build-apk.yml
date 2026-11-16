@@ -25,6 +25,8 @@ jobs:
       - run: npm install
       - name: Pruebas de razonamiento
         run: node scripts/pruebas.mjs
+      - name: ARIA compila (aria/)
+        run: python3 -m py_compile aria/*.py aria/ui/*.py
       - run: npm run build
       - run: |
           if [ ! -d android ]; then npx cap add android; fi

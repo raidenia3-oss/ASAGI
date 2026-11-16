@@ -142,6 +142,8 @@ function setActiveSection(sectionName) {
   try { const st = (new Error().stack || '').split('\n').slice(2, 4).map((x) => x.trim().replace(/https?:\/\/[^/]+\//, '').slice(0, 60)).join(' < ');
     (window.__secciones = window.__secciones || []).push(Math.round(performance.now()) + 'ms ' + sectionName + ' ← ' + st); if (window.__secciones.length > 8) window.__secciones.shift(); } catch (e) {}
   state.activeSection = sectionName;
+  // la galería de fondos se abre desde el chat: si te vas a otra pantalla, no se queda flotando encima
+  if (sectionName !== 'assistant') { try { if (window.AsagiOpenverse) window.AsagiOpenverse.cerrar(); } catch (e) {} }
   const overlays = document.querySelectorAll('.panel.overlay');
   const aCasa = !sectionName || sectionName === 'launcher' || sectionName === 'home';
   overlays.forEach((o) => o.classList.toggle('open', !aCasa && o.dataset.panel === sectionName));
@@ -152,8 +154,8 @@ function setActiveSection(sectionName) {
 
 // Botón Atrás del celular (lo llama MainActivity): cierra lo que esté encima, paso a paso; en la casa no hace nada.
 window._asagiAtras = function () {
-  const hoja = document.querySelector('.gg-fondo, .deshacer-chat');
-  if (hoja) { hoja.remove(); return 'hoja'; }
+  const hoja = document.querySelector('.gg-fondo, .deshacer-chat, .ov-hoja');
+  if (hoja) { if (hoja.classList.contains('ov-hoja') && window.AsagiOpenverse) window.AsagiOpenverse.cerrar(); else hoja.remove(); return 'hoja'; }
   if (window.AsagiMusica && window.AsagiMusica.cerrarHoja && window.AsagiMusica.cerrarHoja()) return 'musica';
   const ae = document.activeElement;
   if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { ae.blur(); return 'teclado'; }
@@ -564,6 +566,7 @@ function estadoVivo() {
     else l.push('Pendientes: ninguno.');
   } catch (e) {}
   try { const C = window.AsagiCompras; const f = C ? C.faltantes() : []; if (f.length) l.push('Lista de compras: ' + f.slice(0, 8).map((x) => x.texto).join(', ')); } catch (e) {}
+  try { const HA = window.AsagiHabitos; const f = HA ? HA.faltanHoy() : []; if (f.length) l.push('Hábitos que faltan hoy: ' + f.slice(0, 6).join(', ')); } catch (e) {}
   try { const M = window.AsagiMusica, e2 = M && M.estado && M.estado(); if (e2 && e2.activo && e2.pista) l.push('Música: ' + (e2.sonando ? 'suena' : 'en pausa') + ' «' + e2.pista.titulo + '»'); } catch (e) {}
   try { const c = localStorage.getItem('asagi-ciudad'); l.push('Ciudad: ' + (c || 'Lima')); } catch (e) {}
   return l;
@@ -1099,6 +1102,12 @@ chatForm.addEventListener('submit', (event) => {
         return;
       }
     }
+  }
+
+  // Hábitos con racha (sin internet): «nuevo hábito leer», «marca leer», «mis hábitos». Antes que «marca …» (llamar) y «ya hice …» (pendientes).
+  {
+    const HA = window.AsagiHabitos, c = HA && HA.entender(text);
+    if (c) { appendMessage('bot', HA.hacer(c)); return; }
   }
 
   // Lo cotidiano lo resuelve ASAGI sola, con o sin cerebro (hora, cuentas, alarmas, abrir apps, batería, hoy…).

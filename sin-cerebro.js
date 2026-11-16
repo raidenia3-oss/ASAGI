@@ -132,7 +132,7 @@ function entender(texto) {
 }
 
 var AYUDA = {
-  dia: ['📅 Tu día', ['qué tengo hoy', 'recuérdame … mañana a las 8', 'ya pagué internet', 'resumen del día', 'pon una alarma a las 7', 'temporizador de 10 minutos', 'modo concentración 25 minutos', 'agrega pan y leche a la lista', 'mi lista de compras']],
+  dia: ['📅 Tu día', ['qué tengo hoy', 'recuérdame … mañana a las 8', 'ya pagué internet', 'resumen del día', 'pon una alarma a las 7', 'temporizador de 10 minutos', 'modo concentración 25 minutos', 'agrega pan y leche a la lista', 'mi lista de compras', 'nuevo hábito leer', 'marca leer', 'mis hábitos']],
   celular: ['📱 Tu celular', ['hablemos', 'abre YouTube', 'llama a 987654321', 'cuánta batería tengo', 'enciende la linterna', 'sube el volumen', 'pon música', 'pon canciones de Soda Stereo', 'apaga la música en 30 minutos', 'qué notificaciones tengo', 'cuánto gasté esta semana']],
   cuentas: ['🧮 Cuentas', ['cuánto es 15% de 230', 'raíz de 144', 'convierte 50 dólares a soles', 'convierte 10 km a millas', '30 grados a fahrenheit', 'cuenta de 150 con 10% de propina entre 3', 'qué día será en 45 días', 'cuánto falta para navidad']],
   info: ['🌎 Información', ['cómo va el clima', 'clima en Arequipa', 'qué hora es en Japón', 'traduce buenos días al inglés', 'qué significa awesome', 'wiki fotosíntesis', 'busca recetas de lomo saltado', 'dato curioso']],
@@ -144,8 +144,11 @@ var AYUDA = {
   juegos: ['🎲 Para pasar el rato', ['cuéntame un chiste', 'lanza una moneda', 'tira un dado', 'elige entre pizza y pollo', 'personajes', 'fondo de lluvia']],
   avanzado: ['⚙ Avanzado', ['investiga qué piden para postular a la UNI', 'hazlo tú: organiza mi día', 'detén el modo autónomo', 'aprende buenos días: clima; mis gastos hoy', 'mis habilidades', 'revisa mi correo', 'crea una web de …', 'claude: …']]
 };
+// Frase natural que abre cada tema (la entiende entender(): «ayuda con …»)
+var FRASE_AYUDA = { dia: 'ayuda con mi día', celular: 'ayuda con mi celular', cuentas: 'ayuda con cuentas', info: 'ayuda con información', ti: 'ayuda sobre mí',
+  estudio: 'ayuda con estudio', redes: 'ayuda con YouTube y redes', escudo: 'ayuda con protección', web: 'ayuda para navegar', juegos: 'ayuda para pasar el rato', avanzado: 'ayuda con lo avanzado' };
 // Lo último que aprendió (no sale en el índice; «qué hay de nuevo en ASAGI»)
-var NUEVO = ['✨ Lo nuevo', ['explora agujeros negros', 'qué es tendencia en Perú', 'investiga a fondo …', 'busca dólar hoy en Chrome', 'qué veo hoy', 'compara precios de audífonos JBL', 'vigila esta página https://…', 'estado del escudo', 'revisa lo que copié', 'esto es estafa: …texto…', 'resumen de mis redes', 'importa mis canales de YouTube']];
+var NUEVO = ['✨ Lo nuevo', ['nuevo hábito tomar agua', 'mis hábitos', 'explora agujeros negros', 'qué es tendencia en Perú', 'investiga a fondo …', 'busca dólar hoy en Chrome', 'qué veo hoy', 'compara precios de audífonos JBL', 'vigila esta página https://…', 'estado del escudo', 'revisa lo que copié', 'esto es estafa: …texto…', 'resumen de mis redes', 'importa mis canales de YouTube']];
 var AYUDA_ALIAS = { web: /naveg|web|internet|precio|compra|pagina/, redes: /redes|youtube|instagram|tiktok|social|chrome|video/, escudo: /protec|seguridad|escudo|estafa|link|enlace/, dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
   info: /info|clima|tiempo|wiki|busca|noticia/, ti: /\bmi\b|memoria|recuerd|sobre mi|ti\b/, estudio: /estudi|uni\b|examen|aprend/, juegos: /jueg|divert|aburr|rato/, avanzado: /avanzad|autonom|aria|web|claude|habilidad/ };
 function temaAyuda(t) { var n = _n(t); for (var k in AYUDA_ALIAS) if (AYUDA_ALIAS[k].test(n)) return k; return null; }
@@ -155,7 +158,7 @@ function ayudaTexto(tema, conCerebro) {
     '\nY desde cualquier app: Compartir → ASAGI (videos, links, publicaciones de Instagram/TikTok, textos) y te digo de qué trata o si es estafa.';
   if (tema && AYUDA[tema]) return AYUDA[tema][0] + ' — toca una para usarla:\n' + AYUDA[tema][1].map(function (f) { return '• «' + f + '»'; }).join('\n');
   return 'Puedo ayudarte con esto (toca un tema):\n' +
-    Object.keys(AYUDA).map(function (k) { return AYUDA[k][0].split(' ')[0] + ' «ayuda de ' + AYUDA[k][0].replace(/^\S+\s/, '').toLowerCase() + '»'; }).join('\n') +
+    Object.keys(AYUDA).map(function (k) { return AYUDA[k][0].split(' ')[0] + ' «' + FRASE_AYUDA[k] + '»'; }).join('\n') +
     (conCerebro ? '\nY de cualquier otra cosa, pregúntame normal: pienso, uso mis herramientas y te respondo.' : '\nPara charlar de todo: descarga mi modelo o pon una key gratis de Gemini en Ajustes.');
 }
 
@@ -293,7 +296,7 @@ function noEntendi(texto) {
 }
 
 var API = { entender: entender, responder: responder, parsearHora: parsearHora, parsearDuracion: parsearDuracion, aCuenta: aCuenta,
-  hora12: hora12, noEntendi: noEntendi, ayudaTexto: ayudaTexto, AYUDA: AYUDA };
+  hora12: hora12, noEntendi: noEntendi, ayudaTexto: ayudaTexto, AYUDA: AYUDA, FRASE_AYUDA: FRASE_AYUDA };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiSinCerebro = API;
 })();

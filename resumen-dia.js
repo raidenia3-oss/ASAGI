@@ -32,6 +32,7 @@ function armar(d, momento, x) {
   else l.push(pen.length ? '📌 Para hoy (' + pen.length + '): ' + pen.slice(0, 4).map(function (p) { return p.texto; }).join(' · ') + '.' : '📌 Nada pendiente hoy. Dime «recuérdame…» si algo surge.');
   if (x.clima) l.push(x.clima);
   if (x.compras && x.compras.length) l.push('🛒 Por comprar (' + x.compras.length + '): ' + x.compras.slice(0, 4).join(', ') + (x.compras.length > 4 ? '…' : '') + '.');
+  if (x.habitos && x.habitos.length) l.push('📈 Hábitos que faltan hoy: ' + x.habitos.slice(0, 4).join(', ') + (x.habitos.length > 4 ? '…' : '') + ' («marca …»).');
   if (x.gastoHoy != null) l.push('💸 Hoy: gastaste S/ ' + x.gastoHoy.toFixed(2) + (x.ingresoHoy ? ' y recibiste S/ ' + x.ingresoHoy.toFixed(2) : '') + '.');
   if (x.notif && x.notif.total) l.push('🔔 ' + x.notif.total + ' notificación(es)' + (x.notif.top ? ', sobre todo de ' + x.notif.top : '') + '.');
   if (x.redes && x.redes.length) l.push('📲 Redes: ' + x.redes.map(function (r) { return r[0] + ' ' + r[1]; }).join(' · ') + ' («resumen de mis redes»).');
@@ -51,6 +52,7 @@ async function datos() {
   } catch (e) { x.pendientes = []; }
   try { x.ytDespues = (JSON.parse(localStorage.getItem('asagi-yt-despues') || '[]') || []).length; } catch (e) {}
   try { var CO = window.AsagiCompras; if (CO) x.compras = CO.faltantes().map(function (it) { return it.texto; }); } catch (e) {}
+  try { var HA = window.AsagiHabitos; if (HA) x.habitos = HA.faltanHoy(); } catch (e) {}
   var C = window.Capacitor && window.Capacitor.Plugins, AC = C && C.AsagiControl;
   try {
     var b = AC && AC.accion ? await AC.accion({ tipo: 'bateria' }) : null;

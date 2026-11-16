@@ -32,6 +32,7 @@ ok(SM.parsear('recuerda que mi cumpleaños es el 13 de mayo').accion === 'guarda
 ok(SM.parsear('recuerda que mañana tengo examen') === null, 'recordatorio no es dato');
 ok(SM.aTi('mi mamá se llama Rosa') === 'Tu mamá se llama Rosa', 'a ti');
 ok(SC.entender('qué puedes hacer').tipo === 'ayuda' && SC.entender('ayuda de cuentas').tema === 'cuentas', 'ayuda');
+ok(Object.keys(SC.FRASE_AYUDA).every((k) => { const e = SC.entender(SC.FRASE_AYUDA[k]); return e && e.tipo === 'ayuda' && e.tema === k; }), 'ayuda: cada tema del índice abre su tema');
 ok(SC.entender('cómo llego a Miraflores').tipo === 'ruta', 'ruta');
 ok(CO.parsear('agrega pan y leche a la lista').tipo === 'agregar', 'compras');
 ok(RZ.necesitaDatos('quién es el presidente del perú') && !RZ.necesitaDatos('explícame las derivadas'), 'actualidad');
@@ -145,6 +146,20 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   }
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
+
+{ // hábitos (idea de Loop Habit Tracker)
+  const HA = require('../habitos.js'), d = (s) => new Date(s + 'T10:00:00');
+  ok(HA.parsear('nuevo hábito leer').tipo === 'crear' && HA.parsear('mis hábitos').tipo === 'ver' && HA.parsear('ya hice la tarea', ['Leer']) === null &&
+     HA.parsear('ya hice ejercicio', ['Ejercicio']).tipo === 'marcar' && HA.parsear('marca el hábito leer').nombre === 'leer' && HA.parsear('mis habilidades') === null, 'hábitos: entiende');
+  let r = HA.aplicar([], [], HA.parsear('nuevo hábito tomar agua'), d('2026-11-10'));
+  ok(r.lista.length === 1 && r.lista[0].nombre === 'Tomar agua', 'hábitos: crear');
+  for (const f of ['2026-11-10', '2026-11-11', '2026-11-12']) r = HA.aplicar(r.lista, r.papelera, { tipo: 'marcar', nombre: 'agua' }, d(f));
+  const e = HA.estado(r.lista[0], d('2026-11-12')), e2 = HA.estado(r.lista[0], d('2026-11-14'));
+  ok(e.racha === 3 && e.hoy && e.fuerza > 0 && e.semana.endsWith('●●●') && e2.racha === 0 && e2.fuerza > 0 && e2.fuerza < e.fuerza, 'hábitos: racha y fuerza');
+  r = HA.aplicar(r.lista, r.papelera, { tipo: 'borrar', nombre: 'tomar agua' }, d('2026-11-12'));
+  r = HA.aplicar(r.lista, r.papelera, { tipo: 'recuperar', nombre: 'tomar agua' }, d('2026-11-12'));
+  ok(r.lista.length === 1 && r.lista[0].dias.length === 3, 'hábitos: borrar y recuperar');
+}
 
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

@@ -22,24 +22,16 @@ Módulos nuevos (registrados en index.html, build-web.mjs, sw.js): `escudo.js`, 
 Confirmado en el emulador: escudo de enlaces, estafas, búsqueda en YouTube, tendencias, explorar.
 
 ## 3. Detalles que a Daniel (como usuario) no le gustan / se ven mal — PRIORIDAD
-1. **Mensajes que se cuelan en otra respuesta.** Tareas largas (investigar, explorar, YouTube) contestan tarde y caen en medio de
-   la respuesta a otra cosa (visto en REPORTE: «📖 Leyendo 1/3» dentro de la respuesta a «pon una alarma»).
-   Arreglo sugerido: que cada tarea larga escriba en **su propio mensaje** y lo vaya actualizando (ya existe `progresoBot()` en app.js,
-   úsalo con un id por tarea en vez de «el último mensaje»), y que el resultado final reemplace al de avance.
-2. **«wifi» / «bluetooth» se quedan en «🔎 Mirando…»** sin respuesta final (REPORTE). Revisar ese camino en app.js.
-3. **«lee la página» vuelca texto crudo** (en example.com salen árabe/chino/francés). Debe resumir o mostrar solo lo principal en español.
-   «clic 1» devuelve la misma página sin decir qué pasó.
-4. **Explorar tarda >50 s en el emulador** antes de la respuesta final. Ya tiene tope de 25 s al cerebro; medir dónde se va el tiempo
-   (¿`traer` nativo en serie?). Si `AsagiNavegador.traer` corre en un solo hilo, pasarlo a un ExecutorService.
-5. **Mensajes muy largos** (ayuda, lo nuevo, fuentes con URL completas). Acortar: máx. ~8 líneas visibles + «ver más».
-   En fuentes mostrar el nombre del sitio y dejar el enlace tocable, no la URL entera dos veces.
-6. **Gamificación que interrumpe:** ya se movió «Subí a nivel» a aviso arriba y la «táctica del día» espera a que el chat esté tranquilo.
-   Revisar si queda algún otro mensaje automático que aparezca sin pedirlo (vigilante, YouTube, vigía): deben ir como aviso arriba
-   (`window._asagiAviso`) y no en medio del chat si Daniel está escribiendo.
-7. **El modelo local tumba la app en el emulador** (SIGABRT en `pool-5-thread-1` tras «cuéntame un chiste»). En el emulador x86 es
-   por traducir ARM; confirmar en el celular real de Daniel antes de tocar nada. Si pasa también ahí: atrapar el error nativo y
-   caer a «sin cerebro» en vez de cerrarse.
-8. Cabecera «NV 1 · SEMILLA»: preguntar a Daniel si la quiere visible siempre (ocupa espacio en el chat).
+Hecho el 15-nov (Fable): cada tarea larga usa `tareaDecir()` (app.js) = una burbuja que se actualiza en su sitio y no se mezcla;
+«wifi/bluetooth» ya reemplazan «Mirando…» (lo de la simulación era el script, que no esperaba: corregido); «lee la página» corta +
+«resume la página»; mensajes largos con «Ver más»; fuentes limpias; nivel y táctica ya no interrumpen.
+Pendiente:
+1. Pasar a `tareaDecir()` los módulos viejos que aún usan `appendMessage` para avances (grep `(t) => appendMessage('bot', t)`).
+2. **Explorar tarda** en el emulador (>50 s): medir con el REPORTE nuevo; si es el cerebro local, saltarlo cuando no hay Gemini.
+3. **El modelo local tumba la app en el emulador** (SIGABRT tras «cuéntame un chiste»): confirmar en el celular real; si pasa ahí,
+   atrapar el error nativo y caer a «sin cerebro».
+4. Avisos automáticos (vigilante, YouTube, vigía) deberían ir solo como aviso arriba si Daniel está escribiendo.
+5. Cabecera «NV 1 · SEMILLA»: preguntar a Daniel si la quiere siempre visible.
 
 ## 4. Siguientes mejoras con más valor (en orden)
 1. Arreglar la lista de arriba (es lo que Daniel nota).

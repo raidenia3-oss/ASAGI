@@ -175,8 +175,10 @@ function pintarConFrases(el, texto) {
   while ((m = re.exec(t))) {
     if (m.index > i) el.appendChild(document.createTextNode(t.slice(i, m.index)));
     if (m[1]) {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'frase-tap'; b.dataset.f = m[1]; b.textContent = '«' + m[1] + '»';
+      // <span> (no <button>): así una frase larga se parte en dos líneas en vez de saltar entera y dejar la viñeta «•» sola
+      const b = document.createElement('span');
+      b.className = 'frase-tap'; b.dataset.f = m[1]; b.textContent = '«' + m[1] + '»';
+      b.setAttribute('role', 'button'); b.tabIndex = 0;
       b.setAttribute('aria-label', 'Usar: ' + m[1]);
       el.appendChild(b);
     } else if (m[4]) {   // enlace: se toca, pasa por el escudo y se abre en Chrome
@@ -191,6 +193,7 @@ function pintarConFrases(el, texto) {
   }
   if (i < t.length) el.appendChild(document.createTextNode(t.slice(i)));
 }
+chat.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('frase-tap')) { e.preventDefault(); e.target.click(); } });
 chat.addEventListener('click', (e) => {
   const en = e.target.closest('.enlace-tap');
   if (en) { const CH = window.AsagiChrome; if (CH) CH.abrir(en.dataset.url).then((t) => { if (/⛔|⚠️/.test(t)) appendMessage('bot', t); }); else window.open(en.dataset.url, '_blank'); return; }
@@ -1266,6 +1269,13 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // ¿Dónde lo dejé? (idea de Homebox): «dejé las llaves en el cajón», «dónde dejé las llaves», «mis cosas guardadas».
+  // Antes que «dónde guardé …» (busca en mis cosas): si no lo tengo anotado, sigue de largo.
+  {
+    const DO = window.AsagiDonde, c = !reesc && DO && DO.parsear(text), r = c && DO.hacer(c);
+    if (r) { appendMessage('bot', r); return; }
+  }
+
   // «busca en mis cosas X» / «dónde anoté X» (idea de Khoj): en mis datos, no en internet.
   {
     const BM = window.AsagiBuscarMio, c = !reesc && BM && BM.parsear(text);
@@ -1360,16 +1370,18 @@ chatForm.addEventListener('submit', (event) => {
     const OV = window.AsagiOpenverse, c = OV && OV.parsear(text);
     if (c && c.accion === 'parar') { OV.parar(); appendMessage('bot', '🔇 Listo, sonido apagado.'); return; }
     if (c && c.accion === 'fondos') {
-      appendMessage('bot', '🔎 Busco fondos libres de «' + c.q + '»…');
+      const d = tareaDecir();
+      d('🔎 Busco fondos libres de “' + c.q + '”…');
       OV.imagenes(c.q).then((rs) => {
-        if (!rs.length) { appendMessage('bot', 'No encontré fondos de «' + c.q + '». Prueba con otra palabra (en inglés suele haber más).'); return; }
+        if (!rs.length) { d('No encontré fondos de «' + c.q + '». Prueba con otra palabra (en inglés suele haber más).'); return; }
+        d('🖼 Encontré ' + rs.length + ' fondo(s) de “' + c.q + '”: toca el que te guste.');
         OV.mostrarFondos(c.q, rs, async (r) => {
           const blob = await OV.blobDe(r);
           window._asagiFondoListo = (ok) => { window._asagiFondoListo = null; setActiveSection('launcher');
             appendMessage('bot', '🖼 Fondo puesto: ' + OV.credito(r) + (ok ? '.' : '. Ojo: no hay espacio para guardarlo.')); };
           if (window._asagiImportarFoto) window._asagiImportarFoto(blob);
         });
-      }).catch(() => appendMessage('bot', 'No pude conectar con Openverse (¿sin internet?).'));
+      }).catch(() => d('🖼 No pude buscar fondos ahora (¿sin internet?). Prueba en un rato.'));
       return;
     }
     if (c && c.accion === 'sonido') {
@@ -1412,15 +1424,16 @@ chatForm.addEventListener('submit', (event) => {
     const temaDe = (t) => E._n(t).replace(/^(el|la|los|las|un|una)\s+/, '').slice(0, 40);
     const delTema = (tema) => { const k = E.claves(tema); return M.todos().filter((n) => n && n.tema && n.tema !== 'chat' && (temaDe(n.tema) === temaDe(tema) || (k.length && k.every((w) => E._n(n.tema + ' ' + n.texto).indexOf(w) >= 0)))); };
     if (est.tipo === 'web') {
-      appendMessage('bot', '📚 Voy a leer sobre «' + est.tema + '»…');
+      const d = tareaDecir();
+      d('📚 Voy a leer sobre “' + est.tema + '”…');
       E.deWikipedia(est.tema).then((w) => {
-        if (!w) { appendMessage('bot', '📚 No encontré «' + est.tema + '» en Wikipedia. Pégame un texto con «aprende de ' + est.tema + ': …».'); return; }
+        if (!w) { d( '📚 No encontré «' + est.tema + '» en Wikipedia. Pégame un texto con «aprende de ' + est.tema + ': …».'); return; }
         const ap = E.apuntes(w.texto, est.tema, 10);
         let nuevos = 0; ap.forEach((a) => { if (M.aprender(a, temaDe(est.tema), 'Wikipedia: ' + w.titulo)) nuevos++; });
         if (window.AsagiNiveles) window.AsagiNiveles.registrar('herramienta', 'estudiar');
-        appendMessage('bot', '📚 Aprendí ' + nuevos + ' cosas nuevas de «' + w.titulo + '» (Wikipedia):\n' + ap.slice(0, 5).map((a) => '• ' + a).join('\n') +
+        d('📚 Aprendí ' + nuevos + ' cosas nuevas de «' + w.titulo + '» (Wikipedia):\n' + ap.slice(0, 5).map((a) => '• ' + a).join('\n') +
           (ap.length > 5 ? '\n… y ' + (ap.length - 5) + ' más.' : '') + '\n\nYa lo uso al responderte. Repasa con «pregúntame de ' + est.tema + '».');
-      }).catch(() => appendMessage('bot', '📚 No pude leer Wikipedia (¿sin internet?). Pégame el texto con «aprende de ' + est.tema + ': …».'));
+      }).catch(() => d('📚 No pude leer Wikipedia (¿sin internet?). Pégame el texto con «aprende de ' + est.tema + ': …».'));
       return;
     }
     if (est.tipo === 'texto') {
@@ -1450,7 +1463,8 @@ chatForm.addEventListener('submit', (event) => {
         // sin apuntes: con cerebro en la nube, una pregunta tipo examen de admisión hecha al momento
         const bc = readBrainControls();
         if ((bc.geminiKey || bc.atriaKey || bc.mistralKey || bc.clavesExtra) && window._asagiPensar) {
-          appendMessage('bot', '📚 Te preparo una pregunta de «' + est.tema + '» tipo examen de admisión…');
+          const d = tareaDecir();
+          d('📚 Te preparo una pregunta de “' + est.tema + '” tipo examen de admisión…');
           (async () => {
             try {
               const pr = 'Haz UNA pregunta de opción múltiple nivel examen de admisión de la UNI (Perú) sobre «' + est.tema + '», en español, con 5 alternativas A a E y una sola correcta. ' +
@@ -1459,8 +1473,8 @@ chatForm.addEventListener('submit', (event) => {
               const m = String(r || '').match(/\{[\s\S]*\}/); const q = m && JSON.parse(m[0]);
               if (!q || !q.pregunta || !/^[A-E]$/i.test(String(q.correcta || '').trim())) throw new Error('sin pregunta');
               localStorage.setItem('asagi-quiz', JSON.stringify({ tema: est.tema, letra: String(q.correcta).trim().toUpperCase(), respuesta: String(q.correcta).trim().toUpperCase(), completo: String(q.explicacion || '') }));
-              appendMessage('bot', '🧠 ' + q.pregunta + '\n' + (q.opciones || []).join('\n') + '\n\n(responde con la letra, o «para»)');
-            } catch (e) { appendMessage('bot', '📚 No pude armar la pregunta ahora. Prueba «aprende sobre ' + est.tema + '» y te pregunto de mis apuntes.'); }
+              d('🧠 ' + q.pregunta + '\n' + (q.opciones || []).join('\n') + '\n\n(responde con la letra, o «para»)');
+            } catch (e) { d('📚 No pude armar la pregunta ahora. Prueba «aprende sobre ' + est.tema + '» y te pregunto de mis apuntes.'); }
           })();
           return;
         }
@@ -1833,10 +1847,11 @@ renderBrainControls();
     appendMessage('bot', '📡 No encuentro a ARIA por WiFi ni Bluetooth. ¿Está abierta en la PC y en la misma red? Di "enlace pc" para ver cómo vincular.');
   };
   window._asagiLanEstado = async function () {
-    appendMessage('bot', '🔎 Buscando a ARIA en la red…');
+    const decir = tareaDecir();
+    decir('🔎 Buscando a ARIA en la red…');
     let d = await cli.buscar();
     if (!d && await emparejarSolo(true)) d = await cli.buscar();
-    appendMessage('bot', d
+    decir(d
       ? '✅ ARIA conectada por ' + (d.por === 'usb' ? 'cable USB' : d.por === 'bluetooth' ? 'Bluetooth→WiFi' : 'WiFi') + ' (' + d.host + ').'
       : '⚠ ARIA no respondió. Revisa que esté abierta en la PC y que el celular esté en el mismo WiFi.');
   };
@@ -1975,7 +1990,8 @@ renderBrainControls();
   function mostrarAviso(texto, sono, icono) {
     if (!aviso || !avisoTxt) return;
     avisoTxt.textContent = (icono || '⏰') + ' ' + texto;
-    if (avisoModo) avisoModo.textContent = sono ? '🎧' : 'en silencio';
+    // «en silencio» solo tiene sentido en recordatorios (⏰); en otros avisos (subir de nivel, etc.) confunde
+    if (avisoModo) avisoModo.textContent = sono ? '🎧' : (!icono || icono === '⏰') ? 'en silencio' : '';
     aviso.hidden = false;
     clearTimeout(avisoTimer);
     avisoTimer = setTimeout(() => { aviso.hidden = true; }, 12000);
@@ -2781,13 +2797,14 @@ if ('serviceWorker' in navigator) {
   window._asagiDesplegar = desplegar;
   window._asagiPensar = (p) => ejecutarBot(p, { id: 'manos', nombre: 'Manos' });
   window._asagiVariantes = async function (tarea, n) {
-    appendMessage('bot', '🎲 Pido ' + n + ' variantes en paralelo y un juez elige…');
+    const d = tareaDecir();
+    d('🎲 Pido ' + n + ' variantes en paralelo y un juez elige…');
     window._asagiTrabajando = (window._asagiTrabajando || 0) + 1;
     try {
       const r = await window.AsagiBots.desplegarVariantes(tarea, ejecutarBot, { n: n });
-      if (!r.mejor) { appendMessage('bot', '🎲 Ningún candidato pudo pensar: pon una key en Ajustes o abre ARIA en la PC.'); return; }
+      if (!r.mejor) { d( '🎲 Ningún candidato pudo pensar: pon una key en Ajustes o abre ARIA en la PC.'); return; }
       const otros = r.candidatos.filter((c) => c.ok && c !== r.mejor).map((c) => '— ' + c.nombre + ': ' + c.texto.split('\n')[0].slice(0, 140));
-      appendMessage('bot', '🎲 Gana «' + r.mejor.nombre + '» (' + r.porque + ')\n\n' + r.mejor.texto + (otros.length ? '\n\nLas otras:\n' + otros.join('\n') : ''));
+      d('🎲 Gana «' + r.mejor.nombre + '» (' + r.porque + ')\n\n' + r.mejor.texto + (otros.length ? '\n\nLas otras:\n' + otros.join('\n') : ''));
       try { if (window._asagiMem) window._asagiMem.aprender(('Variantes · ' + tarea + ': ' + r.mejor.texto).slice(0, 600), 'equipo', 'bots'); } catch (e) {}
     } finally { window._asagiTrabajando--; }
   };
@@ -3621,15 +3638,16 @@ if ('serviceWorker' in navigator) {
   window._asagiPersonajesListo = listo;
   // crear uno nuevo: investiga, lo aprende y se lo pasa a ARIA
   const crearNuevo = async (nombre, silencioso) => {
-    if (!silencioso) appendMessage('bot', '🎭 Voy a estudiar a «' + nombre + '»…');
+    const d = silencioso ? (t) => appendMessage('bot', t) : tareaDecir();
+    if (!silencioso) d('🎭 Voy a estudiar a “' + nombre + '”…');
     try {
       const r = await P.crear(nombre, pensar);
       if (r.ok) {
         guardarExtra(r.p); lista = unir(lista, [r.p]); aprenderLista(lista);
         try { if (window._asagiLan) window._asagiLan.enviar({ t: 'personaje', p: r.p }); } catch (e) {}
       }
-      appendMessage('bot', '🎭 ' + r.msg);
-    } catch (e) { appendMessage('bot', '🎭 No pude estudiar a «' + nombre + '» (' + (e.message || e) + '). Necesito internet y un cerebro (key o el modelo del celular).'); }
+      d('🎭 ' + r.msg);
+    } catch (e) { d('🎭 No pude estudiar a «' + nombre + '» (' + (e.message || e) + '). Necesito internet y un cerebro (key o el modelo del celular).'); }
   };
   window._asagiCrearPersonaje = crearNuevo;
   // táctica del día: sola, una vez al día al abrir el chat
@@ -3666,10 +3684,11 @@ if ('serviceWorker' in navigator) {
     if (o.tipo === 'entrena') { const t = p.tacticas[Math.floor(Math.random() * p.tacticas.length)]; appendMessage('bot', P.textoTactica(p, t) + '\n\nHazlo hoy y luego cuéntame cómo te fue.'); return; }
     if (o.tipo === 'haria') {
       const ts = P.relevantes(p, o.situacion, 2);
-      appendMessage('bot', '🎭 Pensando como ' + (p.apodo || p.nombre.split(' ')[0]) + '…');
+      const d = tareaDecir();
+      d('🎭 Pensando como ' + (p.apodo || p.nombre.split(' ')[0]) + '…');
       pensar(P.promptHaria(p, ts, o.situacion))
-        .then((r) => appendMessage('bot', '🎭 ' + (p.apodo || p.nombre.split(' ')[0]) + ' haría esto:\n' + r))
-        .catch(() => appendMessage('bot', ts.map((t) => P.textoTactica(p, t)).join('\n\n')));
+        .then((r) => d('🎭 ' + (p.apodo || p.nombre.split(' ')[0]) + ' haría esto:\n' + r))
+        .catch(() => d(ts.map((t) => P.textoTactica(p, t)).join('\n\n')));
     }
   };
 })();

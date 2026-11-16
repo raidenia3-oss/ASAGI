@@ -146,5 +146,17 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
 
+// ¿Dónde lo dejé? (donde.js)
+{ const DO = R('donde.js'); let L = [];
+  const g = DO.parsear('dejé las llaves en el cajón de la cocina');
+  ok(g && g.accion === 'guardar' && g.cosa === 'las llaves' && g.lugar === 'en el cajón de la cocina', 'donde: guardar');
+  L = DO.responder(g, L, 1).lista;
+  const b = DO.responder(DO.parsear('¿Dónde están mis llaves?'), L, 2);
+  ok(b && /cajón de la cocina/.test(b.texto), 'donde: buscar (plural/posesivo)');
+  ok(DO.responder(DO.parsear('dónde está la plaza de armas'), L, 2) === null, 'donde: no se mete con lugares');
+  ok(DO.responder(DO.parsear('dónde guardé lo del examen'), L, 2) === null, 'donde: deja pasar «dónde guardé …» a buscar en mis cosas');
+  ok(DO.parsear('dejé a mi hermano en el colegio') === null && DO.parsear('puse la alarma en 7') === null && DO.parsear('dejé de fumar') === null, 'donde: no confunde');
+  ok(DO.responder(DO.parsear('ya encontré las llaves'), L, 3).lista.length === 0, 'donde: encontré borra'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

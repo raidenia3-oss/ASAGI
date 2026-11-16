@@ -68,10 +68,6 @@
    ],
    "sha256": "010ca4071f610d2202ff65e96869367e8bc00254b71816b5f9c9a84d4c128399"
   },
-  "data/shell_state.json": {
-   "previos": [],
-   "sha256": "d9d4f257680d37b3daaaff60cb4734322eefe91bd6b199a7e866e718d1425307"
-  },
   "dictado_pc.py": {
    "previos": [
     "85c5afc60380be3093c7f4538f98a62d73be5431d9fed0720a74aab99b17fe75"

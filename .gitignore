@@ -40,3 +40,4 @@ config/keys.json
 *.apk
 artifacts/*.apk
 __pycache__/
+aria/data/

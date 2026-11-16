@@ -988,7 +988,7 @@ chatForm.addEventListener('submit', (event) => {
   {
     const AG = window.AsagiAgente, c = !reesc && AG && AG.parsear(text);
     if (c) {
-      const decir = (t) => appendMessage('bot', t);
+      const decir = tareaDecir();
       if (c.accion === 'detener') { decir(AG.detener() ? '⏹ Deteniendo…' : 'No estaba trabajando en nada.'); return; }
       if (c.accion === 'vigilante') { try { localStorage.setItem('asagi-vigilante', c.on ? '1' : '0'); } catch (e) {} decir(c.on ? '👁 Vigilante activo: te aviso de batería baja, pendientes vencidos y gastos grandes.' : 'Vigilante apagado.'); return; }
       if (c.investigar) {   // investigar necesita un cerebro fuerte; sin él, una búsqueda simple
@@ -1026,7 +1026,7 @@ chatForm.addEventListener('submit', (event) => {
   // Escudo: «¿es seguro este link? …» (phishing, marcas falsas, acortadores…)
   {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
-    if (!reesc && E && E.parsearEstado && E.parsearEstado(text)) { E.estado().then((t) => appendMessage('bot', t)); return; }
+    if (!reesc && E && E.parsearEstado && E.parsearEstado(text)) { E.estado().then(tareaDecir()); return; }
     const ct = !reesc && E && E.parsearTexto && E.parsearTexto(text);
     if (ct) { const u = (ct.texto.match(/https?:\/\/\S+/) || [])[0]; appendMessage('bot', E.explicarTexto(E.estafaTexto(ct.texto)) + (u ? '\n\nEl enlace:\n' + E.explicar(u, E.analizarUrl(u)) : '')); return; }
     if (c) { appendMessage('bot', E.explicar(c.url, E.analizarUrl(c.url)) + (E.limpiarUrl(c.url) !== c.url ? '\nSin rastreadores: ' + E.limpiarUrl(c.url) : '')); return; }
@@ -1091,7 +1091,7 @@ chatForm.addEventListener('submit', (event) => {
       const hab = !reesc && H.buscar(text, H.cargar());
       if (hab) {
         H.correr(hab, (paso) => { appendMessage('user', '▸ ' + paso); window._asagiReescribir = paso; try { chatForm.requestSubmit(); } catch (e) { chatForm.dispatchEvent(new Event('submit', { cancelable: true })); } },
-          (t) => appendMessage('bot', t));
+          tareaDecir());
         return;
       }
     }
@@ -1275,14 +1275,14 @@ chatForm.addEventListener('submit', (event) => {
   // Lo que ASAGI sabe de ti: «recuerda que mi cumpleaños es…», «qué sabes de mí», «olvida …».
   {
     const SM = window.AsagiSobreMi, c = !reesc && SM && SM.parsear(text, false);
-    if (c) { SM.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+    if (c) { SM.ejecutar(c, tareaDecir()); return; }
   }
 
   // Lo cotidiano sin cerebro: clima, cambio de moneda, cuánto falta para…, volumen.
   {
     const U = window.AsagiUtiles, c = U && U.parsear(text);
     if (c && ['clima', 'cambio', 'falta', 'volumen', 'traducir', 'horaen', 'hecho', 'borrarpend', 'nombre', 'minombre'].includes(c.accion)) {
-      U.ejecutar(c, (t) => appendMessage('bot', t)).catch(() => appendMessage('bot', c.accion === 'volumen' ? 'No pude cambiar el volumen.' : 'No pude consultarlo (¿sin internet?).'));
+      U.ejecutar(c, tareaDecir()).catch(() => appendMessage('bot', c.accion === 'volumen' ? 'No pude cambiar el volumen.' : 'No pude consultarlo (¿sin internet?).'));
       return;
     }
   }
@@ -1296,13 +1296,13 @@ chatForm.addEventListener('submit', (event) => {
   // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».
   {
     const RD = window.AsagiResumenDia, c = RD && RD.parsear(text);
-    if (c) { RD.decir(c, (t) => appendMessage('bot', t)).catch(() => {}); return; }
+    if (c) { RD.decir(c, tareaDecir()).catch(() => {}); return; }
   }
 
   // Música del celular: «pon música», «pon canciones de …», «pausa», «siguiente», «mi música».
   {
     const MU = window.AsagiMusica, c = MU && MU.parsear(text, MU.activo());
-    if (c) { MU.ejecutar(c, (t) => appendMessage('bot', t)).catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e))); return; }
+    if (c) { MU.ejecutar(c, tareaDecir()).catch((e) => appendMessage('bot', '⚠ ' + ((e && e.message) || e))); return; }
   }
 
   // Taller web: «crea una web de pollería en Breña» -> la arma ARIA en la PC.
@@ -1321,7 +1321,7 @@ chatForm.addEventListener('submit', (event) => {
   {
     const NT = window.AsagiNotif, c = NT && NT.parsear(text);
     if (c) {
-      const decir = (t) => appendMessage('bot', t);
+      const decir = tareaDecir();
       (c.accion === 'notificaciones' ? NT.notificaciones(decir) : NT.gastos(c, decir)).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
       return;
     }

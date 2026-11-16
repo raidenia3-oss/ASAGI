@@ -101,6 +101,7 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   { const SCm = require('../sin-cerebro.js'); const c = SCm.entender('¿Qué hay de nuevo en ASAGI?'); ok(c && c.tema === 'nuevo' && /explora/.test(SCm.ayudaTexto('nuevo')), 'ayuda: lo nuevo'); }
   { const Lm = require('../navegador-lector.js'), AGm = require('../agente.js'); const o = Lm.parsear('investiga a fondo baterías de sodio');
     ok(o && o.profundo && o.pregunta === 'baterías de sodio' && !(AGm.parsear && AGm.parsear('investiga a fondo baterías de sodio')), 'investigar a fondo'); }
+  { const EFm = require('../efectos.js'); const r = EFm.rayos(14, 7); ok(r.length === 14 && r.every((x) => x.l > 0.5 && x.l <= 1 && x.g >= 1) && JSON.stringify(r) === JSON.stringify(EFm.rayos(14, 7)), 'efectos: rayos del destello'); }
   { const CHm = require('../chrome.js'); ok(CHm.parsear('busca el clima de mañana en Lima en Chrome').q === 'el clima de mañana en Lima' && CHm.parsear('googlea dólar hoy').q === 'dólar hoy' && CHm.parsear('abre youtube en chrome').accion === 'abrir' && CHm.parsear('Ábrela en Chrome').accion === 'actual', 'chrome: buscar en Google'); }
   { const CPm = require('../compartir.js'); ok(CPm.plan('mira https://www.instagram.com/reel/abc123/?igsh=xyz').tipo === 'red' && CPm.plan('https://youtu.be/dQw4w9WgXcQ').tipo === 'youtube' && CPm.plan('https://elcomercio.pe/nota').tipo === 'pagina' && CPm.parsearCopia('¿Qué copié?') && CPm.parsearCopia('revisa lo que copié') && !CPm.parsearCopia('copia esto'), 'compartir: portapapeles'); }
   }

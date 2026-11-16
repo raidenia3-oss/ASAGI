@@ -431,3 +431,9 @@ html, body { font-family: var(--sans); color: var(--papel); }
 
 /* Sala de control: estado vacío con ejemplos y texto guía */
 .enj-feed:empty::before { content: attr(data-vacio); display: block; padding: 18px 8px; color: rgba(240, 240, 248, 0.5); text-align: center; }
+
+/* Rebote «sakuga»: los botones se aplastan al tocarlos y vuelven pasándose un poco (como animación dibujada) */
+@media (prefers-reduced-motion: no-preference) {
+  button, .lchip, .enlace-tap, .frase-tap { transition: transform 0.38s cubic-bezier(0.34, 1.7, 0.5, 1); }
+  button:active, .enlace-tap:active, .frase-tap:active { transform: scale(0.9, 0.86); transition: transform 0.06s ease-out; }
+}

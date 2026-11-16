@@ -37,6 +37,15 @@ const defaultState = {
 };
 
 const state = loadState();
+// Si la app se cerró a media tarea, el «…» no debe quedarse para siempre.
+// (idea «pickup» de los agentes que retoman sesiones: te dejo la frase lista para tocar y seguir donde quedó)
+try {
+  state.messages.forEach((m, i) => {
+    if (!m || !m.prog) return;
+    let antes = ''; for (let j = i - 1; j >= 0 && j > i - 6; j--) { if (state.messages[j].sender === 'user') { antes = String(state.messages[j].text || '').slice(0, 120); break; } }
+    m.prog = false; m.text = String(m.text).replace(/…\s*$/, '') + ' — se interrumpió.' + (antes && !/[«»]/.test(antes) ? ' Toca para retomarlo: «' + antes + '»' : ' Pídemelo de nuevo.');
+  });
+} catch (e) {}
 
 const navItems = document.querySelectorAll('.nav-item');
 const panels = document.querySelectorAll('.panel');
@@ -514,14 +523,19 @@ function tareaDecir() {
   return (t) => {
     const m = id && state.messages.find((x) => x.id === id);
     if (m) {
-      m.text = t; m.time = horaCorta(); m.prog = /…\s*$/.test(t); if (!m.prog) id = null;
+      m.text = t; m.time = horaCorta(); m.prog = /…\s*$/.test(t); m.mov = Date.now(); if (!m.prog) id = null;
+      if (!m.prog && /^(✅|🏆|🛒|🧭|📺|🔬)/.test(t) && window.AsagiEfectos) setTimeout(() => { const els = document.querySelectorAll('.message.bot'); window.AsagiEfectos.sobre(els[els.length - 1] && els[els.length - 1].querySelector('.msg-meta'), 0.6); }, 60);
       window._asagiUltimoMsg = Date.now(); saveState(); renderMessages();
       try { if (!m.prog && window.asagiSpeak) window.asagiSpeak(paraVoz(t)); } catch (e) {}
       return;
     }
     if (/…\s*$/.test(t)) {
       const msg = { id: uid(), sender: 'bot', text: t, time: horaCorta(), prog: true };
-      id = msg.id; state.messages.push(msg); window._asagiUltimoMsg = Date.now(); saveState(); renderMessages(); return;
+      id = msg.id; state.messages.push(msg); window._asagiUltimoMsg = Date.now(); saveState(); renderMessages();
+      // regla de los 4 minutos: si la tarea se atasca, lo digo en vez de dejarte esperando
+      const mio = msg.id, visto = () => { const x = state.messages.find((y) => y.id === mio); if (!x || !x.prog) return; if (Date.now() - (x.mov || 0) < 235000) { setTimeout(visto, 60000); return; } x.prog = false; x.text = String(x.text).replace(/…\s*$/, '') + '\n⌛ Esto se atascó. Pídemelo de nuevo (si era en la web, revisa tu internet).'; id = null; saveState(); renderMessages(); };
+      msg.mov = Date.now(); setTimeout(visto, 240000);
+      return;
     }
     appendMessage('bot', t);
   };

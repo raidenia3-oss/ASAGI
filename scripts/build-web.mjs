@@ -67,6 +67,7 @@ const files = [
   'precios.js',
   'vigia-web.js',
   'explorar.js',
+  'efectos.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

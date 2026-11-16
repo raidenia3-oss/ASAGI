@@ -102,7 +102,7 @@ async function investigar(pregunta, pensar, progreso, n, profundo) {
     }
   }
   if (!paginas.length) paginas = res.slice(0, n).map(function (r) { return { url: r.url, titulo: r.titulo, texto: r.resumen }; });
-  var fuentes = paginas.map(function (p, i) { return '[' + (i + 1) + '] ' + p.titulo + ' — ' + p.url; });
+  var fuentes = paginas.map(function (p, i) { return '[' + (i + 1) + '] ' + String(p.titulo || '').slice(0, 48) + '\n    ' + p.url; });
   var texto = null;
   if (pensar) { try { texto = await pensar(L.promptInvestigar(pregunta, paginas)); } catch (e) { texto = null; } }
   if (!texto) {   // sin cerebro: lo más útil que se puede sin resumir

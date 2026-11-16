@@ -46,7 +46,7 @@ async function di(texto, espera = 5000) {
   for (let k = 0; k < espera / 250; k++) {
     await sleep(250);
     const now = await ev("document.querySelectorAll('.message.bot').length");
-    if (now > antes) { await sleep(600); r = await ev(`[...document.querySelectorAll('.message.bot')].slice(${antes}).map(m=>m.innerText.trim()).join(' ⏎ ')`); if (!/Buscando|pensando|…$/.test(r) || k * 250 > espera - 500) break; }
+    if (now > antes) { await sleep(600); r = await ev(`[...document.querySelectorAll('.message.bot')].slice(${antes}).map(m=>m.innerText.trim()).join(' ⏎ ')`); if (!/Buscando|pensando|…\s*(?:\d{1,2}:\d{2}\s*[ap]\.\s*m\.)?\s*$/.test(r) || k * 250 > espera - 500) break; }
   }
   out(`- **Tú:** ${texto}\n  **ASAGI:** ${(r || '(sin respuesta en ' + espera / 1000 + ' s)').replace(/\n+/g, ' ').slice(0, 400)}`);
 }

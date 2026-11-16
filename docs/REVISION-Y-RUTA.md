@@ -101,3 +101,15 @@ CELULAR (ASAGI, Capacitor)                         PC Windows (ARIA, PyQt5, un s
 - Pruebas de interfaz: un script Playwright con `Capacitor.Plugins` simulado (ver §1 de PARA-LA-PROXIMA-SESION).
 - Junta commits y empuja 1 vez cada ~20 min (cada push cancela la simulación en curso).
 - Para la verdad en Android: `REPORTE.md` en la rama `simulacion`.
+
+## 7. Revisión «con ojos de usuario» (cómo hacerla barata) y propuestas visuales — 15-nov noche
+- ASAGI: capturas con Playwright sobre `dist/` (384×832), pegadas en una hoja y miradas de una vez.
+- ARIA: `QT_QPA_PLATFORM=offscreen python3 scripts/aria_captura.py salida.png` dibuja la interfaz real sin pantalla.
+Hecho: sugerencias tocables en ARIA y retrato centrado; ayuda de ASAGI con nombres naturales; Sala de control con ejemplos.
+Propuestas pendientes (preguntar a Daniel antes de las grandes):
+1. ARIA: botones de abajo con nombres crípticos (AUTO:OFF, MASC:OFF, CRT:ON) → texto claro o tooltip; «SKILLS (0)» vacío.
+2. ARIA: el chat vacío ocupa casi toda la ventana → tarjetas de «hoy» (pendientes, correo, clima, ASAGI enlazada o no).
+3. ARIA: CPU/RAM aparece dos veces (barra superior y tarjeta).
+4. ASAGI Sala de control: el núcleo «ASAGI» del gráfico es diminuto e ilegible; agrandarlo y darle vida.
+5. ASAGI casa: mucho espacio vacío bajo las apps → tarjeta «hoy» (pendiente siguiente, clima, video nuevo).
+6. ASAGI Ajustes: «Comprobar» no dice qué comprueba; textos de ayuda en gris muy tenue (contraste).

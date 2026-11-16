@@ -428,3 +428,6 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .msg-text.msg-largo { max-height: 21em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
 .ver-mas { display: block; margin: 4px 0 2px; padding: 8px 14px; min-height: 40px; border: 1px solid rgba(255, 215, 0, 0.35); border-radius: 999px; background: rgba(255, 215, 0, 0.06); color: #FFD700; font: inherit; font-size: 0.86em; width: auto; box-shadow: none; cursor: pointer; }
 .ver-mas:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+
+/* Sala de control: estado vacío con ejemplos y texto guía */
+.enj-feed:empty::before { content: attr(data-vacio); display: block; padding: 18px 8px; color: rgba(240, 240, 248, 0.5); text-align: center; }

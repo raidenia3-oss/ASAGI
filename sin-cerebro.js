@@ -82,7 +82,7 @@ function entender(texto) {
   if (!n) return null;
   if (/^(que (puedes|sabes) hacer|ayuda|help|comandos|que haces|para que sirves|que mas puedes hacer|en que me ayudas)$/.test(n)) return { tipo: 'ayuda' };
   if (/^(que hay de nuevo en asagi|novedades de asagi|que aprendiste|que cosas nuevas (puedes hacer|tienes)|que hay nuevo en asagi)$/.test(n)) return { tipo: 'ayuda', tema: 'nuevo' };
-  if ((m = n.match(/^(?:ayuda (?:de|con|para|sobre)|que puedes hacer (?:con|en|para)) (.{2,30})$/)) && temaAyuda(m[1])) return { tipo: 'ayuda', tema: temaAyuda(m[1]) };
+  if ((m = n.match(/^(?:ayuda (?:de |del |con |para |sobre )?|que puedes hacer (?:con|en|para) )(.{2,30})$/)) && temaAyuda(m[1])) return { tipo: 'ayuda', tema: temaAyuda(m[1]) };
   if (/^(que hora es|que horas son|dime la hora|hora)$/.test(n)) return { tipo: 'hora' };
   if (/^(que (dia|fecha) es( hoy)?|a cuanto estamos|que dia estamos|fecha de hoy|hoy que dia es)$/.test(n)) return { tipo: 'fecha' };
   if ((m = n.match(/^(?:pon(?:me)?|programa|crea|activa)\s+(?:una\s+)?alarma(?:\s+(?:para|a|de))?\s*(.*)$/)) || (m = n.match(/^despiertame\s*(.*)$/))) {
@@ -146,6 +146,7 @@ var AYUDA = {
 };
 // Lo último que aprendió (no sale en el índice; «qué hay de nuevo en ASAGI»)
 var NUEVO = ['✨ Lo nuevo', ['explora agujeros negros', 'qué es tendencia en Perú', 'investiga a fondo …', 'busca dólar hoy en Chrome', 'qué veo hoy', 'compara precios de audífonos JBL', 'vigila esta página https://…', 'estado del escudo', 'revisa lo que copié', 'esto es estafa: …texto…', 'resumen de mis redes', 'importa mis canales de YouTube']];
+var AYUDA_NOMBRE = { dia: 'de mi día', celular: 'del celular', cuentas: 'de cuentas', info: 'de información', ti: 'de memoria', estudio: 'de estudio', redes: 'de YouTube y redes', escudo: 'de protección', web: 'de navegar', juegos: 'de juegos', avanzado: 'avanzada' };
 var AYUDA_ALIAS = { web: /naveg|web|internet|precio|compra|pagina/, redes: /redes|youtube|instagram|tiktok|social|chrome|video/, escudo: /protec|seguridad|escudo|estafa|link|enlace/, dia: /dia|agenda|pendiente|organiz|alarma|compra/, celular: /celular|telefono|movil|app|musica|notific|gasto/, cuentas: /cuenta|calcul|matemat|convers|plata|dinero|cambio/,
   info: /info|clima|tiempo|wiki|busca|noticia/, ti: /\bmi\b|memoria|recuerd|sobre mi|ti\b/, estudio: /estudi|uni\b|examen|aprend/, juegos: /jueg|divert|aburr|rato/, avanzado: /avanzad|autonom|aria|web|claude|habilidad/ };
 function temaAyuda(t) { var n = _n(t); for (var k in AYUDA_ALIAS) if (AYUDA_ALIAS[k].test(n)) return k; return null; }
@@ -155,7 +156,7 @@ function ayudaTexto(tema, conCerebro) {
     '\nY desde cualquier app: Compartir → ASAGI (videos, links, publicaciones de Instagram/TikTok, textos) y te digo de qué trata o si es estafa.';
   if (tema && AYUDA[tema]) return AYUDA[tema][0] + ' — toca una para usarla:\n' + AYUDA[tema][1].map(function (f) { return '• «' + f + '»'; }).join('\n');
   return 'Puedo ayudarte con esto (toca un tema):\n' +
-    Object.keys(AYUDA).map(function (k) { return AYUDA[k][0].split(' ')[0] + ' «ayuda de ' + AYUDA[k][0].replace(/^\S+\s/, '').toLowerCase() + '»'; }).join('\n') +
+    Object.keys(AYUDA).map(function (k) { return AYUDA[k][0].split(' ')[0] + ' «ayuda ' + (AYUDA_NOMBRE[k] || 'de ' + k) + '»'; }).join('\n') +
     (conCerebro ? '\nY de cualquier otra cosa, pregúntame normal: pienso, uso mis herramientas y te respondo.' : '\nPara charlar de todo: descarga mi modelo o pon una key gratis de Gemini en Ajustes.');
 }
 

@@ -4287,3 +4287,9 @@ window._asagiEjecutarFrase = function (frase) {
   window.addEventListener('resize', revisar);
   revisar();
 })();
+
+// Sala de control: los ejemplos del estado vacío llenan la caja (tú decides si desplegar).
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-enj]'); if (!b) return;
+  const i = document.getElementById('grok-input'); if (i) { i.value = b.getAttribute('data-enj'); i.focus(); }
+});

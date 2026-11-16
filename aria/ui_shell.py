@@ -1232,16 +1232,34 @@ if _QT:
                 "QLineEdit:focus{border:1px solid %s;}" % (TXT, MONO, CYAN))
             self.entrada.returnPressed.connect(self._enviar)
             self.entrada.textEdited.connect(lambda _t: self._callar())      # empezar a escribirle la interrumpe
+            # sugerencias tocables: las que acaban en «…» se quedan en la caja para completarlas; las demás se envían
+            sug = QHBoxLayout(); sug.setSpacing(6); sug.addStretch(1)
+            for txt in ("qué es importante hoy", "revisa mi correo", "busca en la web …", "crea una web de …", "enséñame …", "/skills"):
+                bt = QPushButton(txt); bt.setCursor(Qt.PointingHandCursor)
+                bt.setStyleSheet(
+                    "QPushButton{background:rgba(14, 5, 11, 0.6);color:%s;border:1px solid rgba(255, 217, 13, 0.35);"
+                    "border-radius:12px;font:11px '%s';padding:5px 12px;}"
+                    "QPushButton:hover{border:1px solid %s;color:%s;}" % (PAPEL, MONO, CYAN, CYAN))
+                bt.clicked.connect(lambda _=False, t=txt: self._sugerencia(t))
+                sug.addWidget(bt)
+            sug.addStretch(1)
+            col.addLayout(sug)
             fila.addWidget(pr); fila.addWidget(self.entrada, 1)
             col.addLayout(fila)
             return col
+
+        def _sugerencia(self, t):
+            if t.endswith("…"):
+                self.entrada.setText(t[:-1]); self.entrada.setFocus(); self.entrada.end(False)
+            else:
+                self.entrada.setText(t); self._enviar()
 
         def _widgets(self):
             col = QVBoxLayout(); col.setSpacing(12)
             self._orb_mini = _OrbMini()
             self._orb_mini.set_modo(self.toggles["cuerpo"])
             self._orb_mini.setVisible(self.toggles["cuerpo"] in ("nucleo", "rostro"))
-            col.addWidget(self._orb_mini)
+            col.addWidget(self._orb_mini, 0, Qt.AlignHCenter)
             col.addWidget(self._card_reloj())
             col.addWidget(self._card_sistema())
             col.addWidget(self._card_skills())
@@ -1528,11 +1546,9 @@ if _QT:
                     '<p style="color:%s;font-family:\'%s\';font-size:11px;letter-spacing:3px;">'
                     'ANALIZO · RECUERDO · ACTÚO EN LOCAL</p>'
                     '<p style="color:%s;font-family:\'%s\';font-size:12px;margin-top:22px;">'
-                    'prueba &nbsp; <span style="color:%s">/skills</span> &nbsp;·&nbsp; '
-                    '<span style="color:%s">dile a asagi …</span> &nbsp;·&nbsp; '
-                    '<span style="color:%s">enséñame …</span> &nbsp;·&nbsp; '
-                    '<span style="color:%s">qué es importante hoy</span></p></div>'
-                    ) % (PAPEL, DISPLAY, saludo, CYAN, MONO, LILA, MONO, CYAN, ROSA, CYAN, LILA)
+                    'Escríbeme abajo o toca una sugerencia. También: '
+                    '<span style="color:%s">dile a asagi …</span></p></div>'
+                    ) % (PAPEL, DISPLAY, saludo, CYAN, MONO, LILA, MONO, ROSA)
 
         def _render(self):
             reales = [h for h in self._hist if "siempre presente" not in h.lower()]

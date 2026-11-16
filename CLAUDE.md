@@ -3,7 +3,7 @@
 Dueño: Daniel (Lima, Perú). Habla en español; respuestas cortas y directas, sin tecnicismos innecesarios.
 
 ## Empieza aquí
-- Lee `docs/PARA-LA-PROXIMA-SESION.md`: estado actual, cómo verificar y lo que falta (prioridad: detalles que a Daniel no le gustan).
+- Lee `docs/PARA-LA-PROXIMA-SESION.md` (estado, cómo verificar, detalles de usuario por arreglar) y `docs/REVISION-Y-RUTA.md` (ASAGI+ARIA: arquitectura, problemas de fondo, ruta para expandir, referencias). `docs/MAPA-DEL-PROYECTO.md` dice qué hace cada archivo: úsalo en vez de leer el código entero.
 
 ## Qué es esto
 - **ASAGI**: asistente personal Android (Capacitor). Código web en la raíz (`app.js`, módulos `*.js`), plugin nativo en `capacitor-asagi-brain/`.

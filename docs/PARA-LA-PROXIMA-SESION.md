@@ -1,6 +1,6 @@
 # Para la próxima sesión de Claude (Fable 5.2 u otro)
 
-Léelo junto con `CLAUDE.md` (reglas fijas). Daniel habla español, quiere respuestas cortas y **nada manual**.
+Léelo junto con `CLAUDE.md` (reglas fijas), `docs/REVISION-Y-RUTA.md` (arquitectura ASAGI+ARIA, problemas de fondo, ruta y referencias) y `docs/MAPA-DEL-PROYECTO.md` (qué hace cada archivo). Daniel habla español, quiere respuestas cortas y **nada manual**.
 Última actualización: 15-nov-2026, al cierre de la sesión de Opus 5.5.
 
 ## 1. Cómo verificar en 2 minutos

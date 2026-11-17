@@ -29,7 +29,15 @@ ESTILOS = {
     "noir": "hue=s=0,eq=contrast=1.35:brightness=-0.02,vignette=PI/4,noise=alls=10:allf=t",
     "retro": "eq=contrast=0.95:saturation=0.75,colorbalance=rs=0.15:bs=-0.15,vignette=PI/5,noise=alls=14:allf=t",
     "noche": "eq=contrast=1.2:brightness=-0.06,colorbalance=rs=-0.15:bs=0.2,vignette=PI/4.5",
+    # «edit» de anime (como los reels de AMV): resplandor (bloom), contraste y color fuertes, destello blanco al entrar
+    # y un golpe en blanco y negro tipo viñeta de manga a mitad del clip. {D} = duración en segundos (la pone filtros()).
+    "anime": ("format=gbrp,split[a][b];[b]gblur=sigma=22,eq=brightness=0.06[g];[a][g]blend=all_mode=screen:all_opacity=0.5,"
+              "eq=contrast=1.3:saturation=1.45,unsharp=5:5:0.9,vignette=PI/5,"
+              "hue=s='if(between(t,{D}*0.5,{D}*0.5+0.22),0,1)',"
+              "eq=contrast='if(between(t,{D}*0.5,{D}*0.5+0.22),2.2,1)':eval=frame,"
+              "fade=t=in:st=0:d=0.3:color=white,format=yuv420p"),
 }
+ALIAS_ESTILO = {"edit": "anime", "amv": "anime", "anime": "anime"}
 
 
 def _norm(t):
@@ -73,13 +81,15 @@ def plan(orden):
         if re.search(r"\b(estilo|filtro|look)?\s*%s\b" % k, n) and (k != "limpio" or "estilo" in n or "filtro" in n):
             o["estilo"] = k
             break
+    if "estilo" not in o and re.search(r"\b(?:estilo|tipo|modo)\s+(?:edit|amv)\b|\bhaz(?:le|me)? un edit\b|\bedit de anime\b", n):
+        o["estilo"] = "anime"
     m = re.search(r"texto\s*[:=]?\s*[\"“«']([^\"”»']{1,60})[\"”»']", orden or "", re.I)
     if m:
         o["texto"] = m.group(1).strip()
     return o
 
 
-def filtros(o, fuente=None):
+def filtros(o, fuente=None, duracion=None):
     """dict de operaciones -> (vf, af) cadenas de filtro (o None). PURO."""
     vf, af = [], []
     v = o.get("velocidad")
@@ -99,7 +109,8 @@ def filtros(o, fuente=None):
     elif f == "16:9":
         vf.append("crop='min(iw,ih*16/9)':'min(ih,iw*9/16)',scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=0x080408")
     if o.get("estilo") in ESTILOS:
-        vf.append(ESTILOS[o["estilo"]])
+        d = duracion if duracion else ((o["fin"] - (o.get("inicio") or 0)) if o.get("fin") is not None else 8.0)
+        vf.append(ESTILOS[o["estilo"]].replace("{D}", "%g" % (d / (o.get("velocidad") or 1.0))))
     if o.get("texto"):
         t = re.sub(r"[\\':%]", "", o["texto"])    # sin caracteres que rompan el filtro
         dt = "drawtext=text='%s':fontcolor=0xFFD700:fontsize='min(h/14,w/%g)':borderw=4:bordercolor=0x080408:x=(w-text_w)/2:y=h-text_h-h/12" % (t, max(6.0, len(t) * 0.68))
@@ -109,7 +120,7 @@ def filtros(o, fuente=None):
     return (",".join(vf) or None), (",".join(af) or None)
 
 
-def comando(ffmpeg, entrada, salida, o, fuente=None):
+def comando(ffmpeg, entrada, salida, o, fuente=None, duracion=None):
     """-> lista de argumentos para subprocess (sin shell). PURO."""
     a = [ffmpeg, "-hide_banner", "-loglevel", "error", "-y"]
     if o.get("inicio") is not None:
@@ -117,7 +128,7 @@ def comando(ffmpeg, entrada, salida, o, fuente=None):
     if o.get("fin") is not None:                  # antes de -i: cuánto LEER del original (la velocidad se aplica después)
         a += ["-t", "%g" % (o["fin"] - (o.get("inicio") or 0))]
     a += ["-i", entrada]
-    vf, af = filtros(o, fuente)
+    vf, af = filtros(o, fuente, duracion)
     if vf:
         a += ["-vf", vf]
     if o.get("mudo"):
@@ -186,6 +197,19 @@ def _fuente():
     return None
 
 
+def _duracion(ff, ruta):
+    """Segundos del video (con ffprobe si está junto a ffmpeg); None si no se puede."""
+    pr = os.path.join(os.path.dirname(ff), "ffprobe" + (".exe" if ff.lower().endswith(".exe") else "")) if os.path.dirname(ff) else None
+    pr = pr if pr and os.path.isfile(pr) else shutil.which("ffprobe")
+    if not pr:
+        return None
+    try:
+        r = subprocess.run([pr, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", ruta], capture_output=True, timeout=30)
+        return float(r.stdout.decode().strip())
+    except Exception:
+        return None
+
+
 def _gusto():
     try:
         return json.load(open(GUSTO, encoding="utf-8"))
@@ -227,10 +251,10 @@ def editar(entrada, orden):
     if re.search(r"como siempre|mi estilo|lo de siempre", _norm(orden)):
         base = como_siempre(); base.update(o); o = base
     if not o:
-        return "Dime qué hacerle: recorta de 0:05 a 0:20, vertical, estilo noir (o sakuga, carmesi, dorado, retro, noche), velocidad 1.5, sin audio, texto \"…\"."
+        return "Dime qué hacerle: recorta de 0:05 a 0:20, vertical, estilo noir (o anime, sakuga, carmesi, dorado, retro, noche), velocidad 1.5, sin audio, texto \"…\"."
     sal = _salida(entrada)
     try:
-        _correr(comando(ff, entrada, sal, o, _fuente()))
+        _correr(comando(ff, entrada, sal, o, _fuente(), _duracion(ff, entrada)))
     except Exception as exc:
         return "No pude editarlo: %s" % exc
     _aprender(o)

@@ -199,3 +199,13 @@ Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA par
   7. **Astryx** (sistema de diseño de Meta, React): no aplica directo (sin dependencias); sirve de referencia de tokens/temas.
   8. webcam-memes (gestos → efectos) y ComfyUI video (pide RTX 4090): no por ahora.
 - Instagram sin sesión deja leer el texto del reel pero NO reproduce el video: para verlos hace falta su sesión.
+
+## 15. Videos que mandó Daniel (17-nov) e ideas
+- AMV de anime (@xavqen.zz) → HECHO: estilo «anime» en `editor_video.py` («hazle un edit», «estilo anime»): resplandor,
+  contraste/color, destello blanco al entrar y golpe en blanco y negro a la mitad. Falta para parecerse más a un AMV real:
+  cortes al ritmo de la música (detectar golpes con ffmpeg `silencedetect`/`ebur128` o whisper), zoom-punch, sacudida, texto animado.
+- Cambio de tema con mancha de tinta (@codemure.official): transición entre secciones de ASAGI con máscara (`clip-path`/`mask`).
+- Visualizador de música tipo luna con barras radiales + letra (@alexcreates.exe): para ARIA (QPainter + audio del sistema)
+  o ASAGI (la música es nativa: haría falta pasar niveles desde AsagiMusicaService).
+- Juego de tipeo con palabras que caen (@kridhatype): juego para ARIA (teclado físico); en ASAGI ya hay `juegos.js`.
+- Esfera de partículas en AR (@umutmuezzinoglu): referencia para el núcleo/orb de ARIA y la Sala de control de ASAGI.

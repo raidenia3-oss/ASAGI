@@ -76,8 +76,10 @@
    "sha256": "1abd67207795735bb354bd60efb386e234cc88d130ad9733940716cd81a136e9"
   },
   "editor_video.py": {
-   "previos": [],
-   "sha256": "94ab0eee3e062177cad4819a5ba48fc36b1a04b26b24eba362b09ef741fb2c3c"
+   "previos": [
+    "94ab0eee3e062177cad4819a5ba48fc36b1a04b26b24eba362b09ef741fb2c3c"
+   ],
+   "sha256": "0fa534f153377bd7c3577549dfc8ebf2414e32360704bf973fa7acb93cfde76a"
   },
   "ensenar.py": {
    "previos": [],

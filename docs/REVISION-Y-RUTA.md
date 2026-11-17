@@ -156,3 +156,14 @@ mostrar en la casa un chip «📦 nuevo» cuando haya una creación sin leer.
 - Casa: fila de atajos (`#home-atajos`) con «📦 Nuevo» cuando ASAGI preparó algo sola.
 Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA para publicarla con confirmación); más plantillas
 (plan semanal, tarjeta de estudio, comparativa); que el quiz guarde el puntaje.
+
+## 12. Recetas (página → dato), USB y RollerCoin — 16-nov (noche)
+- `recetas.js`: «crea una receta dolar: de <url> saca compra y venta» → luego «dolar». Idea de site2cli / browser-to-api /
+  Skyvern («cualquier web como API»), pero local: descarga liviana + cerebro + compuerta `aparece()` (marca lo que no está en la página).
+  Siguiente: recetas con sesión (leer en el Chrome de Daniel o en ARIA con Playwright) y recetas programadas con el vigía.
+- **USB**: Daniel pidió usarlo (16-nov). Se hace con «Anclaje USB» (red por cable): `lanDescubrir` ahora pregunta por TODAS las
+  interfaces de red; frase «enlace usb». Sin adb. Sin probar en hardware real: si ARIA no responde, revisar el firewall de Windows
+  para la red nueva (UDP 47831 / TCP 47832) y si `lan.py` responde por esa interfaz.
+- **RollerCoin**: `rollercoin_google.tablero()` SOLO LEE la cuenta (poder, saldos) y lleva historial («cómo va rollercoin» en ARIA).
+  NO se automatizan los juegos: RollerCoin prohíbe bots y es ganar dinero saltándose sus reglas → no hacerlo aunque exista
+  código viejo en el monorepo (rollercoin_bot_*.py). El lector de números es por texto y no se pudo probar con la cuenta real.

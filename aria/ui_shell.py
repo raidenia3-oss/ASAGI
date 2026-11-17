@@ -1150,12 +1150,12 @@ if _QT:
                             "Yo nunca cierro tus ventanas: cuando tú cierres esa, reviso que quedó la sesión. "
                             "No veo ni guardo contraseñas.", "aria")
             else:
-                self._linea("Reviso la sesión de RollerCoin…", "sys")
+                self._linea("Miro tu cuenta de RollerCoin (solo lectura)…" if acc == "tablero" else "Reviso la sesión de RollerCoin…", "sys")
             import threading as _th
 
             def _hilo():
                 try:
-                    r = _rg.conectar(esperar=True) if acc == "conectar" else _rg.estado()
+                    r = _rg.conectar(esperar=True) if acc == "conectar" else _rg.tablero() if acc == "tablero" else _rg.estado()
                     txt = r.get("texto") or ("No pude: %s" % r.get("error", r.get("status")))
                 except Exception as exc:
                     txt = "No pude revisar RollerCoin: %s" % exc

@@ -11,7 +11,7 @@ Dueño: Daniel (Lima, Perú). Habla en español; respuestas cortas y directas, s
 
 ## Reglas fijas
 1. **Nada manual para Daniel.** Todo debe quedar automático o en un solo comando. No pedir tokens ni contraseñas en el chat.
-2. **ASAGI ↔ ARIA solo por WiFi** (enlace cifrado de `enlace-lan.js` / `aria/lan.py`). Nada de USB/adb.
+2. **ASAGI ↔ ARIA por el enlace cifrado de red** (`enlace-lan.js` / `aria/lan.py`): WiFi, y desde el 16-nov-2026 Daniel pidió usar también el cable USB → se hace con «Anclaje USB» (red por cable, mismo enlace; frase «enlace usb»). **Nada de adb ni depuración USB.**
 3. **ARIA sin servidores HTTP ni localhost** (excepciones ya aprobadas: login OAuth de Gmail ~1 min, el socket LAN de `lan.py`). Sin Ollama.
 4. **RAM del celular mínima**: lo pesado lo hace ARIA en la PC.
 5. **Sin dependencias nuevas** sin que Daniel lo apruebe.

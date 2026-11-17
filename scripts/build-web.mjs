@@ -71,6 +71,7 @@ const files = [
   'aprende.js',
   'iniciativa.js',
   'creador.js',
+  'recetas.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

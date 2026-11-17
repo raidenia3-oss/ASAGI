@@ -1089,6 +1089,8 @@ chatForm.addEventListener('submit', (event) => {
         return;
       }
     }
+    const RC = window.AsagiRecetas, cr = !reesc && RC && RC.parsear(text, RC.nombres());
+    if (cr) { RC.ejecutar(cr, tareaDecir()).catch((e) => appendMessage('bot', '🧪 No pude: ' + ((e && e.message) || e))); return; }
     const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }
     const ci = !reesc && IN && IN.parsear(text);
@@ -1256,6 +1258,17 @@ chatForm.addEventListener('submit', (event) => {
   }
   if (/^\s*(actualiza(?:te)?|actualizar|busca actualizaci[oó]n|versi[oó]n)\s*$/i.test(text) && window._asagiActualizar) {
     window._asagiActualizar(true);
+    return;
+  }
+  // Enlace por cable SIN adb: el «Anclaje USB» crea una red celular↔PC y el mismo enlace cifrado de WiFi pasa por el cable.
+  if (/^\s*(enlace usb|conecta(?:te)? por (?:usb|cable)|usa el (?:usb|cable)|enlace por cable)\s*$/i.test(text)) {
+    const C = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    appendMessage('bot', '🔌 Enlace por cable (sirve sin WiFi y de paso carga el celular):\n1. Conecta el cable USB a la PC con ARIA abierta.\n2. Activa «Anclaje USB» en la pantalla que te abro.\n3. Vuelve aquí: busco a ARIA sola.' + (C ? '' : '\n(Funciona en la app instalada.)'));
+    if (C && C.accion) {
+      setTimeout(() => { C.accion({ tipo: 'anclaje' }).catch(() => {}); }, 2500);
+      const alVolver = () => { if (document.hidden) return; document.removeEventListener('visibilitychange', alVolver); setTimeout(() => { if (window._asagiLanEstado) window._asagiLanEstado(); if (window._asagiLatido) window._asagiLatido(); }, 2500); };
+      setTimeout(() => document.addEventListener('visibilitychange', alVolver), 4000);
+    }
     return;
   }
   if (/^\s*(enlace pc|conecta(?:te)? (?:con|a) (?:la )?pc|conecta(?:te)? (?:con|a) aria)\s*$/i.test(text) && window._asagiLanEstado) {

@@ -308,6 +308,12 @@ public class AsagiControlPlugin extends Plugin {
                     else r.put("chrome", true);
                     break;
                 }
+                case "anclaje": {         // pantalla de «Anclaje USB / zona WiFi» (Daniel activa el interruptor; ASAGI no cambia ajustes sola)
+                    i = new Intent();
+                    i.setClassName("com.android.settings", "com.android.settings.TetherSettings");
+                    if (i.resolveActivity(ctx.getPackageManager()) == null) i = new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS);
+                    break;
+                }
                 case "linterna": {
                     android.hardware.camera2.CameraManager cm = (android.hardware.camera2.CameraManager) ctx.getSystemService(Context.CAMERA_SERVICE);
                     boolean on = call.getBoolean("encender", true);
@@ -1102,6 +1108,18 @@ public class AsagiControlPlugin extends Plugin {
                     int ip = wm.getDhcpInfo().ipAddress, mask = wm.getDhcpInfo().netmask;
                     int bc = (ip & mask) | ~mask;
                     destinos.add((bc & 0xff) + "." + ((bc >> 8) & 0xff) + "." + ((bc >> 16) & 0xff) + "." + ((bc >> 24) & 0xff));
+                } catch (Throwable ignored) { }
+                // Todas las redes activas del celular, no solo el WiFi: así ARIA también se encuentra por el cable USB
+                // («Anclaje USB» crea una red celular↔PC) y por la zona WiFi del celular. Sin adb ni depuración.
+                try {
+                    java.util.Enumeration<java.net.NetworkInterface> nis = java.net.NetworkInterface.getNetworkInterfaces();
+                    while (nis != null && nis.hasMoreElements()) {
+                        java.net.NetworkInterface ni = nis.nextElement();
+                        if (!ni.isUp() || ni.isLoopback()) continue;
+                        for (java.net.InterfaceAddress ia : ni.getInterfaceAddresses()) {
+                            if (ia.getBroadcast() != null) destinos.add(ia.getBroadcast().getHostAddress());
+                        }
+                    }
                 } catch (Throwable ignored) { }
                 String extra = call.getString("host", "");
                 if (extra != null && !extra.isEmpty()) destinos.add(extra);

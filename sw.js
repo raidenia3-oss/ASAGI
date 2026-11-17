@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v155';
+const CACHE_NAME = 'asagi-pwa-v156';
 const APP_SHELL = [
   './',
   './index.html',
@@ -73,6 +73,7 @@ const APP_SHELL = [
   './creador.js',
   './recetas.js',
   './editor.js',
+  './ojos.js',
   './agente.js',
   './utiles.js',
   './personajes/indice.json',

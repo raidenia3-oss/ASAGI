@@ -73,6 +73,7 @@ const files = [
   'creador.js',
   'recetas.js',
   'editor.js',
+  'ojos.js',
   'agente.js',
   'utiles.js',
   'piensa.js',

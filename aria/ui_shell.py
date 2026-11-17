@@ -1135,6 +1135,32 @@ if _QT:
                     ("\nÚltima revisión: %d correos." % u["n"]) if u else ""), "aria")
             return True
 
+        def _cmd_video(self, t):
+            """Editor de video (editor_video.py, ffmpeg): «edita el último video: vertical, estilo noir…»."""
+            try:
+                import editor_video as _ev
+            except Exception:
+                return False
+            acc = _ev.manejar(t)
+            if not acc:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if acc[0] == "estilos":
+                self._linea(_ev.responder(acc), "aria"); return True
+            self._linea("Instalo ffmpeg (puede tardar unos minutos)…" if acc[0] == "instalar" else "Trabajo en el video (el original no se toca)…", "sys")
+            import threading as _th
+
+            def _hilo():
+                try:
+                    txt = _ev.responder(acc)
+                except Exception as exc:
+                    txt = "No pude con el video: %s" % exc
+                cola = getattr(self, "_bots_cola", None)
+                if cola is not None:
+                    cola.put("🎬 " + txt)
+            _th.Thread(target=_hilo, daemon=True).start()
+            return True
+
         def _cmd_sesiones(self, t):
             """«conecta <sitio>» / «mis sesiones»: tú inicias sesión en Chrome normal y ARIA reutiliza esa sesión al navegar."""
             try:
@@ -1689,6 +1715,8 @@ if _QT:
             if self._cmd_rollercoin(t):
                 return
             if self._cmd_sesiones(t):
+                return
+            if self._cmd_video(t):
                 return
             if self._cmd_correo(t):
                 return

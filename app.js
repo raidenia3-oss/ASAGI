@@ -1091,6 +1091,11 @@ chatForm.addEventListener('submit', (event) => {
     }
     const RC = window.AsagiRecetas, cr = !reesc && RC && RC.parsear(text, RC.nombres());
     if (cr) { RC.ejecutar(cr, tareaDecir()).catch((e) => appendMessage('bot', '🧪 No pude: ' + ((e && e.message) || e))); return; }
+    if (!reesc && /^(?:editor de videos?|edita(?:r)? (?:un |mi |este |el )?video|quiero editar un video)$/i.test(text.trim().replace(/[.!]+$/, ''))) {
+      appendMessage('bot', '🎬 Los videos los edita ARIA en tu PC (así no gasto la RAM del celular). En ARIA di: «edita el último video: recorta de 0:05 a 0:20, vertical, estilo noir, texto \"HOLA\"». Para fotos: «editor».'); return;
+    }
+    const OJ = window.AsagiOjos, co = !reesc && OJ && OJ.parsear(text);
+    if (co) { OJ.ejecutar(co, tareaDecir()).catch((e) => appendMessage('bot', '👁 No pude: ' + ((e && e.message) || e))); return; }
     if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir((t) => appendMessage('bot', t)); return; }
     const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }

@@ -178,3 +178,24 @@ Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA par
   «navega a…» entra logueada. Las cookies NO se exportan ni se copian al celular. «mis sesiones», «desconecta <sitio>».
 - RollerCoin: Daniel aceptó el riesgo y pidió automatizar los juegos; se mantiene SOLO lectura (bots de juego = saltarse las
   reglas del sitio para ganar dinero; no se hace ni se evade su detección).
+
+## 14. Video, ojos e ideas de los reels de Daniel — 16-nov (noche)
+- `aria/editor_video.py` (ffmpeg APROBADO): recortar, vertical/cuadrado, estilos (los mismos nombres que el editor de fotos),
+  velocidad, texto, sin audio, audio a mp3, gif, unir carpeta. Nunca toca el original (Videos/ARIA). Aprende la receta más
+  usada («como siempre»). Probado aquí con ffmpeg 6.1 real; falta probar en Windows (rutas con espacios, fuente Arial, winget).
+  Falta: que ASAGI le mande un video del celular por el enlace (lanBajarArchivo existe en sentido ARIA→ASAGI), música de fondo,
+  subtítulos automáticos (whisper.cpp ya se usa en dictado_pc.py), cortes automáticos por silencios.
+- `ojos.js` (ASAGI, visión Gemini): «señala X» (recuadro), «qué es esto», «registra esta boleta» + «mis boletas».
+- Reels que Daniel mandó (ideas, por valor):
+  1. **Dynamic Island para Windows** (twocode.nl): pastilla de vidrio arriba de la pantalla con música / temporizador / lo que hace
+     el agente → para ARIA: `aria/ui/isla.py` (QWidget sin marco, siempre encima, arriba al centro) mostrando qué hace ARIA,
+     estado de ASAGI y avisos. PENDIENTE, buen candidato siguiente.
+  2. **Rose «highlight the pumpkin»** (huwprosser): cámara + detección por voz → hecho en chico con `ojos.js`. En ARIA sería con
+     webcam + modelo local (PyTorch/OpenCV = dependencias nuevas: pedir permiso).
+  3. **TaxHacker** (boletas → gastos con IA) → hecho en chico («registra esta boleta»). Falta: categorías y exportar.
+  4. **decimen.app** (pasar archivos por luz/QR, sin red) → idea para emparejar ASAGI↔ARIA mostrando un QR en ARIA (sin escribir claves).
+  5. **Edge0** (modelos de 35B con ~3 GB de RAM leyendo pesos del SSD): interesante para ARIA; NO verificado (ver repo antes de creerlo).
+  6. **Niagara Launcher**: lista alfabética minimal con deslizamiento lateral → idea para la casa de ASAGI.
+  7. **Astryx** (sistema de diseño de Meta, React): no aplica directo (sin dependencias); sirve de referencia de tokens/temas.
+  8. webcam-memes (gestos → efectos) y ComfyUI video (pide RTX 4090): no por ahora.
+- Instagram sin sesión deja leer el texto del reel pero NO reproduce el video: para verlos hace falta su sesión.

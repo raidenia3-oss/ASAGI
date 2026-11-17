@@ -1372,6 +1372,12 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Cuentas con amigos (sin internet): «le presté 20 soles a Juan», «quién me debe», «Juan me pagó».
+  {
+    const DE = window.AsagiDeudas, c = DE && DE.parsear(text);
+    if (c) { appendMessage('bot', DE.hacer(c)); return; }
+  }
+
   // Lista de compras (sin internet): «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan».
   {
     const CO = window.AsagiCompras, c = CO && CO.parsear(text);
@@ -1416,8 +1422,16 @@ chatForm.addEventListener('submit', (event) => {
   {
     const W = window.AsagiWiki, c = W && W.parsear(text);
     if (c && c.accion === 'buscar') {
-      W.buscar(c.q).then((rs) => appendMessage('bot', rs.length ? W.resumen(rs[0]) + (rs.length > 1 ? '\n\nTambién: ' + rs.slice(1).map((r) => r.titulo).join(', ') : '')
-        : 'No la encontré en tu Wikipedia sin internet' + (window._asagiWikiLista ? '.' : ' (¿ya la preparaste? Di «prepara wikipedia» con ARIA en el mismo WiFi).')));
+      const decir = tareaDecir();
+      W.buscar(c.q).then(async (rs) => {
+        if (rs.length) { decir(W.resumen(rs[0]) + (rs.length > 1 ? '\n\nTambién: ' + rs.slice(1).map((r) => r.titulo).join(', ') : '')); return; }
+        // Sin copia local (o no está ahí): buscar en Wikipedia en línea en vez de mandar a Daniel a «preparar» algo.
+        const U = window.AsagiUtiles;
+        if (U && U.ejecutar && navigator.onLine !== false) {
+          try { decir('📚 Busco «' + c.q + '» en Wikipedia…'); await U.ejecutar({ accion: 'quees', q: c.q }, decir); return; } catch (e) {}
+        }
+        decir('No encontré «' + c.q + '» sin internet.' + (window._asagiWikiLista ? '' : ' Para tener Wikipedia sin internet, di «prepara wikipedia» con ARIA prendida.'));
+      }).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
       return;
     }
     if (c && c.accion === 'preparar') {
@@ -2058,7 +2072,8 @@ renderBrainControls();
   function mostrarAviso(texto, sono, icono) {
     if (!aviso || !avisoTxt) return;
     avisoTxt.textContent = (icono || '⏰') + ' ' + texto;
-    if (avisoModo) avisoModo.textContent = sono ? '🎧' : 'en silencio';
+    // «en silencio» solo tiene sentido en un pendiente que vence (⏰); en «subí de nivel» y otros confundía.
+    if (avisoModo) { const esPend = !icono || icono === '⏰'; avisoModo.textContent = sono ? '🎧' : (esPend ? 'en silencio' : ''); avisoModo.hidden = !avisoModo.textContent; }
     aviso.hidden = false;
     clearTimeout(avisoTimer);
     avisoTimer = setTimeout(() => { aviso.hidden = true; }, 12000);

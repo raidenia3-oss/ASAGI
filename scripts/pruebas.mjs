@@ -34,6 +34,11 @@ ok(SM.aTi('mi mamá se llama Rosa') === 'Tu mamá se llama Rosa', 'a ti');
 ok(SC.entender('qué puedes hacer').tipo === 'ayuda' && SC.entender('ayuda de cuentas').tema === 'cuentas', 'ayuda');
 ok(SC.entender('cómo llego a Miraflores').tipo === 'ruta', 'ruta');
 ok(CO.parsear('agrega pan y leche a la lista').tipo === 'agregar', 'compras');
+{ const DE = R('deudas.js'); let d = { personas: {} };
+  const ap = (f) => { const r = DE.aplicar(d, DE.parsear(f)); d = r.datos; return r.texto; };
+  ok(/Juan te debe S\/ 20/.test(ap('le presté 20 soles a Juan')) && /Le debes S\/ 15.50 a José/.test(ap('José me prestó 15.50')), 'deudas: anotar');
+  ok(/a mano/.test(ap('Juan me pagó')) && /S\/ 5\.50/.test(ap('le devolví 10 a José')), 'deudas: pagos');
+  ok(!DE.parsear('ya pagué internet') && !DE.parsear('le pagué a internet') && !DE.parsear('hola') && DE.parsear('quién me debe').tipo === 'ver', 'deudas: no confunde'); }
 ok(RZ.necesitaDatos('quién es el presidente del perú') && !RZ.necesitaDatos('explícame las derivadas'), 'actualidad');
 
 const av = AG.vigilar({ ahora: new Date(2026, 10, 19, 10).getTime(), vistos: {}, datos: ['el cumpleaños de mi mamá es el 20 de noviembre'] });

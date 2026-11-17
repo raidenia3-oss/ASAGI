@@ -209,3 +209,10 @@ Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA par
   o ASAGI (la música es nativa: haría falta pasar niveles desde AsagiMusicaService).
 - Juego de tipeo con palabras que caen (@kridhatype): juego para ARIA (teclado físico); en ASAGI ya hay `juegos.js`.
 - Esfera de partículas en AR (@umutmuezzinoglu): referencia para el núcleo/orb de ARIA y la Sala de control de ASAGI.
+
+Segunda pasada a los videos (17-nov, 03:00) — HECHO en ASAGI: transición de tinta al cambiar de pantalla (`AsagiEfectos.tinta`,
+setActiveSection(nombre, true) la salta) y juego «Defensa» (`tipeo.js`, «juego de tipeo»). Detalles visuales vistos para copiar después:
+- codemure: titular serif enorme con UNA palabra en cursiva carmesí, mucho aire, botón píldora pequeño, fila de tarjetas.
+- alexcreates: reproductor con disco-luna, lista en arco alrededor, pantalla completa con barras radiales y letra palabra por palabra.
+- kridhatype: «combat log» lateral (multiplicador, ppm, precisión), pantalla final con nota grande.
+- xavqen (AMV): siluetas con contraluz blanco, texto serif gigante con degradado enmascarado, tintes rojo/morado por escena.

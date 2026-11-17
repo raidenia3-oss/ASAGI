@@ -80,7 +80,17 @@ function favoritas(apps, counts, fijadas, n = 5) {
   return out.slice(0, n);
 }
 
-const API = { reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
+// Frase corta bajo la barra de batería, según la hora y la carga. PURO.
+function frase(d, pct, cargando) {
+  const h = d.getHours();
+  if (cargando) return pct >= 100 ? 'Carga completa' : 'Cargando, sin apuro';
+  if (pct <= 20) return 'Busca un cargador';
+  if (h >= 23 || h < 5) return 'Hora de descansar';
+  if (h < 12) return 'Buen día, Daniel';
+  if (h < 19) return 'Sigue así, Daniel';
+  return 'Buenas noches, Daniel';
+}
+const API = { frase, reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
 

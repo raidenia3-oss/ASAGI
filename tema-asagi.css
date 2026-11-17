@@ -511,10 +511,11 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .launcher-grid.as-list .launcher-ico { width: 42px; height: 42px; border-radius: 12px; flex: none; }
 .launcher-grid.as-list .launcher-lbl { font-size: 0.95rem; text-align: left; opacity: 1; }
 /* Riel A–Z */
-.apps-riel { position: absolute; right: 2px; z-index: 3; display: flex; flex-direction: column; justify-content: center; touch-action: none; }
+.apps-riel { position: absolute; right: 0; width: 36px; z-index: 3; display: flex; flex-direction: column; justify-content: center; touch-action: none; }
 .apps-riel[hidden] { display: none; }
-.apps-riel button { width: 26px; min-width: 26px; height: auto; min-height: 15px; padding: 1px 0; border: 0; background: transparent; box-shadow: none; color: rgba(255, 215, 0, 0.7); font: 700 10px/1.25 monospace; }
-.apps-riel button.on { color: #DC143C; transform: scale(1.5); }
+.apps-riel span { display: block; flex: 1 1 0; max-height: 26px; min-height: 0; text-align: center; color: rgba(255, 215, 0, 0.7); font: 700 12px/1 monospace; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.apps-riel span.on { color: #DC143C; transform: scale(1.6); }
+.apps-riel.tocando { background: linear-gradient(90deg, transparent, rgba(220, 20, 60, 0.14)); border-radius: 18px; }
 /* Menú al mantener presionada una app */
 .app-menu { position: fixed; z-index: 9991; width: min(240px, calc(100vw - 24px)); padding: 6px; border-radius: 16px; border: 1px solid rgba(255, 215, 0, 0.35); background: rgba(8, 4, 8, 0.96); box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.8); }
 .app-menu-t { padding: 8px 12px 6px; color: #FFD700; font: 700 0.8rem monospace; letter-spacing: 1px; text-transform: uppercase; }
@@ -524,3 +525,14 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .atajo-n[hidden] { display: none; }
 /* Botones de las esquinas: con nombre debajo (antes solo un símbolo que no se entendía) */
 #launcher .corner-btn[data-txt]::after { content: attr(data-txt); position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 3px; font: 600 9px/1 monospace; letter-spacing: 1px; text-transform: uppercase; color: rgba(255, 215, 0, 0.75); white-space: nowrap; pointer-events: none; }
+
+/* Barra de batería + frase (como los fondos de bloqueo «100% · Happy Every Day» con firma) */
+.lpila { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: end; column-gap: 8px; width: min(260px, 72%); margin: 8px auto 2px; padding-bottom: 7px; color: var(--papel); }
+.lpila[hidden] { display: none; }
+.lpila-num { font: 600 0.7rem/1 var(--mono); color: var(--papel); opacity: 0.85; white-space: nowrap; }
+.lpila-frase { font: 500 0.72rem/1.1 var(--sans); color: var(--papel); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.lpila-firma { font: italic 700 1.05rem/1 var(--display); color: #DC143C; transform: rotate(-8deg) translateY(2px); text-shadow: 0 0 12px rgba(220, 20, 60, 0.6); }
+.lpila-barra { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; background: rgba(240, 240, 248, 0.16); overflow: hidden; }
+.lpila-barra::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: #F0F0F8; border-radius: 3px; box-shadow: 0 0 8px rgba(240, 240, 248, 0.6); transition: width 0.6s ease; }
+.lpila.baja .lpila-barra::after { background: #DC143C; box-shadow: 0 0 8px rgba(220, 20, 60, 0.7); }
+.lpila.baja .lpila-num { color: #DC143C; }

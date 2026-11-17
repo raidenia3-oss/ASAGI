@@ -77,9 +77,10 @@
   },
   "editor_video.py": {
    "previos": [
-    "94ab0eee3e062177cad4819a5ba48fc36b1a04b26b24eba362b09ef741fb2c3c"
+    "94ab0eee3e062177cad4819a5ba48fc36b1a04b26b24eba362b09ef741fb2c3c",
+    "0fa534f153377bd7c3577549dfc8ebf2414e32360704bf973fa7acb93cfde76a"
    ],
-   "sha256": "0fa534f153377bd7c3577549dfc8ebf2414e32360704bf973fa7acb93cfde76a"
+   "sha256": "83f1333b4b845add5678c007183006912a864ec09c3f653729f693e82d7fd65b"
   },
   "ensenar.py": {
    "previos": [],

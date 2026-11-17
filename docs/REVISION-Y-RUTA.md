@@ -227,3 +227,13 @@ Problemas vistos en capturas con 48 apps simuladas y arreglados:
 - Riel A–Z a la derecha (idea Niagara) para saltar por letra; mantener presionada una app → fijar en favoritas u ocultar.
 - Botones de las esquinas (⟐ ✶) ahora dicen «Bots» y «Fondo».
 Pendiente: en el celular real ver los iconos verdaderos y el riel con el dedo (en Playwright se probó con eventos simulados).
+
+## 17. Ideas de los reels del 17-nov (wallpapers, iControl, «5 herramientas de GitHub», fondos de bloqueo)
+Hecho:
+- Casa: barra de batería fina con frase del momento y firma «asagi» en carmesí (como «100% · Happy Every Day» de los fondos de bloqueo). Quitado el chip de batería. `AsagiLauncher.frase()` es pura y está probada.
+- Riel A–Z: ahora es una sola zona táctil de 36 px (la simulación marcaba letras de 26×15). La letra sale de la altura del dedo.
+- ARIA, «quita los silencios del último video» (idea de Auto-Editor) con ffmpeg (`silencedetect` + `select`), sin dependencias nuevas. `silencios/tramos/comando_tramos` son puras. Probado con un clip real: de 0:10 a 0:07.
+- `sim_persona.mjs` ya no se cae si la app se cierra al abrir el teclado.
+Pendiente (pedir permiso a Daniel, son dependencias nuevas): whisper.cpp para subtítulos en la PC; yt-dlp para descargas (cuidar las reglas de cada sitio).
+Descartado: Postiz (publica en redes; regla 9).
+Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para linterna, wifi, bluetooth, brillo, música, alarma), con las acciones nativas que ASAGI ya tiene.

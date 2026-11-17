@@ -2614,22 +2614,29 @@ if ('serviceWorker' in navigator) {
   }
 
   // Riel A–Z (idea de Niagara): toca o arrastra por las letras y la lista salta a esa letra
-  const riel = document.createElement('nav'); riel.id = 'apps-riel'; riel.className = 'apps-riel'; riel.setAttribute('aria-label', 'Saltar a una letra');
+  const riel = document.createElement('nav'); riel.id = 'apps-riel'; riel.className = 'apps-riel'; riel.setAttribute('aria-label', 'Saltar a una letra: toca o desliza');
   if (grid && grid.parentNode) grid.parentNode.insertBefore(riel, grid.nextSibling);
   function irLetra(l) {
     const t = grid.querySelector('.launcher-app[data-letra="' + l + '"]'); if (!t) return;
     grid.scrollTo({ top: grid.scrollTop + t.getBoundingClientRect().top - grid.getBoundingClientRect().top - 8, behavior: 'smooth' });
-    riel.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.textContent === l));
+    riel.querySelectorAll('span').forEach((b) => b.classList.toggle('on', b.textContent === l));
+  }
+  // el riel entero es UNA zona táctil (36 px de ancho, todo el alto): la letra se elige por la altura del dedo
+  function letraEn(y) {
+    const ss = riel.querySelectorAll('span'); if (!ss.length) return '';
+    const r = riel.getBoundingClientRect(), i = Math.max(0, Math.min(ss.length - 1, Math.floor((y - r.top) / r.height * ss.length)));
+    return ss[i].textContent;
   }
   function pintarRiel(list) {
     const ls = list.length > 16 ? L().letras(list) : [];
-    riel.innerHTML = ls.map((l) => '<button type="button" tabindex="-1" aria-label="Apps con ' + l + '">' + l + '</button>').join('');
+    riel.innerHTML = ls.map((l) => '<span>' + l + '</span>').join('');
     riel.hidden = !ls.length;
     if (ls.length) requestAnimationFrame(() => { riel.style.top = grid.offsetTop + 'px'; riel.style.height = grid.clientHeight + 'px'; });
   }
   window.addEventListener('resize', () => { if (!riel.hidden) { riel.style.top = grid.offsetTop + 'px'; riel.style.height = grid.clientHeight + 'px'; } });
-  riel.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (b) { e.preventDefault(); irLetra(b.textContent); } });
-  riel.addEventListener('pointermove', (e) => { if (!e.buttons) return; const el = document.elementFromPoint(e.clientX, e.clientY), b = el && el.closest && el.closest('#apps-riel button'); if (b) irLetra(b.textContent); });
+  riel.addEventListener('pointerdown', (e) => { e.preventDefault(); try { riel.setPointerCapture(e.pointerId); } catch (x) {} riel.classList.add('tocando'); irLetra(letraEn(e.clientY)); });
+  riel.addEventListener('pointermove', (e) => { if (e.buttons) irLetra(letraEn(e.clientY)); });
+  ['pointerup', 'pointercancel'].forEach((ev) => riel.addEventListener(ev, () => riel.classList.remove('tocando')));
 
   async function cargar() {
     const c = C();
@@ -3564,6 +3571,16 @@ if ('serviceWorker' in navigator) {
       return { txt: '📌 ' + t + ' · ' + cuando, warn: p.cuando < Date.now() };
     } catch (e) { return ''; }
   }
+  // barra de batería con la frase del momento (idea de los fondos de bloqueo de los reels: «100% · Happy Every Day»)
+  const pila = document.getElementById('launcher-pila');
+  function pintarPila(pct, cargando) {
+    if (!pila || !window.AsagiLauncher) return;
+    pila.hidden = false;
+    pila.classList.toggle('baja', pct <= 20 && !cargando);
+    pila.style.setProperty('--p', pct + '%');
+    pila.querySelector('.lpila-num').textContent = (cargando ? '⚡ ' : '▮ ') + pct + '%';
+    pila.querySelector('.lpila-frase').textContent = window.AsagiLauncher.frase(new Date(), pct, cargando);
+  }
   async function pintar() {
     let html = '';
     if (!navigator.onLine) html += chip('○ sin red', 'warn');
@@ -3571,7 +3588,7 @@ if ('serviceWorker' in navigator) {
       if (navigator.getBattery) {
         const b = await navigator.getBattery();
         const pct = Math.round(b.level * 100);
-        html += chip((b.charging ? '⚡' : '') + pct + '%', pct <= 20 ? 'warn' : 'ok');
+        pintarPila(pct, b.charging);
       }
     } catch (e) {}
     if (clima) html += chip(clima);

@@ -141,7 +141,8 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
     ok(LAm.letra('Ámbar') === 'A' && LAm.letra('7-Eleven') === '#' && LAm.letra('Ñaña') === 'N' && LAm.letras(ap).join('') === 'NAWY#'.split('').sort((a, b) => (a === '#') - (b === '#') || a.localeCompare(b)).join('') &&
        LAm.visibles(ap, ['p1']).length === 5 && LAm.favoritas(ap, { p0: 9, p2: 5 }, ['p5'], 3).map((a) => a.label).join() === 'Ámbar,Yape,WhatsApp' &&
        PAm.buscar(ap, 'yap').filter((x) => x.tipo === 'app').map((x) => x.label).join() === 'Yape' && PAm.buscar(ap, 'yt').some((x) => x.label === 'YouTube') &&
-       PAm.calcular('¿Cuánto es 15% de 230?').valor === 34.5 && PAm.calcular('cuanto es 3 mas 4 por 2').valor === 11, 'launcher: A–Z, ocultas, favoritas fijadas, búsqueda y calculadora'); }
+       PAm.calcular('¿Cuánto es 15% de 230?').valor === 34.5 && PAm.calcular('cuanto es 3 mas 4 por 2').valor === 11 &&
+       LAm.frase(new Date(2026, 0, 1, 9), 80, false) === 'Buen día, Daniel' && LAm.frase(new Date(2026, 0, 1, 9), 15, false) === 'Busca un cargador' && LAm.frase(new Date(2026, 0, 1, 1), 60, true) === 'Cargando, sin apuro', 'launcher: A–Z, ocultas, favoritas fijadas, búsqueda y calculadora'); }
   { const CHm = require('../chrome.js'); ok(CHm.parsear('busca el clima de mañana en Lima en Chrome').q === 'el clima de mañana en Lima' && CHm.parsear('googlea dólar hoy').q === 'dólar hoy' && CHm.parsear('abre youtube en chrome').accion === 'abrir' && CHm.parsear('Ábrela en Chrome').accion === 'actual', 'chrome: buscar en Google'); }
   { const CPm = require('../compartir.js'); ok(CPm.plan('mira https://www.instagram.com/reel/abc123/?igsh=xyz').tipo === 'red' && CPm.plan('https://youtu.be/dQw4w9WgXcQ').tipo === 'youtube' && CPm.plan('https://elcomercio.pe/nota').tipo === 'pagina' && CPm.parsearCopia('¿Qué copié?') && CPm.parsearCopia('revisa lo que copié') && !CPm.parsearCopia('copia esto'), 'compartir: portapapeles'); }
   }

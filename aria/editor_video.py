@@ -4,6 +4,7 @@
   «edita el último video: recorta de 0:05 a 0:20, vertical, estilo noir, texto "LIMA DE NOCHE"»
   «edita C:\\ruta\\clip.mp4: velocidad 1.5, sin audio» · «edita el último video como siempre»
   «une los videos de la carpeta C:\\ruta» · «saca el audio del último video» · «haz un gif del último video»
+  «quita los silencios del último video» (como Auto-Editor: corta los tramos callados, ideal para clases o videos hablados)
   «instala ffmpeg» (si falta) · «estilos de video»
 
 Reglas: NUNCA toca el original (escribe en Videos/ARIA con otro nombre); sin servidores; un proceso ffmpeg por orden.
@@ -305,6 +306,79 @@ def unir(carpeta):
     return "Uní %d videos (sin audio, a 720p). Guardado en: %s" % (len(vs), sal)
 
 
+# ── Quitar silencios (idea de Auto-Editor, hecho con ffmpeg: silencedetect + select) ────────────
+def silencios(log):
+    """Salida de silencedetect -> [(inicio, fin)] de los tramos callados. PURO."""
+    out, ini = [], None
+    for m in re.finditer(r"silence_(start|end):\s*(-?[\d.]+)", log or ""):
+        v = max(0.0, float(m.group(2)))
+        if m.group(1) == "start":
+            ini = v
+        elif ini is not None:
+            out.append((ini, v)); ini = None
+    if ini is not None:
+        out.append((ini, None))                  # silencio hasta el final
+    return out
+
+
+def tramos(sil, dur, margen=0.15, minimo=0.3):
+    """Silencios + duración -> tramos CON sonido [(a, b)], dejando un respiro (margen) a cada lado. PURO."""
+    out, t = [], 0.0
+    for a, b in sil:
+        fin = a + margen
+        if fin - t >= minimo:
+            out.append((round(t, 3), round(min(fin, dur), 3)))
+        t = max(t, (b if b is not None else dur) - margen)
+    if dur - t >= minimo:
+        out.append((round(t, 3), round(dur, 3)))
+    return out
+
+
+def comando_tramos(ff, entrada, salida, tr):
+    """Une solo los tramos con voz (video y audio juntos, sin desfase). PURO."""
+    sel = "+".join("between(t,%g,%g)" % ab for ab in tr)
+    return [ff, "-hide_banner", "-loglevel", "error", "-y", "-i", entrada,
+            "-vf", "select='%s',setpts=N/FRAME_RATE/TB" % sel, "-af", "aselect='%s',asetpts=N/SR/TB" % sel,
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k",
+            "-movflags", "+faststart", salida]
+
+
+def sin_silencios(entrada):
+    ff = ffmpeg()
+    if not ff:
+        return "Me falta ffmpeg. Di «instala ffmpeg»."
+    if not entrada or not os.path.isfile(entrada):
+        return "No encontré el video."
+    dur = _duracion(ff, entrada)
+    if not dur:
+        return "No pude medir el video (falta ffprobe junto a ffmpeg)."
+    try:
+        r = subprocess.run([ff, "-hide_banner", "-i", entrada, "-vn", "-af", "silencedetect=noise=-32dB:d=0.6", "-f", "null", "-"], capture_output=True, timeout=900)
+    except Exception as exc:
+        return "No pude escuchar el audio: %s" % exc
+    sil = silencios((r.stderr or b"").decode("utf-8", "ignore"))
+    tr = tramos(sil, dur)
+    quitado = dur - sum(b - a for a, b in tr)
+    if not sil or quitado < 1:
+        return "Ese video casi no tiene silencios (o no tiene audio); no hay nada que cortar."
+    if not tr:
+        return "Todo el video está en silencio; no lo corto."
+    if len(tr) > 300:
+        return "Tiene demasiados cortes (%d). Recórtalo primero en partes más cortas." % len(tr)
+    sal = _salida(entrada, "_sin_silencios")
+    try:
+        _correr(comando_tramos(ff, entrada, sal, tr))
+    except Exception as exc:
+        return "No pude cortarlo: %s" % exc
+    return "Listo: quité %d silencio%s (%s menos; de %s a %s). El original quedó intacto.\nGuardado en: %s" % (
+        len(sil), "" if len(sil) == 1 else "s", _mmss(quitado), _mmss(dur), _mmss(dur - quitado), sal)
+
+
+def _mmss(x):
+    x = int(round(x))
+    return "%d:%02d" % (x // 60, x % 60)
+
+
 def manejar(t):
     """Comando de chat -> None | tupla. PURO.
     ('instalar',) ('estilos',) ('editar', ruta|None, orden) ('extra', ruta|None, 'audio'|'gif') ('unir', carpeta)"""
@@ -326,6 +400,8 @@ def manejar(t):
         return None
     if re.match(r"^(?:saca|extrae|dame) el audio", n):
         return ("extra", ruta, "audio")
+    if re.match(r"^(?:quita|quitale|corta|cortale|saca|elimina|borra)(?: (?:los|todos los))? silencios", n):
+        return ("silencios", ruta)
     if re.match(r"^(?:haz|crea|saca) un gif", n):
         return ("extra", ruta, "gif")
     if re.match(r"^(?:edita|editame|recorta|corta|convierte|pasa|pon)\b", n):
@@ -338,10 +414,12 @@ def responder(acc):
         return instalar()
     if acc[0] == "estilos":
         return ("Edito videos en tu PC (el original nunca se toca). Ejemplo:\n«edita el último video: recorta de 0:05 a 0:20, vertical, estilo noir, texto \"HOLA\"»\n"
-                "Estilos: " + ", ".join(sorted(ESTILOS)) + ".\nTambién: velocidad 1.5 · sin audio · cuadrado · «como siempre» · «saca el audio del último video» · «haz un gif del último video» · «une los videos de la carpeta …».")
+                "Estilos: " + ", ".join(sorted(ESTILOS)) + ".\nTambién: velocidad 1.5 · sin audio · cuadrado · «como siempre» · «saca el audio del último video» · «haz un gif del último video» · «quita los silencios del último video» · «une los videos de la carpeta …».")
     if acc[0] == "unir":
         return unir(acc[1])
     ruta = acc[1] or ultimo_video()
     if acc[0] == "extra":
         return extra(ruta, acc[2])
+    if acc[0] == "silencios":
+        return sin_silencios(ruta)
     return editar(ruta, acc[2])

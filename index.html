@@ -140,8 +140,8 @@
         <section id="launcher" class="home active" data-panel="launcher">
           <canvas id="launcher-wall"></canvas>
           <div id="launcher-photo" class="launcher-photo"><img id="launcher-photo-img" alt=""><div id="wf-tint" class="wf-tint"></div><div id="wf-vig" class="wf-vig"></div></div>
-          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots">⟐</button>
-          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo">✶</button>
+          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots" data-txt="Bots">⟐</button>
+          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo" data-txt="Fondo">✶</button>
           <div class="home-hint home-hint-top" aria-hidden="true">⌄ Ajustes</div>
           <div class="launcher-top">
             <div id="launcher-clock" class="launcher-clock">--:--</div>
@@ -152,13 +152,14 @@
             <button id="pend-open" class="pend-chip" type="button">✓ Pendientes <span id="pend-count" class="pend-count" hidden>0</span></button>
           </div>
           <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
-            <div class="launcher-sec">Más usadas</div>
+
             <div id="launcher-fav" class="launcher-fav"></div>
           </div>
           <div id="launcher-grid" class="launcher-grid">
             <div class="launcher-empty">Toca para cargar tus apps…<br><small>(requiere el plugin nativo)</small></div>
           </div>
           <div id="home-atajos" class="home-atajos" aria-label="Atajos">
+            <button type="button" data-atajo="#pendientes">✓ Pendientes<span id="atajo-pend" class="atajo-n" hidden></span></button>
             <button type="button" data-atajo="mi día">☀ Mi día</button>
             <button type="button" data-atajo="qué veo hoy">📺 Qué veo</button>
             <button type="button" data-atajo="sorpréndeme">✨ Sorpréndeme</button>

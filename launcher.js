@@ -63,7 +63,24 @@ function masUsadas(apps, counts, n = 8) {
     .slice(0, n);
 }
 
-const API = { reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas };
+// Letra del índice A–Z (números y símbolos van a «#»; tildes se quitan). Puro.
+function letra(label) {
+  const c = String(label || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase();
+  return /[A-Z]/.test(c) ? c : c === 'Ñ' ? 'N' : '#';
+}
+// Letras presentes, en orden. Puro.
+function letras(apps) { const v = {}; (apps || []).forEach((a) => { v[letra(a.label)] = 1; }); return Object.keys(v).sort((a, b) => (a === '#') - (b === '#') || a.localeCompare(b)); }
+// Quita las apps ocultas (lista de paquetes). Puro.
+function visibles(apps, ocultas) { const o = new Set(ocultas || []); return (apps || []).filter((a) => !o.has(a.package)); }
+// Favoritas: primero las fijadas (en su orden), luego las más usadas, sin repetir. Puro.
+function favoritas(apps, counts, fijadas, n = 5) {
+  const por = {}; (apps || []).forEach((a) => { por[a.package] = a; });
+  const out = (fijadas || []).map((p) => por[p]).filter(Boolean);
+  for (const a of masUsadas(apps, counts, n + out.length)) if (out.length < n && out.indexOf(a) < 0) out.push(a);
+  return out.slice(0, n);
+}
+
+const API = { reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
 

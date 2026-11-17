@@ -1962,6 +1962,7 @@ renderBrainControls();
     if (!countEl) return;
     const n = P.contarPendientes(lista);
     countEl.textContent = n; countEl.hidden = n === 0;
+    const an = document.getElementById("atajo-pend"); if (an) { an.textContent = n; an.hidden = n === 0; }
   }
 
   function pintar() {
@@ -2434,6 +2435,10 @@ if ('serviceWorker' in navigator) {
 
   // conteo de uso (para "mas usadas")
   function counts() { try { return JSON.parse(localStorage.getItem('asagi-launch-counts') || '{}'); } catch (e) { return {}; } }
+  function lista(k) { try { return JSON.parse(localStorage.getItem(k) || '[]') || []; } catch (e) { return []; } }
+  function guardarLista(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  const ocultas = () => lista('asagi-apps-ocultas'), fijadas = () => lista('asagi-apps-fijadas');
+  const vis = () => L().visibles(apps, ocultas());
   function guardarCounts(c) { try { localStorage.setItem('asagi-launch-counts', JSON.stringify(c)); } catch (e) {} }
 
   function tick() {
@@ -2467,8 +2472,39 @@ if ('serviceWorker' in navigator) {
     }
     const lbl = document.createElement('div'); lbl.className = 'launcher-lbl'; lbl.textContent = a.label;
     d.appendChild(ico); d.appendChild(lbl);
-    d.addEventListener('click', () => abrir(a));
+    d.dataset.letra = L().letra(a.label);
+    // toque = abrir · mantener presionado = menú (fijar, ocultar)
+    let tmr = null, largo = false;
+    d.addEventListener('pointerdown', () => { largo = false; clearTimeout(tmr); tmr = setTimeout(() => { largo = true; menuApp(a, d); }, 520); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => d.addEventListener(ev, () => clearTimeout(tmr)));
+    d.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+    d.addEventListener('click', () => { if (largo) { largo = false; return; } abrir(a); });
     return d;
+  }
+
+  // Menú al mantener presionada una app
+  function menuApp(a, el) {
+    let m = document.getElementById('app-menu'); if (m) m.remove();
+    m = document.createElement('div'); m.id = 'app-menu'; m.className = 'app-menu'; m.setAttribute('role', 'menu');
+    const fij = fijadas().indexOf(a.package) >= 0;
+    const ops = [[fij ? '☆ Quitar de favoritas' : '★ Fijar en favoritas', () => { const f = fijadas().filter((x) => x !== a.package); if (!fij) f.unshift(a.package); guardarLista('asagi-apps-fijadas', f.slice(0, 5)); renderFav(); }],
+      ['🙈 Ocultar de la lista', () => { const o = ocultas(); o.push(a.package); guardarLista('asagi-apps-ocultas', o); render(L().filtrar(vis(), '')); renderFav(); avisoOcultas(); }]];
+    const t = document.createElement('div'); t.className = 'app-menu-t'; t.textContent = a.label; m.appendChild(t);
+    ops.forEach(([txt, fn]) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.textContent = txt; b.addEventListener('click', () => { m.remove(); fn(); }); m.appendChild(b); });
+    document.body.appendChild(m);
+    const r = el.getBoundingClientRect(), mw = Math.min(240, window.innerWidth - 24);
+    m.style.left = Math.max(12, Math.min(window.innerWidth - mw - 12, r.left + r.width / 2 - mw / 2)) + 'px';
+    m.style.top = Math.min(window.innerHeight - 170, r.bottom + 6) + 'px';
+    m.querySelector('button').focus();
+    setTimeout(() => document.addEventListener('pointerdown', function fuera(e) { if (!m.contains(e.target)) { m.remove(); document.removeEventListener('pointerdown', fuera); } }), 50);
+    try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+  }
+  function avisoOcultas() {
+    const n = ocultas().length; let b = document.getElementById('apps-ocultas');
+    if (!n) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('button'); b.type = 'button'; b.id = 'apps-ocultas'; b.className = 'apps-ocultas'; b.addEventListener('click', () => { guardarLista('asagi-apps-ocultas', []); render(L().filtrar(vis(), '')); renderFav(); avisoOcultas(); }); }
+    b.textContent = n + ' app(s) oculta(s) · mostrar todas';
+    grid.appendChild(b);
   }
 
   // --- Iconos para apps sin icono propio: con TU foto de perfil ---
@@ -2517,7 +2553,7 @@ if ('serviceWorker' in navigator) {
 
   function renderFav() {
     if (!fav || !favWrap || !L()) return;
-    const top = L().masUsadas(apps, counts(), 8);
+    const top = L().favoritas(vis(), counts(), fijadas(), 5);
     if (!top.length) { favWrap.hidden = true; return; }
     favWrap.hidden = false; fav.innerHTML = '';
     for (const a of top) fav.appendChild(tile(a));
@@ -2526,7 +2562,8 @@ if ('serviceWorker' in navigator) {
   // Ejecuta un comando del palette por id.
   function ejecutarAccion(id) {
     const ir = (sec) => setActiveSection(sec);
-    if (id === 'preguntar') { if (ask) { ask.hidden = false; ask.click(); } return; }
+    if (id === 'preguntar') { preguntar(search ? search.value : ''); return; }
+    if (id === 'web') { const q = search ? search.value.trim() : ''; preguntar('busca en la web ' + q); return; }
     if (id === 'ir-status') return ir('status');
     if (id === 'ir-grok') return ir('grok');
     if (id === 'escanear') { ir('status'); setTimeout(() => { const b = document.getElementById('def-scan'); if (b) b.click(); }, 180); return; }
@@ -2541,7 +2578,7 @@ if ('serviceWorker' in navigator) {
     const d = document.createElement('button'); d.className = 'cmd-row'; d.type = 'button';
     d.innerHTML = '<span class="cmd-ico">' + (it.ico || '•') + '</span><span class="cmd-txt"><b>' +
       it.label.replace(/</g, '&lt;') + '</b><small>' + (it.sub || '') + '</small></span>';
-    d.addEventListener('click', () => { if (search) search.value = ''; render(apps); if (favWrap) favWrap.hidden = false; ejecutarAccion(it.id); });
+    d.addEventListener('click', () => { const keep = it.id === 'preguntar' || it.id === 'web'; if (!keep && search) search.value = ''; if (!keep) { render(L().filtrar(vis(), '')); if (favWrap) favWrap.hidden = false; } ejecutarAccion(it.id); });
     return d;
   }
 
@@ -2560,7 +2597,7 @@ if ('serviceWorker' in navigator) {
   // Render con entrada escalonada. list = items del palette (apps o acciones) o apps crudas.
   function render(list, palette) {
     if (!grid || !L()) return;
-    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin coincidencias.</div>'; return; }
+    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin coincidencias.</div>'; pintarRiel([]); return; }
     grid.innerHTML = '';
     grid.classList.toggle('as-list', !!palette);
     let i = 0;
@@ -2572,7 +2609,27 @@ if ('serviceWorker' in navigator) {
       el.classList.add('as-in');
       grid.appendChild(el); i++;
     }
+    pintarRiel(palette ? [] : list);
+    if (!palette) avisoOcultas();
   }
+
+  // Riel A–Z (idea de Niagara): toca o arrastra por las letras y la lista salta a esa letra
+  const riel = document.createElement('nav'); riel.id = 'apps-riel'; riel.className = 'apps-riel'; riel.setAttribute('aria-label', 'Saltar a una letra');
+  if (grid && grid.parentNode) grid.parentNode.insertBefore(riel, grid.nextSibling);
+  function irLetra(l) {
+    const t = grid.querySelector('.launcher-app[data-letra="' + l + '"]'); if (!t) return;
+    grid.scrollTo({ top: grid.scrollTop + t.getBoundingClientRect().top - grid.getBoundingClientRect().top - 8, behavior: 'smooth' });
+    riel.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.textContent === l));
+  }
+  function pintarRiel(list) {
+    const ls = list.length > 16 ? L().letras(list) : [];
+    riel.innerHTML = ls.map((l) => '<button type="button" tabindex="-1" aria-label="Apps con ' + l + '">' + l + '</button>').join('');
+    riel.hidden = !ls.length;
+    if (ls.length) requestAnimationFrame(() => { riel.style.top = grid.offsetTop + 'px'; riel.style.height = grid.clientHeight + 'px'; });
+  }
+  window.addEventListener('resize', () => { if (!riel.hidden) { riel.style.top = grid.offsetTop + 'px'; riel.style.height = grid.clientHeight + 'px'; } });
+  riel.addEventListener('pointerdown', (e) => { const b = e.target.closest('button'); if (b) { e.preventDefault(); irLetra(b.textContent); } });
+  riel.addEventListener('pointermove', (e) => { if (!e.buttons) return; const el = document.elementFromPoint(e.clientX, e.clientY), b = el && el.closest && el.closest('#apps-riel button'); if (b) irLetra(b.textContent); });
 
   async function cargar() {
     const c = C();
@@ -2581,7 +2638,7 @@ if ('serviceWorker' in navigator) {
     try {
       const r = await c.listApps();
       apps = (r && r.apps) || [];
-      render(L().filtrar(apps, '')); renderFav();
+      render(L().filtrar(vis(), '')); renderFav();
     } catch (e) {
       if (grid) grid.innerHTML = '<div class="launcher-empty">No pude listar apps.</div>';
     }
@@ -2591,17 +2648,22 @@ if ('serviceWorker' in navigator) {
     if (!L()) return;
     const q = search.value;
     if (window.AsagiPalette && q.trim()) {
-      const res = window.AsagiPalette.buscar(apps, q);
+      const res = window.AsagiPalette.buscar(vis(), q);
       const calc = window.AsagiPalette.calcular(q);
       if (calc) res.unshift({ tipo: 'calc', valor: calc.valor, expr: calc.expr });
+      // siempre hay algo útil que tocar: preguntarle a ASAGI o buscar en la web
+      if (!calc) {
+        const qq = q.trim().slice(0, 60);
+        res.push({ tipo: 'accion', id: 'preguntar', ico: '✦', label: 'Preguntar a ASAGI: «' + qq + '»', sub: 'Te responde en el chat' });
+        if (qq.length > 2) res.push({ tipo: 'accion', id: 'web', ico: '🔎', label: 'Buscar en la web: «' + qq + '»', sub: 'Lee varias páginas y te resume' });
+      }
       render(res, true);
-      const hayApp = res.some((x) => x.tipo === 'app');
-      if (ask) ask.hidden = !(q.trim() && !hayApp);
+      if (ask) ask.hidden = true;
       if (favWrap) favWrap.hidden = true;
     } else {
-      render(L().filtrar(apps, q));
+      render(L().filtrar(vis(), q));
       if (ask) ask.hidden = true;
-      if (favWrap) favWrap.hidden = L().masUsadas(apps, counts(), 8).length === 0;
+      if (favWrap) favWrap.hidden = L().favoritas(vis(), counts(), fijadas(), 5).length === 0;
     }
   });
 
@@ -2614,7 +2676,7 @@ if ('serviceWorker' in navigator) {
     if (mi && form) { mi.value = q; try { form.requestSubmit(); } catch (e) { form.dispatchEvent(new Event('submit', { cancelable: true })); } }
     if (search) search.value = '';
     if (ask) ask.hidden = true;
-    render(apps); if (favWrap) favWrap.hidden = true;
+    render(L().filtrar(vis(), '')); renderFav();
   }
   window._asagiPreguntar = preguntar;
   if (ask) ask.addEventListener('click', () => preguntar(search ? search.value : ''));
@@ -2622,7 +2684,7 @@ if ('serviceWorker' in navigator) {
   if (search) search.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     const q = search.value.trim(); if (!q) return;
-    const res = window.AsagiPalette ? window.AsagiPalette.buscar(apps, q) : [];
+    const res = window.AsagiPalette ? window.AsagiPalette.buscar(vis(), q) : [];
     const app0 = res.find((x) => x.tipo === 'app');
     const calc = window.AsagiPalette && window.AsagiPalette.calcular(q);
     if (app0 && !calc) abrir(app0._app || app0);
@@ -4465,6 +4527,7 @@ setTimeout(() => {
   }
   c.addEventListener('click', (e) => {
     const b = e.target.closest('[data-atajo]'); if (!b) return;
+    if (b.getAttribute('data-atajo') === '#pendientes') { const po = document.getElementById('pend-open'); if (po) po.click(); return; }
     setActiveSection('assistant');
     const i = document.getElementById('message-input'); i.value = b.getAttribute('data-atajo');
     setTimeout(() => { try { chatForm.requestSubmit(); } catch (err) {} setTimeout(nuevo, 800); }, 250);

@@ -137,6 +137,11 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
     ok(TPm.parsear('Juego de tipeo') && !TPm.parsear('juego') && TPm.apuntar(en, null, 'L') === 2 && TPm.apuntar(en, 3, 's') === 3 && TPm.apuntar(en, 3, 'l') === null && TPm.apuntar(en, null, 'z') === null &&
        TPm.puntosPalabra(5, 0) === 50 && TPm.puntosPalabra(5, 10) === 75 && TPm.ppm(250, 60) === 50 && TPm.nota(60, 100) === 'S' && TPm.nota(60, 50) === 'D' && TPm.dificultad(0).cada > TPm.dificultad(200).cada &&
        TPm.PALABRAS.every((w) => /^[a-zñ]+$/.test(w)) && TPm.elegir(5, () => 0.5, []).length <= 5, 'tipeo: apuntar, puntos, ppm, nota y dificultad'); }
+  { const LAm = require('../launcher.js'), PAm = require('../palette.js'); const ap = ['Yape', 'YouTube', 'WhatsApp', 'Ñaña', '7-Eleven', 'Ámbar'].map((l, i) => ({ label: l, package: 'p' + i }));
+    ok(LAm.letra('Ámbar') === 'A' && LAm.letra('7-Eleven') === '#' && LAm.letra('Ñaña') === 'N' && LAm.letras(ap).join('') === 'NAWY#'.split('').sort((a, b) => (a === '#') - (b === '#') || a.localeCompare(b)).join('') &&
+       LAm.visibles(ap, ['p1']).length === 5 && LAm.favoritas(ap, { p0: 9, p2: 5 }, ['p5'], 3).map((a) => a.label).join() === 'Ámbar,Yape,WhatsApp' &&
+       PAm.buscar(ap, 'yap').filter((x) => x.tipo === 'app').map((x) => x.label).join() === 'Yape' && PAm.buscar(ap, 'yt').some((x) => x.label === 'YouTube') &&
+       PAm.calcular('¿Cuánto es 15% de 230?').valor === 34.5 && PAm.calcular('cuanto es 3 mas 4 por 2').valor === 11, 'launcher: A–Z, ocultas, favoritas fijadas, búsqueda y calculadora'); }
   { const CHm = require('../chrome.js'); ok(CHm.parsear('busca el clima de mañana en Lima en Chrome').q === 'el clima de mañana en Lima' && CHm.parsear('googlea dólar hoy').q === 'dólar hoy' && CHm.parsear('abre youtube en chrome').accion === 'abrir' && CHm.parsear('Ábrela en Chrome').accion === 'actual', 'chrome: buscar en Google'); }
   { const CPm = require('../compartir.js'); ok(CPm.plan('mira https://www.instagram.com/reel/abc123/?igsh=xyz').tipo === 'red' && CPm.plan('https://youtu.be/dQw4w9WgXcQ').tipo === 'youtube' && CPm.plan('https://elcomercio.pe/nota').tipo === 'pagina' && CPm.parsearCopia('¿Qué copié?') && CPm.parsearCopia('revisa lo que copié') && !CPm.parsearCopia('copia esto'), 'compartir: portapapeles'); }
   }

@@ -216,3 +216,14 @@ setActiveSection(nombre, true) la salta) y juego «Defensa» (`tipeo.js`, «jueg
 - alexcreates: reproductor con disco-luna, lista en arco alrededor, pantalla completa con barras radiales y letra palabra por palabra.
 - kridhatype: «combat log» lateral (multiplicador, ppm, precisión), pantalla final con nota grande.
 - xavqen (AMV): siluetas con contraluz blanco, texto serif gigante con degradado enmascarado, tintes rojo/morado por escena.
+
+## 16. Launcher revisado como usuario (17-nov, mañana)
+Problemas vistos en capturas con 48 apps simuladas y arreglados:
+- La rejilla de apps quedaba en una ventanita de ~1,5 filas (tarjeta «Más usadas» enorme + botón Pendientes) → favoritas en una
+  sola fila tipo dock (5, fijables), Pendientes pasa a la fila de atajos con su número, la rejilla gana ~2× de alto.
+- Buscar «yap» mostraba YouTube, Spotify, PedidosYa… (la búsqueda miraba la palabra «App») → solo por nombre y coincidencias reales.
+- «cuánto es 15% de 230» decía «Sin coincidencias» → la calculadora entiende «cuánto es», «más», «menos», «por», «entre».
+- Resultados como tiles gigantes en una columna → filas (icono + nombre); siempre hay «Preguntar a ASAGI» y «Buscar en la web».
+- Riel A–Z a la derecha (idea Niagara) para saltar por letra; mantener presionada una app → fijar en favoritas u ocultar.
+- Botones de las esquinas (⟐ ✶) ahora dicen «Bots» y «Fondo».
+Pendiente: en el celular real ver los iconos verdaderos y el riel con el dedo (en Playwright se probó con eventos simulados).

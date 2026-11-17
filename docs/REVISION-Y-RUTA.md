@@ -167,3 +167,14 @@ Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA par
 - **RollerCoin**: `rollercoin_google.tablero()` SOLO LEE la cuenta (poder, saldos) y lleva historial («cómo va rollercoin» en ARIA).
   NO se automatizan los juegos: RollerCoin prohíbe bots y es ganar dinero saltándose sus reglas → no hacerlo aunque exista
   código viejo en el monorepo (rollercoin_bot_*.py). El lector de números es por texto y no se pudo probar con la cuenta real.
+
+## 13. Editor de imágenes y sesiones — 16-nov (noche)
+- `editor.js` (ASAGI): editor propio en canvas (estilos, ajustes, recorte, texto, «describe el edit» con cerebro). Aprende: guarda
+  los ajustes de cada foto guardada → estilo «A tu gusto» (promedio) y ordena estilos por uso. Nativo: `AsagiControl.guardarImagen`.
+  Falta: VIDEO. En el celular gastaría mucha RAM (regla 4); lo natural es ARIA con ffmpeg, que es dependencia nueva →
+  **esperar el sí de Daniel** (regla 5). También falta el editor de imágenes en ARIA (PyQt5 puro: QImage) y «aprender edits» viendo
+  referencias (analizar una imagen que le guste y sacar sus ajustes).
+- `aria/sesiones.py`: «conecta <sitio>» → Daniel inicia sesión en Chrome normal con el perfil del navegador de ARIA; luego
+  «navega a…» entra logueada. Las cookies NO se exportan ni se copian al celular. «mis sesiones», «desconecta <sitio>».
+- RollerCoin: Daniel aceptó el riesgo y pidió automatizar los juegos; se mantiene SOLO lectura (bots de juego = saltarse las
+  reglas del sitio para ganar dinero; no se hace ni se evade su detección).

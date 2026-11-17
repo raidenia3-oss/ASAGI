@@ -1091,6 +1091,7 @@ chatForm.addEventListener('submit', (event) => {
     }
     const RC = window.AsagiRecetas, cr = !reesc && RC && RC.parsear(text, RC.nombres());
     if (cr) { RC.ejecutar(cr, tareaDecir()).catch((e) => appendMessage('bot', '🧪 No pude: ' + ((e && e.message) || e))); return; }
+    if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir((t) => appendMessage('bot', t)); return; }
     const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }
     const ci = !reesc && IN && IN.parsear(text);

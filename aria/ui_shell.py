@@ -1135,6 +1135,35 @@ if _QT:
                     ("\nÚltima revisión: %d correos." % u["n"]) if u else ""), "aria")
             return True
 
+        def _cmd_sesiones(self, t):
+            """«conecta <sitio>» / «mis sesiones»: tú inicias sesión en Chrome normal y ARIA reutiliza esa sesión al navegar."""
+            try:
+                import sesiones as _se
+            except Exception:
+                return False
+            acc = _se.manejar(t)
+            if not acc:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            if acc[0] == "lista":
+                self._linea(_se.lista(), "aria"); return True
+            if acc[0] == "olvidar":
+                self._linea(_se.olvidar(acc[1]), "aria"); return True
+            self._linea("Te abro Chrome en %s. Inicia sesión tú como siempre (yo no veo tu contraseña) y luego cierra esa ventana: "
+                        "desde ahí puedo entrar con tu cuenta cuando me pidas navegar." % acc[1], "aria")
+            import threading as _th
+
+            def _hilo():
+                try:
+                    txt = _se.conectar(acc[1], acc[2])
+                except Exception as exc:
+                    txt = "No pude: %s" % exc
+                cola = getattr(self, "_bots_cola", None)
+                if cola is not None:
+                    cola.put("🔐 " + txt)
+            _th.Thread(target=_hilo, daemon=True).start()
+            return True
+
         def _cmd_rollercoin(self, t):
             """«conecta rollercoin»: login con Google en Chrome normal; ARIA no ve contraseñas."""
             try:
@@ -1658,6 +1687,8 @@ if _QT:
             if self._cmd_fondo(t):
                 return
             if self._cmd_rollercoin(t):
+                return
+            if self._cmd_sesiones(t):
                 return
             if self._cmd_correo(t):
                 return

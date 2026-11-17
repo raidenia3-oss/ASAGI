@@ -1297,6 +1297,41 @@ public class AsagiControlPlugin extends Plugin {
         } catch (Throwable e) { return ""; }
     }
 
+    /** Guarda una imagen (JPEG en base64) en la galería, carpeta Pictures/ASAGI. Sin permisos en Android 10+. */
+    @PluginMethod
+    public void guardarImagen(final PluginCall call) {
+        final String b64 = call.getString("base64", "");
+        final String nombre = call.getString("nombre", "ASAGI_" + System.currentTimeMillis() + ".jpg").replaceAll("[^A-Za-z0-9_.-]", "_");
+        if (b64 == null || b64.isEmpty() || b64.length() > 16000000) { call.reject("imagen vacia o demasiado grande"); return; }
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            try {
+                byte[] datos = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+                Context ctx = getContext();
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    android.content.ContentValues cv = new android.content.ContentValues();
+                    cv.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, nombre);
+                    cv.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    cv.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ASAGI");
+                    android.net.Uri uri = ctx.getContentResolver().insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+                    if (uri == null) throw new java.io.IOException("no se pudo crear el archivo");
+                    java.io.OutputStream os = ctx.getContentResolver().openOutputStream(uri);
+                    try { os.write(datos); } finally { os.close(); }
+                    r.put("uri", uri.toString());
+                } else {                       // Android 6-9: carpeta propia de la app (no pide permiso de almacenamiento)
+                    java.io.File dir = new java.io.File(ctx.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "ASAGI");
+                    dir.mkdirs();
+                    java.io.File f = new java.io.File(dir, nombre);
+                    java.io.FileOutputStream os = new java.io.FileOutputStream(f);
+                    try { os.write(datos); } finally { os.close(); }
+                    r.put("uri", f.getAbsolutePath());
+                }
+                r.put("ok", true);
+                call.resolve(r);
+            } catch (Throwable e) { call.reject("no pude guardar: " + e.getMessage()); }
+        } }).start();
+    }
+
     /** Version instalada + huella de la firma (para saber si un APK nuevo se puede instalar encima). */
     @PluginMethod
     public void versionApp(PluginCall call) {

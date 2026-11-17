@@ -188,7 +188,7 @@ Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA par
 - `ojos.js` (ASAGI, visión Gemini): «señala X» (recuadro), «qué es esto», «registra esta boleta» + «mis boletas».
 - Reels que Daniel mandó (ideas, por valor):
   1. **Dynamic Island para Windows** (twocode.nl): pastilla de vidrio arriba de la pantalla con música / temporizador / lo que hace
-     el agente → para ARIA: `aria/ui/isla.py` (QWidget sin marco, siempre encima, arriba al centro) mostrando qué hace ARIA,
+     el agente → HECHO: `aria/ui/isla.py` (botón «Isla» abajo en ARIA): hora, estado de ASAGI y lo que ARIA va diciendo;
      estado de ASAGI y avisos. PENDIENTE, buen candidato siguiente.
   2. **Rose «highlight the pumpkin»** (huwprosser): cámara + detección por voz → hecho en chico con `ojos.js`. En ARIA sería con
      webcam + modelo local (PyTorch/OpenCV = dependencias nuevas: pedir permiso).

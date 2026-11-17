@@ -637,7 +637,7 @@ if _QT:
                 _guardar_estado(_estado)
             self.toggles = {"autonomia": False, "cuerpo": _estado.get("cuerpo") or "rostro",
                             "voz": bool(_estado.get("voz")), "fondo": _estado.get("fondo") if _estado.get("fondo") in ("matrix", "foto") else "red",
-                            "crt": _estado.get("crt") is not False, "mascota": bool(_estado.get("mascota"))}
+                            "crt": _estado.get("crt") is not False, "mascota": bool(_estado.get("mascota")), "isla": bool(_estado.get("isla"))}
             self._hist = []
             self._es_chat = False
             self._worker = None
@@ -665,6 +665,8 @@ if _QT:
             self._actu_t = QTimer(self); self._actu_t.timeout.connect(self._auto_actualizar); self._actu_t.start(6 * 3600 * 1000)
             if self.toggles.get("mascota"):
                 QTimer.singleShot(1200, lambda: self._mascota_visible(True))
+            if self.toggles.get("isla"):
+                QTimer.singleShot(1500, lambda: self._isla_visible(True))
 
         # --- bots programados: corren en su hilo; lo que dicen llega al chat por una cola ---
         def _iniciar_bots(self):
@@ -1460,7 +1462,7 @@ if _QT:
             dock = QFrame(); dock.setObjectName("tarjeta"); dock.setStyleSheet("QFrame#tarjeta{%s}" % _CARD)
             inner = QHBoxLayout(dock); inner.setContentsMargins(10, 6, 10, 6); inner.setSpacing(8)
             self._btn = {}
-            for key in ("autonomia", "cuerpo", "voz", "mascota", "fondo", "crt"):
+            for key in ("autonomia", "cuerpo", "voz", "mascota", "isla", "fondo", "crt"):
                 b = QPushButton(); b.setFixedHeight(34)
                 b.clicked.connect(lambda _, k=key: self._toggle(k))
                 _HoverGlow(b, blur=14, alpha=95)
@@ -1487,6 +1489,10 @@ if _QT:
                         voz_local.hablar("Voz activada.")
                     except Exception:
                         pass
+            elif key == "isla":
+                self.toggles["isla"] = not self.toggles.get("isla")
+                self._isla_visible(self.toggles["isla"])
+                self._linea("isla -> %s" % ("ON: arriba de tu pantalla verás lo que hago" if self.toggles["isla"] else "OFF"), "sys")
             elif key == "mascota":
                 self.toggles["mascota"] = not self.toggles["mascota"]
                 self._mascota_visible(self.toggles["mascota"])
@@ -1506,7 +1512,7 @@ if _QT:
             self._guardar_toggles()
 
         def _guardar_toggles(self):
-            _guardar_estado(dict({k: self.toggles[k] for k in ("cuerpo", "voz", "fondo", "crt", "mascota")}, rostro_v1=True))
+            _guardar_estado(dict({k: self.toggles[k] for k in ("cuerpo", "voz", "fondo", "crt", "mascota", "isla")}, rostro_v1=True))
 
         def _estado_orb(self, estado, durante=None):
             orb = getattr(self, "_orb_mini", None)
@@ -1517,6 +1523,17 @@ if _QT:
                 m.set_estado(estado, durante)
 
         # --- mascota de escritorio ---
+        def _isla_visible(self, si):
+            if si and getattr(self, "_isla", None) is None:
+                try:
+                    from ui.isla import Isla
+                    self._isla = Isla(al_doble_clic=self._mascota_abrir, estado=self._txt_asagi)
+                except Exception as exc:
+                    self._isla = None
+                    self._linea("isla no disponible: %s" % exc, "sys")
+            if getattr(self, "_isla", None) is not None:
+                self._isla.setVisible(bool(si))
+
         def _mascota_visible(self, si):
             if si and getattr(self, "_mascota", None) is None:
                 try:
@@ -1562,9 +1579,9 @@ if _QT:
             for key, b in self._btn.items():
                 val = self.toggles[key]
                 # nombres claros (antes: AUTO:OFF, MASC:OFF, CRT:ON…)
-                nombre = {"autonomia": "Autónoma", "cuerpo": "Cuerpo", "voz": "Voz", "mascota": "Mascota", "fondo": "Fondo", "crt": "Brillo retro"}.get(key, key.capitalize())
+                nombre = {"autonomia": "Autónoma", "cuerpo": "Cuerpo", "voz": "Voz", "mascota": "Mascota", "isla": "Isla", "fondo": "Fondo", "crt": "Brillo retro"}.get(key, key.capitalize())
                 ayuda = {"autonomia": "Que ARIA actúe sola en tareas seguras", "cuerpo": "Cómo se ve ARIA: rostro, núcleo…", "voz": "Que ARIA hable sus respuestas",
-                         "mascota": "Su rostro flotando en el escritorio", "fondo": "Fondo animado de la ventana", "crt": "Líneas de pantalla antigua"}.get(key, "")
+                         "mascota": "Su rostro flotando en el escritorio", "isla": "Pastilla arriba de la pantalla con lo que hace ARIA", "fondo": "Fondo animado de la ventana", "crt": "Líneas de pantalla antigua"}.get(key, "")
                 if key in ("cuerpo", "fondo"):
                     txt, on = "%s: %s" % (nombre, val), True
                 else:
@@ -1685,6 +1702,9 @@ if _QT:
         def _linea(self, texto, quien="aria"):
             self._hist.append(self._fmt(texto, quien))
             self._render()
+            isla = getattr(self, "_isla", None)
+            if isla is not None and isla.isVisible() and quien in ("aria", "sys"):
+                isla.decir(texto, 7.0 if quien == "aria" else 4.0)
             m = getattr(self, "_mascota", None)
             if quien == "aria" and m is not None and m.isVisible() and (not self.isVisible() or self.isMinimized() or not self.isActiveWindow()):
                 m.decir(texto)

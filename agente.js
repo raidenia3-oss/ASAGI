@@ -35,6 +35,7 @@ var HERRAMIENTAS = [
   ['cuánto falta para <fecha o fiesta>', 'días que faltan', /^cuanto falta para .{3,40}$/],
   ['qué veo hoy', 'recomendar videos de YouTube (canales seguidos y guardados)', /^qu[eé] veo hoy$/i],
   ['busca <algo> en Chrome', 'buscar en Google con el Chrome de Daniel y responder', /^busca .{2,120} en chrome$/i],
+  ['crea una guía sobre <tema>', 'crear una guía, checklist o quiz en el taller (también «hazme una checklist para …», «crea un quiz de …»)', /^(?:crea una gu[ií]a sobre|hazme una checklist para|crea un quiz de) .{3,100}$/i],
   ['dame ideas para <tema>', 'lluvia de 5 ideas creativas a la medida de Daniel', /^dame ideas para .{3,120}$/i],
   ['explora <tema>', 'mapa rápido de un tema: qué es, noticias y videos', /^explora .{2,80}$/i],
   ['compara precios de <producto>', 'precios en tiendas del Perú', /^compara precios de .{3,80}$/],

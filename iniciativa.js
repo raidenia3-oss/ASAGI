@@ -77,12 +77,18 @@ async function trabajar(forzar) {
   if (!r || r.length < 40) return forzar ? '📦 No pude preparar nada ahora (necesito un cerebro conectado: «conecta gemini»).' : '';
   x.hecho = ahora; guardar(KI, ints);
   var c = leer(KC, []); c.push({ tema: x.tema, texto: r.slice(0, 1200), ts: ahora }); guardar(KC, c.slice(-30));
-  return '📦 Preparé algo por mi cuenta sobre «' + x.tema + '» (porque lo buscas seguido):\n' + r.trim() + '\n(«pausa tu iniciativa» si prefieres que no lo haga.)';
+  // además CREA algo: una guía del tema en su taller (solo la primera vez que trabaja ese tema)
+  var extra = '', CR = window.AsagiCreador;
+  if (CR && !CR.leer().some(function (o) { return o.tema === x.tema; })) {
+    try { var g = await CR.crear('guia', x.tema); if (g.ok) extra = '\n🛠 También te hice una guía. Toca: «abre la creación ' + g.n + '»'; } catch (e) {}
+  }
+  try { localStorage.setItem('asagi-creacion-nueva', x.tema); } catch (e) {}
+  return '📦 Preparé algo por mi cuenta sobre «' + x.tema + '» (porque lo buscas seguido):\n' + r.trim() + extra + '\n(«pausa tu iniciativa» si prefieres que no lo haga.)';
 }
 
 async function ejecutar(c, decir) {
   var ints = leer(KI, []);
-  if (c.accion === 'lista') { var cr = leer(KC, []); decir(cr.length ? '📦 Lo que preparé por mi cuenta:\n' + cr.slice(-6).reverse().map(function (x) { return '• ' + new Date(x.ts).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }) + ' — ' + x.tema + ': ' + x.texto.replace(/\s+/g, ' ').slice(0, 140) + '…'; }).join('\n') : '📦 Todavía nada. Cuando note qué temas te interesan, preparo algo cada día. Prueba «sorpréndeme».'); return; }
+  if (c.accion === 'lista') { try { localStorage.removeItem('asagi-creacion-nueva'); } catch (e) {} var cr = leer(KC, []); decir(cr.length ? '📦 Lo que preparé por mi cuenta:\n' + cr.slice(-6).reverse().map(function (x) { return '• ' + new Date(x.ts).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' }) + ' — ' + x.tema + ': ' + x.texto.replace(/\s+/g, ' ').slice(0, 140) + '…'; }).join('\n') : '📦 Todavía nada. Cuando note qué temas te interesan, preparo algo cada día. Prueba «sorpréndeme».'); return; }
   if (c.accion === 'intereses') { decir(ints.length ? '🎯 Lo que noto que te interesa:\n' + ints.slice(0, 10).map(function (i) { return '• ' + i.tema + ' (' + i.n + ')'; }).join('\n') : '🎯 Aún no lo sé: explora o investiga temas y los iré notando.'); return; }
   if (c.accion === 'pausa') { guardar(KP, c.v); decir(c.v ? '⏸ Listo: no prepararé cosas por mi cuenta. «activa tu iniciativa» para volver.' : '▶ Iniciativa activa: una vez al día te preparo algo sobre lo que te interesa.'); return; }
   if (c.accion === 'ahora') { decir('📦 Trabajo en algo para ti…'); decir(await trabajar(true)); return; }

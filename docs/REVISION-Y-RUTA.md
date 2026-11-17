@@ -149,3 +149,10 @@ Pendiente (buen valor, en orden):
 Siguiente (no hecho): que la iniciativa también CREE cosas (una mini web con `web-publica.js`/taller de ARIA, una rutina nueva
 propuesta en `rutinas.js`) siempre como borrador y con confirmación; revisión con cerebro de las lecciones que se contradicen;
 mostrar en la casa un chip «📦 nuevo» cuando haya una creación sin leer.
+
+## 11. Taller y casa — hecho el 16-nov (noche)
+- `creador.js`: «crea una guía sobre…», «hazme una checklist para…», «crea un quiz de…». El cerebro solo da JSON; ASAGI arma la
+  página con plantilla propia y la muestra en un `<iframe sandbox>` sin scripts. La iniciativa diaria también crea una guía.
+- Casa: fila de atajos (`#home-atajos`) con «📦 Nuevo» cuando ASAGI preparó algo sola.
+Siguiente: compartir/exportar una creación (archivo .html o enviarla a ARIA para publicarla con confirmación); más plantillas
+(plan semanal, tarjeta de estudio, comparativa); que el quiz guarde el puntaje.

@@ -1089,6 +1089,8 @@ chatForm.addEventListener('submit', (event) => {
         return;
       }
     }
+    const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
+    if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }
     const ci = !reesc && IN && IN.parsear(text);
     if (ci) { IN.ejecutar(ci, tareaDecir()).catch((e) => appendMessage('bot', '📦 No pude: ' + ((e && e.message) || e))); return; }
   }
@@ -4426,3 +4428,21 @@ setTimeout(() => {
   const tick = () => { if (document.hidden || !window.AsagiIniciativa || Date.now() - (window._asagiUltimoMsg || 0) < 120000) return; window.AsagiIniciativa.trabajar(false).then((t) => { if (t) proactivo(t, '📦'); }).catch(() => {}); };
   setTimeout(tick, 180000); setInterval(tick, 30 * 60000);
 }, 1000);
+
+// Atajos de la casa: un toque abre el chat y lo pide por ti. Si ASAGI preparó algo sola, aparece primero «📦 Nuevo».
+(function atajosCasa() {
+  const c = document.getElementById('home-atajos'); if (!c) return;
+  function nuevo() {
+    let t = ''; try { t = localStorage.getItem('asagi-creacion-nueva') || ''; } catch (e) {}
+    let b = c.querySelector('[data-nuevo]');
+    if (t && !b) { b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-nuevo', '1'); b.setAttribute('data-atajo', 'qué hiciste sola'); b.className = 'atajo-nuevo'; c.insertBefore(b, c.firstChild); }
+    if (b) { if (t) b.textContent = '📦 Nuevo: ' + t.slice(0, 22); else b.remove(); }
+  }
+  c.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-atajo]'); if (!b) return;
+    setActiveSection('assistant');
+    const i = document.getElementById('message-input'); i.value = b.getAttribute('data-atajo');
+    setTimeout(() => { try { chatForm.requestSubmit(); } catch (err) {} setTimeout(nuevo, 800); }, 250);
+  });
+  nuevo(); setInterval(nuevo, 60000); document.addEventListener('visibilitychange', nuevo);
+})();

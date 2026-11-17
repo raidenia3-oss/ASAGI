@@ -453,3 +453,14 @@ html, body { font-family: var(--sans); color: var(--papel); }
   transform: translate(-50%, -50%) rotate(-8deg) scale(0); animation: sk-grito 1.25s cubic-bezier(0.2, 1.6, 0.4, 1) forwards; }
 @keyframes sk-grito { 0% { transform: translate(-50%, -50%) rotate(-14deg) scale(0); opacity: 0; } 18% { transform: translate(-50%, -50%) rotate(-8deg) scale(1.12); opacity: 1; }
   30% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); } 75% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); opacity: 1; } 100% { transform: translate(-50%, -62%) rotate(-8deg) scale(1.05); opacity: 0; } }
+
+/* Casa: fila de atajos (se desliza de lado si no caben) */
+.home-atajos { position: relative; z-index: 2; flex: none; display: flex; gap: 8px; overflow-x: auto; padding: 10px 4px 30px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.home-atajos::-webkit-scrollbar { display: none; }
+.home-atajos button { flex: none; width: auto; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(8, 4, 8, 0.55); color: #F0F0F8; font: inherit; font-size: 0.9em; white-space: nowrap; box-shadow: none; }
+.home-atajos button:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.home-atajos .atajo-nuevo { border-color: #DC143C; background: rgba(220, 20, 60, 0.18); color: #FFD700; }
+/* Visor de creaciones (marco aislado, sin scripts) */
+.obra-visor { position: fixed; inset: 0; z-index: 9990; background: #080408; display: flex; flex-direction: column; }
+.obra-visor iframe { flex: 1; width: 100%; border: 0; background: #080408; }
+.obra-cerrar { flex: none; align-self: flex-end; width: auto; min-height: 44px; margin: calc(8px + env(safe-area-inset-top, 0px)) 10px 6px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.4); background: transparent; color: #FFD700; font: inherit; box-shadow: none; }

@@ -146,7 +146,13 @@ function installHeaderPinning() {
 
 // Núcleo v5: el Launcher es la casa (siempre visible). Asistente/Status/Grok son
 // overlays ambientales que suben/bajan sobre la casa. 'launcher' = volver a casa.
-function setActiveSection(sectionName) {
+function setActiveSection(sectionName, _directo) {
+  // Transición de tinta al cambiar de pantalla (solo si cambia de verdad; nunca durante pruebas ni con «reducir movimiento»)
+  if (!_directo && window.AsagiEfectos && window.AsagiEfectos.tinta && typeof state !== 'undefined' && state.activeSection !== sectionName && !window.__sinTinta && performance.now() > 2500) {
+    state.activeSection = sectionName;                                  // quien pregunte ya ve el destino
+    window.AsagiEfectos.tinta(() => setActiveSection(sectionName, true));
+    return;
+  }
   // registro corto (diagnóstico del emulador de CI): quién cambió de pantalla y desde dónde
   try { const st = (new Error().stack || '').split('\n').slice(2, 4).map((x) => x.trim().replace(/https?:\/\/[^/]+\//, '').slice(0, 60)).join(' < ');
     (window.__secciones = window.__secciones || []).push(Math.round(performance.now()) + 'ms ' + sectionName + ' ← ' + st); if (window.__secciones.length > 8) window.__secciones.shift(); } catch (e) {}
@@ -557,7 +563,6 @@ function soltarAvisos() {
   let c = []; try { c = JSON.parse(localStorage.getItem('asagi-avisos-cola') || '[]'); localStorage.removeItem('asagi-avisos-cola'); } catch (e) {}
   if (c.length) appendMessage('bot', '🌙 Mientras descansabas (' + c.length + '):\n' + c.map((x) => x.t).join('\n\n'));
 }
-window._asagiProactivo = proactivo;
 setTimeout(soltarAvisos, 20000); setInterval(soltarAvisos, 10 * 60000);
 function appendMessage(sender, text) {
   const message = {
@@ -1096,6 +1101,7 @@ chatForm.addEventListener('submit', (event) => {
     }
     const OJ = window.AsagiOjos, co = !reesc && OJ && OJ.parsear(text);
     if (co) { OJ.ejecutar(co, tareaDecir()).catch((e) => appendMessage('bot', '👁 No pude: ' + ((e && e.message) || e))); return; }
+    if (!reesc && window.AsagiTipeo && window.AsagiTipeo.parsear(text)) { appendMessage('bot', '⌨ ¡Defensa! Escribe cada palabra antes de que cruce la línea roja.'); window._asagiJuegoTipeo = window.AsagiTipeo.abrir((t) => appendMessage('bot', t)); return; }
     if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir((t) => appendMessage('bot', t)); return; }
     const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }

@@ -48,12 +48,57 @@ function grito(texto) {
   setTimeout(function () { d.remove(); }, 1300);
   return true;
 }
+// Transición de TINTA (idea del cambio de tema con mancha de tinta): una mancha orgánica negra con borde carmesí cruza la
+// pantalla, a mitad de camino se cambia de sección (alMedio) y la mancha sale por el otro lado. ~520 ms, un canvas temporal.
+// PURO: gotas de la mancha (posición vertical 0..1, tamaño, adelanto) — determinista con semilla.
+function gotas(n, semilla) {
+  var out = [], s = semilla || 3;
+  function rnd() { s = (s * 16807) % 2147483647; return s / 2147483647; }
+  for (var i = 0; i < n; i++) out.push({ y: (i + rnd() * 0.9) / n, r: 0.07 + rnd() * 0.11, ade: rnd() * 0.3, sat: rnd() < 0.3 });
+  return out;
+}
+var tintaViva = false;
+function tinta(alMedio, dur) {
+  if (quieto() || document.hidden || tintaViva || !document.body) { if (alMedio) alMedio(); return; }
+  tintaViva = true;
+  var W = window.innerWidth, H = window.innerHeight, c = document.createElement('canvas'), esc = 0.5;       // media resolución: se ve igual y cuesta 4× menos
+  c.width = Math.ceil(W * esc); c.height = Math.ceil(H * esc);
+  c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9997;';
+  document.body.appendChild(c);
+  var g = c.getContext('2d'), gs = gotas(11, (Date.now() % 7919) + 1), T = dur || 520, t0 = performance.now(), hecho = false;
+  function frente(k, d) { return (-0.35 + k * 1.7 + d.ade * Math.sin(k * Math.PI)) * c.width; }             // x del borde de la mancha
+  function mancha(k, color, extra) {
+    g.fillStyle = color; g.beginPath();
+    gs.forEach(function (d) {
+      var x = frente(k, d) + extra, y = d.y * c.height, r = d.r * c.height * 1.25;
+      g.moveTo(x + r, y); g.arc(x, y, r, 0, Math.PI * 2);
+      g.rect(-10, y - r, Math.max(0, x + 10), r * 2);
+      if (d.sat) { g.moveTo(x + r * 1.9, y + r * 0.4); g.arc(x + r * 1.75, y + r * 0.4, r * 0.16, 0, Math.PI * 2); }   // salpicadura
+    });
+    g.fill();
+  }
+  (function cuadro(now) {
+    var k = Math.max(0, Math.min(1, (now - t0) / T));
+    g.clearRect(0, 0, c.width, c.height);
+    if (k < 0.5) {                                                       // entra: cubre de izquierda a derecha
+      var a = k / 0.5, e = 1 - Math.pow(1 - a, 2);
+      mancha(e, 'rgb(220, 20, 60)', c.width * 0.035); mancha(e, 'rgb(8, 4, 8)', 0);
+    } else {                                                             // sale: se retira dejando ver la pantalla nueva
+      if (!hecho) { hecho = true; try { if (alMedio) alMedio(); } catch (err) {} }
+      var b = (k - 0.5) / 0.5, e2 = b * b;
+      g.fillStyle = 'rgb(8, 4, 8)'; g.fillRect(0, 0, c.width, c.height);
+      g.globalCompositeOperation = 'destination-out'; mancha(e2, '#000', 0); g.globalCompositeOperation = 'source-over';
+    }
+    if (k < 1) requestAnimationFrame(cuadro); else { c.remove(); tintaViva = false; if (!hecho && alMedio) alMedio(); }
+  })(t0);
+  setTimeout(function () { if (!hecho) { hecho = true; try { if (alMedio) alMedio(); } catch (err) {} } if (c.parentNode) { c.remove(); tintaViva = false; } }, T + 400);   // red de seguridad
+}
 function sobre(el, fuerza) { if (!el || !el.getBoundingClientRect) return; var r = el.getBoundingClientRect(); if (r.width) destello(r.left + r.width / 2, r.top + r.height / 2, fuerza); }
 
 if (typeof document !== 'undefined') {
   document.addEventListener('submit', function (e) { if (e.target && e.target.id === 'chat-form') sobre(e.target.querySelector('button[type="submit"]') || e.target, 0.8); }, true);
 }
-var API = { rayos: rayos, destello: destello, sobre: sobre, grito: grito };
+var API = { rayos: rayos, destello: destello, sobre: sobre, grito: grito, gotas: gotas, tinta: tinta };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiEfectos = API;
 })();

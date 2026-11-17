@@ -485,3 +485,11 @@ html, body { font-family: var(--sans); color: var(--papel); }
 
 /* Ojos: foto con el objeto marcado */
 .ojos-visor canvas { flex: 1 1 0; min-height: 0; width: 100%; object-fit: contain; }
+
+/* Juego de tipeo «Defensa» */
+.tipeo-asagi { position: fixed; inset: 0; z-index: 9986; display: flex; flex-direction: column; background: radial-gradient(120% 80% at 50% 0%, rgba(220, 20, 60, 0.22), rgba(8, 4, 8, 0) 60%), #080408; padding-top: env(safe-area-inset-top, 0px); }
+.tp-top { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: #FFD700; font: 600 0.82em monospace; letter-spacing: 0.5px; }
+.tp-top span { flex: 1; } .tp-top button { width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 215, 0, 0.4); background: transparent; color: #FFD700; box-shadow: none; }
+#tp-cv { flex: 1 1 0; min-height: 0; width: 100%; }
+#tp-in { flex: none; margin: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid rgba(255, 215, 0, 0.45); background: rgba(8, 4, 8, 0.8); color: #F0F0F8; font: 600 1.05em monospace; text-align: center; }
+#tp-in:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }

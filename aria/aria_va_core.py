@@ -1070,6 +1070,15 @@ class LocalAIBrain:
         except Exception as exc:
             self._lan_srv = None
             print("[VA] Enlace ASAGI directo no arranco: %s" % exc, flush=True)
+        # que al prender la PC (y en el menú Inicio) se abra ESTA ARIA y no el .exe viejo de septiembre
+        def _arranque():
+            try:
+                import arranque_pc
+                for x in arranque_pc.arreglar():
+                    print("[VA] Arreglado: %s" % x, flush=True)
+            except Exception as exc:
+                print("[VA] arranque_pc: %s" % exc, flush=True)
+        threading.Thread(target=_arranque, daemon=True).start()
 
     def _enlace_disponible(self):
         if _ENLACE_ADB_OK and _enlace_adb is not None and _enlace_adb.disponible():

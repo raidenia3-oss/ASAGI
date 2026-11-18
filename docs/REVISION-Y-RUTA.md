@@ -247,3 +247,11 @@ Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para
 - ASAGI → ARIA: «abre spotify en la pc», «qué tengo abierto en la pc», «trae chrome en la pc» (mensaje `{t:'pc'}` por el enlace; `AsagiLauncher.ordenPc` es pura y está probada).
 - Captura sin pantalla de una pestaña: `ARIA_PESTANA=1 QT_QPA_PLATFORM=offscreen python3 scripts/aria_captura.py x.png` (con `ProgramData=<carpeta falsa>` para simular apps).
 - Falta en la PC real: iconos reales, abrir apps, traer ventanas al frente, «abre … en la pc» desde el celular.
+
+## 19. Revisión como usuario (17-nov, noche): PC real + emulador
+- **ARIA vieja al prender la PC**: `auto_start.py` registraba en Run «ARIA OS» → `dist\ARIA OS.exe`, una copia congelada de septiembre (la azul v4.0). En el menú Inicio, «Aria os» también abre ese .exe. Arreglo automático: `aria/arranque_pc.py` (lo llama `aria_va_core` al iniciar) cambia el valor de Run a `aria_main.py` con el pythonw del .venv y crea el acceso «ARIA» en Inicio. No borra el .exe viejo (eso lo decide Daniel).
+- **Choque de nombres**: en la PC ya existía un `escritorio.py` (boot/dock de BrowOS); el actualizador no lo pisa (conflicto). El nuevo se llama `escritorio_pc.py`. Antes de crear un archivo en `aria/`, revisar la lista de ARIA_APP en la PC.
+- **Emulador**: «hola asagi» y «cuéntame un chiste» no respondían mientras el modelo local se descargaba → `localResponder` ya no lo espera (y si hay que cargarlo, máximo 40 s).
+- **Barra «Copy · Share · Select all»** al deslizar por la casa → la interfaz ya no se selecciona (los mensajes sí).
+- Filas de atajos con desvanecido a la derecha (se nota que se deslizan).
+- Pendiente: «clic 1» del navegador no respondió en 20 s; «busca en la web» se quedó en «Leyendo 3/3» en el emulador; RAM 648 MB con el modelo local bajando (regla 4).

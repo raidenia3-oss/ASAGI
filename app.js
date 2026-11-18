@@ -641,10 +641,16 @@ function estadoVivo() {
 // El modelo del celular como función prompt -> texto ('' si no está cargado). Lo usan el chat, los bots y las manos.
 function localResponder(p) {
   const brain = getBrainBridge();
+  // mientras el modelo se descarga no está usable: pasar al siguiente cerebro (o a lo que ASAGI sabe sola) en vez de quedarse muda
+  // (en el emulador «hola asagi» y «cuéntame un chiste» no respondían por esto)
+  const dl = window._asagiModelo;
+  if (!(brain && brain.loaded) && dl && dl.estado === 'descargando') return Promise.resolve('');
   if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
-    return new Promise((resolve, reject) => {
+    const r = new Promise((resolve, reject) => {
       brain.raw.streamReply(p, { onToken: () => {}, onDone: (text) => resolve(text || ''), onError: (msg) => reject(new Error(msg)) });
     });
+    // si el modelo aún no estaba cargado, cargarlo puede tardar: como mucho 40 s y sigo sin él
+    return brain.loaded ? r : Promise.race([r, new Promise((ok) => setTimeout(() => ok(''), 40000))]);
   }
   return Promise.resolve('');
 }

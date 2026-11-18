@@ -560,6 +560,8 @@ setTimeout(() => {
     const IN = window.AsagiInstintos, rut = IN ? IN.rutinasDe(IN.lista(), 'mañana').map((i) => (i.accion.match(/«(.+)»/) || [])[1]).filter(Boolean) : [];
     RD.decir({ momento: 'manana' }, (t) => proactivo(t + (rut.length ? '\n🧬 Por las mañanas sueles pedir: ' + rut.map((x) => '«' + x + '»').join(', ') + '. Escríbelo y te lo doy.' : '') +
       '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
+    // Lo que ARIA aprendió/hizo anoche (si hay enlace): se lo cuenta a Daniel en la mañana.
+    setTimeout(() => { if (window._asagiBitacoraAria) window._asagiBitacoraAria(false).then((b) => { if (b && b.paq) proactivo(window._asagiBitacoraTexto(b.paq, '🌙 Mientras no estabas, ARIA'), '🌙'); }).catch(() => {}); }, 3500);
   } catch (e) {}
 }, 5000);
 
@@ -1188,6 +1190,20 @@ chatForm.addEventListener('submit', (event) => {
           ((x.temas || []).length ? '\nEstudia cada día: ' + x.temas.join(', ') + '.' : '') + '\nPara que estudie algo: «aria estudia <tema>».'
           : '📓 ARIA aún no estudió nada. Dile «aria estudia <tema>» (y en la PC, una vez, «conecta google» para usar tu YouTube).');
       }).catch((e) => decir('📓 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
+      return;
+    }
+  }
+  // Bitácora de ARIA: «qué hizo aria», «qué aprendió aria anoche», «bitácora de aria».
+  {
+    const nb = text.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    if (!reesc && /^(?:que (?:hizo|aprendio|estuvo haciendo)|bitacora de) aria(?: anoche| hoy| ayer)?$|^que hizo aria mientras no estaba$/.test(nb)) {
+      const decir = tareaDecir();
+      if (!window._asagiBitacoraAria) { decir('🌙 Aún no tengo la bitácora de ARIA.'); return; }
+      decir('🌙 Le pregunto a ARIA qué estuvo haciendo…');
+      window._asagiBitacoraAria(true).then((b) => {
+        decir(b && b.paq ? window._asagiBitacoraTexto(b.paq, '🌙 ARIA') + (b.fresco ? '' : '\n(Esto es lo último que me guardó; ahora no la alcanzo por el enlace.)')
+          : '🌙 ARIA no me dejó nada nuevo (o no está enlazada). En la PC ábrela y di «enlace pc».');
+      }).catch((e) => decir('🌙 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
       return;
     }
   }
@@ -4628,6 +4644,32 @@ document.addEventListener('click', (e) => {
   window._asagiLatido = latir;
   setTimeout(latir, 25000); setInterval(latir, 5 * 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(latir, 4000); });
+})();
+
+// Bitácora de ARIA (idea del video de memoria compartida): lo que ARIA aprendió/hizo mientras no estabas.
+// Se pide por el enlace; si está caído, usa la última guardada. El texto viene de la web (Musa) → se escuda.
+(function bitacoraARIA() {
+  async function traer(forzar) {
+    const cli = window._asagiLan; if (!cli) return null;
+    let enlazada = false; try { enlazada = !!(localStorage.getItem('asagi-lan-clave') || localStorage.getItem('asagi-enlace-cfg')); } catch (e) {}
+    let desde = 0; try { desde = parseInt(localStorage.getItem('asagi-aria-bitacora-ts') || '0', 10) || 0; } catch (e) {}
+    if (!desde) desde = Math.floor((Date.now() - 24 * 3600000) / 1000);     // primera vez: últimas 24 h
+    let paq = null;
+    if (enlazada) {
+      try { const r = await cli.enviar({ t: 'bitacora_traer', desde: desde }); if (r && r.ok && r.resp && r.resp.ok) paq = r.resp.paquete; } catch (e) {}
+    }
+    if (paq && paq.texto) {
+      try { localStorage.setItem('asagi-aria-bitacora', JSON.stringify(paq)); localStorage.setItem('asagi-aria-bitacora-ts', String(paq.ts || Math.floor(Date.now() / 1000))); } catch (e) {}
+      return { paq: paq, fresco: true };
+    }
+    if (forzar) { try { const c = JSON.parse(localStorage.getItem('asagi-aria-bitacora') || 'null'); if (c && c.texto) return { paq: c, fresco: false }; } catch (e) {} }
+    return null;
+  }
+  window._asagiBitacoraAria = traer;
+  window._asagiBitacoraTexto = function (paq, intro) {
+    const E = window.AsagiEscudo, limpio = (t) => (E ? E.neutralizar(t).texto : t);
+    return (intro || '🌙 Anoche ARIA') + (paq.dia ? ' (' + paq.dia + ')' : '') + ':\n' + limpio(String(paq.texto || '')).slice(0, 700);
+  };
 })();
 
 // Sueño de la memoria: una vez al día ordena los recuerdos (junta repetidos, suelta los apagados que nunca se usaron).

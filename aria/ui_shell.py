@@ -934,6 +934,12 @@ if _QT:
                     import aria_actualizador as _au
                     r = _au.actualizar()
                     txt = _au.resumen(r)
+                    if r["instalados"] or r["actualizados"]:
+                        try:
+                            import bitacora as _bi
+                            _bi.anotar("hice", "Me actualicé sola: " + txt)   # para la bitácora de la mañana
+                        except Exception:
+                            pass
                     if avisar_si_nada or r["instalados"] or r["actualizados"] or r["conflictos"]:
                         cola = getattr(self, "_bots_cola", None)
                         if cola is not None:
@@ -1240,8 +1246,14 @@ if _QT:
             def _h():
                 try:
                     r = _mu.estudio_diario(pensar)
-                    if r and cola is not None:
-                        cola.put(r)
+                    if r:
+                        try:
+                            import bitacora as _bi
+                            _bi.anotar("aprendi", r)       # queda en la bitácora para que ASAGI lo lea en la mañana
+                        except Exception:
+                            pass
+                        if cola is not None:
+                            cola.put(r)
                 finally:
                     self._musa_corriendo = False
             _th.Thread(target=_h, daemon=True).start()

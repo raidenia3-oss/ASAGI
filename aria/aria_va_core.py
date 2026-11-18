@@ -889,6 +889,12 @@ class LocalAIBrain:
                     return {"ok": True, "paquete": paq}
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
+            if c.get("t") == "bitacora_traer":   # ASAGI pide lo que ARIA aprendió/hizo (para el resumen de la mañana)
+                try:
+                    import bitacora as _bi
+                    return {"ok": True, "paquete": _bi.para_celular(c.get("desde") or 0)}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "instintos":        # hábitos que ASAGI aprendió de Daniel: ARIA los guarda, los usa y devuelve los suyos
                 try:
                     _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")

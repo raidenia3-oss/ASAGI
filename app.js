@@ -3124,6 +3124,18 @@ if ('serviceWorker' in navigator) {
 (function () {
   const canvas = document.getElementById('launcher-wall');
   if (!canvas || !window.AsagiWallpaper) return;
+  // Fondo inicial de ASAGI: la primera vez deja la foto por defecto (una sola vez).
+  // Si ya elegiste un fondo tuyo (foto o video), no lo toco.
+  try {
+    if (!localStorage.getItem('asagi-fondo-v1')) {
+      localStorage.setItem('asagi-fondo-v1', '1');
+      const m0 = localStorage.getItem('asagi-wall-modo');
+      if (m0 !== 'imagen' && m0 !== 'video') {
+        localStorage.setItem('asagi-wall-modo', 'imagen');
+        localStorage.setItem('asagi-wall-img', 'assets/fondo-asagi.jpg');
+      }
+    }
+  } catch (e) {}
   let modo = 'tinta', tema = 'cian', imagen = null;
   try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; if (modo === 'imagen') imagen = localStorage.getItem('asagi-wall-img'); } catch (e) {}
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });

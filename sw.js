@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v171';
+const CACHE_NAME = 'asagi-pwa-v172';
 const APP_SHELL = [
   './',
   './index.html',
@@ -90,7 +90,8 @@ const APP_SHELL = [
   './tema-asagi.css',
   './app.js',
   './manifest.webmanifest',
-  './assets/icon.svg'
+  './assets/icon.svg',
+  './assets/fondo-asagi.jpg'
 ];
 
 self.addEventListener('install', (event) => {

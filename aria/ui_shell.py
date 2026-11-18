@@ -87,6 +87,26 @@ def _cfg_fondo():
         return {"wallpaper": "", "estilo": "auto", "animaciones": True, "oscurecer": 0.5}
 
 
+def _poner_fondo_inicial(ruta_rel="assets/fondo-aria.jpg"):
+    """Primera vez: deja la foto de ARIA como fondo si aun no hay uno elegido. -> True si lo puso."""
+    if not os.path.isfile(os.path.join(_DIR, ruta_rel)):
+        return False
+    try:
+        cfg = json.load(open(_CFG, encoding="utf-8"))
+    except Exception:
+        cfg = {}
+    if cfg.get("wallpaper"):
+        return False                 # ya tienes un fondo tuyo: no lo toco
+    cfg["wallpaper"] = ruta_rel
+    cfg.setdefault("estilo", "auto"); cfg.setdefault("animaciones", True); cfg.setdefault("oscurecer", 0.5)
+    try:
+        os.makedirs(os.path.dirname(_CFG), exist_ok=True)
+        json.dump(cfg, open(_CFG, "w", encoding="utf-8"), ensure_ascii=False)
+        return True
+    except Exception:
+        return False
+
+
 _ESTADO = os.path.join(_DIR, "data", "shell_state.json")
 
 
@@ -638,6 +658,15 @@ if _QT:
             _estado = _cargar_estado()
             if not _estado.get("rostro_v1"):
                 _estado["cuerpo"] = "rostro"; _estado["rostro_v1"] = True
+                _guardar_estado(_estado)
+            if not _estado.get("fondo_inicial_v1"):
+                _estado["fondo_inicial_v1"] = True
+                try:
+                    _puso_fondo = _poner_fondo_inicial()
+                except Exception:
+                    _puso_fondo = False
+                if _puso_fondo and _estado.get("fondo") not in ("matrix", "red"):
+                    _estado["fondo"] = "foto"
                 _guardar_estado(_estado)
             self.toggles = {"autonomia": False, "cuerpo": _estado.get("cuerpo") or "rostro",
                             "voz": bool(_estado.get("voz")), "fondo": _estado.get("fondo") if _estado.get("fondo") in ("matrix", "foto") else "red",

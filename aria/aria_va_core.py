@@ -725,6 +725,15 @@ class LocalAIBrain:
             pass
         reglas = _reglas_para_el_modelo()
         sistema = self.system_prompt + (("Reglas del usuario:\n" + reglas) if reglas else "")
+        # instintos (hábitos de Daniel) que vienen de ASAGI: solo los de confianza >= 0,5
+        try:
+            _pi = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "instintos.json")
+            if os.path.isfile(_pi):
+                _hab = [i["accion"] for i in json.load(open(_pi, encoding="utf-8")) if float(i.get("confianza") or 0) >= 0.5][:8]
+                if _hab:
+                    sistema += "\nHabitos que aprendiste de Daniel (siguelos): " + "; ".join(_hab)
+        except Exception:
+            pass
         # perfil que Daniel contó en la entrevista de ASAGI («entrevístame»): ARIA también lo conoce
         try:
             _pf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "perfil_corto.txt")
@@ -862,6 +871,42 @@ class LocalAIBrain:
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
                 return {"ok": False}
+            if c.get("t") == "traspaso":         # ASAGI pasa la charla a la PC («sigue en la pc»): ARIA la recibe como CONTEXTO
+                try:
+                    _d = os.path.join(ARIA_APP, "data"); os.makedirs(_d, exist_ok=True)
+                    paq = {"de": "ASAGI", "ts": int(time.time()), "tema": str(c.get("tema") or "")[:200],
+                           "charla": [{"rol": str(m.get("rol"))[:10], "texto": str(m.get("texto") or "")[:500]} for m in (c.get("charla") or [])[:10] if isinstance(m, dict)]}
+                    json.dump(paq, open(os.path.join(_d, "traspaso_entrante.json"), "w", encoding="utf-8"), ensure_ascii=False)
+                    return {"ok": True}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "traspaso_traer":   # ASAGI pide lo que ARIA dejó para el celular
+                try:
+                    _f = os.path.join(ARIA_APP, "data", "traspaso_saliente.json")
+                    paq = json.load(open(_f, encoding="utf-8")) if os.path.isfile(_f) else None
+                    if paq:
+                        os.replace(_f, _f + ".entregado")
+                    return {"ok": True, "paquete": paq}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "instintos":        # hábitos que ASAGI aprendió de Daniel: ARIA los guarda, los usa y devuelve los suyos
+                try:
+                    _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+                    os.makedirs(_d, exist_ok=True)
+                    _ruta = os.path.join(_d, "instintos.json")
+                    try:
+                        _prev = json.load(open(_ruta, encoding="utf-8"))
+                    except Exception:
+                        _prev = []
+                    _por = {i.get("id"): i for i in _prev if isinstance(i, dict)}
+                    for i in (c.get("lista") or [])[:60]:
+                        if isinstance(i, dict) and i.get("id"):
+                            _por[str(i["id"])[:80]] = {"id": str(i["id"])[:80], "accion": str(i.get("accion") or "")[:160],
+                                                       "dominio": str(i.get("dominio") or "")[:20], "confianza": float(i.get("confianza") or 0.3)}
+                    json.dump(list(_por.values()), open(_ruta, "w", encoding="utf-8"), ensure_ascii=False)
+                    return {"ok": True, "lista": list(_por.values())}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "perfil":           # ASAGI terminó la entrevista «conóceme»: ARIA guarda el perfil (es de Daniel)
                 try:
                     _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -923,7 +968,15 @@ class LocalAIBrain:
                 except Exception:
                     e = {"activos": 0, "proximo": None, "lista": []}
                 e["ocupada"] = bool(getattr(self, "_gen_lock", None) and self._gen_lock.locked())
-                return {"ok": True, "aria": e}
+                _out = {"ok": True, "aria": e}
+                try:      # si ARIA dejó algo para el celular, va con el latido (una sola vez)
+                    _f = os.path.join(ARIA_APP, "data", "traspaso_saliente.json")
+                    if os.path.isfile(_f):
+                        _out["traspaso"] = json.load(open(_f, encoding="utf-8"))
+                        os.replace(_f, _f + ".entregado")
+                except Exception:
+                    pass
+                return _out
             if c.get("t") == "estado":           # ASAGI pregunta qué agentes tiene activos ARIA
                 try:
                     import bots_agenda as _ba

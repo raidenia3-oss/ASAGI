@@ -557,7 +557,9 @@ setTimeout(() => {
     if (h < 5 || h >= 12 || localStorage.getItem('asagi-manana-auto') === hoy || localStorage.getItem('asagi-manana-off') === '1') return;
     const RD = window.AsagiResumenDia; if (!RD) return;
     localStorage.setItem('asagi-manana-auto', hoy);
-    RD.decir({ momento: 'manana' }, (t) => proactivo(t + '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
+    const IN = window.AsagiInstintos, rut = IN ? IN.rutinasDe(IN.lista(), 'mañana').map((i) => (i.accion.match(/«(.+)»/) || [])[1]).filter(Boolean) : [];
+    RD.decir({ momento: 'manana' }, (t) => proactivo(t + (rut.length ? '\n🧬 Por las mañanas sueles pedir: ' + rut.map((x) => '«' + x + '»').join(', ') + '. Escríbelo y te lo doy.' : '') +
+      '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
   } catch (e) {}
 }, 5000);
 
@@ -1042,6 +1044,23 @@ chatForm.addEventListener('submit', (event) => {
       const c = EN.parsear(text);
       if (c) { input.value = ''; EN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
       if (EN.activa()) { input.value = ''; EN.responder(text, (t) => appendMessage('bot', t)); return; }
+    }
+  }
+  // Traspaso celular ↔ PC (memoria unificada de ECC): «sigue en la pc» · «trae lo de la pc»
+  {
+    const TR = window.AsagiTraspaso, c = !reesc && TR && TR.parsear(text);
+    if (c) { input.value = ''; TR.ejecutar(c, tareaDecir(), state.messages.map((m) => ({ rol: m.sender === 'user' ? 'user' : 'bot', texto: m.text }))); return; }
+  }
+  // Instintos (idea de ECC): hábitos con confianza. «sé más corto», «sin emojis»… se aprenden y se contestan aquí;
+  // lo demás solo se observa (rutinas por hora del día) y la conversación sigue normal.
+  {
+    const IN = window.AsagiInstintos;
+    if (!reesc && IN) {
+      const c = IN.parsear(text);
+      if (c) { input.value = ''; IN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      const esEstilo = !!IN.estiloDe(text), dicho = IN.observar(text);
+      if (esEstilo) { input.value = ''; appendMessage('bot', dicho || '🧬 Anotado.'); return; }
+      if (dicho) setTimeout(() => appendMessage('bot', dicho), 2500);
     }
   }
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
@@ -4553,6 +4572,13 @@ document.addEventListener('click', (e) => {
     let r = null; try { r = await cli.enviar(c); } catch (e) { r = null; }
     if (r && r.ok) {
       try { localStorage.setItem('asagi-aria-visto', String(Date.now())); if (r.resp && r.resp.aria) localStorage.setItem('asagi-aria-estado', JSON.stringify(r.resp.aria)); } catch (e) {}
+      // ARIA dejó algo para el celular («pásalo al celular»)
+      try {
+        if (r.resp && r.resp.traspaso && window.AsagiTraspaso) {
+          const E = window.AsagiEscudo, t = window.AsagiTraspaso.mostrar(r.resp.traspaso, (x) => (E ? E.neutralizar(x).texto : x));
+          if (t) proactivo(t, '📨');
+        }
+      } catch (e) {}
     }
   }
   window._asagiLatido = latir;

@@ -70,6 +70,8 @@ const files = [
   'efectos.js',
   'centro.js',
   'entrevista.js',
+  'instintos.js',
+  'traspaso.js',
   'aprende.js',
   'iniciativa.js',
   'creador.js',

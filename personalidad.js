@@ -46,9 +46,10 @@ const PERSONA_CORTA = 'Eres ASAGI, la asistente de Daniel (Lima, Perú). Respond
 // «Cómo soy» (Ajustes): la instrucción de Daniel sobre mi forma de hablar. Es SUYA (no viene de páginas ni mensajes).
 function alma() { try { const a = (typeof localStorage !== 'undefined' && localStorage.getItem('asagi-alma')) || ''; return a ? 'Daniel pidió que seas así: ' + a.slice(0, 300) + '.' : ''; } catch (e) { return ''; } }
 function systemPrompt(ctx = {}, extra = '') {
-  if (ctx.corto) return [PERSONA_CORTA, alma().slice(0, 140), extra].filter(Boolean).join(' ').trim();
+  if (ctx.corto) { const IN = typeof window !== 'undefined' && window.AsagiInstintos; return [PERSONA_CORTA, alma().slice(0, 140), IN ? IN.paraCerebro(IN.lista()).slice(0, 160) : '', extra].filter(Boolean).join(' ').trim(); }
   const perfil = (typeof window !== 'undefined' && window.AsagiEntrevista) ? window.AsagiEntrevista.sinCerebroTexto() : '';
-  return [PERSONA, tono(ctx), alma(), perfil, extra].filter(Boolean).join(' ').trim();
+  const IN = typeof window !== 'undefined' && window.AsagiInstintos, habitos = IN ? IN.paraCerebro(IN.lista()) : '';
+  return [PERSONA, tono(ctx), alma(), habitos, perfil, extra].filter(Boolean).join(' ').trim();
 }
 
 const API = { NOMBRE, PERSONA, tono, systemPrompt };

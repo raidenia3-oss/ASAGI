@@ -272,3 +272,9 @@ Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para
 
 ## 21. Centro de control en ASAGI (17-nov noche, idea de iControl)
 - `centro.js` (nuevo, registrado): arriba de Ajustes (deslizar hacia abajo desde la casa: «⌄ Control y ajustes»). Tarjeta de música (AsagiMusica: anterior / play-pausa / siguiente; si no suena, «pon mi música»), fichas redondas (linterna real; WiFi, Bluetooth, datos, avión y ubicación abren el panel rápido de Android porque no se pueden cambiar directo; alarma, tiempo y cuentas dejan la frase lista en el chat; ARIA = «enlace pc») y volumen en píldora vertical (AsagiControl volumen «poner»). Puro y probado: `textoMusica`, `volumenDe`.
+
+## 22. ARIA como sistema operativo chico (modo escritorio)
+- «modo escritorio» / F11: ARIA a pantalla completa con **barra de tareas propia** (`BarraTareas` en `ui/escritorio_ui.py`): ◆ Inicio (abre la pestaña Apps), apps favoritas (subrayadas si están abiertas) + ventanas abiertas (clic = abrir o traer al frente, nunca cerrar), volumen de Windows (teclas multimedia por ctypes), batería (GetSystemPowerStatus) y hora 12 h. Se recuerda entre arranques. «modo ventana» o F11 para salir.
+- Puras y probadas: `escritorio_pc.barra`, `nombre_corto`.
+- Ya tenía: pestañas Chat/Apps/Archivos/Ventanas, launcher del menú Inicio, isla, mascota, fondo propio.
+- Siguiente para el «SO»: notificaciones de ASAGI en la barra, un buscador global (apps + archivos + chat) con Alt+Espacio, y escritorios virtuales (pestañas que guardan qué ventanas van juntas).

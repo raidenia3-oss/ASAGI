@@ -262,3 +262,60 @@ def responder(acc, apps=None):
             return None
         return "Listo, %s al frente." % mejor["titulo"][:50] if enfocar(mejor["hwnd"]) else "Windows no me dejó traerla al frente."
     return None
+
+
+# ── Modo escritorio: barra de tareas propia (apps fijadas + ventanas abiertas), volumen y batería ─────────
+def barra(favs, vents, max_ventanas=8):
+    """Apps favoritas (marcando cuáles están abiertas) + las demás ventanas abiertas. PURO.
+    -> [{tipo:'app'|'ventana', nombre, ruta|hwnd, abierta}]"""
+    out, usadas = [], set()
+    for a in favs or []:
+        n = _norm(a["nombre"])
+        v = next((w for w in vents or [] if n and n.split()[0] in _norm(w["titulo"])), None)
+        if v:
+            usadas.add(v["hwnd"])
+        out.append({"tipo": "app", "nombre": a["nombre"], "ruta": a["ruta"], "hwnd": v["hwnd"] if v else None, "abierta": bool(v)})
+    for w in vents or []:
+        if w["hwnd"] in usadas or w.get("propia"):
+            continue
+        out.append({"tipo": "ventana", "nombre": w["titulo"], "hwnd": w["hwnd"], "abierta": True})
+        if sum(1 for x in out if x["tipo"] == "ventana") >= max_ventanas:
+            break
+    return out
+
+
+def nombre_corto(titulo, n=18):
+    """'Video - YouTube - Google Chrome' -> 'Google Chrome' (la app suele ir al final). PURO."""
+    t = (titulo or "").strip()
+    partes = [p.strip() for p in re.split(r"\s[-–—|]\s", t) if p.strip()]
+    c = partes[-1] if len(partes) > 1 and len(partes[-1]) <= 30 else t
+    return c if len(c) <= n else c[: n - 1] + "…"
+
+
+def volumen(dir_):
+    """Sube/baja/silencia el volumen de Windows (teclas multimedia). Sin dependencias."""
+    if not sys.platform.startswith("win"):
+        return False
+    import ctypes
+    vk = {"subir": 0xAF, "bajar": 0xAE, "silencio": 0xAD}.get(dir_)
+    if not vk:
+        return False
+    u = ctypes.windll.user32
+    for _ in range(1 if dir_ == "silencio" else 2):
+        u.keybd_event(vk, 0, 0, 0); u.keybd_event(vk, 0, 2, 0)
+    return True
+
+
+def bateria():
+    """-> (porcentaje|None, cargando) con GetSystemPowerStatus. Sin dependencias."""
+    if not sys.platform.startswith("win"):
+        return None, False
+    import ctypes
+
+    class _SPS(ctypes.Structure):
+        _fields_ = [("ac", ctypes.c_byte), ("flag", ctypes.c_byte), ("pct", ctypes.c_byte), ("r", ctypes.c_byte),
+                    ("life", ctypes.c_ulong), ("full", ctypes.c_ulong)]
+    s = _SPS()
+    if not ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.byref(s)) or s.pct in (-1, 255) or s.flag == -128:
+        return None, bool(s.ac == 1)
+    return int(s.pct), bool(s.ac == 1)

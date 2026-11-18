@@ -228,3 +228,74 @@ class PaginaVentanas(QWidget):
         h = it.data(Qt.UserRole)
         if h:
             self.decir("Al frente: %s" % it.text()[2:52] if E.enfocar(h) else "Windows no me dejó traerla al frente.")
+
+
+class BarraTareas(QWidget):
+    """Barra de tareas de ARIA (modo escritorio): Inicio · apps fijadas y ventanas abiertas · volumen · batería · hora.
+    Clic en una app cerrada la abre; en una abierta la trae al frente. Nunca cierra nada."""
+
+    def __init__(self, decir=None, al_inicio=None, parent=None):
+        super().__init__(parent)
+        self.decir = decir or (lambda t: None)
+        self.al_inicio = al_inicio or (lambda: None)
+        self.setObjectName("barraTareas")
+        self.setStyleSheet("QWidget#barraTareas{background:rgba(8,4,8,0.82);border:1px solid rgba(255,215,0,0.22);border-radius:16px;}")
+        lay = QHBoxLayout(self); lay.setContentsMargins(10, 6, 10, 6); lay.setSpacing(6)
+        ini = QPushButton("◆ Inicio"); ini.setCursor(Qt.PointingHandCursor); ini.setToolTip("Tus apps (Ctrl+2)")
+        ini.setStyleSheet("QPushButton{background:%s;color:%s;border:0;border-radius:11px;font:700 12px '%s';padding:7px 14px;}"
+                          "QPushButton:hover{background:#ff2a55;}" % (CARMESI, PAPEL, MONO))
+        ini.clicked.connect(lambda: self.al_inicio())
+        lay.addWidget(ini)
+        self.zona = QHBoxLayout(); self.zona.setSpacing(4)
+        lay.addLayout(self.zona, 1)
+        self.sis = QHBoxLayout(); self.sis.setSpacing(4)
+        for txt, d, tip in (("🔉", "bajar", "Bajar volumen"), ("🔊", "subir", "Subir volumen"), ("🔇", "silencio", "Silencio")):
+            b = QPushButton(txt); b.setToolTip(tip); b.setFixedSize(30, 30); b.setCursor(Qt.PointingHandCursor)
+            b.setStyleSheet("QPushButton{background:transparent;border:0;font-size:14px;}QPushButton:hover{background:rgba(255,215,0,0.15);border-radius:8px;}")
+            b.clicked.connect(lambda _=False, d=d: E.volumen(d))
+            self.sis.addWidget(b)
+        self.lbl = QLabel(""); self.lbl.setStyleSheet("color:%s;font:700 12px '%s';padding-left:8px;" % (ORO, MONO))
+        self.sis.addWidget(self.lbl)
+        lay.addLayout(self.sis)
+        self._t = QTimer(self); self._t.timeout.connect(self.refrescar); self._t.start(4000)
+        QTimer.singleShot(200, self.refrescar)
+
+    def refrescar(self):
+        if not self.isVisible():
+            return
+        import time as _time
+        d = E.leer()
+        try:
+            apps = E.escanear() if not hasattr(self, "_apps") else self._apps
+            self._apps = apps
+        except Exception:
+            apps = []
+        favs = E.favoritas(apps, d["usos"], d["fijadas"], 6)
+        items = E.barra(favs, E.ventanas())
+        while self.zona.count():
+            w = self.zona.takeAt(0).widget()
+            if w:
+                w.deleteLater()
+        for it in items:
+            b = QPushButton(E.nombre_corto(it["nombre"], 16)); b.setCursor(Qt.PointingHandCursor); b.setToolTip(it["nombre"])
+            if it.get("ruta"):
+                b.setIcon(_Iconos.de(it["ruta"])); b.setIconSize(QSize(16, 16))
+            b.setStyleSheet("QPushButton{background:%s;color:%s;border:0;border-bottom:2px solid %s;border-radius:9px;font:11px '%s';padding:6px 10px;}"
+                            "QPushButton:hover{background:rgba(255,215,0,0.14);}" % (
+                                "rgba(240,240,248,0.08)" if it["abierta"] else "transparent", PAPEL,
+                                CARMESI if it["abierta"] else "transparent", MONO))
+            b.clicked.connect(lambda _=False, it=it: self._usar(it))
+            self.zona.addWidget(b)
+        self.zona.addStretch(1)
+        pct, carga = E.bateria()
+        h = _time.localtime()
+        hora = "%d:%02d %s" % ((h.tm_hour % 12) or 12, h.tm_min, "a. m." if h.tm_hour < 12 else "p. m.")
+        self.lbl.setText(("%s%d%%  " % ("⚡" if carga else "▮", pct) if pct is not None else "") + hora)
+
+    def _usar(self, it):
+        if it.get("hwnd"):
+            if not E.enfocar(it["hwnd"]):
+                self.decir("Windows no me dejó traer «%s» al frente." % it["nombre"][:40])
+        elif it.get("ruta"):
+            self.decir(E.abrir(it["ruta"])[1])
+        QTimer.singleShot(800, self.refrescar)

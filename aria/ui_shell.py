@@ -639,7 +639,8 @@ if _QT:
                 _guardar_estado(_estado)
             self.toggles = {"autonomia": False, "cuerpo": _estado.get("cuerpo") or "rostro",
                             "voz": bool(_estado.get("voz")), "fondo": _estado.get("fondo") if _estado.get("fondo") in ("matrix", "foto") else "red",
-                            "crt": _estado.get("crt") is not False, "mascota": bool(_estado.get("mascota")), "isla": bool(_estado.get("isla"))}
+                            "crt": _estado.get("crt") is not False, "mascota": bool(_estado.get("mascota")), "isla": bool(_estado.get("isla")),
+                            "escritorio": bool(_estado.get("escritorio"))}
             self._hist = []
             self._es_chat = False
             self._worker = None
@@ -671,6 +672,8 @@ if _QT:
                 QTimer.singleShot(1200, lambda: self._mascota_visible(True))
             if self.toggles.get("isla"):
                 QTimer.singleShot(1500, lambda: self._isla_visible(True))
+            if self.toggles.get("escritorio"):
+                QTimer.singleShot(800, lambda: self._modo_escritorio(True, avisar=False))
 
         # --- bots programados: corren en su hilo; lo que dicen llega al chat por una cola ---
         def _iniciar_bots(self):
@@ -713,6 +716,7 @@ if _QT:
         AYUDA = ("Esto sé hacer (escríbelo así):\n"
                  "• Ver en vivo: «mira <enlace de YouTube>» o «mira en vivo <tema>» (te cuento lo que pasa)\n"
                  "• Aprender de redes: «estudia <tema>», «estudia mi youtube» (antes «conecta google»), «qué aprendiste», «dame ideas de …», «estudia siempre …»\n"
+                 "• «modo escritorio» (o F11): ARIA a pantalla completa con su barra de tareas · «modo ventana» para volver\n"
                  "• Mi escritorio: arriba 1 Chat · 2 Apps · 3 Archivos · 4 Ventanas (Ctrl+1..4) · «abre spotify» · «ve a chrome»\n"
                  "• «busca en la web …», «navega a …», «resume este video <enlace de YouTube>»\n"
                  "• «revisa mi correo» · «fondo de lluvia» · «fondo» (tu foto) · «sonido de lluvia»\n"
@@ -1349,6 +1353,16 @@ if _QT:
             fila.addLayout(self._widgets(), 0)
             root.addLayout(fila, 1)
             root.addLayout(self._dock())
+            # modo escritorio: barra de tareas propia abajo (Inicio · apps y ventanas · volumen · batería · hora)
+            try:
+                from ui.escritorio_ui import BarraTareas
+                self._barra = BarraTareas(lambda txt: self._linea(txt, "sys"), lambda: self._ir_pestana(1))
+                self._barra.setVisible(False)
+                root.addWidget(self._barra)
+            except Exception as exc:
+                self._barra = None
+                self._linea("barra de tareas no disponible: %s" % exc, "sys")
+            QShortcut(QKeySequence("F11"), self, activated=lambda: self._modo_escritorio(not self.toggles.get("escritorio")))
             self._pintar_toggles()
             self._ir_pestana(0)
 
@@ -1366,6 +1380,21 @@ if _QT:
             bar.addLayout(ws); bar.addStretch(1); bar.addWidget(tit); bar.addStretch(1)
             bar.addWidget(self._lbl_sys); bar.addSpacing(14); bar.addWidget(self._lbl_rel)
             return bar
+
+        def _modo_escritorio(self, si, avisar=True):
+            """ARIA como sistema operativo chico: pantalla completa + barra de tareas propia. F11 entra y sale."""
+            self.toggles["escritorio"] = bool(si)
+            self._guardar_toggles()
+            if getattr(self, "_barra", None) is not None:
+                self._barra.setVisible(bool(si))
+                if si:
+                    self._barra.refrescar()
+            if si:
+                self.showFullScreen()
+            else:
+                self.showNormal()
+            if avisar:
+                self._linea("modo escritorio -> %s" % ("ON: pantalla completa con mi barra de tareas (F11 para salir)" if si else "OFF"), "sys")
 
         def _ir_pestana(self, i):
             if not hasattr(self, "_pila") or i >= self._pila.count():
@@ -1643,7 +1672,7 @@ if _QT:
             self._guardar_toggles()
 
         def _guardar_toggles(self):
-            _guardar_estado(dict({k: self.toggles[k] for k in ("cuerpo", "voz", "fondo", "crt", "mascota", "isla")}, rostro_v1=True))
+            _guardar_estado(dict({k: self.toggles[k] for k in ("cuerpo", "voz", "fondo", "crt", "mascota", "isla", "escritorio")}, rostro_v1=True))
 
         def _estado_orb(self, estado, durante=None):
             orb = getattr(self, "_orb_mini", None)
@@ -1860,6 +1889,10 @@ if _QT:
                 self.entrada.clear(); self._toggle("mascota"); return
             if self._cmd_ayuda(t):
                 return
+            if _re.match(r"^(?:modo escritorio|modo sistema|pantalla completa|se mi escritorio|sé mi escritorio)$", t.strip(), _re.I):
+                self.entrada.clear(); self._modo_escritorio(True); return
+            if _re.match(r"^(?:sal(?:ir)? del modo escritorio|modo ventana|quita la pantalla completa)$", t.strip(), _re.I):
+                self.entrada.clear(); self._modo_escritorio(False); return
             if self._cmd_escritorio(t):
                 return
             if self._cmd_habilidades(t):

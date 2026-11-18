@@ -189,5 +189,13 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
 
+{ const DI = R('diario.js'), t0 = new Date(2026, 10, 18, 21, 5).getTime();
+  ok(DI.parsear('Diario: hoy terminé el informe').texto === 'hoy terminé el informe' && DI.parsear('anota en mi diario que salí a correr').texto === 'salí a correr', 'diario: escribir');
+  ok(DI.parsear('mi diario').tipo === 'ver' && DI.parsear('diario de ayer').rango === 'ayer' && DI.parsear('un día como hoy').tipo === 'aniversario' && DI.parsear('diario') === null, 'diario: frases');
+  let r = DI.aplicar([{ t: new Date(2026, 9, 18, 8).getTime(), texto: 'examen de física' }], { tipo: 'escribir', texto: 'salí a correr' }, t0);
+  ok(r.lista.length === 2 && /9:05 p\. m\./.test(r.texto), 'diario: guarda en 12 h');
+  ok(/examen de física/.test(DI.aplicar(r.lista, { tipo: 'aniversario' }, t0).texto) && /2 veces|1 vez/.test(DI.aplicar(r.lista, { tipo: 'buscar', q: 'fisica' }, t0).texto), 'diario: un día como hoy y buscar');
+  ok(!/examen/.test(DI.aplicar(r.lista, { tipo: 'ver', rango: 'hoy' }, t0).texto), 'diario: hoy'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

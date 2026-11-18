@@ -85,7 +85,7 @@ function resumenNotif(lista) {
 
 // ---- con el plugin ----
 async function asegurar(decir) {
-  var p = P(); if (!p || !p.notifEstado) { decir('Esto necesita la app instalada en el celular.'); return false; }
+  var p = P(); if (!p || !p.notifEstado) { decir('🔔 Para ver tus notificaciones y gastos (Yape, Plin, bancos) necesito la app instalada en el celular: los leo de los avisos que te llegan.'); return false; }
   var e = await p.notifEstado();
   if (e && e.activo) return true;
   decir('🔔 Para leer tus notificaciones, Android pide un permiso que solo tú puedes dar: te abro Ajustes, activa «ASAGI» y vuelve. Es una sola vez; nada sale del celular y los códigos de verificación los ignoro.');

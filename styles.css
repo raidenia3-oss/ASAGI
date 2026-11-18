@@ -1047,8 +1047,10 @@ button { cursor: pointer; }
 
 /* ===== Aviso de pendiente vencido (discreto) ===== */
 .aviso {
-  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
-  z-index: 10000; max-width: min(92vw, 420px);
+  /* arriba y con ancho propio: antes iba abajo (tapaba la barra de escribir) y con left:50% se
+     encogía a media pantalla (el texto salía en columna de 2 palabras) */
+  position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%);
+  z-index: 10000; width: max-content; max-width: min(92vw, 420px); box-sizing: border-box;
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px; border-radius: 14px;
   border: 1px solid var(--cyan);
@@ -1056,8 +1058,9 @@ button { cursor: pointer; }
   box-shadow: 0 10px 30px rgba(8, 4, 8, .5), 0 0 18px rgba(219, 20, 60, .25);
   animation: aviso-entra .25s ease-out;
 }
-@keyframes aviso-entra { from { opacity: 0; transform: translate(-50%, 12px); } }
+@keyframes aviso-entra { from { opacity: 0; transform: translate(-50%, -12px); } }
 .aviso-txt { flex: 1 1 auto; color: var(--text); font-size: 14px; }
+.aviso-modo[hidden] { display: none; }
 .aviso-modo { flex: 0 0 auto; font-size: 11px; color: var(--muted); }
 .aviso-x { flex: 0 0 auto; border: none; background: transparent; color: var(--muted);
   font-size: 15px; cursor: pointer; padding: 2px 4px; }

@@ -550,6 +550,19 @@ function tareaDecir() {
 window._asagiTareaDecir = tareaDecir;
 // Avisos por iniciativa propia (idea del «heartbeat» de OpenClaw: revisar en silencio y hablar solo si vale la pena, en horas activas).
 // De 11 p. m. a 7 a. m. no interrumpo: los guardo y te los doy juntos al despertar. Los de seguridad (estafas) no pasan por aquí.
+// Capa 4 del Jarvis: el resumen de la mañana SIN pedirlo (la primera vez que abres ASAGI cada día, de 5 a 12)
+setTimeout(() => {
+  try {
+    const d = new Date(), hoy = d.toISOString().slice(0, 10), h = d.getHours();
+    if (h < 5 || h >= 12 || localStorage.getItem('asagi-manana-auto') === hoy || localStorage.getItem('asagi-manana-off') === '1') return;
+    const RD = window.AsagiResumenDia; if (!RD) return;
+    localStorage.setItem('asagi-manana-auto', hoy);
+    const IN = window.AsagiInstintos, rut = IN ? IN.rutinasDe(IN.lista(), 'mañana').map((i) => (i.accion.match(/«(.+)»/) || [])[1]).filter(Boolean) : [];
+    RD.decir({ momento: 'manana' }, (t) => proactivo(t + (rut.length ? '\n🧬 Por las mañanas sueles pedir: ' + rut.map((x) => '«' + x + '»').join(', ') + '. Escríbelo y te lo doy.' : '') +
+      '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
+  } catch (e) {}
+}, 5000);
+
 function proactivo(texto, icono) {
   const h = new Date().getHours(), tranquilo = h >= 23 || h < 7;
   if (tranquilo) {
@@ -1024,6 +1037,32 @@ chatForm.addEventListener('submit', (event) => {
   if (!text) return;
 
   if (!reesc) appendMessage('user', text);
+  // Entrevista «conóceme» (capa 1 del Jarvis): mientras está activa, cada mensaje es la respuesta a su pregunta
+  {
+    const EN = window.AsagiEntrevista;
+    if (!reesc && EN) {
+      const c = EN.parsear(text);
+      if (c) { input.value = ''; EN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      if (EN.activa()) { input.value = ''; EN.responder(text, (t) => appendMessage('bot', t)); return; }
+    }
+  }
+  // Traspaso celular ↔ PC (memoria unificada de ECC): «sigue en la pc» · «trae lo de la pc»
+  {
+    const TR = window.AsagiTraspaso, c = !reesc && TR && TR.parsear(text);
+    if (c) { input.value = ''; TR.ejecutar(c, tareaDecir(), state.messages.map((m) => ({ rol: m.sender === 'user' ? 'user' : 'bot', texto: m.text }))); return; }
+  }
+  // Instintos (idea de ECC): hábitos con confianza. «sé más corto», «sin emojis»… se aprenden y se contestan aquí;
+  // lo demás solo se observa (rutinas por hora del día) y la conversación sigue normal.
+  {
+    const IN = window.AsagiInstintos;
+    if (!reesc && IN) {
+      const c = IN.parsear(text);
+      if (c) { input.value = ''; IN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      const esEstilo = !!IN.estiloDe(text), dicho = IN.observar(text);
+      if (esEstilo) { input.value = ''; appendMessage('bot', dicho || '🧬 Anotado.'); return; }
+      if (dicho) setTimeout(() => appendMessage('bot', dicho), 2500);
+    }
+  }
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
   if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, (t) => appendMessage('bot', t));
   input.value = '';
@@ -1434,6 +1473,8 @@ chatForm.addEventListener('submit', (event) => {
     if (c) { appendMessage('bot', CO.hacer(c)); return; }
   }
 
+  if (/^(?:no me des|quita|apaga) el resumen de (?:la )?ma[nñ]ana$/i.test(text.trim())) { try { localStorage.setItem('asagi-manana-off', '1'); } catch (e) {} appendMessage('bot', '☀ Listo, ya no te doy el resumen solo. Pídelo con «buenos días» cuando quieras (o «dame el resumen cada mañana»).'); return; }
+  if (/^dame el resumen cada ma[nñ]ana$/i.test(text.trim())) { try { localStorage.removeItem('asagi-manana-off'); } catch (e) {} appendMessage('bot', '☀ Hecho: cada mañana, al abrirme, te dejo el resumen del día.'); return; }
   // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».
   {
     const RD = window.AsagiResumenDia, c = RD && RD.parsear(text);
@@ -3090,6 +3131,18 @@ if ('serviceWorker' in navigator) {
 (function () {
   const canvas = document.getElementById('launcher-wall');
   if (!canvas || !window.AsagiWallpaper) return;
+  // Fondo inicial de ASAGI: la primera vez deja la foto por defecto (una sola vez).
+  // Si ya elegiste un fondo tuyo (foto o video), no lo toco.
+  try {
+    if (!localStorage.getItem('asagi-fondo-v1')) {
+      localStorage.setItem('asagi-fondo-v1', '1');
+      const m0 = localStorage.getItem('asagi-wall-modo');
+      if (m0 !== 'imagen' && m0 !== 'video') {
+        localStorage.setItem('asagi-wall-modo', 'imagen');
+        localStorage.setItem('asagi-wall-img', 'assets/fondo-asagi.jpg');
+      }
+    }
+  } catch (e) {}
   let modo = 'tinta', tema = 'cian', imagen = null;
   try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; if (modo === 'imagen') imagen = localStorage.getItem('asagi-wall-img'); } catch (e) {}
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });
@@ -3123,10 +3176,28 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia', video: 'Video / GIF' };
+  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Mi galería', video: 'Video / GIF' };
 
-  // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
+  // Poner una imagen (data URI) como fondo: se guarda nítida en IndexedDB y se usa en vivo.
+  function usarImagen(data) {
+    if (!data) return;
+    try { IDB.poner('img', data); } catch (e) {}           // nítida, persiste (IndexedDB)
+    try { localStorage.removeItem('asagi-wall-img'); } catch (e) {}  // la foto va en IndexedDB, no en localStorage
+    if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
+    try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
+    pintar();
+  }
+  // Elegir una foto de tu galería para el fondo. En el celular usa el Selector de fotos nativo de Android
+  // (no pide permiso de galería: eliges UNA foto y ASAGI solo recibe esa). En web, un selector de archivo normal.
   function pedirImagen() {
+    const P = window.Capacitor && window.Capacitor.Plugins, AC = P && P.AsagiControl;
+    if (AC && AC.elegirFoto) {
+      AC.elegirFoto().then((r) => {
+        if (r && r.ok && r.foto) usarImagen(r.foto);
+        else if (r && r.error && r.error !== 'cancelado' && window._asagiAviso) window._asagiAviso('No pude abrir tu galería (' + r.error + ').', false, '🖼');
+      }).catch(() => { if (window._asagiAviso) window._asagiAviso('No pude abrir tu galería.', false, '🖼'); });
+      return;
+    }
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
     inp.addEventListener('change', () => {
@@ -3135,16 +3206,13 @@ if ('serviceWorker' in navigator) {
       fr.onload = () => {
         const im = new Image();
         im.onload = () => {
-          // reducir a máx 900px de ancho para que entre en localStorage
-          const maxW = 900, esc = Math.min(1, maxW / im.width);
+          const maxW = Math.min(1600, Math.max(1080, (window.innerWidth || 420) * 2));
+          const esc = Math.min(1, maxW / im.width);
           const cv = document.createElement('canvas');
           cv.width = Math.round(im.width * esc); cv.height = Math.round(im.height * esc);
           cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
-          let data; try { data = cv.toDataURL('image/jpeg', 0.82); } catch (e) { data = fr.result; }
-          try { localStorage.setItem('asagi-wall-img', data); } catch (e) {}
-          if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
-          try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
-          pintar();
+          let data; try { data = cv.toDataURL('image/jpeg', 0.86); } catch (e) { data = fr.result; }
+          usarImagen(data);
         };
         im.src = fr.result;
       };
@@ -3172,7 +3240,17 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => inp.remove(), 60000);
   }
   window._asagiPedirVideo = pedirVideo;
-  (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
+  (async () => {
+    try {
+      const modo = localStorage.getItem('asagi-wall-modo');
+      if (modo === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); }
+      else if (modo === 'imagen') {
+        let data = null; try { data = await IDB.leer('img'); } catch (e) {}
+        if (!data) { try { data = localStorage.getItem('asagi-wall-img'); } catch (e) {} }   // fotos viejas
+        if (data && window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); pintar(); }
+      }
+    } catch (e) {}
+  })();
   const SW = { cian: '#db143c', violeta: '#ffdb1b', verde: '#e42449', rosa: '#f84e6b', ambar: '#ffd700',
     auto: 'conic-gradient(from 0deg, #db143c, #ffdb1b, #e42449, #ffd700, #f84e6b, #db143c)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'tinta', t: w ? w.getTema() : 'cian' }; }
@@ -3183,12 +3261,7 @@ if ('serviceWorker' in navigator) {
       const b = document.createElement('button');
       b.className = 'wall-chip' + (m === c.m ? ' on' : ''); b.type = 'button'; b.textContent = NOMBRE[m] || m;
       b.addEventListener('click', () => {
-        if (m === 'imagen') {
-          let guardada = null; try { guardada = localStorage.getItem('asagi-wall-img'); } catch (e) {}
-          if (guardada && window._asagiWall) { window._asagiWall.setImagen(guardada); window._asagiWall.setModo('imagen'); try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {} pintar(); }
-          else pedirImagen();                 // sin imagen aún -> pide una
-          return;
-        }
+        if (m === 'imagen') { pedirImagen(); return; }   // siempre te deja elegir una foto de tu galería
         if (m === 'video') { pedirVideo(); return; }
         if (window._asagiWall) window._asagiWall.setModo(m);
         try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {}
@@ -3379,8 +3452,20 @@ if ('serviceWorker' in navigator) {
     fr.readAsDataURL(f);
   }
 
-  pick.addEventListener('click', () => file.click());
-  window._asagiElegirFoto = () => file.click();
+  // Elegir del teléfono: en Android usa el Selector de fotos nativo (sin permiso de galería); en web, el archivo.
+  function elegirDeGaleria() {
+    const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (AC && AC.elegirFoto) {
+      AC.elegirFoto().then((r) => {
+        if (r && r.ok && r.foto) fetch(r.foto).then((x) => x.blob()).then((b) => importar(b)).catch(() => {});
+        else if (r && r.error && r.error !== 'cancelado' && window._asagiAviso) window._asagiAviso('No pude abrir tu galería (' + r.error + ').', false, '🖼');
+      }).catch(() => file.click());
+      return;
+    }
+    file.click();
+  }
+  pick.addEventListener('click', elegirDeGaleria);
+  window._asagiElegirFoto = elegirDeGaleria;
   window._asagiImportarFoto = (blob) => importar(blob);
   window._asagiQuitarFoto = () => { if (quitar) quitar.click(); };
   file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });
@@ -4538,6 +4623,13 @@ document.addEventListener('click', (e) => {
     let r = null; try { r = await cli.enviar(c); } catch (e) { r = null; }
     if (r && r.ok) {
       try { localStorage.setItem('asagi-aria-visto', String(Date.now())); if (r.resp && r.resp.aria) localStorage.setItem('asagi-aria-estado', JSON.stringify(r.resp.aria)); } catch (e) {}
+      // ARIA dejó algo para el celular («pásalo al celular»)
+      try {
+        if (r.resp && r.resp.traspaso && window.AsagiTraspaso) {
+          const E = window.AsagiEscudo, t = window.AsagiTraspaso.mostrar(r.resp.traspaso, (x) => (E ? E.neutralizar(x).texto : x));
+          if (t) proactivo(t, '📨');
+        }
+      } catch (e) {}
     }
   }
   window._asagiLatido = latir;

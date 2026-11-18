@@ -408,7 +408,8 @@ function describeBrain() {
     }
     if (dl && dl.estado === 'descargando') {
       const pct = dl.total ? Math.min(99, Math.floor(dl.bytes * 100 / dl.total)) : 0;
-      return { detail: 'Descargando modelo · ' + pct + '%', alert: '' };
+      const seg = dl.vel > 1000 && dl.total ? Math.round((dl.total - dl.bytes) / dl.vel) : 0;
+      return { detail: 'Descargando modelo · ' + pct + '%' + (seg ? ' · falta ' + (seg < 60 ? seg + ' s' : Math.ceil(seg / 60) + ' min') : ''), alert: '' };
     }
     if (dl && dl.estado === 'error') {
       return { detail: 'Modelo: error al descargar', alert: 'No pude descargar el modelo (' + (dl.error || 'sin conexión') + '). Reintento solo cuando haya red.' };
@@ -549,6 +550,19 @@ function tareaDecir() {
 window._asagiTareaDecir = tareaDecir;
 // Avisos por iniciativa propia (idea del «heartbeat» de OpenClaw: revisar en silencio y hablar solo si vale la pena, en horas activas).
 // De 11 p. m. a 7 a. m. no interrumpo: los guardo y te los doy juntos al despertar. Los de seguridad (estafas) no pasan por aquí.
+// Capa 4 del Jarvis: el resumen de la mañana SIN pedirlo (la primera vez que abres ASAGI cada día, de 5 a 12)
+setTimeout(() => {
+  try {
+    const d = new Date(), hoy = d.toISOString().slice(0, 10), h = d.getHours();
+    if (h < 5 || h >= 12 || localStorage.getItem('asagi-manana-auto') === hoy || localStorage.getItem('asagi-manana-off') === '1') return;
+    const RD = window.AsagiResumenDia; if (!RD) return;
+    localStorage.setItem('asagi-manana-auto', hoy);
+    const IN = window.AsagiInstintos, rut = IN ? IN.rutinasDe(IN.lista(), 'mañana').map((i) => (i.accion.match(/«(.+)»/) || [])[1]).filter(Boolean) : [];
+    RD.decir({ momento: 'manana' }, (t) => proactivo(t + (rut.length ? '\n🧬 Por las mañanas sueles pedir: ' + rut.map((x) => '«' + x + '»').join(', ') + '. Escríbelo y te lo doy.' : '') +
+      '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
+  } catch (e) {}
+}, 5000);
+
 function proactivo(texto, icono) {
   const h = new Date().getHours(), tranquilo = h >= 23 || h < 7;
   if (tranquilo) {
@@ -641,10 +655,16 @@ function estadoVivo() {
 // El modelo del celular como función prompt -> texto ('' si no está cargado). Lo usan el chat, los bots y las manos.
 function localResponder(p) {
   const brain = getBrainBridge();
+  // mientras el modelo se descarga no está usable: pasar al siguiente cerebro (o a lo que ASAGI sabe sola) en vez de quedarse muda
+  // (en el emulador «hola asagi» y «cuéntame un chiste» no respondían por esto)
+  const dl = window._asagiModelo;
+  if (!(brain && brain.loaded) && dl && dl.estado === 'descargando') return Promise.resolve('');
   if (brain && brain.raw && typeof brain.raw.streamReply === 'function' && (brain.loaded || brain.canLazyLoad)) {
-    return new Promise((resolve, reject) => {
+    const r = new Promise((resolve, reject) => {
       brain.raw.streamReply(p, { onToken: () => {}, onDone: (text) => resolve(text || ''), onError: (msg) => reject(new Error(msg)) });
     });
+    // si el modelo aún no estaba cargado, cargarlo puede tardar: como mucho 40 s y sigo sin él
+    return brain.loaded ? r : Promise.race([r, new Promise((ok) => setTimeout(() => ok(''), 40000))]);
   }
   return Promise.resolve('');
 }
@@ -1017,6 +1037,32 @@ chatForm.addEventListener('submit', (event) => {
   if (!text) return;
 
   if (!reesc) appendMessage('user', text);
+  // Entrevista «conóceme» (capa 1 del Jarvis): mientras está activa, cada mensaje es la respuesta a su pregunta
+  {
+    const EN = window.AsagiEntrevista;
+    if (!reesc && EN) {
+      const c = EN.parsear(text);
+      if (c) { input.value = ''; EN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      if (EN.activa()) { input.value = ''; EN.responder(text, (t) => appendMessage('bot', t)); return; }
+    }
+  }
+  // Traspaso celular ↔ PC (memoria unificada de ECC): «sigue en la pc» · «trae lo de la pc»
+  {
+    const TR = window.AsagiTraspaso, c = !reesc && TR && TR.parsear(text);
+    if (c) { input.value = ''; TR.ejecutar(c, tareaDecir(), state.messages.map((m) => ({ rol: m.sender === 'user' ? 'user' : 'bot', texto: m.text }))); return; }
+  }
+  // Instintos (idea de ECC): hábitos con confianza. «sé más corto», «sin emojis»… se aprenden y se contestan aquí;
+  // lo demás solo se observa (rutinas por hora del día) y la conversación sigue normal.
+  {
+    const IN = window.AsagiInstintos;
+    if (!reesc && IN) {
+      const c = IN.parsear(text);
+      if (c) { input.value = ''; IN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      const esEstilo = !!IN.estiloDe(text), dicho = IN.observar(text);
+      if (esEstilo) { input.value = ''; appendMessage('bot', dicho || '🧬 Anotado.'); return; }
+      if (dicho) setTimeout(() => appendMessage('bot', dicho), 2500);
+    }
+  }
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
   if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, (t) => appendMessage('bot', t));
   input.value = '';
@@ -1107,6 +1153,43 @@ chatForm.addEventListener('submit', (event) => {
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }
     const ci = !reesc && IN && IN.parsear(text);
     if (ci) { IN.ejecutar(ci, tareaDecir()).catch((e) => appendMessage('bot', '📦 No pude: ' + ((e && e.message) || e))); return; }
+  }
+  // La PC como extensión del celular: «abre spotify en la pc» · «qué tengo abierto en la pc» (lo hace ARIA; nunca cierra nada)
+  {
+    const c = !reesc && window.AsagiLauncher && window.AsagiLauncher.ordenPc(text);
+    if (c) {
+      const decir = tareaDecir(), cli = window._asagiLan;
+      if (!cli) { decir('🖥 Necesito el enlace con ARIA (WiFi o cable). En la PC di «enlace pc».'); return; }
+      decir('🖥 Le pido a ARIA…');
+      cli.enviar({ t: 'pc', accion: c.accion, q: c.q || '' }).then((r) => {
+        const x = r && r.ok && r.resp;
+        if (!x) { decir('🖥 ARIA no respondió. ¿Está abierta en la PC?'); return; }
+        if (c.accion === 'ventanas') { const vs = x.ventanas || []; decir(vs.length ? '🖥 Abierto en tu PC:\n' + vs.slice(0, 12).map((v) => '• ' + String(v).slice(0, 70)).join('\n') + '\nPara traer una: «trae chrome en la pc».' : '🖥 No hay otras ventanas abiertas en tu PC.'); return; }
+        decir('🖥 ' + (x.texto || (x.ok ? 'Listo.' : 'No encontré eso en tu PC.')));
+      }).catch((e) => decir('🖥 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
+      return;
+    }
+  }
+  // Musa de ARIA: lo que aprendió de YouTube y redes (con la sesión de Google de la PC) · «aria estudia <tema>»
+  {
+    const c = !reesc && window.AsagiLauncher && window.AsagiLauncher.ordenMusa(text);
+    if (c) {
+      const decir = tareaDecir(), cli = window._asagiLan;
+      if (!cli) { decir('📓 Necesito el enlace con ARIA (WiFi o cable). En la PC di «enlace pc».'); return; }
+      decir('📓 Le pregunto a ARIA…');
+      cli.enviar({ t: 'musa', accion: c.accion, q: c.q || '' }).then((r) => {
+        const x = r && r.ok && r.resp;
+        if (!x || x.ok === false) { decir('📓 ARIA no respondió. ¿Está abierta en la PC?'); return; }
+        if (x.texto) { decir('📓 ' + x.texto); return; }
+        const ns = x.notas || [], ico = { ideas: '💡', ganchos: '🎣', la_gente_pide: '🙋', datos: '📌' };
+        try { localStorage.setItem('asagi-ideas-aria', JSON.stringify(ns)); } catch (e) {}
+        const E = window.AsagiEscudo, limpio = (t) => (E ? E.neutralizar(t).texto : t);
+        decir(ns.length ? '📓 Lo último que ARIA aprendió de las redes:\n' + ns.map((n) => (ico[n.tipo] || '•') + ' ' + limpio(n.texto) + (n.tema ? ' (' + n.tema + ')' : '')).join('\n') +
+          ((x.temas || []).length ? '\nEstudia cada día: ' + x.temas.join(', ') + '.' : '') + '\nPara que estudie algo: «aria estudia <tema>».'
+          : '📓 ARIA aún no estudió nada. Dile «aria estudia <tema>» (y en la PC, una vez, «conecta google» para usar tu YouTube).');
+      }).catch((e) => decir('📓 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
+      return;
+    }
   }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
   {
@@ -1390,6 +1473,8 @@ chatForm.addEventListener('submit', (event) => {
     if (c) { appendMessage('bot', CO.hacer(c)); return; }
   }
 
+  if (/^(?:no me des|quita|apaga) el resumen de (?:la )?ma[nñ]ana$/i.test(text.trim())) { try { localStorage.setItem('asagi-manana-off', '1'); } catch (e) {} appendMessage('bot', '☀ Listo, ya no te doy el resumen solo. Pídelo con «buenos días» cuando quieras (o «dame el resumen cada mañana»).'); return; }
+  if (/^dame el resumen cada ma[nñ]ana$/i.test(text.trim())) { try { localStorage.removeItem('asagi-manana-off'); } catch (e) {} appendMessage('bot', '☀ Hecho: cada mañana, al abrirme, te dejo el resumen del día.'); return; }
   // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».
   {
     const RD = window.AsagiResumenDia, c = RD && RD.parsear(text);
@@ -1976,6 +2061,7 @@ renderBrainControls();
     if (!countEl) return;
     const n = P.contarPendientes(lista);
     countEl.textContent = n; countEl.hidden = n === 0;
+    const an = document.getElementById("atajo-pend"); if (an) { an.textContent = n; an.hidden = n === 0; }
   }
 
   function pintar() {
@@ -2449,6 +2535,10 @@ if ('serviceWorker' in navigator) {
 
   // conteo de uso (para "mas usadas")
   function counts() { try { return JSON.parse(localStorage.getItem('asagi-launch-counts') || '{}'); } catch (e) { return {}; } }
+  function lista(k) { try { return JSON.parse(localStorage.getItem(k) || '[]') || []; } catch (e) { return []; } }
+  function guardarLista(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  const ocultas = () => lista('asagi-apps-ocultas'), fijadas = () => lista('asagi-apps-fijadas');
+  const vis = () => L().visibles(apps, ocultas());
   function guardarCounts(c) { try { localStorage.setItem('asagi-launch-counts', JSON.stringify(c)); } catch (e) {} }
 
   function tick() {
@@ -2482,8 +2572,39 @@ if ('serviceWorker' in navigator) {
     }
     const lbl = document.createElement('div'); lbl.className = 'launcher-lbl'; lbl.textContent = a.label;
     d.appendChild(ico); d.appendChild(lbl);
-    d.addEventListener('click', () => abrir(a));
+    d.dataset.letra = L().letra(a.label);
+    // toque = abrir · mantener presionado = menú (fijar, ocultar)
+    let tmr = null, largo = false;
+    d.addEventListener('pointerdown', () => { largo = false; clearTimeout(tmr); tmr = setTimeout(() => { largo = true; menuApp(a, d); }, 520); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => d.addEventListener(ev, () => clearTimeout(tmr)));
+    d.addEventListener('contextmenu', (e) => { e.preventDefault(); });
+    d.addEventListener('click', () => { if (largo) { largo = false; return; } abrir(a); });
     return d;
+  }
+
+  // Menú al mantener presionada una app
+  function menuApp(a, el) {
+    let m = document.getElementById('app-menu'); if (m) m.remove();
+    m = document.createElement('div'); m.id = 'app-menu'; m.className = 'app-menu'; m.setAttribute('role', 'menu');
+    const fij = fijadas().indexOf(a.package) >= 0;
+    const ops = [[fij ? '☆ Quitar de favoritas' : '★ Fijar en favoritas', () => { const f = fijadas().filter((x) => x !== a.package); if (!fij) f.unshift(a.package); guardarLista('asagi-apps-fijadas', f.slice(0, 5)); renderFav(); }],
+      ['🙈 Ocultar de la lista', () => { const o = ocultas(); o.push(a.package); guardarLista('asagi-apps-ocultas', o); render(L().filtrar(vis(), '')); renderFav(); avisoOcultas(); }]];
+    const t = document.createElement('div'); t.className = 'app-menu-t'; t.textContent = a.label; m.appendChild(t);
+    ops.forEach(([txt, fn]) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.textContent = txt; b.addEventListener('click', () => { m.remove(); fn(); }); m.appendChild(b); });
+    document.body.appendChild(m);
+    const r = el.getBoundingClientRect(), mw = Math.min(240, window.innerWidth - 24);
+    m.style.left = Math.max(12, Math.min(window.innerWidth - mw - 12, r.left + r.width / 2 - mw / 2)) + 'px';
+    m.style.top = Math.min(window.innerHeight - 170, r.bottom + 6) + 'px';
+    m.querySelector('button').focus();
+    setTimeout(() => document.addEventListener('pointerdown', function fuera(e) { if (!m.contains(e.target)) { m.remove(); document.removeEventListener('pointerdown', fuera); } }), 50);
+    try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+  }
+  function avisoOcultas() {
+    const n = ocultas().length; let b = document.getElementById('apps-ocultas');
+    if (!n) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('button'); b.type = 'button'; b.id = 'apps-ocultas'; b.className = 'apps-ocultas'; b.addEventListener('click', () => { guardarLista('asagi-apps-ocultas', []); render(L().filtrar(vis(), '')); renderFav(); avisoOcultas(); }); }
+    b.textContent = n + ' app(s) oculta(s) · mostrar todas';
+    grid.appendChild(b);
   }
 
   // --- Iconos para apps sin icono propio: con TU foto de perfil ---
@@ -2532,7 +2653,7 @@ if ('serviceWorker' in navigator) {
 
   function renderFav() {
     if (!fav || !favWrap || !L()) return;
-    const top = L().masUsadas(apps, counts(), 8);
+    const top = L().favoritas(vis(), counts(), fijadas(), 5);
     if (!top.length) { favWrap.hidden = true; return; }
     favWrap.hidden = false; fav.innerHTML = '';
     for (const a of top) fav.appendChild(tile(a));
@@ -2541,7 +2662,8 @@ if ('serviceWorker' in navigator) {
   // Ejecuta un comando del palette por id.
   function ejecutarAccion(id) {
     const ir = (sec) => setActiveSection(sec);
-    if (id === 'preguntar') { if (ask) { ask.hidden = false; ask.click(); } return; }
+    if (id === 'preguntar') { preguntar(search ? search.value : ''); return; }
+    if (id === 'web') { const q = search ? search.value.trim() : ''; preguntar('busca en la web ' + q); return; }
     if (id === 'ir-status') return ir('status');
     if (id === 'ir-grok') return ir('grok');
     if (id === 'escanear') { ir('status'); setTimeout(() => { const b = document.getElementById('def-scan'); if (b) b.click(); }, 180); return; }
@@ -2556,7 +2678,7 @@ if ('serviceWorker' in navigator) {
     const d = document.createElement('button'); d.className = 'cmd-row'; d.type = 'button';
     d.innerHTML = '<span class="cmd-ico">' + (it.ico || '•') + '</span><span class="cmd-txt"><b>' +
       it.label.replace(/</g, '&lt;') + '</b><small>' + (it.sub || '') + '</small></span>';
-    d.addEventListener('click', () => { if (search) search.value = ''; render(apps); if (favWrap) favWrap.hidden = false; ejecutarAccion(it.id); });
+    d.addEventListener('click', () => { const keep = it.id === 'preguntar' || it.id === 'web'; if (!keep && search) search.value = ''; if (!keep) { render(L().filtrar(vis(), '')); if (favWrap) favWrap.hidden = false; } ejecutarAccion(it.id); });
     return d;
   }
 
@@ -2575,7 +2697,7 @@ if ('serviceWorker' in navigator) {
   // Render con entrada escalonada. list = items del palette (apps o acciones) o apps crudas.
   function render(list, palette) {
     if (!grid || !L()) return;
-    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin coincidencias.</div>'; return; }
+    if (!list.length) { grid.innerHTML = '<div class="launcher-empty">Sin coincidencias.</div>'; pintarRiel([]); return; }
     grid.innerHTML = '';
     grid.classList.toggle('as-list', !!palette);
     let i = 0;
@@ -2587,7 +2709,34 @@ if ('serviceWorker' in navigator) {
       el.classList.add('as-in');
       grid.appendChild(el); i++;
     }
+    pintarRiel(palette ? [] : list);
+    if (!palette) avisoOcultas();
   }
+
+  // Riel A–Z (idea de Niagara): toca o arrastra por las letras y la lista salta a esa letra
+  const riel = document.createElement('nav'); riel.id = 'apps-riel'; riel.className = 'apps-riel'; riel.setAttribute('aria-label', 'Saltar a una letra: toca o desliza');
+  if (grid && grid.parentNode) grid.parentNode.insertBefore(riel, grid.nextSibling);
+  function irLetra(l) {
+    const t = grid.querySelector('.launcher-app[data-letra="' + l + '"]'); if (!t) return;
+    grid.scrollTo({ top: grid.scrollTop + t.getBoundingClientRect().top - grid.getBoundingClientRect().top - 8, behavior: 'smooth' });
+    riel.querySelectorAll('span').forEach((b) => b.classList.toggle('on', b.textContent === l));
+  }
+  // el riel entero es UNA zona táctil (36 px de ancho, todo el alto): la letra se elige por la altura del dedo
+  function letraEn(y) {
+    const ss = riel.querySelectorAll('span'); if (!ss.length) return '';
+    const r = riel.getBoundingClientRect(), i = Math.max(0, Math.min(ss.length - 1, Math.floor((y - r.top) / r.height * ss.length)));
+    return ss[i].textContent;
+  }
+  function pintarRiel(list) {
+    const ls = list.length > 16 ? L().letras(list) : [];
+    riel.innerHTML = ls.map((l) => '<span>' + l + '</span>').join('');
+    riel.hidden = !ls.length;
+    if (ls.length) requestAnimationFrame(() => { riel.style.top = grid.offsetTop + 'px'; riel.style.height = grid.clientHeight + 'px'; });
+  }
+  window.addEventListener('resize', () => { if (!riel.hidden) { riel.style.top = grid.offsetTop + 'px'; riel.style.height = grid.clientHeight + 'px'; } });
+  riel.addEventListener('pointerdown', (e) => { e.preventDefault(); try { riel.setPointerCapture(e.pointerId); } catch (x) {} riel.classList.add('tocando'); irLetra(letraEn(e.clientY)); });
+  riel.addEventListener('pointermove', (e) => { if (e.buttons) irLetra(letraEn(e.clientY)); });
+  ['pointerup', 'pointercancel'].forEach((ev) => riel.addEventListener(ev, () => riel.classList.remove('tocando')));
 
   async function cargar() {
     const c = C();
@@ -2596,7 +2745,7 @@ if ('serviceWorker' in navigator) {
     try {
       const r = await c.listApps();
       apps = (r && r.apps) || [];
-      render(L().filtrar(apps, '')); renderFav();
+      render(L().filtrar(vis(), '')); renderFav();
     } catch (e) {
       if (grid) grid.innerHTML = '<div class="launcher-empty">No pude listar apps.</div>';
     }
@@ -2606,17 +2755,22 @@ if ('serviceWorker' in navigator) {
     if (!L()) return;
     const q = search.value;
     if (window.AsagiPalette && q.trim()) {
-      const res = window.AsagiPalette.buscar(apps, q);
+      const res = window.AsagiPalette.buscar(vis(), q);
       const calc = window.AsagiPalette.calcular(q);
       if (calc) res.unshift({ tipo: 'calc', valor: calc.valor, expr: calc.expr });
+      // siempre hay algo útil que tocar: preguntarle a ASAGI o buscar en la web
+      if (!calc) {
+        const qq = q.trim().slice(0, 60);
+        res.push({ tipo: 'accion', id: 'preguntar', ico: '✦', label: 'Preguntar a ASAGI: «' + qq + '»', sub: 'Te responde en el chat' });
+        if (qq.length > 2) res.push({ tipo: 'accion', id: 'web', ico: '🔎', label: 'Buscar en la web: «' + qq + '»', sub: 'Lee varias páginas y te resume' });
+      }
       render(res, true);
-      const hayApp = res.some((x) => x.tipo === 'app');
-      if (ask) ask.hidden = !(q.trim() && !hayApp);
+      if (ask) ask.hidden = true;
       if (favWrap) favWrap.hidden = true;
     } else {
-      render(L().filtrar(apps, q));
+      render(L().filtrar(vis(), q));
       if (ask) ask.hidden = true;
-      if (favWrap) favWrap.hidden = L().masUsadas(apps, counts(), 8).length === 0;
+      if (favWrap) favWrap.hidden = L().favoritas(vis(), counts(), fijadas(), 5).length === 0;
     }
   });
 
@@ -2629,7 +2783,7 @@ if ('serviceWorker' in navigator) {
     if (mi && form) { mi.value = q; try { form.requestSubmit(); } catch (e) { form.dispatchEvent(new Event('submit', { cancelable: true })); } }
     if (search) search.value = '';
     if (ask) ask.hidden = true;
-    render(apps); if (favWrap) favWrap.hidden = true;
+    render(L().filtrar(vis(), '')); renderFav();
   }
   window._asagiPreguntar = preguntar;
   if (ask) ask.addEventListener('click', () => preguntar(search ? search.value : ''));
@@ -2637,7 +2791,7 @@ if ('serviceWorker' in navigator) {
   if (search) search.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     const q = search.value.trim(); if (!q) return;
-    const res = window.AsagiPalette ? window.AsagiPalette.buscar(apps, q) : [];
+    const res = window.AsagiPalette ? window.AsagiPalette.buscar(vis(), q) : [];
     const app0 = res.find((x) => x.tipo === 'app');
     const calc = window.AsagiPalette && window.AsagiPalette.calcular(q);
     if (app0 && !calc) abrir(app0._app || app0);
@@ -2985,6 +3139,18 @@ if ('serviceWorker' in navigator) {
 (function () {
   const canvas = document.getElementById('launcher-wall');
   if (!canvas || !window.AsagiWallpaper) return;
+  // Fondo inicial de ASAGI: la primera vez deja la foto por defecto (una sola vez).
+  // Si ya elegiste un fondo tuyo (foto o video), no lo toco.
+  try {
+    if (!localStorage.getItem('asagi-fondo-v1')) {
+      localStorage.setItem('asagi-fondo-v1', '1');
+      const m0 = localStorage.getItem('asagi-wall-modo');
+      if (m0 !== 'imagen' && m0 !== 'video') {
+        localStorage.setItem('asagi-wall-modo', 'imagen');
+        localStorage.setItem('asagi-wall-img', 'assets/fondo-asagi.jpg');
+      }
+    }
+  } catch (e) {}
   let modo = 'tinta', tema = 'cian', imagen = null;
   try { modo = localStorage.getItem('asagi-wall-modo') || modo; tema = localStorage.getItem('asagi-wall-tema') || tema; if (modo === 'imagen') imagen = localStorage.getItem('asagi-wall-img'); } catch (e) {}
   const wp = window.AsagiWallpaper.crearWallpaper(canvas, { modo: modo, tema: tema, imagen: imagen });
@@ -3018,10 +3184,28 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia', video: 'Video / GIF' };
+  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Mi galería', video: 'Video / GIF' };
 
-  // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
+  // Poner una imagen (data URI) como fondo: se guarda nítida en IndexedDB y se usa en vivo.
+  function usarImagen(data) {
+    if (!data) return;
+    try { IDB.poner('img', data); } catch (e) {}           // nítida, persiste (IndexedDB)
+    try { localStorage.removeItem('asagi-wall-img'); } catch (e) {}  // la foto va en IndexedDB, no en localStorage
+    if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
+    try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
+    pintar();
+  }
+  // Elegir una foto de tu galería para el fondo. En el celular usa el Selector de fotos nativo de Android
+  // (no pide permiso de galería: eliges UNA foto y ASAGI solo recibe esa). En web, un selector de archivo normal.
   function pedirImagen() {
+    const P = window.Capacitor && window.Capacitor.Plugins, AC = P && P.AsagiControl;
+    if (AC && AC.elegirFoto) {
+      AC.elegirFoto().then((r) => {
+        if (r && r.ok && r.foto) usarImagen(r.foto);
+        else if (r && r.error && r.error !== 'cancelado' && window._asagiAviso) window._asagiAviso('No pude abrir tu galería (' + r.error + ').', false, '🖼');
+      }).catch(() => { if (window._asagiAviso) window._asagiAviso('No pude abrir tu galería.', false, '🖼'); });
+      return;
+    }
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
     inp.addEventListener('change', () => {
@@ -3030,16 +3214,13 @@ if ('serviceWorker' in navigator) {
       fr.onload = () => {
         const im = new Image();
         im.onload = () => {
-          // reducir a máx 900px de ancho para que entre en localStorage
-          const maxW = 900, esc = Math.min(1, maxW / im.width);
+          const maxW = Math.min(1600, Math.max(1080, (window.innerWidth || 420) * 2));
+          const esc = Math.min(1, maxW / im.width);
           const cv = document.createElement('canvas');
           cv.width = Math.round(im.width * esc); cv.height = Math.round(im.height * esc);
           cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
-          let data; try { data = cv.toDataURL('image/jpeg', 0.82); } catch (e) { data = fr.result; }
-          try { localStorage.setItem('asagi-wall-img', data); } catch (e) {}
-          if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
-          try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
-          pintar();
+          let data; try { data = cv.toDataURL('image/jpeg', 0.86); } catch (e) { data = fr.result; }
+          usarImagen(data);
         };
         im.src = fr.result;
       };
@@ -3067,7 +3248,17 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => inp.remove(), 60000);
   }
   window._asagiPedirVideo = pedirVideo;
-  (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
+  (async () => {
+    try {
+      const modo = localStorage.getItem('asagi-wall-modo');
+      if (modo === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); }
+      else if (modo === 'imagen') {
+        let data = null; try { data = await IDB.leer('img'); } catch (e) {}
+        if (!data) { try { data = localStorage.getItem('asagi-wall-img'); } catch (e) {} }   // fotos viejas
+        if (data && window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); pintar(); }
+      }
+    } catch (e) {}
+  })();
   const SW = { cian: '#db143c', violeta: '#ffdb1b', verde: '#e42449', rosa: '#f84e6b', ambar: '#ffd700',
     auto: 'conic-gradient(from 0deg, #db143c, #ffdb1b, #e42449, #ffd700, #f84e6b, #db143c)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'tinta', t: w ? w.getTema() : 'cian' }; }
@@ -3078,12 +3269,7 @@ if ('serviceWorker' in navigator) {
       const b = document.createElement('button');
       b.className = 'wall-chip' + (m === c.m ? ' on' : ''); b.type = 'button'; b.textContent = NOMBRE[m] || m;
       b.addEventListener('click', () => {
-        if (m === 'imagen') {
-          let guardada = null; try { guardada = localStorage.getItem('asagi-wall-img'); } catch (e) {}
-          if (guardada && window._asagiWall) { window._asagiWall.setImagen(guardada); window._asagiWall.setModo('imagen'); try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {} pintar(); }
-          else pedirImagen();                 // sin imagen aún -> pide una
-          return;
-        }
+        if (m === 'imagen') { pedirImagen(); return; }   // siempre te deja elegir una foto de tu galería
         if (m === 'video') { pedirVideo(); return; }
         if (window._asagiWall) window._asagiWall.setModo(m);
         try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {}
@@ -3274,8 +3460,20 @@ if ('serviceWorker' in navigator) {
     fr.readAsDataURL(f);
   }
 
-  pick.addEventListener('click', () => file.click());
-  window._asagiElegirFoto = () => file.click();
+  // Elegir del teléfono: en Android usa el Selector de fotos nativo (sin permiso de galería); en web, el archivo.
+  function elegirDeGaleria() {
+    const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (AC && AC.elegirFoto) {
+      AC.elegirFoto().then((r) => {
+        if (r && r.ok && r.foto) fetch(r.foto).then((x) => x.blob()).then((b) => importar(b)).catch(() => {});
+        else if (r && r.error && r.error !== 'cancelado' && window._asagiAviso) window._asagiAviso('No pude abrir tu galería (' + r.error + ').', false, '🖼');
+      }).catch(() => file.click());
+      return;
+    }
+    file.click();
+  }
+  pick.addEventListener('click', elegirDeGaleria);
+  window._asagiElegirFoto = elegirDeGaleria;
   window._asagiImportarFoto = (blob) => importar(blob);
   window._asagiQuitarFoto = () => { if (quitar) quitar.click(); };
   file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });
@@ -3417,8 +3615,8 @@ if ('serviceWorker' in navigator) {
       const data = (localStorage.getItem('asagi-foto-img') || img.src || '');
       const b64 = data.split(',')[1]; const mime = (data.match(/^data:(.*?);/) || [])[1] || 'image/jpeg';
       const prompt = 'Eres un fotógrafo honesto y directo. Mira esta foto y en 3-4 viñetas breves en español di qué está bien y qué mejorarías (exposición, encuadre/composición, color, nitidez). Sin relleno.';
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(gk);
-      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': String(gk).trim() },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }] }] }) });
       if (!r.ok) throw new Error('gemini ' + r.status);
       const j = await r.json();
@@ -3517,6 +3715,16 @@ if ('serviceWorker' in navigator) {
       return { txt: '📌 ' + t + ' · ' + cuando, warn: p.cuando < Date.now() };
     } catch (e) { return ''; }
   }
+  // barra de batería con la frase del momento (idea de los fondos de bloqueo de los reels: «100% · Happy Every Day»)
+  const pila = document.getElementById('launcher-pila');
+  function pintarPila(pct, cargando) {
+    if (!pila || !window.AsagiLauncher) return;
+    pila.hidden = false;
+    pila.classList.toggle('baja', pct <= 20 && !cargando);
+    pila.style.setProperty('--p', pct + '%');
+    pila.querySelector('.lpila-num').textContent = (cargando ? '⚡ ' : '▮ ') + pct + '%';
+    pila.querySelector('.lpila-frase').textContent = window.AsagiLauncher.frase(new Date(), pct, cargando);
+  }
   async function pintar() {
     let html = '';
     if (!navigator.onLine) html += chip('○ sin red', 'warn');
@@ -3524,7 +3732,7 @@ if ('serviceWorker' in navigator) {
       if (navigator.getBattery) {
         const b = await navigator.getBattery();
         const pct = Math.round(b.level * 100);
-        html += chip((b.charging ? '⚡' : '') + pct + '%', pct <= 20 ? 'warn' : 'ok');
+        pintarPila(pct, b.charging);
       }
     } catch (e) {}
     if (clima) html += chip(clima);
@@ -4151,7 +4359,9 @@ if ('serviceWorker' in navigator) {
   let avisado = false;
   plugin.addListener('descarga', (ev) => {
     if (!ev) return;
-    window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '' };
+    const prev = window._asagiModelo, ahora = Date.now();
+    window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '', t: ahora,
+      vel: prev && prev.t && ev.bytes > prev.bytes ? (prev.vel ? prev.vel * 0.8 : 0) + ((ev.bytes - prev.bytes) / Math.max(0.2, (ahora - prev.t) / 1000)) * (prev.vel ? 0.2 : 1) : (prev && prev.vel) || 0 };
     refrescar();
     if (ev.estado === 'listo') cargarMotor();
     if (ev.estado === 'error') {            // cuenta los fallos del día: tras 3, no reintenta solo (no gasta datos en bucle)
@@ -4421,6 +4631,13 @@ document.addEventListener('click', (e) => {
     let r = null; try { r = await cli.enviar(c); } catch (e) { r = null; }
     if (r && r.ok) {
       try { localStorage.setItem('asagi-aria-visto', String(Date.now())); if (r.resp && r.resp.aria) localStorage.setItem('asagi-aria-estado', JSON.stringify(r.resp.aria)); } catch (e) {}
+      // ARIA dejó algo para el celular («pásalo al celular»)
+      try {
+        if (r.resp && r.resp.traspaso && window.AsagiTraspaso) {
+          const E = window.AsagiEscudo, t = window.AsagiTraspaso.mostrar(r.resp.traspaso, (x) => (E ? E.neutralizar(x).texto : x));
+          if (t) proactivo(t, '📨');
+        }
+      } catch (e) {}
     }
   }
   window._asagiLatido = latir;
@@ -4480,6 +4697,7 @@ setTimeout(() => {
   }
   c.addEventListener('click', (e) => {
     const b = e.target.closest('[data-atajo]'); if (!b) return;
+    if (b.getAttribute('data-atajo') === '#pendientes') { const po = document.getElementById('pend-open'); if (po) po.click(); return; }
     setActiveSection('assistant');
     const i = document.getElementById('message-input'); i.value = b.getAttribute('data-atajo');
     setTimeout(() => { try { chatForm.requestSubmit(); } catch (err) {} setTimeout(nuevo, 800); }, 250);

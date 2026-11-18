@@ -140,25 +140,27 @@
         <section id="launcher" class="home active" data-panel="launcher">
           <canvas id="launcher-wall"></canvas>
           <div id="launcher-photo" class="launcher-photo"><img id="launcher-photo-img" alt=""><div id="wf-tint" class="wf-tint"></div><div id="wf-vig" class="wf-vig"></div></div>
-          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots">⟐</button>
-          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo">✶</button>
-          <div class="home-hint home-hint-top" aria-hidden="true">⌄ Ajustes</div>
+          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots" data-txt="Bots">⟐</button>
+          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo" data-txt="Fondo">✶</button>
+          <div class="home-hint home-hint-top" aria-hidden="true">⌄ Control y ajustes</div>
           <div class="launcher-top">
             <div id="launcher-clock" class="launcher-clock">--:--</div>
             <div id="launcher-date" class="launcher-date"></div>
+            <div id="launcher-pila" class="lpila" hidden><span class="lpila-num"></span><span class="lpila-frase"></span><span class="lpila-firma" aria-hidden="true">asagi</span><i class="lpila-barra" aria-hidden="true"></i></div>
             <div id="launcher-chips" class="launcher-chips" aria-label="Estado"></div>
             <input id="launcher-search" class="launcher-search" type="text" placeholder="Busca una app o pregúntale a ASAGI" autocomplete="off">
             <button id="launcher-ask" class="launcher-ask" type="button" hidden>Preguntar a ASAGI</button>
             <button id="pend-open" class="pend-chip" type="button">✓ Pendientes <span id="pend-count" class="pend-count" hidden>0</span></button>
           </div>
           <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
-            <div class="launcher-sec">Más usadas</div>
+
             <div id="launcher-fav" class="launcher-fav"></div>
           </div>
           <div id="launcher-grid" class="launcher-grid">
             <div class="launcher-empty">Toca para cargar tus apps…<br><small>(requiere el plugin nativo)</small></div>
           </div>
           <div id="home-atajos" class="home-atajos" aria-label="Atajos">
+            <button type="button" data-atajo="#pendientes">✓ Pendientes<span id="atajo-pend" class="atajo-n" hidden></span></button>
             <button type="button" data-atajo="mi día">☀ Mi día</button>
             <button type="button" data-atajo="qué veo hoy">📺 Qué veo</button>
             <button type="button" data-atajo="sorpréndeme">✨ Sorpréndeme</button>
@@ -520,6 +522,10 @@
     <script src="vigia-web.js"></script>
     <script src="explorar.js"></script>
     <script src="efectos.js"></script>
+    <script src="centro.js"></script>
+    <script src="entrevista.js"></script>
+    <script src="instintos.js"></script>
+    <script src="traspaso.js"></script>
     <script src="aprende.js"></script>
     <script src="iniciativa.js"></script>
     <script src="creador.js"></script>

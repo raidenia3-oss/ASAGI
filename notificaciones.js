@@ -84,8 +84,8 @@ function resumenNotif(lista) {
 }
 
 // ---- con el plugin ----
-async function asegurar(decir) {
-  var p = P(); if (!p || !p.notifEstado) { decir('Esto necesita la app instalada en el celular.'); return false; }
+async function asegurar(decir, que) {
+  var p = P(); if (!p || !p.notifEstado) { decir((que || '🔔 Leer tus notificaciones') + ' necesita la app ASAGI instalada en el celular (aquí no la veo).'); return false; }
   var e = await p.notifEstado();
   if (e && e.activo) return true;
   decir('🔔 Para leer tus notificaciones, Android pide un permiso que solo tú puedes dar: te abro Ajustes, activa «ASAGI» y vuelve. Es una sola vez; nada sale del celular y los códigos de verificación los ignoro.');
@@ -98,7 +98,7 @@ async function notificaciones(decir) {
   decir(resumenNotif((r && r.lista) || []));
 }
 async function gastos(c, decir) {
-  if (!(await asegurar(decir))) return;
+  if (!(await asegurar(decir, '💸 Ver tus gastos de Yape, Plin y bancos'))) return;
   var per = inicioPeriodo(c.periodo);
   var r = await P().notifFinanzas({ desde: per.desde });
   var movs = unicos(((r && r.lista) || []).map(movimiento).filter(Boolean)).filter(function (m) { return m.ts < per.hasta; });

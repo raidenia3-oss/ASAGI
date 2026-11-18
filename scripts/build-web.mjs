@@ -83,6 +83,7 @@ const files = [
   'utiles.js',
   'piensa.js',
   'discord.js',
+  'donde.js',
   'app.js',
   'styles.css',
   'tema-asagi.css',

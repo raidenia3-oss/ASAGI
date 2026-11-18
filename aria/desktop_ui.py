@@ -3592,6 +3592,22 @@ def run_desktop():
         window.load_skills()
         print("[UI] Skills loaded", flush=True)
 
+    # ---- Enlace ASAGI: mensajes que llegan del celular aparecen en el chat ----
+    if va.brain is not None:
+        def _enlace_cb_desktop(texto):
+            texto = str(texto or "").strip()
+            if not texto:
+                return
+            # Thread-safe: Shell usa cola + timer; ChatWindow usa senal pyqt
+            if hasattr(window, "_bots_cola") and window._bots_cola is not None:
+                window._bots_cola.put(lambda: window._linea("«ASAGI» %s" % texto, "aria"))
+            elif hasattr(window, "aria_says"):
+                window.aria_says.emit(texto)
+            elif hasattr(window, "_append_chat"):
+                window._append_chat("ARIA", "«ASAGI» %s" % texto, C_ACCENT_CYAN_BRIGHT)
+        va.brain._enlace_cb = _enlace_cb_desktop
+        print("[UI] Enlace ASAGI callback conectado", flush=True)
+
         # OSD notification overlay (sobre la ventana principal)
         osd = OSDNotification(window)
         window._osd = osd

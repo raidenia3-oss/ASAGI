@@ -341,3 +341,9 @@ ASAGI y ARIA son apps DISTINTAS (no se unifican en nombre). Investigado (fuentes
 - Micro-animaciones 300–600ms, escalonadas 50–100ms, respetar reduce-motion; bento grid de tarjetas con distinto peso.
 - Wallpaper: 4K OLED, lock/home que combinan (2 variantes), sujeto delante del reloj, widgets transparentes, íconos monocromo.
 Aplicado (muestra): grano de cine sutil global en ASAGI (`body::after`, opacidad 0.035, mix-blend overlay, off con reduce-motion). Pendiente de ir aplicando: brillo de elevación en tarjetas clave, afinar títulos de ARIA, variantes de wallpaper.
+
+## 32. Fusión con el trabajo de Kilo en ARIA (18-nov)
+- Kilo editó ARIA en la PC (repo AURA): tarjetas con brillo base carmesí/oro + glow al hover (clase glow con QColor(255,217,13), blur 18) y titular a 44px con letter-spacing 1.5 e interlínea 1.15; además un callback de enlace ASAGI→chat en desktop_ui.
+- Yo tenía en el repo ASAGI cambios de funciones (cookies_pc, _calentar, orden, traspaso, autonomía de Musa). Divergían.
+- Fusión de 3 vías (git merge-file) con la versión instalada como base: `ui_shell.py` quedó con el diseño de Kilo Y mis funciones (un solo conflicto trivial en el dispatch de `_cmd_cookies`, resuelto a favor mío). `desktop_ui.py`: yo no lo había tocado, adopté el de Kilo tal cual (quedó con el mismo sha que la PC).
+- Manifiesto: añadí el sha de la versión de Kilo en la PC a `previos` de ui_shell.py, para que el actualizador instale la fusión sin marcarlo como conflicto (no se pierde su diseño ni mis funciones).

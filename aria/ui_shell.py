@@ -562,21 +562,22 @@ if _QT:
     class _HoverGlow(QObject):
         """Glow cyan al pasar el cursor. Funciona sobre cualquier widget
         (tarjetas, botones) sin tocar el QSS ni el layout."""
-        def __init__(self, widget, blur=18, alpha=110):
+        def __init__(self, widget, blur=18, alpha=110, base=26):
             super().__init__(widget)
             self._eff = QGraphicsDropShadowEffect(widget)
             self._eff.setBlurRadius(blur)
             self._eff.setOffset(0, 0)
-            self._eff.setColor(QColor(255, 217, 13, 0))
+            self._eff.setColor(QColor(255, 217, 13, base))
             widget.setGraphicsEffect(self._eff)
             self._alpha = alpha
+            self._base = base
             widget.installEventFilter(self)
 
         def eventFilter(self, obj, ev):
             if ev.type() == QEvent.Enter:
                 self._eff.setColor(QColor(255, 217, 13, self._alpha))
             elif ev.type() == QEvent.Leave:
-                self._eff.setColor(QColor(255, 217, 13, 0))
+                self._eff.setColor(QColor(255, 217, 13, self._base))
             return False
 
     def _tarjeta():
@@ -1962,7 +1963,7 @@ if _QT:
             h = time.localtime().tm_hour
             saludo = "Buenos días" if 5 <= h < 12 else ("Buenas tardes" if h < 19 else "Buenas noches")
             return ('<div align="center" style="margin-top:70px;">'
-                    '<p style="color:%s;font-family:\'%s\';font-size:34px;font-weight:600;">%s, Raiden.</p>'
+                    '<p style="color:%s;font-family:\'%s\';font-size:44px;font-weight:600;letter-spacing:1.5px;line-height:1.15;">%s, Raiden.</p>'
                     '<p style="color:%s;font-family:\'%s\';font-size:11px;letter-spacing:3px;">'
                     'ANALIZO · RECUERDO · ACTÚO EN LOCAL</p>'
                     '<p style="color:%s;font-family:\'%s\';font-size:12px;margin-top:22px;">'

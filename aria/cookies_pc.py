@@ -162,10 +162,11 @@ def leer_cookies():
 
 
 def activado():
+    """Encendido por defecto (ARIA es autónoma): solo se apaga si Daniel dijo «olvida mis cookies»."""
     try:
-        return bool(json.load(open(MARCA, encoding="utf-8")).get("activo"))
+        return bool(json.load(open(MARCA, encoding="utf-8")).get("activo", True))
     except Exception:
-        return False
+        return True
 
 
 def _marcar(activo, n=0):
@@ -212,8 +213,8 @@ def encender():
                 "También puedes hacer «conecta google» e iniciar sesión tú una vez.")
     _marcar(True, len(cks))
     dom = sorted({c["domain"].lstrip(".") for c in cks})
-    return ("Listo: usaré tus sesiones de Chrome (%d cookies de %s). Entro a esas páginas ya conectado y aprendo de tu feed. "
-            "Se quedan en tu PC, no salen de aquí. «estudia mi youtube» para probar." % (len(cks), ", ".join(dom[:6])))
+    return ("Ya uso tus sesiones de Chrome (%d cookies de %s). Entro a esas páginas conectado y aprendo de tu feed solo. "
+            "Se quedan en tu PC. «olvida mis cookies» si no quieres que las use." % (len(cks), ", ".join(dom[:6])))
 
 
 def apagar():

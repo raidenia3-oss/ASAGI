@@ -669,6 +669,15 @@ if _QT:
             self._actu_t = QTimer(self); self._actu_t.timeout.connect(self._auto_actualizar); self._actu_t.start(6 * 3600 * 1000)
             self._musa_t = QTimer(self); self._musa_t.timeout.connect(self._musa_diaria); self._musa_t.start(3 * 3600 * 1000)   # estudia sola sus temas
             QTimer.singleShot(4 * 60 * 1000, self._musa_diaria)     # y una vez poco después de abrir
+            def _calentar():        # autónoma: deja listo lo de descifrar tus cookies de Chrome (sin pedirte nada)
+                try:
+                    import cookies_pc as _ck
+                    if _ck.activado() and not _ck._tiene_cryptography():
+                        _ck.instalar_cryptography()
+                except Exception:
+                    pass
+            import threading as _th0
+            _th0.Thread(target=_calentar, daemon=True).start()
             if self.toggles.get("mascota"):
                 QTimer.singleShot(1200, lambda: self._mascota_visible(True))
             if self.toggles.get("isla"):
@@ -1191,9 +1200,6 @@ if _QT:
                 return
             try:
                 import musa as _mu
-                d = _mu.leer()
-                if not _mu.tema_del_dia(d["temas"], d["estudiado"], time.strftime("%Y-%m-%d")):
-                    return
             except Exception:
                 return
             pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None

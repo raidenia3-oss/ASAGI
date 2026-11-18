@@ -368,12 +368,16 @@ def temas(accion, q=None):
 
 
 def estudio_diario(pensar, progreso=None):
-    """Lo llama ARIA cada pocas horas: si hay un tema pendiente hoy, lo estudia (2 videos, liviano)."""
+    """Lo llama ARIA cada pocas horas (autónoma): estudia un tema fijo pendiente; si no hay, aprende de TU feed
+    de YouTube una vez al día. Liviano (2 videos)."""
     d = leer()
-    t = tema_del_dia(d["temas"], d["estudiado"], time.strftime("%Y-%m-%d"))
-    if not t:
+    hoy = time.strftime("%Y-%m-%d")
+    t = tema_del_dia(d["temas"], d["estudiado"], hoy)
+    if t:
+        return estudiar(t, pensar=pensar, progreso=progreso, n=2)
+    if d["estudiado"].get("mi youtube") == hoy:      # ya aprendí de tu feed hoy
         return None
-    return estudiar(t, pensar=pensar, progreso=progreso, n=2)
+    return estudiar(None, pensar=pensar, progreso=progreso, n=2)
 
 
 # ── Ver EN VIVO: reproduce el video (o una transmisión en vivo) y lo mira de verdad mientras pasa ──────────

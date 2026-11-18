@@ -314,3 +314,8 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - TODO local: las cookies no se guardan en disco ni se mandan por el enlace al celular (reglas 2 y 4). Se leen del perfil solo al navegar.
 - Frases en ARIA: «usa mis sesiones de chrome», «olvida mis cookies importadas». Musa sugiere esto o «conecta google».
 - `cookies_copy` (la copia que dejó Daniel) se queda donde está (ordenar_pc la respeta) y sirve de respaldo de la llave; las cookies de verdad salen del Chrome vivo.
+
+## 28. Sin pasos manuales: ARIA autónoma de verdad (18-nov, pedido de Daniel «como Jarvis»)
+- Usar tus sesiones de Chrome ya es AUTOMÁTICO: `cookies_pc.activado()` es True por defecto; solo se apaga con «olvida mis cookies». Al arrancar, ARIA deja listo `cryptography` en su .venv en segundo plano (sin pedir nada).
+- Musa estudia sola aunque no fijes temas: `estudio_diario` aprende de TU feed de YouTube una vez al día si no hay tema fijo pendiente (`_musa_diaria` ya no corta cuando no hay temas).
+- Queda manual solo lo que la ley/el sitio exige que hagas tú (iniciar una sesión que no esté en Chrome: «conecta google»).

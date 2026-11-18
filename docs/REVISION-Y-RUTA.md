@@ -308,3 +308,9 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - Verificado antes: lo que ARIA usa hoy no importa nada de la raíz de AURA (solo módulos viejos que ya se van).
 - ARIA: «qué hay en el archivo viejo», «restaura <nombre>», «borra la basura vieja» (pide «sí, bórrala»; va a la Papelera). Los proyectos viejos no se borran.
 - Esta vez escribí directo en la PC (por el enlace del escritorio) `aria_va_core.py`, `ui_shell.py`, `arranque_pc.py` y `ordenar_pc.py` (eran idénticos a lo instalado, sin cambios de Daniel), para que todo pase en el PRIMER arranque.
+
+## 27. ARIA usa las sesiones de tu Chrome (18-nov)
+- `aria/cookies_pc.py`: lee las cookies del perfil de Chrome de Daniel en la PC (base «Cookies» + llave de «Local State»), las descifra (DPAPI por ctypes, sin dependencias nuevas; AES-GCM con `cryptography`, que ARIA ya trae o instala en su .venv) y las inyecta en el navegador de ARIA (`navegador_aria._asegurar` → `aplicar(ctx)`). Así Musa/navegador entran ya conectados a YouTube/redes y aprenden del feed real. Solo dominios de redes+Google (DOMINIOS), nunca bancos/pagos.
+- TODO local: las cookies no se guardan en disco ni se mandan por el enlace al celular (reglas 2 y 4). Se leen del perfil solo al navegar.
+- Frases en ARIA: «usa mis sesiones de chrome», «olvida mis cookies importadas». Musa sugiere esto o «conecta google».
+- `cookies_copy` (la copia que dejó Daniel) se queda donde está (ordenar_pc la respeta) y sirve de respaldo de la llave; las cookies de verdad salen del Chrome vivo.

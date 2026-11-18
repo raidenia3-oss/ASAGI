@@ -716,6 +716,7 @@ if _QT:
 
         AYUDA = ("Esto sé hacer (escríbelo así):\n"
                  "• Ver en vivo: «mira <enlace de YouTube>» o «mira en vivo <tema>» (te cuento lo que pasa)\n"
+                 "• Usar tu Chrome: «usa mis sesiones de chrome» (entro ya conectado a tus redes; se quedan en tu PC)\n"
                  "• Aprender de redes: «estudia <tema>», «estudia mi youtube» (antes «conecta google»), «qué aprendiste», «dame ideas de …», «estudia siempre …»\n"
                  "• «modo escritorio» (o F11): ARIA a pantalla completa con su barra de tareas · «modo ventana» para volver\n"
                  "• Mi escritorio: arriba 1 Chat · 2 Apps · 3 Archivos · 4 Ventanas (Ctrl+1..4) · «abre spotify» · «ve a chrome»\n"
@@ -1124,6 +1125,24 @@ if _QT:
                     decir("⚠ Navegador: %s" % exc)
             _th.Thread(target=_h, daemon=True).start()
             return True
+
+        def _cmd_cookies(self, t):
+            """«usa mis sesiones de chrome» / «importa mis cookies» / «olvida mis cookies importadas»."""
+            n = t.strip().lower().rstrip(".!?")
+            try:
+                import cookies_pc as _ck
+            except Exception:
+                return False
+            if _re.match(r"^(?:usa|importa|toma) mis (?:sesiones de chrome|cookies(?: de chrome)?)$|^entra con mis sesiones$", n):
+                self.entrada.clear(); self._linea(t, "user")
+                self._linea("🍪 Leo tus sesiones de Chrome en esta PC (se quedan aquí)…", "sys")
+                cola = getattr(self, "_bots_cola", None)
+                import threading as _th
+                _th.Thread(target=lambda: (cola.put(_ck.encender()) if cola is not None else None), daemon=True).start()
+                return True
+            if _re.match(r"^(?:olvida|no uses|apaga) mis cookies(?: importadas| de chrome)?$", n):
+                self.entrada.clear(); self._linea(t, "user"); self._linea(_ck.apagar(), "aria"); return True
+            return False
 
         def _cmd_musa(self, t):
             """Musa: «estudia <tema>» · «estudia mi youtube» · «qué aprendiste» · «dame ideas de …» · «estudia siempre …»."""
@@ -1998,6 +2017,8 @@ if _QT:
             if self._cmd_video(t):
                 return
             if self._cmd_correo(t):
+                return
+            if self._cmd_cookies(t):
                 return
             if self._cmd_orden(t):
                 return

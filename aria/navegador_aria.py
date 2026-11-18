@@ -132,6 +132,13 @@ class Navegador:
             self._ctx = self._pw.chromium.launch_persistent_context(self.perfil, **opc)   # Chromium de Playwright
         self._page = self._ctx.pages[0] if self._ctx.pages else self._ctx.new_page()
         self._page.set_default_timeout(30000)
+        try:      # usar las sesiones del Chrome de Daniel (si lo activó): entra ya conectado. Todo local.
+            import cookies_pc as _ck
+            n = _ck.aplicar(self._ctx)
+            if n:
+                print("[NAV] %d cookies de tu Chrome aplicadas" % n, flush=True)
+        except Exception as _e:
+            print("[NAV] cookies_pc: %s" % _e, flush=True)
 
     def _js(self, expr):
         return self._page.evaluate("() => { %s; return %s; }" % (self._lector, expr))

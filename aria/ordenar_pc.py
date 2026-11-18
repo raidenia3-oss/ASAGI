@@ -27,7 +27,7 @@ VERSION = 1
 
 QUEDAN = {"ARIA_APP", ".venv", "dist", "asagi", "_archivo_viejo", ".git", ".gitignore", ".gitmodules", ".github",
           ".vscode", ".kilo", ".kilocode", ".env", ".env.ai", ".env.cloud", "credentials", "api_keys", "secure_vault",
-          "README.md", "AGENTS.md"}
+          "README.md", "AGENTS.md", "cookies_copy"}
 _BASURA = re.compile(
     r"(^_|\.log$|\.bak\d*$|\.bak_|^nul$|^cusers|^test_|^tests?_.*\.txt$|^patch|^fix|^debug_|^show\d*\.py$|^gen(_|\.py$)|^wire_|"
     r"^write_|^b\d+_|^tsc_|^suite|^linting_|^godot_check|^routes\d*\.txt$|^untitled-|^report\d*\.txt$|^tmp_|^imp_test|"

@@ -279,7 +279,7 @@ def estudiar(q=None, pensar=None, progreso=None, n=4):
     url = ("https://www.youtube.com/results?search_query=" + urllib.parse.quote(q)) if q else "https://www.youtube.com/"
     lista = nv._llamar(lambda: (_abrir(nv, url), nv._page.evaluate(_JS_LISTA))[1], timeout=90)
     if not q and not lista.get("sesion"):
-        return "Para ver TU YouTube primero di «conecta google» (una vez: inicias sesión tú en la ventana que abro)."
+        return "Para ver TU YouTube primero: «usa mis sesiones de chrome» (uso las de tu Chrome) o «conecta google» (inicias sesión tú una vez)."
     vids = (lista.get("videos") or [])[:n]
     if not vids:
         return "No encontré videos%s." % (" de «%s»" % q if q else " en tu inicio")

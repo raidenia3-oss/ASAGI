@@ -326,3 +326,9 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - El intento de feed se marca una vez al día (haya sesión o no), para no repetir cada 3 h.
 - `estudio_diario` ahora es a prueba de fallos (si el navegador falla, reintenta luego, sin traceback ni aviso).
 - Reusar tu Chrome ya usa el canal real de Chrome (mismo navegador = menos verificaciones de Google). El único «conecta google» que queda es opcional y manual, nunca en lo autónomo.
+
+## 30. Una sola app: ARIA (18-nov)
+- Punto de entrada único y gestionado: `aria/aria_main.py` (antes vivía suelto en la PC con restos de «ARIA OS v4.0» y el auto-arranque viejo). Limpio: abre una sola ventana (`desktop_ui.run_desktop` → `ui_shell.Shell`) con TODO (Chat, Apps, Archivos, Ventanas, modo escritorio, mascota, isla, Musa). Sin HTTP, sin servidores. El arranque de Windows, la limpieza y el orden los hace ARIA sola desde dentro. Ahora está en el manifiesto: el actualizador lo mantiene.
+- Los otros lanzadores (AURA_OS.bat, aura_app.bat, start_all.bat, el .exe viejo…) quedan archivados/reemplazados/desactivados por arranque_pc + ordenar_pc. En la PC queda una sola ARIA.
+- ASAGI (celular) es la mitad móvil del mismo asistente, enlazada a ARIA (perfil, instintos, traspaso, Musa).
+- Repo más limpio: quitado un .pyc rastreado por error y restos de depuración en artifacts/.

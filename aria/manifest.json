@@ -16,6 +16,10 @@
    ],
    "sha256": "7038c311546af74957ca24ecc6c2f661b53b6dea0a903592b00923c138d35c83"
   },
+  "aria_main.py": {
+   "previos": [],
+   "sha256": "da5f8b4997f3bbd7bb28a61125ad5adc72714506d67c0c082b7d945e434287cc"
+  },
   "aria_mcp.py": {
    "previos": [],
    "sha256": "6761b0c9e0a994f04be37cd8bf7d7e9ee39fdec4eee1cd279f10ea7174facd74"

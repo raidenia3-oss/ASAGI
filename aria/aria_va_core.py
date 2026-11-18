@@ -1161,6 +1161,10 @@ class LocalAIBrain:
                 n = limpieza_pc.limpiar()
                 if n:
                     print("[VA] Limpieza: %d archivos viejos a la Papelera" % n, flush=True)
+                import ordenar_pc
+                m, f = ordenar_pc.ordenar()
+                if m or f:
+                    print("[VA] Orden de AURA: %d movidos a _archivo_viejo, %d no se pudieron" % (m, f), flush=True)
             except Exception as exc:
                 print("[VA] arranque_pc: %s" % exc, flush=True)
         threading.Thread(target=_arranque, daemon=True).start()

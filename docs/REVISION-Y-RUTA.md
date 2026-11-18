@@ -301,3 +301,10 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - `arranque_pc` ahora también apaga lo viejo de AURA que arranca con Windows: valores de Run que apuntan a la carpeta AURA (no a aria_main; se guardan en `data/arranques_viejos.json`), accesos de la carpeta Inicio (Papelera) y tareas programadas (se DESACTIVAN, reversible).
 - Tras cada actualización, ARIA corre `arranque_pc` y `limpieza_pc` sin esperar a reiniciar.
 - `aria/data/` ya no va al repo ni al manifiesto (un `shell_state.json` de pruebas chocaba con el de la PC).
+
+## 26. AURA ordenada en un solo lugar (18-nov)
+- `aria/ordenar_pc.py` (corre una vez al abrir ARIA, y tras actualizar): MUEVE (no borra) todo lo suelto de `AURA\` a `AURA\_archivo_viejo\basura\` (logs, salidas de pruebas, parches, .bak, nombres rotos «CUsers…», capturas) o `AURA\_archivo_viejo\proyectos\` (v4/v5/v6, AURA_OS, backends, Godot, docker/k8s, etc.), con índice `QUE_HAY_AQUI.md`. En ARIA_APP los informes .md sueltos van a `docs\` y las pruebas viejas a la basura del archivo.
+- Se quedan en AURA: ARIA_APP, .venv, dist, asagi, git, .vscode/.kilo, y las claves (.env*, credentials, api_keys, secure_vault).
+- Verificado antes: lo que ARIA usa hoy no importa nada de la raíz de AURA (solo módulos viejos que ya se van).
+- ARIA: «qué hay en el archivo viejo», «restaura <nombre>», «borra la basura vieja» (pide «sí, bórrala»; va a la Papelera). Los proyectos viejos no se borran.
+- Esta vez escribí directo en la PC (por el enlace del escritorio) `aria_va_core.py`, `ui_shell.py`, `arranque_pc.py` y `ordenar_pc.py` (eran idénticos a lo instalado, sin cambios de Daniel), para que todo pase en el PRIMER arranque.

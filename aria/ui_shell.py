@@ -901,10 +901,10 @@ if _QT:
                     # lo que no espera a reiniciar: arreglar el arranque de Windows y limpiar lo viejo (módulos sueltos, se importan frescos)
                     if r["instalados"] or r["actualizados"]:
                         import importlib
-                        for _m in ("arranque_pc", "limpieza_pc"):
+                        for _m in ("arranque_pc", "limpieza_pc", "ordenar_pc"):
                             try:
                                 mod = importlib.reload(sys.modules[_m]) if _m in sys.modules else importlib.import_module(_m)
-                                res = mod.arreglar() if _m == "arranque_pc" else mod.limpiar()
+                                res = mod.arreglar() if _m == "arranque_pc" else mod.limpiar() if _m == "limpieza_pc" else mod.ordenar()
                                 if res:
                                     print("[UI] %s: %s" % (_m, res), flush=True)
                             except Exception as exc:
@@ -1819,6 +1819,33 @@ if _QT:
                 self._linea("   %s: %s" % ("tú" if m.get("rol") == "Daniel" else "ASAGI", _h.escape(str(m.get("texto"))[:160])), "sys")
             self._estado_orb("curiosa", 2600)
 
+        def _cmd_orden(self, t):
+            """«qué guardaste en el archivo viejo» · «restaura <nombre>» · «borra la basura vieja» (pide confirmación)."""
+            n = t.strip().lower()
+            try:
+                import ordenar_pc as _op
+            except Exception:
+                return False
+            if getattr(self, "_orden_confirmar", False):
+                self._orden_confirmar = False
+                if _re.match(r"^(?:s[ií],? b[oó]rrala|s[ií],? borra(?:la)?|confirmo)$", n):
+                    self.entrada.clear(); self._linea(t, "user"); self._linea(_op.borrar_basura(), "aria"); return True
+            if _re.match(r"^(?:qu[eé] (?:guardaste|hay) en el archivo viejo|archivo viejo|c[oó]mo qued[oó] aura|ordena aura)$", n):
+                self.entrada.clear(); self._linea(t, "user")
+                if n == "ordena aura":
+                    m, f = _op.ordenar()
+                self._linea(_op.resumen(), "aria"); return True
+            m = _re.match(r"^restaura\s+(.{2,80})$", t.strip(), _re.I)
+            if m:
+                self.entrada.clear(); self._linea(t, "user"); self._linea(_op.restaurar(m.group(1)), "aria"); return True
+            if _re.match(r"^(?:borra|elimina) la basura vieja$", n):
+                self.entrada.clear(); self._linea(t, "user")
+                self._orden_confirmar = True
+                self._linea("Voy a mandar a la Papelera la carpeta AURA\\_archivo_viejo\\basura (logs, pruebas, parches y copias viejas; se puede recuperar desde la Papelera). "
+                            "Los proyectos viejos NO se tocan. ¿Confirmas? Escribe «sí, bórrala».", "aria")
+                return True
+            return False
+
         def _cmd_traspaso(self, t):
             """«pásalo al celular» / «sigue en el celular»: deja la charla para que ASAGI la traiga en su próximo latido."""
             if not _re.match(r"^(?:p[aá]salo|pasa esto|sigue|seguimos|contin[uú]a|lleva esto)(?: esto| la charla)? (?:al|en el|a mi) (?:celular|cel|tel[eé]fono|m[oó]vil)$|^(?:p[aá]sale esto|contin[uú]a) (?:a|en|con) asagi$",
@@ -1971,6 +1998,8 @@ if _QT:
             if self._cmd_video(t):
                 return
             if self._cmd_correo(t):
+                return
+            if self._cmd_orden(t):
                 return
             if self._cmd_traspaso(t):
                 return

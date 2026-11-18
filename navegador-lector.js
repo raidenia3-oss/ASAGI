@@ -133,6 +133,7 @@ function parsear(t) {
   if ((m = s.match(/^(?:busca en (?:la web|internet)|investiga en (?:la web|internet)|web)\s*:?\s+(.{2,200})$/i))) return { accion: 'investigar', pregunta: m[1].trim() };
   if ((m = s.match(/(https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/)|youtu\.be\/)[\w-]{6,}\S*)/)) &&
       (s === m[1] || /^(?:resume|resumen|resumeme|que dice|de que trata|youtube|video|mira)/.test(n))) return { accion: 'youtube', url: m[1] };
+  if (/^(resume la pagina|resumen de la pagina|de que trata la pagina|resumeme la pagina)$/.test(n)) return { accion: 'resumir' };
   if (/^(lee la pagina|que dice la pagina|lee la web|leer pagina|que hay en la pagina)$/.test(n)) return { accion: 'leer' };
   if ((m = n.match(/^(?:clic|click|toca|pulsa)\s+(?:en\s+)?(?:el\s+)?(\d{1,3})$/))) return { accion: 'clic', n: parseInt(m[1], 10) };
   if ((m = s.match(/^escribe\s+(?:en\s+)?(?:el\s+)?(\d{1,3})\s*:\s*(.+?)(\s+y\s+env[ií]a)?$/i))) return { accion: 'escribir', n: parseInt(m[1], 10), texto: m[2], enviar: !!m[3] };
@@ -149,7 +150,20 @@ function promptInvestigar(pregunta, paginas) {
     paginas.map(function (p, i) { return '<pagina n="' + (i + 1) + '" url="' + p.url + '">\n' + String(p.texto || '').slice(0, paginas.length > 4 ? 1600 : 2500) + '\n</pagina>'; }).join('\n');
 }
 
-var API = { LECTOR: LECTOR, CLIC: CLIC, ESCRIBIR: ESCRIBIR, RESULTADOS: RESULTADOS, BUSCADORES: BUSCADORES, resumenPagina: resumenPagina, resultadosDDG: resultadosDDG,
+// Compuerta antes de mostrar una investigación (idea de las «compuertas de validación» de agentes): cuenta las frases
+// con cifras/fechas que NO citan fuente [n] y avisa, para que no se cuele un dato inventado como si estuviera confirmado. PURO.
+function sinFuente(texto) {
+  var frases = (String(texto || '').match(/[^.!?\n]+(?:[.!?]+(?=\s|$)|\.(?=\d)[^.!?\n]*)*[.!?]*/g) || []).map(function (f) { return f.trim(); }).filter(function (f) { return f.length > 20; });
+  var malas = frases.filter(function (f) { return /\d/.test(f.replace(/\[\d+\]/g, '')) && !/\[\d+\]/.test(f) && !/^(\[\d+\]|fuentes?:|https?:)/i.test(f); });
+  return { total: frases.length, sin: malas.length, ejemplo: malas[0] ? malas[0].slice(0, 90) : '' };
+}
+function notaValidacion(texto, nFuentes) {
+  if (!nFuentes) return '';
+  var r = sinFuente(texto);
+  if (!r.sin) return '\n✔ Cada dato con cifras cita su fuente.';
+  return '\n⚠ ' + r.sin + ' dato(s) con cifras no citan fuente (p. ej. «' + r.ejemplo + '…»): confírmalos antes de usarlos.';
+}
+var API = { sinFuente: sinFuente, notaValidacion: notaValidacion, LECTOR: LECTOR, CLIC: CLIC, ESCRIBIR: ESCRIBIR, RESULTADOS: RESULTADOS, BUSCADORES: BUSCADORES, resumenPagina: resumenPagina, resultadosDDG: resultadosDDG,
   parsear: parsear, promptInvestigar: promptInvestigar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiNavLector = API;

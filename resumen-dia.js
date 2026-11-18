@@ -37,6 +37,7 @@ function armar(d, momento, x) {
   if (x.notif && x.notif.total) l.push('🔔 ' + x.notif.total + ' notificación(es)' + (x.notif.top ? ', sobre todo de ' + x.notif.top : '') + '.');
   if (x.redes && x.redes.length) l.push('📲 Redes: ' + x.redes.map(function (r) { return r[0] + ' ' + r[1]; }).join(' · ') + ' («resumen de mis redes»).');
   if (x.ytDespues) l.push('📺 Tienes ' + x.ytDespues + ' video(s) para después («qué veo hoy»).');
+  if (x.aria) l.push('🖥 ARIA (tu PC) está en línea' + (x.aria.activos ? ' · ' + x.aria.activos + ' agente(s) programado(s)' : '') + (x.aria.ocupada ? ' · ocupada ahora' : '') + '.');
   if (x.bateria != null) l.push((x.bateria <= 20 ? '🪫 Batería baja: ' : '🔋 Batería: ') + x.bateria + '%' + (x.cargando ? ' (cargando)' : '') + '.');
   if (x.musica) l.push('🎵 ' + (x.musica.sonando ? 'Suena' : 'En pausa') + ': «' + x.musica.titulo + '».');
   if (momento === 'manana' && !x.musica) l.push('¿Algo de música para empezar? Di «pon música».');
@@ -50,6 +51,7 @@ async function datos() {
     var l = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]'), fin = new Date(); fin.setHours(23, 59, 59, 999);
     x.pendientes = (Array.isArray(l) ? l : []).filter(function (p) { return p && !p.hecho && (!p.cuando || p.cuando <= fin.getTime()); });
   } catch (e) { x.pendientes = []; }
+  try { var va = parseInt(localStorage.getItem('asagi-aria-visto') || '0', 10); if (va && Date.now() - va < 12 * 60000) x.aria = JSON.parse(localStorage.getItem('asagi-aria-estado') || '{}') || {}; } catch (e) {}
   try { x.ytDespues = (JSON.parse(localStorage.getItem('asagi-yt-despues') || '[]') || []).length; } catch (e) {}
   try { var CO = window.AsagiCompras; if (CO) x.compras = CO.faltantes().map(function (it) { return it.texto; }); } catch (e) {}
   try { var HA = window.AsagiHabitos; if (HA) x.habitos = HA.faltanHoy(); } catch (e) {}

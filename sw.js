@@ -1,4 +1,4 @@
-const CACHE_NAME = 'asagi-pwa-v150';
+const CACHE_NAME = 'asagi-pwa-v173';
 const APP_SHELL = [
   './',
   './index.html',
@@ -68,6 +68,18 @@ const APP_SHELL = [
   './precios.js',
   './vigia-web.js',
   './explorar.js',
+  './efectos.js',
+  './centro.js',
+  './entrevista.js',
+  './instintos.js',
+  './traspaso.js',
+  './aprende.js',
+  './iniciativa.js',
+  './creador.js',
+  './recetas.js',
+  './editor.js',
+  './ojos.js',
+  './tipeo.js',
   './agente.js',
   './utiles.js',
   './personajes/indice.json',
@@ -79,7 +91,8 @@ const APP_SHELL = [
   './tema-asagi.css',
   './app.js',
   './manifest.webmanifest',
-  './assets/icon.svg'
+  './assets/icon.svg',
+  './assets/fondo-asagi.jpg'
 ];
 
 self.addEventListener('install', (event) => {

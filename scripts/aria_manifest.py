@@ -17,7 +17,7 @@ def generar(raiz=RAIZ, previo=None, extra_previos=None):
         dirs[:] = sorted(x for x in dirs if x != "__pycache__")
         for f in sorted(files):
             rel = os.path.relpath(os.path.join(d, f), raiz).replace("\\", "/")
-            if rel in EXCLUIR or f.endswith((".pyc", ".bak_auto", ".tmp_auto")):
+            if rel in EXCLUIR or rel.startswith("data/") or f.endswith((".pyc", ".bak_auto", ".tmp_auto")):
                 continue
             with open(os.path.join(d, f), "rb") as fh:
                 h = hashlib.sha256(fh.read()).hexdigest()

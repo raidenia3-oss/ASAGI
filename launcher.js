@@ -63,7 +63,53 @@ function masUsadas(apps, counts, n = 8) {
     .slice(0, n);
 }
 
-const API = { reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas };
+// Letra del índice A–Z (números y símbolos van a «#»; tildes se quitan). Puro.
+function letra(label) {
+  const c = String(label || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase();
+  return /[A-Z]/.test(c) ? c : c === 'Ñ' ? 'N' : '#';
+}
+// Letras presentes, en orden. Puro.
+function letras(apps) { const v = {}; (apps || []).forEach((a) => { v[letra(a.label)] = 1; }); return Object.keys(v).sort((a, b) => (a === '#') - (b === '#') || a.localeCompare(b)); }
+// Quita las apps ocultas (lista de paquetes). Puro.
+function visibles(apps, ocultas) { const o = new Set(ocultas || []); return (apps || []).filter((a) => !o.has(a.package)); }
+// Favoritas: primero las fijadas (en su orden), luego las más usadas, sin repetir. Puro.
+function favoritas(apps, counts, fijadas, n = 5) {
+  const por = {}; (apps || []).forEach((a) => { por[a.package] = a; });
+  const out = (fijadas || []).map((p) => por[p]).filter(Boolean);
+  for (const a of masUsadas(apps, counts, n + out.length)) if (out.length < n && out.indexOf(a) < 0) out.push(a);
+  return out.slice(0, n);
+}
+
+// Frase corta bajo la barra de batería, según la hora y la carga. PURO.
+function frase(d, pct, cargando) {
+  const h = d.getHours();
+  if (cargando) return pct >= 100 ? 'Carga completa' : 'Cargando, sin apuro';
+  if (pct <= 20) return 'Busca un cargador';
+  if (h >= 23 || h < 5) return 'Hora de descansar';
+  if (h < 12) return 'Buen día, Daniel';
+  if (h < 19) return 'Sigue así, Daniel';
+  return 'Buenas noches, Daniel';
+}
+// Órdenes para la PC (las hace ARIA por el enlace): «abre spotify en la pc» · «qué tengo abierto en la pc» · «trae chrome en la pc». PURO.
+function ordenPc(t) {
+  const s = String(t || '').trim().replace(/[.!?¿¡]+$/g, '').replace(/^[¿¡]+/, '');
+  const n = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/^(?:que tengo abierto|que ventanas (?:tengo|hay)(?: abiertas)?|ventanas)(?: en (?:la|mi) (?:pc|compu(?:tadora)?|laptop))$/.test(n)) return { accion: 'ventanas' };
+  let m = n.match(/^(?:abre|abreme|lanza|inicia)\s+(.{2,40}?)\s+en (?:la|mi) (?:pc|compu(?:tadora)?|laptop)$/);
+  if (m && !/https?|www\.|\.com/.test(m[1])) return { accion: 'abrir', q: m[1].trim() };
+  m = n.match(/^(?:trae|ve a|pon al frente)\s+(.{2,40}?)\s+en (?:la|mi) (?:pc|compu(?:tadora)?|laptop)$/);
+  if (m) return { accion: 'enfocar', q: m[1].trim() };
+  return null;
+}
+// Lo que ARIA aprende de las redes (Musa, en la PC): «qué aprendió aria» · «aria estudia edición de video». PURO.
+function ordenMusa(t) {
+  const n = String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.!?¿¡]+/g, '').trim();
+  if (/^(?:que (?:aprendio|ha aprendido|ideas tiene) aria|ideas de aria|cuaderno de aria|que ideas nuevas tiene aria)$/.test(n)) return { accion: 'ideas' };
+  const m = n.match(/^(?:aria,? estudia|que aria estudie|dile a aria que estudie|estudia en la pc)\s+(.{2,60})$/) || n.match(/^estudia\s+(.{2,60}?)\s+en (?:la|mi) (?:pc|compu(?:tadora)?)$/);
+  if (m) return { accion: 'estudiar', q: m[1].trim() };
+  return null;
+}
+const API = { ordenMusa, ordenPc, frase, reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
 

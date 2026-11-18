@@ -121,7 +121,7 @@ async function resumirVideo(url, decir) {
   for (var i = 0; i < ks.length; i++) {
     try {
       var cuerpo = JSON.stringify({ contents: [{ parts: [{ file_data: { file_uri: url } }, { text: pr }] }] });
-      var pedir = function (modelo) { return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent?key=' + encodeURIComponent(ks[i]), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: cuerpo }); };
+      var pedir = function (modelo) { return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': String(ks[i]).trim() }, body: cuerpo }); };
       var r = await pedir('gemini-3.8-flash');
       if (r.status === 404) r = await pedir('gemini-flash-latest');   // si Google retira el modelo
       if (!r.ok) { if (r.status === 400) throw new Error('Gemini no pudo ver ese video (¿es privado o no listado?)'); continue; }

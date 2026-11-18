@@ -43,10 +43,11 @@ async function di(texto, espera = 5000) {
   const antes = await ev("document.querySelectorAll('.message.bot').length");
   await ev(`(()=>{const i=document.getElementById('message-input');i.value=${JSON.stringify(texto)};i.dispatchEvent(new Event('input',{bubbles:true}));document.getElementById('chat-form').requestSubmit();return 1})()`);
   let r = '';
-  for (let k = 0; k < espera / 250; k++) {
+  const t0 = Date.now();
+  for (let k = 0; Date.now() - t0 < espera; k++) {
     await sleep(250);
     const now = await ev("document.querySelectorAll('.message.bot').length");
-    if (now > antes) { await sleep(600); r = await ev(`[...document.querySelectorAll('.message.bot')].slice(${antes}).map(m=>m.innerText.trim()).join(' ⏎ ')`); if (!/Buscando|pensando|…$/.test(r) || k * 250 > espera - 500) break; }
+    if (now > antes) { await sleep(600); r = await ev(`[...document.querySelectorAll('.message.bot')].slice(${antes}).map(m=>m.innerText.trim()).join(' ⏎ ')`); if (!/Buscando|pensando|…\s*(?:\d{1,2}:\d{2}\s*[ap]\.\s*m\.)?\s*$/.test(r) || Date.now() - t0 > espera - 1500) break; }
   }
   out(`- **Tú:** ${texto}\n  **ASAGI:** ${(r || '(sin respuesta en ' + espera / 1000 + ' s)').replace(/\n+/g, ' ').slice(0, 400)}`);
 }

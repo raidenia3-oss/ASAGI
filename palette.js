@@ -57,7 +57,17 @@ function buscar(apps, q, acc) {
   const consulta = (q || '').trim();
   if (!consulta) return items;
   const todo = items.concat(acc || acciones());
-  const con = todo.map(function (it) { return { it: it, p: puntaje(it.label + ' ' + (it.sub || ''), consulta) }; })
+  // Apps: solo por su NOMBRE (antes «yap» encontraba YouTube por la palabra «App»). Una coincidencia salteada solo vale si
+  // empieza igual que el nombre o que una de sus palabras y va casi seguida.
+  const con = todo.map(function (it) {
+    const texto = it.tipo === 'app' ? it.label : it.label + ' ' + (it.sub || '');
+    let p = puntaje(texto, consulta);
+    if (p > 0 && p < 500) {
+      const pal = norm(texto).split(/[^a-z0-9ñ]+/), c0 = norm(consulta).charAt(0);
+      if (!pal.some(function (w) { return w.charAt(0) === c0; }) || p < norm(consulta).length * 6) p = 0;
+    }
+    return { it: it, p: p };
+  })
     .filter(function (x) { return x.p > 0; })
     .sort(function (a, b) {
       if (b.p !== a.p) return b.p - a.p;
@@ -70,7 +80,9 @@ function buscar(apps, q, acc) {
 // --- Calculadora (como Kvaesitso/Smart Launcher): evalúa sin eval ---
 // Soporta + - * / ( ) %, decimales con . o , y "X% de Y" / "Y + X%".
 function calcular(q) {
-  let s = norm(q).trim();
+  let s = norm(q).trim().replace(/[?¿!¡=]+/g, '').trim();
+  s = s.replace(/^(?:cuanto (?:es|son|da|sale)|calcula(?:me)?|resuelve|cuanto)\s+/, '');   // «cuánto es 15% de 230»
+  s = s.replace(/\bmas\b/g, '+').replace(/\bmenos\b/g, '-').replace(/\b(?:por|veces)\b(?!\s*ciento)/g, '*').replace(/\bentre\b/g, '/');
   s = s.replace(/por\s*ciento/g, '%');                      // "por ciento" -> % (antes del resto)
   if (!s || !/\d/.test(s) || !/[-+*/%]/.test(s)) return null;
   // "15% de 200" -> 15/100*200

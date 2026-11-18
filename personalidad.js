@@ -43,9 +43,13 @@ function tono(ctx = {}) {
 // Arma el mensaje de sistema final (persona + tono + extra opcional).
 // El modelo del celular (0,5B) se pierde con instrucciones largas: versión corta.
 const PERSONA_CORTA = 'Eres ASAGI, la asistente de Daniel (Lima, Perú). Responde en español, breve (1 a 3 frases), amable y honesta: si no sabes, dilo.';
+// «Cómo soy» (Ajustes): la instrucción de Daniel sobre mi forma de hablar. Es SUYA (no viene de páginas ni mensajes).
+function alma() { try { const a = (typeof localStorage !== 'undefined' && localStorage.getItem('asagi-alma')) || ''; return a ? 'Daniel pidió que seas así: ' + a.slice(0, 300) + '.' : ''; } catch (e) { return ''; } }
 function systemPrompt(ctx = {}, extra = '') {
-  if (ctx.corto) return [PERSONA_CORTA, extra].filter(Boolean).join(' ').trim();
-  return [PERSONA, tono(ctx), extra].filter(Boolean).join(' ').trim();
+  if (ctx.corto) { const IN = typeof window !== 'undefined' && window.AsagiInstintos; return [PERSONA_CORTA, alma().slice(0, 140), IN ? IN.paraCerebro(IN.lista()).slice(0, 160) : '', extra].filter(Boolean).join(' ').trim(); }
+  const perfil = (typeof window !== 'undefined' && window.AsagiEntrevista) ? window.AsagiEntrevista.sinCerebroTexto() : '';
+  const IN = typeof window !== 'undefined' && window.AsagiInstintos, habitos = IN ? IN.paraCerebro(IN.lista()) : '';
+  return [PERSONA, tono(ctx), alma(), habitos, perfil, extra].filter(Boolean).join(' ').trim();
 }
 
 const API = { NOMBRE, PERSONA, tono, systemPrompt };

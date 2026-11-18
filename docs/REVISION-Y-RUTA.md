@@ -255,3 +255,7 @@ Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para
 - **Barra «Copy · Share · Select all»** al deslizar por la casa → la interfaz ya no se selecciona (los mensajes sí).
 - Filas de atajos con desvanecido a la derecha (se nota que se deslizan).
 - Pendiente: «clic 1» del navegador no respondió en 20 s; «busca en la web» se quedó en «Leyendo 3/3» en el emulador; RAM 648 MB con el modelo local bajando (regla 4).
+- 17-nov (tarde-noche), pedidos de Daniel:
+  - «.exe viejo bórralo»: `arranque_pc.py` manda `dist\ARIA OS.exe` y sus accesos a la Papelera (recuperable) al abrir ARIA.
+  - Keys de Gemini nuevas ya no empiezan con «AIza»: `gemini-guia.js` acepta cualquier texto largo sin espacios (Google la valida al probar) y todas las llamadas a Gemini mandan la key en la cabecera `x-goog-api-key` (no en la URL).
+  - Descarga del modelo más rápida: `ModelDownloader.java` baja en 4 conexiones a la vez (rangos, reanudables) y solo usa el espejo si HuggingFace falla 2 veces. Probado con un archivo real de HF (7 MB, hash correcto). El estado muestra «falta N min».

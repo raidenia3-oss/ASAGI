@@ -18,9 +18,9 @@
   // Gemini (Google Generative Language API). Formato propio de Google.
   async function geminiResponder(prompt, key, model){
     model = model || 'gemini-3.8-flash';
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent';
     const body = { contents: [{ parts: [{ text: prompt }] }] };
-    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json', 'x-goog-api-key': String(key).trim()}, body: JSON.stringify(body) });
     // si Google retira el modelo (404), usar el alias que siempre apunta al Flash más nuevo
     if(r.status === 404 && model !== 'gemini-flash-latest') return geminiResponder(prompt, key, 'gemini-flash-latest');
     if(!r.ok) throw new Error('gemini ' + r.status);

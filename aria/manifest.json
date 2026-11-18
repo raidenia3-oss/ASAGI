@@ -44,8 +44,10 @@
    "sha256": "d62bdc7bfaefdc9160355c7fe4a5c91f7d3a701bbf62bcc1283b0662544bcc61"
   },
   "arranque_pc.py": {
-   "previos": [],
-   "sha256": "48d8520ab04378b34f294fd8d98469305a00c90c58c7973f37f9f62a5d0e5865"
+   "previos": [
+    "48d8520ab04378b34f294fd8d98469305a00c90c58c7973f37f9f62a5d0e5865"
+   ],
+   "sha256": "b122e53080ae5e3e40eef6f6105a9298f4979f38e2b37d5eaed110ac6748baf8"
   },
   "bots_agenda.py": {
    "previos": [

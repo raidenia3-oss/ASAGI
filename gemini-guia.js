@@ -5,7 +5,9 @@
 (function () {
 'use strict';
 var URL_KEYS = 'https://aistudio.google.com/apikey';
-function pareceKey(k) { return /^AIza[0-9A-Za-z_\-]{30,45}$/.test(String(k || '').trim()); }
+// Google cambió el formato: las keys viejas empiezan con «AIza», las nuevas no. Solo pido algo largo y sin espacios;
+// la prueba de verdad la hace Google al «Probar y guardar».
+function pareceKey(k) { return /^[0-9A-Za-z_.\-]{20,200}$/.test(String(k || '').trim()); }
 
 function abrirPagina() {
   var C = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
@@ -32,7 +34,7 @@ function abrir() {
       '<ol class="gg-pasos">' +
         '<li><b>Abre la página de Google</b> e inicia sesión con tu Gmail.<br><button type="button" class="gg-abrir">Abrir página de keys</button></li>' +
         '<li>Toca <b>«Create API key»</b> y luego <b>copiar</b>.</li>' +
-        '<li><b>Pégala aquí</b> y listo:<div class="gg-fila"><input class="gg-key" type="password" placeholder="AIza…" autocomplete="off" spellcheck="false" aria-label="Key de Gemini"><button type="button" class="gg-pegar">Pegar</button></div></li>' +
+        '<li><b>Pégala aquí</b> y listo:<div class="gg-fila"><input class="gg-key" type="password" placeholder="Pega tu key aquí" autocomplete="off" spellcheck="false" aria-label="Key de Gemini"><button type="button" class="gg-pegar">Pegar</button></div></li>' +
       '</ol>' +
       '<p class="gg-msg" role="status" aria-live="polite"></p>' +
       '<div class="gg-acciones"><button type="button" class="gg-cerrar secondary">Ahora no</button><button type="button" class="gg-guardar">Probar y guardar</button></div>' +
@@ -45,12 +47,12 @@ function abrir() {
   fondo.querySelector('.gg-cerrar').addEventListener('click', cerrar);
   fondo.querySelector('.gg-abrir').addEventListener('click', abrirPagina);
   fondo.querySelector('.gg-pegar').addEventListener('click', async function () {
-    try { var t = await navigator.clipboard.readText(); if (t) { inp.value = t.trim(); msg.textContent = pareceKey(t) ? 'Key pegada ✓' : 'Eso no parece una key (empieza con AIza).'; } }
+    try { var t = await navigator.clipboard.readText(); if (t) { inp.value = t.trim(); msg.textContent = pareceKey(t) ? 'Key pegada ✓' : 'Eso no parece una key (es un texto largo sin espacios).'; } }
     catch (e) { inp.focus(); msg.textContent = 'Mantén presionado el campo y elige «Pegar».'; }
   });
   btn.addEventListener('click', async function () {
     var k = inp.value.trim();
-    if (!pareceKey(k)) { msg.textContent = 'Eso no parece una key de Gemini (empieza con «AIza» y es larga).'; return; }
+    if (!pareceKey(k)) { msg.textContent = 'Eso no parece una key de Gemini (es un texto largo sin espacios). Cópiala de nuevo.'; return; }
     btn.disabled = true; msg.textContent = 'Probando con Google…';
     var r = await probar(k);
     btn.disabled = false;
@@ -66,7 +68,7 @@ function abrir() {
 }
 
 // el aviso amarillo del chat abre la guía cuando habla de Gemini
-document.addEventListener('click', function (e) {
+if (typeof document !== 'undefined') document.addEventListener('click', function (e) {
   var a = e.target.closest && e.target.closest('#brain-alert.abre-guia');
   if (a && !e.target.closest('.brain-alert-x')) { e.preventDefault(); abrir(); }
 }, true);

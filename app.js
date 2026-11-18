@@ -408,7 +408,8 @@ function describeBrain() {
     }
     if (dl && dl.estado === 'descargando') {
       const pct = dl.total ? Math.min(99, Math.floor(dl.bytes * 100 / dl.total)) : 0;
-      return { detail: 'Descargando modelo · ' + pct + '%', alert: '' };
+      const seg = dl.vel > 1000 && dl.total ? Math.round((dl.total - dl.bytes) / dl.vel) : 0;
+      return { detail: 'Descargando modelo · ' + pct + '%' + (seg ? ' · falta ' + (seg < 60 ? seg + ' s' : Math.ceil(seg / 60) + ' min') : ''), alert: '' };
     }
     if (dl && dl.estado === 'error') {
       return { detail: 'Modelo: error al descargar', alert: 'No pude descargar el modelo (' + (dl.error || 'sin conexión') + '). Reintento solo cuando haya red.' };
@@ -3493,8 +3494,8 @@ if ('serviceWorker' in navigator) {
       const data = (localStorage.getItem('asagi-foto-img') || img.src || '');
       const b64 = data.split(',')[1]; const mime = (data.match(/^data:(.*?);/) || [])[1] || 'image/jpeg';
       const prompt = 'Eres un fotógrafo honesto y directo. Mira esta foto y en 3-4 viñetas breves en español di qué está bien y qué mejorarías (exposición, encuadre/composición, color, nitidez). Sin relleno.';
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(gk);
-      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': String(gk).trim() },
         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: mime, data: b64 } }] }] }) });
       if (!r.ok) throw new Error('gemini ' + r.status);
       const j = await r.json();
@@ -4237,7 +4238,9 @@ if ('serviceWorker' in navigator) {
   let avisado = false;
   plugin.addListener('descarga', (ev) => {
     if (!ev) return;
-    window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '' };
+    const prev = window._asagiModelo, ahora = Date.now();
+    window._asagiModelo = { estado: ev.estado, bytes: ev.bytes || 0, total: ev.total || 0, error: ev.error || '', t: ahora,
+      vel: prev && prev.t && ev.bytes > prev.bytes ? (prev.vel ? prev.vel * 0.8 : 0) + ((ev.bytes - prev.bytes) / Math.max(0.2, (ahora - prev.t) / 1000)) * (prev.vel ? 0.2 : 1) : (prev && prev.vel) || 0 };
     refrescar();
     if (ev.estado === 'listo') cargarMotor();
     if (ev.estado === 'error') {            // cuenta los fallos del día: tras 3, no reintenta solo (no gasta datos en bucle)

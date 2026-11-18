@@ -6,7 +6,9 @@ dist\\ARIA OS.exe, una copia congelada de septiembre (la azul, v4.0). Así, al p
 Esto lo corrige solo, cada vez que ARIA abre:
   - el valor «ARIA OS» de HKCU\\...\\Run pasa a abrir ARIA_APP\\aria_main.py con el Python del proyecto (sin consola);
   - crea en el menú Inicio un acceso «ARIA» que abre lo mismo.
-No borra nada (el .exe viejo se queda; Daniel decide si lo borra). Solo toca lo de ARIA. Sin dependencias.
+Y (Daniel lo pidió el 17-nov-2026: «si .exe viejo bórralo no más») manda a la Papelera dist\\ARIA OS.exe y los accesos
+que apuntan a él. A la Papelera, no borrado definitivo: se puede recuperar. Si está abierto, lo intenta en el próximo arranque.
+Solo toca lo de ARIA. Sin dependencias.
 """
 import os
 import subprocess
@@ -79,4 +81,30 @@ def arreglar():
                 hecho.append("acceso «ARIA» en el menú Inicio")
     except Exception:
         pass
+    try:
+        hecho += _papelera_exe_viejo(aura)
+    except Exception:
+        pass
+    return hecho
+
+
+def _papelera_exe_viejo(aura):
+    exe = os.path.join(aura, "dist", "ARIA OS.exe")
+    if not os.path.isfile(exe):
+        return []
+    ps = ("Add-Type -AssemblyName Microsoft.VisualBasic;$exe=$env:EXE;$n=0;"
+          "$w=New-Object -ComObject WScript.Shell;"
+          "foreach($d in @([Environment]::GetFolderPath('StartMenu'),[Environment]::GetFolderPath('CommonStartMenu'),[Environment]::GetFolderPath('Desktop'))){"
+          " if(Test-Path $d){Get-ChildItem -Path $d -Filter *.lnk -Recurse -ErrorAction SilentlyContinue | ForEach-Object {"
+          "  try{ if($w.CreateShortcut($_.FullName).TargetPath -eq $exe){[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_.FullName,'OnlyErrorDialogs','SendToRecycleBin');$n++} }catch{} } } };"
+          "try{[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($exe,'OnlyErrorDialogs','SendToRecycleBin');Write-Output \"EXE $n\"}catch{Write-Output \"OCUPADO $n\"}")
+    r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], env=dict(os.environ, EXE=exe), timeout=60,
+                       capture_output=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    out = (r.stdout or b"").decode("utf-8", "ignore")
+    hecho = []
+    if "EXE" in out and not os.path.isfile(exe):
+        hecho.append("ARIA OS.exe viejo a la Papelera")
+    n = (out.split() or ["", "0"])[-1]
+    if n.isdigit() and int(n):
+        hecho.append("%s acceso(s) al .exe viejo a la Papelera" % n)
     return hecho

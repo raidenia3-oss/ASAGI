@@ -72,7 +72,7 @@ async function ver(dataUrl, prompt) {
   var cuerpo = JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: 'image/jpeg', data: dataUrl.split(',')[1] } }] }] }), ult = '';
   for (var k = 0; k < claves.length; k++) {
     for (var m = 0; m < 2; m++) {
-      var r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + (m ? 'gemini-flash-latest' : 'gemini-3.8-flash') + ':generateContent?key=' + encodeURIComponent(claves[k]), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: cuerpo });
+      var r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + (m ? 'gemini-flash-latest' : 'gemini-3.8-flash') + ':generateContent', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': String(claves[k]).trim() }, body: cuerpo });
       if (r.ok) { var j = await r.json(), c = j && j.candidates && j.candidates[0]; return ((c && c.content && c.content.parts) || []).map(function (p) { return p.text || ''; }).join(''); }
       ult = 'Gemini respondió ' + r.status; if (r.status !== 404) break;
     }

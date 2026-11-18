@@ -332,3 +332,12 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - Los otros lanzadores (AURA_OS.bat, aura_app.bat, start_all.bat, el .exe viejo…) quedan archivados/reemplazados/desactivados por arranque_pc + ordenar_pc. En la PC queda una sola ARIA.
 - ASAGI (celular) es la mitad móvil del mismo asistente, enlazada a ARIA (perfil, instintos, traspaso, Musa).
 - Repo más limpio: quitado un .pyc rastreado por error y restos de depuración en artifacts/.
+
+## 31. Investigación de diseño web 2026 + primera muestra (18-nov)
+ASAGI y ARIA son apps DISTINTAS (no se unifican en nombre). Investigado (fuentes: designrush, uxpilot, line25, guías de home screen 2026):
+- Profundidad con vidrio solo en capas que flotan; elevación en oscuro con brillo/borde, no sombra.
+- Grano/textura sutil para dar cuerpo al negro (encaja con el estilo manga).
+- Tipografía display grande con más letter-spacing/interlínea; acentos neón solo en lo interactivo; evitar degradado morado-magenta.
+- Micro-animaciones 300–600ms, escalonadas 50–100ms, respetar reduce-motion; bento grid de tarjetas con distinto peso.
+- Wallpaper: 4K OLED, lock/home que combinan (2 variantes), sujeto delante del reloj, widgets transparentes, íconos monocromo.
+Aplicado (muestra): grano de cine sutil global en ASAGI (`body::after`, opacidad 0.035, mix-blend overlay, off con reduce-motion). Pendiente de ir aplicando: brillo de elevación en tarjetas clave, afinar títulos de ARIA, variantes de wallpaper.

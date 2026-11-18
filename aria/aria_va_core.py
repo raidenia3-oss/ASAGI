@@ -968,6 +968,12 @@ class LocalAIBrain:
                         _j.dump({"ts": int(time.time()), "bateria": c.get("bateria"), "cargando": bool(c.get("cargando")), "pendientes": pend, "total": c.get("total")}, f, ensure_ascii=False)
                 except Exception:
                     pass
+                if c.get("bitacora"):               # el celular dejó su resumen del día (hábitos/pendientes nuevos)
+                    try:
+                        import bitacora as _bi
+                        _bi.guardar_asagi(c.get("bitacora"))
+                    except Exception:
+                        pass
                 try:
                     import bots_agenda as _ba
                     e = _ba.resumen_estado(_ba.Agenda().bots())

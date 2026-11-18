@@ -11,6 +11,7 @@ import time
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 _RUTA = os.path.join(_DIR, "data", "bitacora.json")
+_RUTA_ASAGI = os.path.join(_DIR, "data", "bitacora_asagi.json")
 _MAX = 200
 
 
@@ -62,6 +63,36 @@ def _musa_lineas(desde_ts):
     except Exception:
         pass
     return out
+
+
+def guardar_asagi(paq):
+    """Guarda lo que ASAGI (el celular) dejó en su latido: un registro por día (el último gana)."""
+    if not isinstance(paq, dict):
+        return
+    item = {"ts": int(paq.get("ts") or time.time()), "dia": str(paq.get("dia") or "")[:10],
+            "texto": str(paq.get("texto") or "").replace("\r", " ")[:800]}
+    if not item["texto"]:
+        return
+    try:
+        xs = json.load(open(_RUTA_ASAGI, encoding="utf-8"))
+    except Exception:
+        xs = []
+    xs = [x for x in xs if x.get("dia") != item["dia"]]
+    xs.append(item)
+    try:
+        os.makedirs(os.path.dirname(_RUTA_ASAGI), exist_ok=True)
+        json.dump(xs[-60:], open(_RUTA_ASAGI, "w", encoding="utf-8"), ensure_ascii=False)
+    except Exception:
+        pass
+
+
+def de_asagi(n=2):
+    """Los últimos n días de bitácora del celular. -> lista de {ts, dia, texto} o None."""
+    try:
+        xs = json.load(open(_RUTA_ASAGI, encoding="utf-8"))
+    except Exception:
+        return None
+    return xs[-n:] if xs else None
 
 
 def para_celular(desde_ts=0):

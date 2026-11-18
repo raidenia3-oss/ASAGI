@@ -4619,11 +4619,40 @@ document.addEventListener('click', (e) => {
 // Latido ASAGI → ARIA (WiFi cifrado, cada 5 min con la app a la vista): le cuenta batería y pendientes para que la PC
 // los muestre, y guarda cómo está ARIA (en línea, ocupada, agentes). Así las dos saben una de la otra sin que hagas nada.
 (function latidoARIA() {
+  // Resumen del día del celular para ARIA: hábitos/preferencias nuevos y pendientes agregados hoy.
+  function construirBitacoraPropia() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const ini = new Date(); ini.setHours(0, 0, 0, 0); const t0 = ini.getTime();
+    const lineas = [];
+    try {
+      const IN = window.AsagiInstintos;
+      if (IN && IN.lista) {
+        const nuevos = IN.lista().filter((i) => (i.creado && i.creado >= t0) || (i.evidencia || []).some((e) => e && e.dia === hoy));
+        nuevos.filter((i) => i.dominio === 'preferencia' || i.dominio === 'estilo').slice(0, 3).forEach((i) => lineas.push('Preferencia: ' + String(i.accion || '').slice(0, 90)));
+        nuevos.filter((i) => i.dominio === 'rutina').slice(0, 2).forEach((i) => lineas.push('Rutina: ' + String(i.accion || '').slice(0, 90)));
+      }
+    } catch (e) {}
+    try {
+      const pen = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || [];
+      const hoyP = pen.filter((p) => p && p.creado && p.creado >= t0);
+      if (hoyP.length) lineas.push('Agregó a pendientes: ' + hoyP.slice(0, 4).map((p) => String(p.texto || '').slice(0, 50)).join('; '));
+    } catch (e) {}
+    if (!lineas.length) return null;
+    return { dia: hoy, ts: Math.floor(Date.now() / 1000), texto: lineas.slice(0, 6).join('\n') };
+  }
   async function latir() {
     const cli = window._asagiLan; if (!cli || document.hidden) return;
     let enlazada = false; try { enlazada = !!(localStorage.getItem('asagi-lan-clave') || localStorage.getItem('asagi-enlace-cfg')); } catch (e) {}
     if (!enlazada) return;
     const c = { t: 'latido' };
+    // Una vez al día, ASAGI le deja a ARIA su propia bitácora (hábitos/pendientes nuevos del celular).
+    try {
+      const hoy = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem('asagi-bitacora-enviada') !== hoy) {
+        const bp = construirBitacoraPropia();
+        if (bp) c.bitacora = bp;
+      }
+    } catch (e) {}
     try { if (navigator.getBattery) { const b = await navigator.getBattery(); c.bateria = Math.round(b.level * 100); c.cargando = !!b.charging; } } catch (e) {}
     try {
       const l = (JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || []).filter((p) => p && !p.hecho);
@@ -4632,6 +4661,7 @@ document.addEventListener('click', (e) => {
     let r = null; try { r = await cli.enviar(c); } catch (e) { r = null; }
     if (r && r.ok) {
       try { localStorage.setItem('asagi-aria-visto', String(Date.now())); if (r.resp && r.resp.aria) localStorage.setItem('asagi-aria-estado', JSON.stringify(r.resp.aria)); } catch (e) {}
+      if (c.bitacora) { try { localStorage.setItem('asagi-bitacora-enviada', new Date().toISOString().slice(0, 10)); } catch (e) {} }   // entregada hoy
       // ARIA dejó algo para el celular («pásalo al celular»)
       try {
         if (r.resp && r.resp.traspaso && window.AsagiTraspaso) {

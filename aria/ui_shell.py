@@ -711,6 +711,7 @@ if _QT:
                 print("[UI] extras: %s" % exc, flush=True)
 
         AYUDA = ("Esto sé hacer (escríbelo así):\n"
+                 "• Ver en vivo: «mira <enlace de YouTube>» o «mira en vivo <tema>» (te cuento lo que pasa)\n"
                  "• Aprender de redes: «estudia <tema>», «estudia mi youtube» (antes «conecta google»), «qué aprendiste», «dame ideas de …», «estudia siempre …»\n"
                  "• Mi escritorio: arriba 1 Chat · 2 Apps · 3 Archivos · 4 Ventanas (Ctrl+1..4) · «abre spotify» · «ve a chrome»\n"
                  "• «busca en la web …», «navega a …», «resume este video <enlace de YouTube>»\n"
@@ -1128,7 +1129,8 @@ if _QT:
             decir = (lambda x: cola.put(x)) if cola is not None else (lambda x: None)
             self._linea({"estudiar": "📺 Voy a YouTube a estudiar «%s» (videos + comentarios)…" % o.get("q", ""),
                          "feed": "📺 Miro tu YouTube (con tu sesión) y estudio lo que te recomienda…",
-                         "url": "🔗 Abro el enlace y aprendo de él…", "ideas": "💡 Cruzo lo que aprendí…"}.get(acc, "…"), "sys")
+                         "url": "🔗 Abro el enlace y aprendo de él…", "ideas": "💡 Cruzo lo que aprendí…",
+                         "vivo": "📺 Pongo el video y lo miro contigo…"}.get(acc, "…"), "sys")
             import threading as _th
 
             def _h():
@@ -1141,6 +1143,8 @@ if _QT:
                         decir(_mu.estudiar_url(o["url"], pensar=pensar))
                     elif acc == "ideas":
                         decir(_mu.ideas(o["q"], pensar=pensar))
+                    elif acc == "vivo":
+                        decir(_mu.ver_en_vivo(url=o.get("url"), q=o.get("q"), pensar=pensar, progreso=decir))
                 except Exception as exc:
                     decir("⚠ Musa: %s" % exc)
             _th.Thread(target=_h, daemon=True).start()

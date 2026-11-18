@@ -18,6 +18,7 @@ import math
 import time
 import html
 import inspect
+import sys
 import calendar
 import re as _re
 from datetime import date
@@ -897,6 +898,17 @@ if _QT:
                         cola = getattr(self, "_bots_cola", None)
                         if cola is not None:
                             cola.put("🔄 " + txt)
+                    # lo que no espera a reiniciar: arreglar el arranque de Windows y limpiar lo viejo (módulos sueltos, se importan frescos)
+                    if r["instalados"] or r["actualizados"]:
+                        import importlib
+                        for _m in ("arranque_pc", "limpieza_pc"):
+                            try:
+                                mod = importlib.reload(sys.modules[_m]) if _m in sys.modules else importlib.import_module(_m)
+                                res = mod.arreglar() if _m == "arranque_pc" else mod.limpiar()
+                                if res:
+                                    print("[UI] %s: %s" % (_m, res), flush=True)
+                            except Exception as exc:
+                                print("[UI] %s: %s" % (_m, exc), flush=True)
                 except Exception as exc:
                     print("[UI] actualizador: %s" % exc, flush=True)
             _th.Thread(target=_hilo, daemon=True).start()

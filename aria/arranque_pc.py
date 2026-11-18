@@ -85,6 +85,70 @@ def arreglar():
         hecho += _papelera_exe_viejo(aura)
     except Exception:
         pass
+    try:
+        hecho += _apagar_arranques_viejos(aura)
+    except Exception:
+        pass
+    return hecho
+
+
+def es_arranque_viejo(cmd, aura):
+    """¿Este arranque abre algo VIEJO del proyecto (no la ARIA nueva)? PURO.
+    Viejo = apunta dentro de la carpeta AURA pero no a aria_main.py / ARIA_ABRIR.bat."""
+    c = (cmd or "").lower().replace("/", "\\")
+    a = (aura or "").lower().rstrip("\\")
+    if not a or a not in c:
+        return False
+    return not ("aria_main.py" in c or "aria_abrir.bat" in c)
+
+
+def _apagar_arranques_viejos(aura):
+    """Apaga (no borra a ciegas) lo viejo de AURA que se abría solo con Windows:
+    valores de Run (los guarda en data/arranques_viejos.json por si acaso), accesos de la carpeta Inicio (a la Papelera)
+    y tareas programadas (las DESACTIVA, se pueden reactivar). Solo lo que apunta a la carpeta AURA."""
+    hecho, guardados = [], {}
+    import winreg
+    clave = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, clave, 0, winreg.KEY_READ | winreg.KEY_SET_VALUE) as k:
+        i, valores = 0, []
+        while True:
+            try:
+                valores.append(winreg.EnumValue(k, i)); i += 1
+            except OSError:
+                break
+        for nombre, valor, _t in valores:
+            if nombre != NOMBRE_RUN and es_arranque_viejo(str(valor), aura):
+                guardados[nombre] = valor
+                winreg.DeleteValue(k, nombre)
+                hecho.append("arranque viejo apagado: %s" % nombre)
+    if guardados:
+        try:
+            ruta = os.path.join(_DIR, "data", "arranques_viejos.json")
+            os.makedirs(os.path.dirname(ruta), exist_ok=True)
+            prev = {}
+            if os.path.isfile(ruta):
+                import json as _j
+                prev = _j.load(open(ruta, encoding="utf-8"))
+            prev.update(guardados)
+            import json as _j
+            _j.dump(prev, open(ruta, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        except Exception:
+            pass
+    ps = ("Add-Type -AssemblyName Microsoft.VisualBasic;$a=$env:AURA.ToLower();$w=New-Object -ComObject WScript.Shell;$n=0;"
+          "foreach($d in @([Environment]::GetFolderPath('Startup'),[Environment]::GetFolderPath('CommonStartup'))){ if(Test-Path $d){"
+          " Get-ChildItem $d -File -ErrorAction SilentlyContinue | ForEach-Object { $t='';"
+          "  if($_.Extension -eq '.lnk'){ try{ $s=$w.CreateShortcut($_.FullName); $t=($s.TargetPath+' '+$s.Arguments) }catch{} } else { try{ $t=Get-Content $_.FullName -Raw -ErrorAction Stop }catch{} };"
+          "  $tl=$t.ToLower(); if($tl.Contains($a) -and -not $tl.Contains('aria_main.py') -and -not $tl.Contains('aria_abrir.bat')){"
+          "   try{[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_.FullName,'OnlyErrorDialogs','SendToRecycleBin');Write-Output ('INICIO '+$_.Name)}catch{} } } } };"
+          "Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object { $_.State -ne 'Disabled' } | ForEach-Object { $x=$_; $t=($x.Actions | ForEach-Object { $_.Execute+' '+$_.Arguments+' '+$_.WorkingDirectory }) -join ' ';"
+          " $tl=$t.ToLower(); if($tl.Contains($a) -and -not $tl.Contains('aria_main.py') -and -not $tl.Contains('aria_abrir.bat')){ try{ Disable-ScheduledTask -TaskName $x.TaskName -TaskPath $x.TaskPath -ErrorAction Stop | Out-Null; Write-Output ('TAREA '+$x.TaskName) }catch{} } }")
+    r = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], env=dict(os.environ, AURA=aura), timeout=90,
+                       capture_output=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    for ln in (r.stdout or b"").decode("utf-8", "ignore").splitlines():
+        if ln.startswith("INICIO "):
+            hecho.append("acceso viejo de la carpeta Inicio a la Papelera: %s" % ln[7:])
+        elif ln.startswith("TAREA "):
+            hecho.append("tarea programada vieja desactivada: %s" % ln[6:])
     return hecho
 
 

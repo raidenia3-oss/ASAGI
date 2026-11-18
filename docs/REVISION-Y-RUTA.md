@@ -294,3 +294,10 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - **Traspaso celular ↔ PC** (`traspaso.js`, de unified-memory/handoffs): «sigue en la pc» manda la charla a ARIA (`{t:'traspaso'}` → `data/traspaso_entrante.json`; ARIA la muestra y la usa UNA vez como contexto de la siguiente respuesta). En ARIA «pásalo al celular» deja `traspaso_saliente.json`, que va con el próximo latido de ASAGI o con «trae lo de la pc». Todo es CONTEXTO/DATOS, no órdenes.
 - No se copió: el paquete npm/MCP de ECC ni sus hooks de Claude Code (son para programar, no para un asistente personal, y serían dependencias nuevas).
 - Capri-AI-Desktop: el repo ya no existe; su idea (compañera de escritorio con voz, estilo Edgerunners) ya la cubre la mascota + voz de ARIA.
+
+## 25. La ARIA vieja seguía abriéndose (18-nov)
+- Causa: el arranque de Windows apuntaba a `dist\ARIA OS.exe` (la copia de septiembre). `arranque_pc.py` lo arregla, pero solo corre cuando se abre la ARIA NUEVA, y al prender la PC se abría la vieja: nunca llegaba a correr.
+- Arreglo directo: reemplacé `dist\ARIA OS.exe` (136 MB, la vieja) por un lanzador de 60 KB (`scripts/windows/lanzador_aria.c`, compilado con zig para Windows, sin consola) que abre la ARIA nueva. Al prender la PC se abre la nueva → `arranque_pc` cambia el arranque a `aria_main.py`, crea «ARIA» en Inicio y manda el lanzador a la Papelera.
+- `arranque_pc` ahora también apaga lo viejo de AURA que arranca con Windows: valores de Run que apuntan a la carpeta AURA (no a aria_main; se guardan en `data/arranques_viejos.json`), accesos de la carpeta Inicio (Papelera) y tareas programadas (se DESACTIVAN, reversible).
+- Tras cada actualización, ARIA corre `arranque_pc` y `limpieza_pc` sin esperar a reiniciar.
+- `aria/data/` ya no va al repo ni al manifiesto (un `shell_state.json` de pruebas chocaba con el de la PC).

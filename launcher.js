@@ -90,7 +90,18 @@ function frase(d, pct, cargando) {
   if (h < 19) return 'Sigue así, Daniel';
   return 'Buenas noches, Daniel';
 }
-const API = { frase, reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
+// Órdenes para la PC (las hace ARIA por el enlace): «abre spotify en la pc» · «qué tengo abierto en la pc» · «trae chrome en la pc». PURO.
+function ordenPc(t) {
+  const s = String(t || '').trim().replace(/[.!?¿¡]+$/g, '').replace(/^[¿¡]+/, '');
+  const n = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/^(?:que tengo abierto|que ventanas (?:tengo|hay)(?: abiertas)?|ventanas)(?: en (?:la|mi) (?:pc|compu(?:tadora)?|laptop))$/.test(n)) return { accion: 'ventanas' };
+  let m = n.match(/^(?:abre|abreme|lanza|inicia)\s+(.{2,40}?)\s+en (?:la|mi) (?:pc|compu(?:tadora)?|laptop)$/);
+  if (m && !/https?|www\.|\.com/.test(m[1])) return { accion: 'abrir', q: m[1].trim() };
+  m = n.match(/^(?:trae|ve a|pon al frente)\s+(.{2,40}?)\s+en (?:la|mi) (?:pc|compu(?:tadora)?|laptop)$/);
+  if (m) return { accion: 'enfocar', q: m[1].trim() };
+  return null;
+}
+const API = { ordenPc, frase, reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
 

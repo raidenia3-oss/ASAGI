@@ -1108,6 +1108,22 @@ chatForm.addEventListener('submit', (event) => {
     const ci = !reesc && IN && IN.parsear(text);
     if (ci) { IN.ejecutar(ci, tareaDecir()).catch((e) => appendMessage('bot', '📦 No pude: ' + ((e && e.message) || e))); return; }
   }
+  // La PC como extensión del celular: «abre spotify en la pc» · «qué tengo abierto en la pc» (lo hace ARIA; nunca cierra nada)
+  {
+    const c = !reesc && window.AsagiLauncher && window.AsagiLauncher.ordenPc(text);
+    if (c) {
+      const decir = tareaDecir(), cli = window._asagiLan;
+      if (!cli) { decir('🖥 Necesito el enlace con ARIA (WiFi o cable). En la PC di «enlace pc».'); return; }
+      decir('🖥 Le pido a ARIA…');
+      cli.enviar({ t: 'pc', accion: c.accion, q: c.q || '' }).then((r) => {
+        const x = r && r.ok && r.resp;
+        if (!x) { decir('🖥 ARIA no respondió. ¿Está abierta en la PC?'); return; }
+        if (c.accion === 'ventanas') { const vs = x.ventanas || []; decir(vs.length ? '🖥 Abierto en tu PC:\n' + vs.slice(0, 12).map((v) => '• ' + String(v).slice(0, 70)).join('\n') + '\nPara traer una: «trae chrome en la pc».' : '🖥 No hay otras ventanas abiertas en tu PC.'); return; }
+        decir('🖥 ' + (x.texto || (x.ok ? 'Listo.' : 'No encontré eso en tu PC.')));
+      }).catch((e) => decir('🖥 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
+      return;
+    }
+  }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
   {
     const VG = window.AsagiVigia, c = !reesc && VG && VG.parsear(text);

@@ -36,9 +36,10 @@
     "020c2af3df1ef90d4a25c2511bd7e778af0df127c613bcf397f10b8a66bf9878",
     "5c7f2221854be0c0c71b49928a788d55c71b6deb55a460362749ae09feac5b08",
     "76423ea183cf8caad13b4da82394e183d5fb1f04d310b8371daa191dae562e89",
-    "d224371aac2680a815f4359e8c607344f41f574b4da3db64f24b102562d608e2"
+    "d224371aac2680a815f4359e8c607344f41f574b4da3db64f24b102562d608e2",
+    "3e99dfcb2c33b08cf82678a43931107e12249a4beafd4eb110e6ede0abcc3143"
    ],
-   "sha256": "3e99dfcb2c33b08cf82678a43931107e12249a4beafd4eb110e6ede0abcc3143"
+   "sha256": "5775d509ca5e7f47be410751adb7c48d57c29730a06e2cc5c2c079fc0d88a1ea"
   },
   "bots_agenda.py": {
    "previos": [
@@ -69,6 +70,10 @@
    ],
    "sha256": "010ca4071f610d2202ff65e96869367e8bc00254b71816b5f9c9a84d4c128399"
   },
+  "data/shell_state.json": {
+   "previos": [],
+   "sha256": "d9d4f257680d37b3daaaff60cb4734322eefe91bd6b199a7e866e718d1425307"
+  },
   "dictado_pc.py": {
    "previos": [
     "85c5afc60380be3093c7f4538f98a62d73be5431d9fed0720a74aab99b17fe75"
@@ -85,6 +90,10 @@
   "ensenar.py": {
    "previos": [],
    "sha256": "c342df0c3f7ba428915b44596eb1964ec6c019b989216696ce02f610f3de62a6"
+  },
+  "escritorio.py": {
+   "previos": [],
+   "sha256": "dc22941c1b773a805a405bdc5d88dc11d47b1610a294b4817ac9ccafff4c38f3"
   },
   "extras_pc.py": {
    "previos": [],
@@ -177,6 +186,10 @@
    ],
    "sha256": "43c51ae089702d0a9ab11358fbc1243302c5f0fa874e48f818a92a597c21d4fd"
   },
+  "ui/escritorio_ui.py": {
+   "previos": [],
+   "sha256": "530398ec91a06ea0c1a9e5f53c640b29dcb23229ecefea8959a099850fed4856"
+  },
   "ui/isla.py": {
    "previos": [],
    "sha256": "027419333ba1edafd09a4856e7f83593814b567b4066a7f8e00021a42a33addb"
@@ -193,7 +206,6 @@
   },
   "ui_shell.py": {
    "previos": [
-    "6aba95d91b50d7ef80835c811262e0e2dee9f1d45d74acf89ac07fa40dff15c2",
     "6a3deb7df058bd5b2dfcd91cf43182bc5f7ca3869d8967829a162853ffd3c80e",
     "228357a05cdc383f952fe34707559e397455e56a221e79119ba95ecb38512b98",
     "49750588c760eb7ace1329ac1ef77047d5d9c81f1d1da920aa57b3372b0cb090",
@@ -212,9 +224,10 @@
     "348cbfee018350f863015984acdd4492a49fc97fe127ed2a49a911d6469c0f58",
     "e9cb47b6e87f634078654662b271a72bb1985c2acfaf62b48026a7a07ca35c91",
     "dde9f0a4a028edbfd3f6d3959bd99b6158be14fef08f01950e0ca1775df840e7",
-    "43a6e4d4684766ad3eb58f5c7c87911857490492b66910e68e61755673f74d51"
+    "43a6e4d4684766ad3eb58f5c7c87911857490492b66910e68e61755673f74d51",
+    "0b39b99c48a679f37c52a2ecaeaacc3991aa71378b3886582494ccfcfa7f5730"
    ],
-   "sha256": "0b39b99c48a679f37c52a2ecaeaacc3991aa71378b3886582494ccfcfa7f5730"
+   "sha256": "95a101f7aed511a395d737b28c46fceff4e6a978dac12d43ad58231e6330fabd"
   },
   "voz_local.py": {
    "previos": [

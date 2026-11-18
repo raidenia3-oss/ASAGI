@@ -28,7 +28,9 @@ try:
                              QRadialGradient, QPolygonF, QPixmap, QTextCursor, QFont)
     from PyQt5.QtWidgets import (QWidget, QApplication, QVBoxLayout, QHBoxLayout,
                                  QGridLayout, QTextEdit, QLineEdit, QLabel, QPushButton,
-                                 QFrame, QScrollArea, QGraphicsDropShadowEffect)
+                                 QFrame, QScrollArea, QGraphicsDropShadowEffect,
+                                 QStackedWidget, QShortcut)
+    from PyQt5.QtGui import QKeySequence
     _QT = True
 except Exception:
     _QT = False
@@ -707,6 +709,7 @@ if _QT:
                 print("[UI] extras: %s" % exc, flush=True)
 
         AYUDA = ("Esto sé hacer (escríbelo así):\n"
+                 "• Mi escritorio: arriba 1 Chat · 2 Apps · 3 Archivos · 4 Ventanas (Ctrl+1..4) · «abre spotify» · «ve a chrome»\n"
                  "• «busca en la web …», «navega a …», «resume este video <enlace de YouTube>»\n"
                  "• «revisa mi correo» · «fondo de lluvia» · «fondo» (tu foto) · «sonido de lluvia»\n"
                  "• «crea una web de …», «mis webs», «edita la web …: …», «publica la web …»\n"
@@ -1258,21 +1261,79 @@ if _QT:
             root = QVBoxLayout(self); root.setContentsMargins(18, 12, 18, 12); root.setSpacing(12)
             root.addLayout(self._polybar())
             fila = QHBoxLayout(); fila.setSpacing(12)
-            fila.addLayout(self._centro(), 1)
+            # escritorio propio: 1 Chat · 2 Apps · 3 Archivos · 4 Ventanas (pestañas arriba o Ctrl+1..4)
+            self._pila = QStackedWidget(); self._pila.setStyleSheet("background:transparent;")
+            chat = QWidget(); chat.setLayout(self._centro()); chat.layout().setContentsMargins(0, 0, 0, 0)
+            self._pila.addWidget(chat)
+            try:
+                from ui.escritorio_ui import PaginaApps, PaginaArchivos, PaginaVentanas
+                decir = lambda txt: self._linea(txt, "sys")
+                self._pila.addWidget(PaginaApps(decir, self._preguntar_desde_apps))
+                self._pila.addWidget(PaginaArchivos(decir))
+                self._pila.addWidget(PaginaVentanas(decir))
+            except Exception as exc:
+                self._linea("escritorio no disponible: %s" % exc, "sys")
+            for i in range(4):
+                QShortcut(QKeySequence("Ctrl+%d" % (i + 1)), self, activated=lambda i=i: self._ir_pestana(i))
+            fila.addWidget(self._pila, 1)
             fila.addLayout(self._widgets(), 0)
             root.addLayout(fila, 1)
             root.addLayout(self._dock())
             self._pintar_toggles()
+            self._ir_pestana(0)
 
         def _polybar(self):
             bar = QHBoxLayout(); bar.setSpacing(10)
-            ws = QLabel("● 1  2  3  4"); ws.setStyleSheet("color:%s;font:700 11px '%s';letter-spacing:2px;" % (CYAN, MONO))
+            ws = QHBoxLayout(); ws.setSpacing(4)
+            self._pestanas = []
+            for i, nom in enumerate(("Chat", "Apps", "Archivos", "Ventanas")):
+                b = QPushButton("%d %s" % (i + 1, nom)); b.setCursor(Qt.PointingHandCursor); b.setToolTip("Ctrl+%d" % (i + 1))
+                b.clicked.connect(lambda _=False, i=i: self._ir_pestana(i))
+                self._pestanas.append(b); ws.addWidget(b)
             tit = QLabel("ARIA // SYSTEM"); tit.setStyleSheet("color:%s;font:700 12px '%s';letter-spacing:3px;" % (TXT, MONO))
             self._lbl_sys = QLabel(""); self._lbl_sys.setStyleSheet("color:%s;font:11px '%s';" % (TEAL, MONO))
             self._lbl_rel = QLabel(""); self._lbl_rel.setStyleSheet("color:%s;font:700 12px '%s';" % (CYAN, MONO))
-            bar.addWidget(ws); bar.addStretch(1); bar.addWidget(tit); bar.addStretch(1)
+            bar.addLayout(ws); bar.addStretch(1); bar.addWidget(tit); bar.addStretch(1)
             bar.addWidget(self._lbl_sys); bar.addSpacing(14); bar.addWidget(self._lbl_rel)
             return bar
+
+        def _ir_pestana(self, i):
+            if not hasattr(self, "_pila") or i >= self._pila.count():
+                return
+            self._pila.setCurrentIndex(i)
+            for j, b in enumerate(getattr(self, "_pestanas", [])):
+                on = j == i
+                b.setStyleSheet("QPushButton{background:%s;color:%s;border:1px solid %s;border-radius:9px;font:700 11px '%s';padding:4px 10px;}"
+                                "QPushButton:hover{color:#FFD700;border:1px solid #FFD700;}" % (
+                                    "rgba(220, 20, 60, 0.28)" if on else "transparent", "#FFD700" if on else "rgba(240, 240, 248, 0.6)",
+                                    "#DC143C" if on else "rgba(255, 215, 0, 0.18)", MONO))
+            if i == 0:
+                self.entrada.setFocus()
+
+        def _preguntar_desde_apps(self, t):
+            self._ir_pestana(0); self.entrada.setText(t); self._enviar()
+
+        def _cmd_escritorio(self, t):
+            """«apps» · «mis archivos» · «ventanas» · «abre spotify» · «ve a chrome»."""
+            try:
+                import escritorio
+            except Exception:
+                return False
+            acc = escritorio.manejar(t)
+            if not acc:
+                return False
+            if acc[0] == "pestana":
+                self.entrada.clear(); self._ir_pestana({"apps": 1, "archivos": 2, "ventanas": 3}[acc[1]]); return True
+            pag = self._pila.widget(1) if hasattr(self, "_pila") and self._pila.count() > 1 else None
+            apps = getattr(pag, "apps", None) or None
+            try:
+                r = escritorio.responder(acc, apps)
+            except Exception:
+                r = None
+            if r is None:
+                return False            # no hay app/ventana con ese nombre: que lo piense ARIA
+            self.entrada.clear(); self._linea(t, "user"); self._linea(r, "aria")
+            return True
 
         def _centro(self):
             col = QVBoxLayout(); col.setSpacing(10)
@@ -1719,6 +1780,8 @@ if _QT:
             if _re.match(r"^(?:mascota|modo mascota)$", t.strip(), _re.I):
                 self.entrada.clear(); self._toggle("mascota"); return
             if self._cmd_ayuda(t):
+                return
+            if self._cmd_escritorio(t):
                 return
             if self._cmd_habilidades(t):
                 return

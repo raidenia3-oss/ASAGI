@@ -855,6 +855,18 @@ class LocalAIBrain:
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
                 return {"ok": False}
+            if c.get("t") == "pc":               # ASAGI usa la PC: abrir una app, ver ventanas, traer una al frente (nunca cerrar)
+                try:
+                    import escritorio as _es
+                    acc = c.get("accion")
+                    if acc == "ventanas":
+                        return {"ok": True, "ventanas": [v["titulo"] for v in _es.ventanas() if not v["propia"]][:15]}
+                    if acc in ("abrir", "enfocar") and str(c.get("q") or "").strip():
+                        r = _es.responder((acc, str(c["q"])[:40]))
+                        return {"ok": True, "texto": r or ("No encontré «%s» en tu PC." % str(c["q"])[:40])}
+                    return {"ok": False}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "correo":           # ASAGI pide el último resumen del correo (nunca correos completos)
                 try:
                     import correo as _co

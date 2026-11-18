@@ -237,3 +237,13 @@ Hecho:
 Pendiente (pedir permiso a Daniel, son dependencias nuevas): whisper.cpp para subtítulos en la PC; yt-dlp para descargas (cuidar las reglas de cada sitio).
 Descartado: Postiz (publica en redes; regla 9).
 Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para linterna, wifi, bluetooth, brillo, música, alarma), con las acciones nativas que ASAGI ya tiene.
+
+## 18. ARIA como launcher + mini sistema operativo (17-nov, noche)
+- `aria/escritorio.py` (lógica pura + Windows por ctypes, sin dependencias) y `aria/ui/escritorio_ui.py` (pestañas).
+- El Shell tiene pestañas reales arriba: **1 Chat · 2 Apps · 3 Archivos · 4 Ventanas** (clic o Ctrl+1..4).
+  - Apps: lee el menú Inicio (.lnk) con iconos reales de Windows; buscador (spo→Spotify, vsc→Visual Studio Code), Enter abre la primera; favoritas = fijadas + más abiertas; clic derecho fija u oculta.
+  - Archivos: carpetas de siempre + Recientes de Windows. Ventanas: lista lo abierto y lo trae al frente. **Nunca cierra nada** (regla 7).
+  - Chat: «apps», «mis archivos», «ventanas», «abre spotify», «ve a chrome». Si no hay app con ese nombre, sigue al cerebro.
+- ASAGI → ARIA: «abre spotify en la pc», «qué tengo abierto en la pc», «trae chrome en la pc» (mensaje `{t:'pc'}` por el enlace; `AsagiLauncher.ordenPc` es pura y está probada).
+- Captura sin pantalla de una pestaña: `ARIA_PESTANA=1 QT_QPA_PLATFORM=offscreen python3 scripts/aria_captura.py x.png` (con `ProgramData=<carpeta falsa>` para simular apps).
+- Falta en la PC real: iconos reales, abrir apps, traer ventanas al frente, «abre … en la pc» desde el celular.

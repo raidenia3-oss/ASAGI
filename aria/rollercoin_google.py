@@ -108,12 +108,110 @@ def estado():
     return {"status": "sin_sesion", "texto": "No veo la sesión iniciada. Di «conecta rollercoin» y entra con «Log in With Google»."}
 
 
+# ── Tablero (SOLO LECTURA) ───────────────────────────────────────────────────────────────────────
+# ARIA entra con tu sesión, LEE lo que se ve en tu cuenta (poder, saldos) y lleva un historial para decirte cuánto
+# cambió. No juega, no hace clic en nada, no compra ni retira: RollerCoin prohíbe los bots de juego y te pueden
+# cerrar la cuenta; por eso esto solo mira y te avisa.
+HISTORIAL = os.path.join(_DIR, "data", "rollercoin_historial.json")
+_UNIDADES = {"h/s": 1.0, "kh/s": 1e3, "mh/s": 1e6, "gh/s": 1e9, "th/s": 1e12, "ph/s": 1e15, "eh/s": 1e18, "zh/s": 1e21}
+_MONEDAS = ("RLT", "RST", "BTC", "ETH", "DOGE", "BNB", "MATIC", "POL", "SOL", "TRX", "LTC", "XRP", "USDT")
+
+
+def leer_tablero(texto):
+    """Texto visible de la página -> {'poder': (valor, unidad) | None, 'poder_hs': float | None, 'saldos': {moneda: float}}. PURO."""
+    import re
+    t = " ".join(str(texto or "").split())
+    poder, hs = None, None
+    for m in re.finditer(r"(\d[\d.,]*)\s*([KMGTPEZ]?h/s)", t, re.I):          # el mayor que se vea = tu poder total
+        try:
+            v = float(m.group(1).replace(",", "")) if m.group(1).count(",") != 1 or "." in m.group(1) else float(m.group(1).replace(",", "."))
+        except ValueError:
+            continue
+        x = v * _UNIDADES.get(m.group(2).lower(), 1.0)
+        if hs is None or x > hs:
+            hs, poder = x, (v, m.group(2))
+    saldos = {}
+    for mon in _MONEDAS:
+        m = re.search(r"(\d+(?:[.,]\d+)?)\s*%s\b" % mon, t)
+        if m:
+            try:
+                saldos[mon] = float(m.group(1).replace(",", "."))
+            except ValueError:
+                pass
+    return {"poder": poder, "poder_hs": hs, "saldos": saldos}
+
+
+def comparar(antes, ahora):
+    """Dos lecturas -> frases de qué cambió. PURO."""
+    out = []
+    if antes and antes.get("poder_hs") and ahora.get("poder_hs"):
+        d = (ahora["poder_hs"] - antes["poder_hs"]) / antes["poder_hs"] * 100.0
+        if abs(d) >= 0.5:
+            out.append("tu poder %s %.1f%%" % ("subió" if d > 0 else "BAJÓ", abs(d)))
+    for mon, v in (ahora.get("saldos") or {}).items():
+        a = ((antes or {}).get("saldos") or {}).get(mon)
+        if a is not None and abs(v - a) > 1e-12:
+            out.append("%s %s%.8g" % (mon, "+" if v > a else "", v - a))
+    return out
+
+
+def tablero():
+    """Lee tu cuenta (sin ventana, sin tocar nada) y guarda el historial. -> dict con 'texto'."""
+    import json
+    if not os.path.isdir(PERFIL):
+        return {"status": "sin_conectar", "texto": "RollerCoin no está conectado. Di «conecta rollercoin»."}
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            ctx = abrir_contexto(p, headless=True)
+            page = ctx.pages[0] if ctx.pages else ctx.new_page()
+            page.goto(URL_JUEGO, wait_until="domcontentloaded", timeout=45000)
+            page.wait_for_timeout(9000)
+            final, texto = page.url, page.inner_text("body")[:20000]
+            ctx.close()
+    except Exception as exc:
+        msg = str(exc)
+        if "already in use" in msg.lower() or "lock" in msg.lower():
+            return {"status": "ocupado", "texto": "Cierra la ventana de Chrome de RollerCoin y vuelvo a mirar."}
+        return {"status": "error", "error": msg[:300]}
+    if not logueado_en(final):
+        return {"status": "sin_sesion", "texto": "La sesión de RollerCoin venció. Di «conecta rollercoin» y entra con Google."}
+    d = leer_tablero(texto)
+    if not d["poder"] and not d["saldos"]:
+        return {"status": "sin_datos", "texto": "Entré a tu cuenta pero no reconocí los números (la página cambió). Avísale a Claude para ajustar el lector."}
+    hist = []
+    try:
+        hist = json.load(open(HISTORIAL, encoding="utf-8"))
+    except Exception:
+        pass
+    ayer = next((h for h in reversed(hist) if time.time() - h.get("ts", 0) > 20 * 3600), hist[0] if hist else None)
+    d["ts"] = int(time.time())
+    hist.append({"ts": d["ts"], "poder_hs": d["poder_hs"], "saldos": d["saldos"]})
+    try:
+        os.makedirs(os.path.dirname(HISTORIAL), exist_ok=True)
+        json.dump(hist[-400:], open(HISTORIAL, "w", encoding="utf-8"))
+    except Exception:
+        pass
+    partes = []
+    if d["poder"]:
+        partes.append("Poder: %g %s" % d["poder"])
+    if d["saldos"]:
+        partes.append("Saldos: " + " · ".join("%s %.8g" % (k, v) for k, v in d["saldos"].items()))
+    cambios = comparar(ayer, d)
+    partes.append("Desde la última vez: " + (", ".join(cambios) if cambios else "sin cambios") + "." if ayer else "Primera lectura: desde ahora llevo tu historial.")
+    return {"status": "ok", "texto": "RollerCoin (solo miro, no juego ni toco nada):\n" + "\n".join(partes), "datos": d}
+
+
 def manejar(t):
-    """Comando de chat. -> None si no es para este módulo, o 'conectar' | 'estado'."""
+    """Comando de chat. -> None si no es para este módulo, o 'conectar' | 'estado' | 'tablero'."""
     n = (t or "").strip().lower().rstrip(".!?")
     if n in ("conecta rollercoin", "conectar rollercoin", "rollercoin con google", "login rollercoin",
              "inicia sesion en rollercoin", "inicia sesión en rollercoin", "entra a rollercoin con google"):
         return "conectar"
+    n2 = n.lstrip("¿").strip()
+    if n2 in ("rollercoin", "como va rollercoin", "cómo va rollercoin", "tablero rollercoin", "mi rollercoin", "cuanto tengo en rollercoin",
+              "cuánto tengo en rollercoin", "resumen rollercoin", "mi poder en rollercoin"):
+        return "tablero"
     if n in ("estado rollercoin", "rollercoin conectado", "esta conectado rollercoin", "¿esta conectado rollercoin"):
         return "estado"
     return None

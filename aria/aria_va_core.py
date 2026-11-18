@@ -725,6 +725,22 @@ class LocalAIBrain:
             pass
         reglas = _reglas_para_el_modelo()
         sistema = self.system_prompt + (("Reglas del usuario:\n" + reglas) if reglas else "")
+        # instintos (hábitos de Daniel) que vienen de ASAGI: solo los de confianza >= 0,5
+        try:
+            _pi = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "instintos.json")
+            if os.path.isfile(_pi):
+                _hab = [i["accion"] for i in json.load(open(_pi, encoding="utf-8")) if float(i.get("confianza") or 0) >= 0.5][:8]
+                if _hab:
+                    sistema += "\nHabitos que aprendiste de Daniel (siguelos): " + "; ".join(_hab)
+        except Exception:
+            pass
+        # perfil que Daniel contó en la entrevista de ASAGI («entrevístame»): ARIA también lo conoce
+        try:
+            _pf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "perfil_corto.txt")
+            if os.path.isfile(_pf):
+                sistema += "\n" + open(_pf, encoding="utf-8").read()[:700]
+        except Exception:
+            pass
         # (a) Guia social: consejo del sandbox para la emocion detectada
         try:
             from social_skills import detect_emotion as _de
@@ -855,6 +871,75 @@ class LocalAIBrain:
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
                 return {"ok": False}
+            if c.get("t") == "traspaso":         # ASAGI pasa la charla a la PC («sigue en la pc»): ARIA la recibe como CONTEXTO
+                try:
+                    _d = os.path.join(ARIA_APP, "data"); os.makedirs(_d, exist_ok=True)
+                    paq = {"de": "ASAGI", "ts": int(time.time()), "tema": str(c.get("tema") or "")[:200],
+                           "charla": [{"rol": str(m.get("rol"))[:10], "texto": str(m.get("texto") or "")[:500]} for m in (c.get("charla") or [])[:10] if isinstance(m, dict)]}
+                    json.dump(paq, open(os.path.join(_d, "traspaso_entrante.json"), "w", encoding="utf-8"), ensure_ascii=False)
+                    return {"ok": True}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "traspaso_traer":   # ASAGI pide lo que ARIA dejó para el celular
+                try:
+                    _f = os.path.join(ARIA_APP, "data", "traspaso_saliente.json")
+                    paq = json.load(open(_f, encoding="utf-8")) if os.path.isfile(_f) else None
+                    if paq:
+                        os.replace(_f, _f + ".entregado")
+                    return {"ok": True, "paquete": paq}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "instintos":        # hábitos que ASAGI aprendió de Daniel: ARIA los guarda, los usa y devuelve los suyos
+                try:
+                    _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+                    os.makedirs(_d, exist_ok=True)
+                    _ruta = os.path.join(_d, "instintos.json")
+                    try:
+                        _prev = json.load(open(_ruta, encoding="utf-8"))
+                    except Exception:
+                        _prev = []
+                    _por = {i.get("id"): i for i in _prev if isinstance(i, dict)}
+                    for i in (c.get("lista") or [])[:60]:
+                        if isinstance(i, dict) and i.get("id"):
+                            _por[str(i["id"])[:80]] = {"id": str(i["id"])[:80], "accion": str(i.get("accion") or "")[:160],
+                                                       "dominio": str(i.get("dominio") or "")[:20], "confianza": float(i.get("confianza") or 0.3)}
+                    json.dump(list(_por.values()), open(_ruta, "w", encoding="utf-8"), ensure_ascii=False)
+                    return {"ok": True, "lista": list(_por.values())}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "perfil":           # ASAGI terminó la entrevista «conóceme»: ARIA guarda el perfil (es de Daniel)
+                try:
+                    _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+                    os.makedirs(_d, exist_ok=True)
+                    open(os.path.join(_d, "perfil_daniel.md"), "w", encoding="utf-8").write(str(c.get("doc") or "")[:8000])
+                    open(os.path.join(_d, "perfil_corto.txt"), "w", encoding="utf-8").write(str(c.get("corto") or "")[:700])
+                    return {"ok": True}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "musa":             # ASAGI: qué aprendió ARIA de las redes / que estudie un tema
+                try:
+                    import musa as _mu
+                    if c.get("accion") == "estudiar" and str(c.get("q") or "").strip():
+                        q = str(c["q"])[:60]
+                        d = _mu.leer()
+                        if q not in d["temas"]:
+                            d["temas"].append(q); d["estudiado"].pop(q, None); _mu.guardar(d)
+                        return {"ok": True, "texto": "Lo anoté: ARIA estudia «%s» en cuanto la PC esté libre (y luego cada día)." % q}
+                    return {"ok": True, "notas": _mu.ultimas(10), "temas": _mu.leer()["temas"]}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+            if c.get("t") == "pc":               # ASAGI usa la PC: abrir una app, ver ventanas, traer una al frente (nunca cerrar)
+                try:
+                    import escritorio_pc as _es
+                    acc = c.get("accion")
+                    if acc == "ventanas":
+                        return {"ok": True, "ventanas": [v["titulo"] for v in _es.ventanas() if not v["propia"]][:15]}
+                    if acc in ("abrir", "enfocar") and str(c.get("q") or "").strip():
+                        r = _es.responder((acc, str(c["q"])[:40]))
+                        return {"ok": True, "texto": r or ("No encontré «%s» en tu PC." % str(c["q"])[:40])}
+                    return {"ok": False}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "correo":           # ASAGI pide el último resumen del correo (nunca correos completos)
                 try:
                     import correo as _co
@@ -868,6 +953,30 @@ class LocalAIBrain:
                     return {"ok": True, "lista": [x for x in _pj.cargar() if x.get("creado")][-4:]}   # solo los creados (cabe en 64 KB)
                 except Exception:
                     return {"ok": False}
+            if c.get("t") == "latido":           # ASAGI cuenta cómo está (batería, pendientes) y ARIA responde cómo está ella
+                try:
+                    import json as _j
+                    os.makedirs(os.path.join(ARIA_APP, "data"), exist_ok=True)
+                    pend = [{"texto": str(p.get("texto", ""))[:80], "cuando": p.get("cuando")} for p in (c.get("pendientes") or [])[:6] if isinstance(p, dict)]
+                    with open(os.path.join(ARIA_APP, "data", "asagi_estado.json"), "w", encoding="utf-8") as f:
+                        _j.dump({"ts": int(time.time()), "bateria": c.get("bateria"), "cargando": bool(c.get("cargando")), "pendientes": pend, "total": c.get("total")}, f, ensure_ascii=False)
+                except Exception:
+                    pass
+                try:
+                    import bots_agenda as _ba
+                    e = _ba.resumen_estado(_ba.Agenda().bots())
+                except Exception:
+                    e = {"activos": 0, "proximo": None, "lista": []}
+                e["ocupada"] = bool(getattr(self, "_gen_lock", None) and self._gen_lock.locked())
+                _out = {"ok": True, "aria": e}
+                try:      # si ARIA dejó algo para el celular, va con el latido (una sola vez)
+                    _f = os.path.join(ARIA_APP, "data", "traspaso_saliente.json")
+                    if os.path.isfile(_f):
+                        _out["traspaso"] = json.load(open(_f, encoding="utf-8"))
+                        os.replace(_f, _f + ".entregado")
+                except Exception:
+                    pass
+                return _out
             if c.get("t") == "estado":           # ASAGI pregunta qué agentes tiene activos ARIA
                 try:
                     import bots_agenda as _ba
@@ -1042,6 +1151,23 @@ class LocalAIBrain:
         except Exception as exc:
             self._lan_srv = None
             print("[VA] Enlace ASAGI directo no arranco: %s" % exc, flush=True)
+        # que al prender la PC (y en el menú Inicio) se abra ESTA ARIA y no el .exe viejo de septiembre
+        def _arranque():
+            try:
+                import arranque_pc
+                for x in arranque_pc.arreglar():
+                    print("[VA] Arreglado: %s" % x, flush=True)
+                import limpieza_pc
+                n = limpieza_pc.limpiar()
+                if n:
+                    print("[VA] Limpieza: %d archivos viejos a la Papelera" % n, flush=True)
+                import ordenar_pc
+                m, f = ordenar_pc.ordenar()
+                if m or f:
+                    print("[VA] Orden de AURA: %d movidos a _archivo_viejo, %d no se pudieron" % (m, f), flush=True)
+            except Exception as exc:
+                print("[VA] arranque_pc: %s" % exc, flush=True)
+        threading.Thread(target=_arranque, daemon=True).start()
 
     def _enlace_disponible(self):
         if _ENLACE_ADB_OK and _enlace_adb is not None and _enlace_adb.disponible():
@@ -1228,7 +1354,8 @@ class LocalAIBrain:
         if any(g in lower for g in ["gracias", "thanks"]):
             return "De nada. ¿En qué más puedo ayudarte?"
         if any(g in lower for g in ["hora", "qué hora", "fecha", "qué día"]):
-            return datetime.now().strftime("Son las %H:%M del %d/%m/%Y.")
+            _n = datetime.now()
+            return "Son las %d:%02d %s del %s." % (_n.hour % 12 or 12, _n.minute, "a. m." if _n.hour < 12 else "p. m.", _n.strftime("%d/%m/%Y"))
         if any(g in lower for g in ["ayuda", "help", "comandos"]):
             return (
                 "Puedo hablar contigo, gestionar archivos, memoria, notas, "

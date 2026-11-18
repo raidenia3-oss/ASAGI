@@ -121,10 +121,10 @@ await ev("setActiveSection('assistant')"); await sleep(800);
 // 3. Tocar la barra de escribir: sale el teclado; la barra tiene que seguir a la vista
 await toque('#message-input');
 await sleep(1800);
-const tec = await ev(`(() => { const c = document.querySelector('.composer') || document.getElementById('message-input'); const r = c.getBoundingClientRect();
-  return { H: innerHeight, abajo: Math.round(r.bottom), foco: document.activeElement && document.activeElement.id }; })()`);
+const tec = (await ev(`(() => { const c = document.querySelector('.composer') || document.getElementById('message-input'); const r = c.getBoundingClientRect();
+  return { H: innerHeight, abajo: Math.round(r.bottom), foco: document.activeElement && document.activeElement.id }; })()`)) || { H: '?', abajo: '?' };
 const tecladoVisible = /mInputShown=true|mIsInputViewShown=true/.test(adb('shell dumpsys input_method'));
-out(`- Teclado: ${tecladoVisible ? 'abierto' : 'no se abrió'}; la app mide ${tec.H}px de alto; barra de escribir termina en ${tec.abajo}px → ${tec.abajo <= tec.H ? 'a la vista ✓' : 'TAPADA por el teclado ✗'}`);
+out(`- Teclado: ${tecladoVisible ? 'abierto' : 'no se abrió'}; la app mide ${tec.H}px de alto; barra de escribir termina en ${tec.abajo}px → ${tec.H === '?' ? 'no pude medir (la app se cerró o perdí la conexión)' : tec.abajo <= tec.H ? 'a la vista ✓' : 'TAPADA por el teclado ✗'}`);
 foto('p03_teclado');
 adb('shell input text "hola%sASAGI%squé%shora%ses"'.replace(/é/g, 'e'));
 adb('shell input keyevent 66');

@@ -665,6 +665,8 @@ if _QT:
             QTimer.singleShot(60000, self._correo_auto)
             self._correo_t = QTimer(self); self._correo_t.timeout.connect(self._correo_auto); self._correo_t.start(3 * 3600 * 1000)
             self._actu_t = QTimer(self); self._actu_t.timeout.connect(self._auto_actualizar); self._actu_t.start(6 * 3600 * 1000)
+            self._musa_t = QTimer(self); self._musa_t.timeout.connect(self._musa_diaria); self._musa_t.start(3 * 3600 * 1000)   # estudia sola sus temas
+            QTimer.singleShot(4 * 60 * 1000, self._musa_diaria)     # y una vez poco después de abrir
             if self.toggles.get("mascota"):
                 QTimer.singleShot(1200, lambda: self._mascota_visible(True))
             if self.toggles.get("isla"):
@@ -709,6 +711,7 @@ if _QT:
                 print("[UI] extras: %s" % exc, flush=True)
 
         AYUDA = ("Esto sé hacer (escríbelo así):\n"
+                 "• Aprender de redes: «estudia <tema>», «estudia mi youtube» (antes «conecta google»), «qué aprendiste», «dame ideas de …», «estudia siempre …»\n"
                  "• Mi escritorio: arriba 1 Chat · 2 Apps · 3 Archivos · 4 Ventanas (Ctrl+1..4) · «abre spotify» · «ve a chrome»\n"
                  "• «busca en la web …», «navega a …», «resume este video <enlace de YouTube>»\n"
                  "• «revisa mi correo» · «fondo de lluvia» · «fondo» (tu foto) · «sonido de lluvia»\n"
@@ -1104,6 +1107,69 @@ if _QT:
                     decir("⚠ Navegador: %s" % exc)
             _th.Thread(target=_h, daemon=True).start()
             return True
+
+        def _cmd_musa(self, t):
+            """Musa: «estudia <tema>» · «estudia mi youtube» · «qué aprendiste» · «dame ideas de …» · «estudia siempre …»."""
+            try:
+                import musa as _mu
+                o = _mu.parsear(t)
+            except Exception:
+                return False
+            if not o:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            acc = o["accion"]
+            if acc == "aprendido":
+                self._linea(_mu.texto_aprendido(_mu.leer()), "aria"); return True
+            if acc in ("temas", "tema_fijo", "quitar_tema"):
+                self._linea(_mu.temas(acc, o.get("q")), "aria"); return True
+            pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
+            cola = getattr(self, "_bots_cola", None)
+            decir = (lambda x: cola.put(x)) if cola is not None else (lambda x: None)
+            self._linea({"estudiar": "📺 Voy a YouTube a estudiar «%s» (videos + comentarios)…" % o.get("q", ""),
+                         "feed": "📺 Miro tu YouTube (con tu sesión) y estudio lo que te recomienda…",
+                         "url": "🔗 Abro el enlace y aprendo de él…", "ideas": "💡 Cruzo lo que aprendí…"}.get(acc, "…"), "sys")
+            import threading as _th
+
+            def _h():
+                try:
+                    if acc == "estudiar":
+                        decir(_mu.estudiar(o["q"], pensar=pensar, progreso=decir))
+                    elif acc == "feed":
+                        decir(_mu.estudiar(None, pensar=pensar, progreso=decir))
+                    elif acc == "url":
+                        decir(_mu.estudiar_url(o["url"], pensar=pensar))
+                    elif acc == "ideas":
+                        decir(_mu.ideas(o["q"], pensar=pensar))
+                except Exception as exc:
+                    decir("⚠ Musa: %s" % exc)
+            _th.Thread(target=_h, daemon=True).start()
+            return True
+
+        def _musa_diaria(self):
+            """Cada 3 h: si hay un tema fijo sin estudiar hoy y ARIA no está ocupada, estudia 2 videos en silencio."""
+            if getattr(self, "_musa_corriendo", False) or (self._worker is not None and self._worker.isRunning()):
+                return
+            try:
+                import musa as _mu
+                d = _mu.leer()
+                if not _mu.tema_del_dia(d["temas"], d["estudiado"], time.strftime("%Y-%m-%d")):
+                    return
+            except Exception:
+                return
+            pensar = (lambda p: str(self.responder(p) or "")) if callable(self.responder) else None
+            cola = getattr(self, "_bots_cola", None)
+            self._musa_corriendo = True
+            import threading as _th
+
+            def _h():
+                try:
+                    r = _mu.estudio_diario(pensar)
+                    if r and cola is not None:
+                        cola.put(r)
+                finally:
+                    self._musa_corriendo = False
+            _th.Thread(target=_h, daemon=True).start()
 
         def _cmd_correo(self, t):
             try:
@@ -1739,6 +1805,15 @@ if _QT:
                 filas.append(("AGENTES", ("%d programado(s)" % e["activos"]) if e.get("activos") else "ninguno programado · prueba «cada día a las 8 revisa mi correo»"))
             except Exception:
                 pass
+            # «resurgir» (antes una ventana aparte): una idea vieja tuya, una vez por sesión
+            try:
+                if not hasattr(self, "_resurgida"):
+                    import resurgir as _rs
+                    self._resurgida = _rs.para_bandeja()
+                if self._resurgida:
+                    filas.append(("RECUERDA", __import__("html").escape(self._resurgida["titulo"].replace("Recuerda: ", "")[:120])))
+            except Exception:
+                self._resurgida = None
             celdas = "".join('<td width="%d%%" style="padding:10px 12px;border:1px solid rgba(255,217,13,0.25);"><span style="color:%s;font-family:\'%s\';font-size:9px;letter-spacing:2px;">%s</span><br>'
                              '<span style="color:%s;font-family:\'%s\';font-size:12px;">%s</span></td><td width="10"></td>' % (100 // len(filas) - 2, CYAN, MONO, t, PAPEL, MONO, v) for t, v in filas)
             return '<table width="86%%" align="center" cellspacing="0" cellpadding="0" style="margin-top:30px;"><tr>%s</tr></table>' % celdas
@@ -1802,6 +1877,8 @@ if _QT:
             if self._cmd_video(t):
                 return
             if self._cmd_correo(t):
+                return
+            if self._cmd_musa(t):
                 return
             if self._cmd_navegador(t):
                 return

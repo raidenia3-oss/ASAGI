@@ -101,7 +101,15 @@ function ordenPc(t) {
   if (m) return { accion: 'enfocar', q: m[1].trim() };
   return null;
 }
-const API = { ordenPc, frase, reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
+// Lo que ARIA aprende de las redes (Musa, en la PC): «qué aprendió aria» · «aria estudia edición de video». PURO.
+function ordenMusa(t) {
+  const n = String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[.!?¿¡]+/g, '').trim();
+  if (/^(?:que (?:aprendio|ha aprendido|ideas tiene) aria|ideas de aria|cuaderno de aria|que ideas nuevas tiene aria)$/.test(n)) return { accion: 'ideas' };
+  const m = n.match(/^(?:aria,? estudia|que aria estudie|dile a aria que estudie|estudia en la pc)\s+(.{2,60})$/) || n.match(/^estudia\s+(.{2,60}?)\s+en (?:la|mi) (?:pc|compu(?:tadora)?)$/);
+  if (m) return { accion: 'estudiar', q: m[1].trim() };
+  return null;
+}
+const API = { ordenMusa, ordenPc, frase, reloj, hora12, ordenar, filtrar, colorTile, inicial, masUsadas, letra, letras, visibles, favoritas };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiLauncher = API;
 

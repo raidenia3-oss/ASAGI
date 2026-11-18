@@ -39,9 +39,11 @@
     "d224371aac2680a815f4359e8c607344f41f574b4da3db64f24b102562d608e2",
     "3e99dfcb2c33b08cf82678a43931107e12249a4beafd4eb110e6ede0abcc3143",
     "5775d509ca5e7f47be410751adb7c48d57c29730a06e2cc5c2c079fc0d88a1ea",
-    "698bf7ec5d344b06e868120d16cdf3c81bc8e993d7e7dd47dc2dbe08bad0dcba"
+    "698bf7ec5d344b06e868120d16cdf3c81bc8e993d7e7dd47dc2dbe08bad0dcba",
+    "d62bdc7bfaefdc9160355c7fe4a5c91f7d3a701bbf62bcc1283b0662544bcc61",
+    "d7f02c8d6aa07fb7c6403f4be7734d298382d79cc12cad29649823f39451c206"
    ],
-   "sha256": "d62bdc7bfaefdc9160355c7fe4a5c91f7d3a701bbf62bcc1283b0662544bcc61"
+   "sha256": "2bf0ddd730084005bec457087a4f4503e56a7cbeeb9240ff786399e7b5f9c3d9"
   },
   "arranque_pc.py": {
    "previos": [
@@ -82,6 +84,12 @@
    "previos": [],
    "sha256": "d9d4f257680d37b3daaaff60cb4734322eefe91bd6b199a7e866e718d1425307"
   },
+  "desktop_ui.py": {
+   "previos": [
+    "38c3eed85a4211c8004093de7e3ca7188cd79d976015b04f8f79f35da84ef455"
+   ],
+   "sha256": "b6c46b25a0831407dcc1e2ed870bbede7074b28a72db36e3fe54f56653cba1fa"
+  },
   "dictado_pc.py": {
    "previos": [
     "85c5afc60380be3093c7f4538f98a62d73be5431d9fed0720a74aab99b17fe75"
@@ -119,6 +127,10 @@
    "previos": [],
    "sha256": "78ef98fd39feb1bda8af1a06c150283347a8e747a78554fff4deb5c3edc87a39"
   },
+  "limpieza_pc.py": {
+   "previos": [],
+   "sha256": "2ba6edaf65455a1046f8ef5b624dd73403bc0213ff1f8afc2e015e0d758b5501"
+  },
   "manos_pc.py": {
    "previos": [],
    "sha256": "a37bf3c2ef3add9fb2f758a2d54c128612fd401bfedbe31d16fbe1fd37aacb82"
@@ -126,6 +138,10 @@
   "mapa.py": {
    "previos": [],
    "sha256": "3426f07e7947a57a2946bccb55d18376f928464d59ab22a36870608bb3ef72ab"
+  },
+  "musa.py": {
+   "previos": [],
+   "sha256": "2b14719e953a9bf9178e4d755aae1a575dd432e17ab8cb1a47802396050e0aab"
   },
   "navegador-lector.js": {
    "previos": [
@@ -216,8 +232,6 @@
   },
   "ui_shell.py": {
    "previos": [
-    "228357a05cdc383f952fe34707559e397455e56a221e79119ba95ecb38512b98",
-    "49750588c760eb7ace1329ac1ef77047d5d9c81f1d1da920aa57b3372b0cb090",
     "604e28a3d42f2aea28b6abc53b0036d673db9fd4ab5c48dbdc04afab142c43af",
     "c4df375ddae174cf8d7d379530d16061e5a4c836266a1e5c3177615c14105f2a",
     "52040b00031a01a2d287277f9c5e35f1021df8049701b6a4108aafc1ec5a84d3",
@@ -235,9 +249,11 @@
     "dde9f0a4a028edbfd3f6d3959bd99b6158be14fef08f01950e0ca1775df840e7",
     "43a6e4d4684766ad3eb58f5c7c87911857490492b66910e68e61755673f74d51",
     "0b39b99c48a679f37c52a2ecaeaacc3991aa71378b3886582494ccfcfa7f5730",
-    "95a101f7aed511a395d737b28c46fceff4e6a978dac12d43ad58231e6330fabd"
+    "95a101f7aed511a395d737b28c46fceff4e6a978dac12d43ad58231e6330fabd",
+    "1a30c02a37ef498f9e8367f752a6c44d0fe76b73529b584d77bf4fb8ea269f73",
+    "09f58a625fc8f3790517f799aa16ea952da29717acfd3d0aa5800ca95569ddae"
    ],
-   "sha256": "1a30c02a37ef498f9e8367f752a6c44d0fe76b73529b584d77bf4fb8ea269f73"
+   "sha256": "8b4c2808ee8d17459664a9c53358183d0a57db399d669a8736280652c2c46664"
   },
   "voz_local.py": {
    "previos": [

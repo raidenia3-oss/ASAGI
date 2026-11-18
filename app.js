@@ -1131,6 +1131,27 @@ chatForm.addEventListener('submit', (event) => {
       return;
     }
   }
+  // Musa de ARIA: lo que aprendió de YouTube y redes (con la sesión de Google de la PC) · «aria estudia <tema>»
+  {
+    const c = !reesc && window.AsagiLauncher && window.AsagiLauncher.ordenMusa(text);
+    if (c) {
+      const decir = tareaDecir(), cli = window._asagiLan;
+      if (!cli) { decir('📓 Necesito el enlace con ARIA (WiFi o cable). En la PC di «enlace pc».'); return; }
+      decir('📓 Le pregunto a ARIA…');
+      cli.enviar({ t: 'musa', accion: c.accion, q: c.q || '' }).then((r) => {
+        const x = r && r.ok && r.resp;
+        if (!x || x.ok === false) { decir('📓 ARIA no respondió. ¿Está abierta en la PC?'); return; }
+        if (x.texto) { decir('📓 ' + x.texto); return; }
+        const ns = x.notas || [], ico = { ideas: '💡', ganchos: '🎣', la_gente_pide: '🙋', datos: '📌' };
+        try { localStorage.setItem('asagi-ideas-aria', JSON.stringify(ns)); } catch (e) {}
+        const E = window.AsagiEscudo, limpio = (t) => (E ? E.neutralizar(t).texto : t);
+        decir(ns.length ? '📓 Lo último que ARIA aprendió de las redes:\n' + ns.map((n) => (ico[n.tipo] || '•') + ' ' + limpio(n.texto) + (n.tema ? ' (' + n.tema + ')' : '')).join('\n') +
+          ((x.temas || []).length ? '\nEstudia cada día: ' + x.temas.join(', ') + '.' : '') + '\nPara que estudie algo: «aria estudia <tema>».'
+          : '📓 ARIA aún no estudió nada. Dile «aria estudia <tema>» (y en la PC, una vez, «conecta google» para usar tu YouTube).');
+      }).catch((e) => decir('📓 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
+      return;
+    }
+  }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
   {
     const VG = window.AsagiVigia, c = !reesc && VG && VG.parsear(text);

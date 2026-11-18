@@ -855,6 +855,18 @@ class LocalAIBrain:
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
                 return {"ok": False}
+            if c.get("t") == "musa":             # ASAGI: qué aprendió ARIA de las redes / que estudie un tema
+                try:
+                    import musa as _mu
+                    if c.get("accion") == "estudiar" and str(c.get("q") or "").strip():
+                        q = str(c["q"])[:60]
+                        d = _mu.leer()
+                        if q not in d["temas"]:
+                            d["temas"].append(q); d["estudiado"].pop(q, None); _mu.guardar(d)
+                        return {"ok": True, "texto": "Lo anoté: ARIA estudia «%s» en cuanto la PC esté libre (y luego cada día)." % q}
+                    return {"ok": True, "notas": _mu.ultimas(10), "temas": _mu.leer()["temas"]}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "pc":               # ASAGI usa la PC: abrir una app, ver ventanas, traer una al frente (nunca cerrar)
                 try:
                     import escritorio_pc as _es
@@ -1076,6 +1088,10 @@ class LocalAIBrain:
                 import arranque_pc
                 for x in arranque_pc.arreglar():
                     print("[VA] Arreglado: %s" % x, flush=True)
+                import limpieza_pc
+                n = limpieza_pc.limpiar()
+                if n:
+                    print("[VA] Limpieza: %d archivos viejos a la Papelera" % n, flush=True)
             except Exception as exc:
                 print("[VA] arranque_pc: %s" % exc, flush=True)
         threading.Thread(target=_arranque, daemon=True).start()

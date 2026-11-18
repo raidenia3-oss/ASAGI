@@ -259,3 +259,12 @@ Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para
   - «.exe viejo bórralo»: `arranque_pc.py` manda `dist\ARIA OS.exe` y sus accesos a la Papelera (recuperable) al abrir ARIA.
   - Keys de Gemini nuevas ya no empiezan con «AIza»: `gemini-guia.js` acepta cualquier texto largo sin espacios (Google la valida al probar) y todas las llamadas a Gemini mandan la key en la cabecera `x-goog-api-key` (no en la URL).
   - Descarga del modelo más rápida: `ModelDownloader.java` baja en 4 conexiones a la vez (rangos, reanudables) y solo usa el espejo si HuggingFace falla 2 veces. Probado con un archivo real de HF (7 MB, hash correcto). El estado muestra «falta N min».
+
+## 20. Limpieza de la ARIA vieja + Musa (aprender de redes) — 17-nov noche
+- **Qué estorbaba** (lo abría `desktop_ui.run_desktop`, archivo que solo vivía en la PC): el cuadro «0 COSAS HOY» (`actividad.py`), el selector flotante de modos, la ventana de «resurgir», `presence` (ocultaba a ARIA tras 5 min sin mouse) y `hand_react` (prendía la cámara). `desktop_ui.py` ahora está en el repo (con el sha de la PC en `previos`, así el actualizador lo reemplaza solo) y ya no los abre.
+- **Reemplazos en lo nuevo**: «cosas hoy» → tarjetas de hoy del Shell; resurgir → tarjeta «RECUERDA» en el Shell; modos → botón Cuerpo + «nivel»; escritorio viejo → `escritorio_pc.py`.
+- **`limpieza_pc.py`** (una vez, al iniciar): manda a la Papelera ~60 archivos que nada importa (análisis de imports desde aria_main), .bak a mano y capturas. Se queda con los .bak_auto del actualizador. Si desktop_ui aún es la versión vieja, espera.
+- **Musa (`aria/musa.py`)**: con la sesión de Google de ARIA («conecta google»), estudia YouTube (búsqueda o tu inicio): transcripción + comentarios más votados → el cerebro saca ideas, ganchos, lo que la gente pide y datos → cuaderno `data/musa.json` (sin repetir, con fuentes). «dame ideas de X» cruza notas de temas distintos. «estudia siempre X» = estudia sola (cada 3 h revisa; uno por día, los nuevos enseguida). «estudia este enlace <url>» sirve para reels/posts de cualquier red con la sesión.
+- ASAGI: «qué aprendió aria» / «aria estudia <tema>» (`{t:'musa'}` por el enlace). Lo pesado lo hace la PC (regla 4).
+- Probado aquí con YouTube real: lista de videos y 15 comentarios útiles por video. La transcripción no salió desde la nube (YouTube la bloquea a servidores); en la PC ya funcionaba con «resume este video».
+- Solo lectura siempre (nada de likes, comentarios ni seguir).

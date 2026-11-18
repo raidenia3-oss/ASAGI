@@ -725,6 +725,13 @@ class LocalAIBrain:
             pass
         reglas = _reglas_para_el_modelo()
         sistema = self.system_prompt + (("Reglas del usuario:\n" + reglas) if reglas else "")
+        # perfil que Daniel contó en la entrevista de ASAGI («entrevístame»): ARIA también lo conoce
+        try:
+            _pf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "perfil_corto.txt")
+            if os.path.isfile(_pf):
+                sistema += "\n" + open(_pf, encoding="utf-8").read()[:700]
+        except Exception:
+            pass
         # (a) Guia social: consejo del sandbox para la emocion detectada
         try:
             from social_skills import detect_emotion as _de
@@ -855,6 +862,15 @@ class LocalAIBrain:
                 except Exception as exc:
                     return {"ok": False, "error": str(exc)}
                 return {"ok": False}
+            if c.get("t") == "perfil":           # ASAGI terminó la entrevista «conóceme»: ARIA guarda el perfil (es de Daniel)
+                try:
+                    _d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+                    os.makedirs(_d, exist_ok=True)
+                    open(os.path.join(_d, "perfil_daniel.md"), "w", encoding="utf-8").write(str(c.get("doc") or "")[:8000])
+                    open(os.path.join(_d, "perfil_corto.txt"), "w", encoding="utf-8").write(str(c.get("corto") or "")[:700])
+                    return {"ok": True}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
             if c.get("t") == "musa":             # ASAGI: qué aprendió ARIA de las redes / que estudie un tema
                 try:
                     import musa as _mu

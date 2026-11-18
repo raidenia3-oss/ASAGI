@@ -550,6 +550,17 @@ function tareaDecir() {
 window._asagiTareaDecir = tareaDecir;
 // Avisos por iniciativa propia (idea del «heartbeat» de OpenClaw: revisar en silencio y hablar solo si vale la pena, en horas activas).
 // De 11 p. m. a 7 a. m. no interrumpo: los guardo y te los doy juntos al despertar. Los de seguridad (estafas) no pasan por aquí.
+// Capa 4 del Jarvis: el resumen de la mañana SIN pedirlo (la primera vez que abres ASAGI cada día, de 5 a 12)
+setTimeout(() => {
+  try {
+    const d = new Date(), hoy = d.toISOString().slice(0, 10), h = d.getHours();
+    if (h < 5 || h >= 12 || localStorage.getItem('asagi-manana-auto') === hoy || localStorage.getItem('asagi-manana-off') === '1') return;
+    const RD = window.AsagiResumenDia; if (!RD) return;
+    localStorage.setItem('asagi-manana-auto', hoy);
+    RD.decir({ momento: 'manana' }, (t) => proactivo(t + '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
+  } catch (e) {}
+}, 5000);
+
 function proactivo(texto, icono) {
   const h = new Date().getHours(), tranquilo = h >= 23 || h < 7;
   if (tranquilo) {
@@ -1024,6 +1035,15 @@ chatForm.addEventListener('submit', (event) => {
   if (!text) return;
 
   if (!reesc) appendMessage('user', text);
+  // Entrevista «conóceme» (capa 1 del Jarvis): mientras está activa, cada mensaje es la respuesta a su pregunta
+  {
+    const EN = window.AsagiEntrevista;
+    if (!reesc && EN) {
+      const c = EN.parsear(text);
+      if (c) { input.value = ''; EN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      if (EN.activa()) { input.value = ''; EN.responder(text, (t) => appendMessage('bot', t)); return; }
+    }
+  }
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
   if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, (t) => appendMessage('bot', t));
   input.value = '';
@@ -1428,6 +1448,8 @@ chatForm.addEventListener('submit', (event) => {
     if (c) { appendMessage('bot', CO.hacer(c)); return; }
   }
 
+  if (/^(?:no me des|quita|apaga) el resumen de (?:la )?ma[nñ]ana$/i.test(text.trim())) { try { localStorage.setItem('asagi-manana-off', '1'); } catch (e) {} appendMessage('bot', '☀ Listo, ya no te doy el resumen solo. Pídelo con «buenos días» cuando quieras (o «dame el resumen cada mañana»).'); return; }
+  if (/^dame el resumen cada ma[nñ]ana$/i.test(text.trim())) { try { localStorage.removeItem('asagi-manana-off'); } catch (e) {} appendMessage('bot', '☀ Hecho: cada mañana, al abrirme, te dejo el resumen del día.'); return; }
   // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».
   {
     const RD = window.AsagiResumenDia, c = RD && RD.parsear(text);

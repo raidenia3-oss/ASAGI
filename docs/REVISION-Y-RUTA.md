@@ -278,3 +278,11 @@ Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para
 - Puras y probadas: `escritorio_pc.barra`, `nombre_corto`.
 - Ya tenía: pestañas Chat/Apps/Archivos/Ventanas, launcher del menú Inicio, isla, mascota, fondo propio.
 - Siguiente para el «SO»: notificaciones de ASAGI en la barra, un buscador global (apps + archivos + chat) con Alt+Espacio, y escritorios virtuales (pestañas que guardan qué ventanas van juntas).
+
+## 23. «El mapa de mi Jarvis» (4 capas) aplicado a ASAGI + ARIA (18-nov)
+Daniel pasó el texto de la página de Notion (antes privada). Cómo queda cada capa:
+- **Capa 1 · Contexto** → NUEVO `entrevista.js`: «entrevístame» = 10 preguntas, una a la vez («salta», «para», «sigue la entrevista»); arma «Mi perfil» con [PENDIENTE] en lo no contestado (nunca inventa). Entra en cada respuesta del cerebro (`personalidad.js`) y se manda a ARIA (`{t:'perfil'}` → `data/perfil_daniel.md` + `perfil_corto.txt`, que ARIA suma a su prompt). «mi perfil», «borra mi perfil».
+- **Capa 2 · Conexiones** → ya: correo (ARIA), sesiones de Google (`sesiones.py`), voz y enlace celular↔PC. Falta: agenda (Google Calendar).
+- **Capa 3 · Habilidades** → ya: «aprende …» (habilidades), rutinas, `enseñar` de ARIA, Musa. Falta: tablero único.
+- **Capa 4 · Autonomía** → NUEVO: resumen de la mañana sin pedirlo (primera apertura del día, 5–12 h; «no me des el resumen de la mañana» / «dame el resumen cada mañana»). Ya: Musa estudia sola, vigía, YouTube. Falta: que llegue aunque ASAGI esté cerrada (WorkManager nativo).
+- Repos que mandó: ECC (arnés de agentes: plan → probar → hacer → revisar → verificar → recordar; «instintos» que se aprenden) y Capri (compañera de escritorio estilo Edgerunners; el repo ya no existe). Lo útil de ECC ya está en `aprende.js`/`rutinas.js`; idea pendiente: un paso «verificar» antes de decir «listo» en el modo autónomo.

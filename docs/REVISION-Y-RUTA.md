@@ -349,7 +349,7 @@ Aplicado (muestra): grano de cine sutil global en ASAGI (`body::after`, opacidad
 - Manifiesto: añadí el sha de la versión de Kilo en la PC a `previos` de ui_shell.py, para que el actualizador instale la fusión sin marcarlo como conflicto (no se pierde su diseño ni mis funciones).
 
 ## 33. Fondo con cualquier foto de tu galería (18-nov)
-- Nativo `AsagiControl.elegirFoto` (AsagiControlPlugin.java): usa el Selector de fotos de Android (ACTION_PICK_IMAGES en API 33+, ACTION_GET_CONTENT abajo). NO pide permiso de galería: eliges UNA foto y ASAGI solo recibe esa (seguro por diseño). Devuelve la foto como data URI (máx 1600px, JPEG 86).
-- Web: `_asagiPedirImagen` (modo «Mi galería» del fondo) y `_asagiElegirFoto` (editor de foto con auto-ajuste, lo usa «pon mi fondo») prefieren el selector nativo; en web caen al input de archivo. La foto se guarda nítida en IndexedDB (`img`), ya no reducida a 900px en localStorage; se restaura al abrir.
-- Probado en simulación (mock de elegirFoto): ambos caminos ponen el fondo. La parte nativa la valida el build del APK en CI.
-- Seguridad: el Photo Picker es la forma segura (sin permiso amplio). La revisión de seguridad a fondo de ASAGI+ARIA queda para después (pedido de Daniel).
+- El fondo usa el selector de archivos del WebView (Capacitor lo abre nativo: te muestra el Selector de fotos de Android). NO pide permiso de galería amplio: eliges UNA foto y la app recibe solo esa (seguro por diseño).
+- Intento de método nativo `AsagiControl.elegirFoto` descartado: usaba `androidx.activity.result.ActivityResult` (@ActivityCallback), que no está en el classpath del plugin y añadirlo sería dependencia nueva (regla 5). El código web ya cae al input de archivo, que hace lo mismo sin dependencias.
+- Mejoras que quedan: modo «Mi galería» (antes «Imagen propia») abre directo el selector; `_asagiElegirFoto` (editor con auto-ajuste, «pon mi fondo») también; la foto se guarda NÍTIDA en IndexedDB (`img`), no reducida a 900px; se restaura al abrir. `_asagiPedirImagen`/`_asagiElegirFoto` prefieren un nativo si algún día se agrega (con tu permiso), si no, el input.
+- Seguridad a fondo de ASAGI+ARIA: pendiente (pedido de Daniel).

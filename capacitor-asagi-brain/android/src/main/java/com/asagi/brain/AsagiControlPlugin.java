@@ -123,55 +123,6 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve(r);
     }
 
-    /** Elegir una foto de la galería para el fondo. Usa el Selector de fotos de Android:
-     *  NO pide permiso de galería; te deja elegir UNA foto y ASAGI solo recibe esa (seguro por diseño). */
-    @PluginMethod
-    public void elegirFoto(PluginCall call) {
-        try {
-            Intent intent;
-            if (Build.VERSION.SDK_INT >= 33) {
-                intent = new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES);   // Photo Picker, sin permisos
-                intent.setType("image/*");
-            } else {
-                intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-            }
-            startActivityForResult(call, intent, "fotoElegida");
-        } catch (Throwable e) {
-            JSObject r = new JSObject(); r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); call.resolve(r);
-        }
-    }
-
-    @com.getcapacitor.annotation.ActivityCallback
-    private void fotoElegida(PluginCall call, androidx.activity.result.ActivityResult result) {
-        JSObject r = new JSObject();
-        try {
-            if (call == null) { return; }
-            if (result == null || result.getResultCode() != android.app.Activity.RESULT_OK
-                    || result.getData() == null || result.getData().getData() == null) {
-                r.put("ok", false); r.put("error", "cancelado"); call.resolve(r); return;
-            }
-            android.net.Uri uri = result.getData().getData();
-            java.io.InputStream in = getContext().getContentResolver().openInputStream(uri);
-            android.graphics.Bitmap bm = android.graphics.BitmapFactory.decodeStream(in);
-            if (in != null) in.close();
-            if (bm == null) { r.put("ok", false); r.put("error", "noLei"); call.resolve(r); return; }
-            int maxW = 1600;                       // nítido de fondo, sin ser enorme
-            float esc = Math.min(1f, (float) maxW / bm.getWidth());
-            android.graphics.Bitmap sc = (esc < 1f)
-                    ? android.graphics.Bitmap.createScaledBitmap(bm, Math.round(bm.getWidth() * esc), Math.round(bm.getHeight() * esc), true)
-                    : bm;
-            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
-            sc.compress(android.graphics.Bitmap.CompressFormat.JPEG, 86, bo);
-            r.put("ok", true);
-            r.put("foto", "data:image/jpeg;base64," + android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP));
-        } catch (Throwable e) {
-            r.put("ok", false); r.put("error", String.valueOf(e.getMessage()));
-        }
-        call.resolve(r);
-    }
-
     /** Icono real de la app como PNG 96x96 en base64 (lo pinta el launcher de ASAGI). */
     private static String iconoBase64(ResolveInfo ri, PackageManager pm) {
         try {

@@ -239,7 +239,7 @@ Descartado: Postiz (publica en redes; regla 9).
 Idea siguiente: un «centro de control» estilo iControl (vidrio, píldoras para linterna, wifi, bluetooth, brillo, música, alarma), con las acciones nativas que ASAGI ya tiene.
 
 ## 18. ARIA como launcher + mini sistema operativo (17-nov, noche)
-- `aria/escritorio.py` (lógica pura + Windows por ctypes, sin dependencias) y `aria/ui/escritorio_ui.py` (pestañas).
+- `aria/escritorio_pc.py` (lógica pura + Windows por ctypes, sin dependencias) y `aria/ui/escritorio_ui.py` (pestañas).
 - El Shell tiene pestañas reales arriba: **1 Chat · 2 Apps · 3 Archivos · 4 Ventanas** (clic o Ctrl+1..4).
   - Apps: lee el menú Inicio (.lnk) con iconos reales de Windows; buscador (spo→Spotify, vsc→Visual Studio Code), Enter abre la primera; favoritas = fijadas + más abiertas; clic derecho fija u oculta.
   - Archivos: carpetas de siempre + Recientes de Windows. Ventanas: lista lo abierto y lo trae al frente. **Nunca cierra nada** (regla 7).

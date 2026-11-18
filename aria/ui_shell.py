@@ -1316,10 +1316,10 @@ if _QT:
         def _cmd_escritorio(self, t):
             """«apps» · «mis archivos» · «ventanas» · «abre spotify» · «ve a chrome»."""
             try:
-                import escritorio
+                import escritorio_pc as escritorio
+                acc = escritorio.manejar(t)
             except Exception:
                 return False
-            acc = escritorio.manejar(t)
             if not acc:
                 return False
             if acc[0] == "pestana":

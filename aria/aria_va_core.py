@@ -857,7 +857,7 @@ class LocalAIBrain:
                 return {"ok": False}
             if c.get("t") == "pc":               # ASAGI usa la PC: abrir una app, ver ventanas, traer una al frente (nunca cerrar)
                 try:
-                    import escritorio as _es
+                    import escritorio_pc as _es
                     acc = c.get("accion")
                     if acc == "ventanas":
                         return {"ok": True, "ventanas": [v["titulo"] for v in _es.ventanas() if not v["propia"]][:15]}

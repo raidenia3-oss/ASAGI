@@ -16,7 +16,7 @@ import time
 import unicodedata
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
-DATOS = os.path.join(_DIR, "data", "escritorio.json")
+DATOS = os.path.join(_DIR, "data", "escritorio_pc.json")
 EXT_APP = (".lnk", ".url", ".appref-ms")
 # accesos que no son apps para el usuario
 _RUIDO = re.compile(r"\b(uninstall|desinstalar|readme|leeme|léame|help|ayuda|manual|documentation|documentacion|license|licencia|"

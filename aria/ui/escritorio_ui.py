@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QLabe
                              QListWidgetItem, QFileIconProvider, QMenu, QListView, QAbstractItemView)
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import escritorio as E  # noqa: E402
+import escritorio_pc as E  # noqa: E402
 
 ORO, CARMESI, PAPEL, TINTA = "#FFD700", "#DC143C", "#F0F0F8", "#080408"
 MONO = "Consolas"

@@ -269,17 +269,48 @@ def _ver_video(nv, vid):
     return info
 
 
-def estudiar(q=None, pensar=None, progreso=None, n=4):
-    """Estudia un tema (búsqueda) o tu feed (q=None). -> texto para el chat."""
+def intereses():
+    """Temas que a Daniel le interesan, para aprender sola cuando no hay feed. De: temas fijos, su perfil, lo ya estudiado.
+    Siempre devuelve algo (nunca se queda sin qué hacer). PURO salvo lectura de disco."""
+    d = leer()
+    temas = list(d.get("temas") or [])
+    for arch in ("perfil_corto.txt", "instintos.json"):
+        try:
+            ruta = os.path.join(_DIR, "data", arch)
+            if arch.endswith(".txt") and os.path.isfile(ruta):
+                txt = open(ruta, encoding="utf-8").read()
+                for m in re.findall(r"(?:En qué estoy|Mi meta|Tareas que se repiten)[:\s]+([^.;\n]{4,60})", txt):
+                    temas.append(m.strip())
+        except Exception:
+            pass
+    temas += [t for t in d.get("estudiado", {}) if t != "mi youtube"]
+    vistos, out = set(), []
+    for t in temas:
+        k = _norm(t)
+        if k and k not in vistos and len(k) > 2:
+            vistos.add(k); out.append(t)
+    return out or ["edición de video", "inteligencia artificial", "productividad", "diseño de apps"]
+
+
+def estudiar(q=None, pensar=None, progreso=None, n=4, auto=False):
+    """Estudia un tema (búsqueda) o tu feed (q=None). Si no hay sesión, aprende sola de tus intereses (sin pedirte nada). -> texto."""
     import navegador_aria as _na
     progreso = progreso or (lambda t: None)
     if not pensar:
         return "Para aprender de los videos necesito mi cerebro activo."
     nv = _na.nav()
+    feed = not q
+    hint = ""
     url = ("https://www.youtube.com/results?search_query=" + urllib.parse.quote(q)) if q else "https://www.youtube.com/"
     lista = nv._llamar(lambda: (_abrir(nv, url), nv._page.evaluate(_JS_LISTA))[1], timeout=90)
-    if not q and not lista.get("sesion"):
-        return "Para ver TU YouTube primero: «usa mis sesiones de chrome» (uso las de tu Chrome) o «conecta google» (inicias sesión tú una vez)."
+    if feed and not lista.get("sesion"):
+        # autónoma: no te pido nada. Aprendo de uno de tus intereses por búsqueda pública (sin login).
+        import random as _r
+        q = _r.Random(int(time.time() // 86400)).choice(intereses())
+        progreso("📺 No pude entrar a tu feed; aprendo sola sobre «%s»…" % q)
+        lista = nv._llamar(lambda: (_abrir(nv, "https://www.youtube.com/results?search_query=" + urllib.parse.quote(q)), nv._page.evaluate(_JS_LISTA))[1], timeout=90)
+        if not auto:
+            hint = "\n(Para aprender de TU feed en vez de temas sueltos, deja tu sesión abierta en Chrome; no tienes que hacer nada más.)"
     vids = (lista.get("videos") or [])[:n]
     if not vids:
         return "No encontré videos%s." % (" de «%s»" % q if q else " en tu inicio")
@@ -308,13 +339,15 @@ def estudiar(q=None, pensar=None, progreso=None, n=4):
     d = leer()
     d, nuevas = fusionar(d, ap, tema, [m["url"] for m in materiales])
     d["estudiado"][tema] = time.strftime("%Y-%m-%d")
+    if feed:
+        d["estudiado"]["mi youtube"] = time.strftime("%Y-%m-%d")   # intento del día hecho (haya o no sesión): una vez al día
     guardar(d)
     lin = []
     for tipo, ico in (("ideas", "💡"), ("la_gente_pide", "🙋"), ("ganchos", "🎣"), ("datos", "📌")):
         lin += ["%s %s" % (ico, x) for x in (ap.get(tipo) or [])[:3]]
     return ("📓 Estudié %d videos de «%s» (con sus comentarios). %d notas nuevas en mi cuaderno:\n%s\n\nFuentes: %s\n"
-            "Pídeme «dame ideas de %s» y las cruzo con lo que ya sé." % (
-                len(materiales), tema, nuevas, "\n".join(lin), " · ".join(m["url"] for m in materiales), tema))
+            "Pídeme «dame ideas de %s» y las cruzo con lo que ya sé.%s" % (
+                len(materiales), tema, nuevas, "\n".join(lin), " · ".join(m["url"] for m in materiales), tema, hint))
 
 
 def estudiar_url(url, pensar=None):
@@ -373,11 +406,14 @@ def estudio_diario(pensar, progreso=None):
     d = leer()
     hoy = time.strftime("%Y-%m-%d")
     t = tema_del_dia(d["temas"], d["estudiado"], hoy)
-    if t:
-        return estudiar(t, pensar=pensar, progreso=progreso, n=2)
-    if d["estudiado"].get("mi youtube") == hoy:      # ya aprendí de tu feed hoy
-        return None
-    return estudiar(None, pensar=pensar, progreso=progreso, n=2)
+    try:
+        if t:
+            return estudiar(t, pensar=pensar, progreso=progreso, n=2)
+        if d["estudiado"].get("mi youtube") == hoy:      # ya aprendí hoy
+            return None
+        return estudiar(None, pensar=pensar, progreso=progreso, n=2, auto=True)
+    except Exception:
+        return None          # autónoma: si el navegador falla, lo intenta en el próximo rato, sin molestar
 
 
 # ── Ver EN VIVO: reproduce el video (o una transmisión en vivo) y lo mira de verdad mientras pasa ──────────

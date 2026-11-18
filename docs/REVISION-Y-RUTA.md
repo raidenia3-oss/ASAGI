@@ -319,3 +319,10 @@ Leí sus skills de verdad (continuous-learning-v2, verification-loop, agent-self
 - Usar tus sesiones de Chrome ya es AUTOMÁTICO: `cookies_pc.activado()` es True por defecto; solo se apaga con «olvida mis cookies». Al arrancar, ARIA deja listo `cryptography` en su .venv en segundo plano (sin pedir nada).
 - Musa estudia sola aunque no fijes temas: `estudio_diario` aprende de TU feed de YouTube una vez al día si no hay tema fijo pendiente (`_musa_diaria` ya no corta cuando no hay temas).
 - Queda manual solo lo que la ley/el sitio exige que hagas tú (iniciar una sesión que no esté en Chrome: «conecta google»).
+
+## 29. Nunca te pide conectar: Musa aprende igual (18-nov)
+- Raíz del enojo de Daniel: pedir «conecta» cada vez. Ahora NO se pide en los flujos autónomos.
+- `musa.estudiar(auto=…)`: si no hay sesión de Chrome usable para tu feed, ARIA no te molesta: elige uno de tus intereses (`intereses()`: temas fijos + perfil + lo ya estudiado, con defaults) y aprende por búsqueda pública de YouTube (sin login). Siempre produce algo.
+- El intento de feed se marca una vez al día (haya sesión o no), para no repetir cada 3 h.
+- `estudio_diario` ahora es a prueba de fallos (si el navegador falla, reintenta luego, sin traceback ni aviso).
+- Reusar tu Chrome ya usa el canal real de Chrome (mismo navegador = menos verificaciones de Google). El único «conecta google» que queda es opcional y manual, nunca en lo autónomo.

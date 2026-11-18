@@ -347,3 +347,9 @@ Aplicado (muestra): grano de cine sutil global en ASAGI (`body::after`, opacidad
 - Yo tenía en el repo ASAGI cambios de funciones (cookies_pc, _calentar, orden, traspaso, autonomía de Musa). Divergían.
 - Fusión de 3 vías (git merge-file) con la versión instalada como base: `ui_shell.py` quedó con el diseño de Kilo Y mis funciones (un solo conflicto trivial en el dispatch de `_cmd_cookies`, resuelto a favor mío). `desktop_ui.py`: yo no lo había tocado, adopté el de Kilo tal cual (quedó con el mismo sha que la PC).
 - Manifiesto: añadí el sha de la versión de Kilo en la PC a `previos` de ui_shell.py, para que el actualizador instale la fusión sin marcarlo como conflicto (no se pierde su diseño ni mis funciones).
+
+## 33. Fondo con cualquier foto de tu galería (18-nov)
+- Nativo `AsagiControl.elegirFoto` (AsagiControlPlugin.java): usa el Selector de fotos de Android (ACTION_PICK_IMAGES en API 33+, ACTION_GET_CONTENT abajo). NO pide permiso de galería: eliges UNA foto y ASAGI solo recibe esa (seguro por diseño). Devuelve la foto como data URI (máx 1600px, JPEG 86).
+- Web: `_asagiPedirImagen` (modo «Mi galería» del fondo) y `_asagiElegirFoto` (editor de foto con auto-ajuste, lo usa «pon mi fondo») prefieren el selector nativo; en web caen al input de archivo. La foto se guarda nítida en IndexedDB (`img`), ya no reducida a 900px en localStorage; se restaura al abrir.
+- Probado en simulación (mock de elegirFoto): ambos caminos ponen el fondo. La parte nativa la valida el build del APK en CI.
+- Seguridad: el Photo Picker es la forma segura (sin permiso amplio). La revisión de seguridad a fondo de ASAGI+ARIA queda para después (pedido de Daniel).

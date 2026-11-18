@@ -3157,10 +3157,28 @@ if ('serviceWorker' in navigator) {
   const rModos = document.getElementById('wall-modos');
   const rTemas = document.getElementById('wall-temas');
   if (!btn || !sheet || !rModos || !rTemas) return;
-  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Imagen propia', video: 'Video / GIF' };
+  const NOMBRE = { tinta: 'Tinta', constelacion: 'Constelación', flujo: 'Flujo', aurora: 'Aurora', ondas: 'Ondas', matrix: 'Matrix', anime: 'Anime', imagen: 'Mi galería', video: 'Video / GIF' };
 
-  // Elegir una imagen propia (p. ej. un wallpaper anime tuyo): se reduce y se guarda.
+  // Poner una imagen (data URI) como fondo: se guarda nítida en IndexedDB y se usa en vivo.
+  function usarImagen(data) {
+    if (!data) return;
+    try { IDB.poner('img', data); } catch (e) {}           // nítida, persiste (IndexedDB)
+    try { localStorage.removeItem('asagi-wall-img'); } catch (e) {}  // la foto va en IndexedDB, no en localStorage
+    if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
+    try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
+    pintar();
+  }
+  // Elegir una foto de tu galería para el fondo. En el celular usa el Selector de fotos nativo de Android
+  // (no pide permiso de galería: eliges UNA foto y ASAGI solo recibe esa). En web, un selector de archivo normal.
   function pedirImagen() {
+    const P = window.Capacitor && window.Capacitor.Plugins, AC = P && P.AsagiControl;
+    if (AC && AC.elegirFoto) {
+      AC.elegirFoto().then((r) => {
+        if (r && r.ok && r.foto) usarImagen(r.foto);
+        else if (r && r.error && r.error !== 'cancelado' && window._asagiAviso) window._asagiAviso('No pude abrir tu galería (' + r.error + ').', false, '🖼');
+      }).catch(() => { if (window._asagiAviso) window._asagiAviso('No pude abrir tu galería.', false, '🖼'); });
+      return;
+    }
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
     inp.addEventListener('change', () => {
@@ -3169,16 +3187,13 @@ if ('serviceWorker' in navigator) {
       fr.onload = () => {
         const im = new Image();
         im.onload = () => {
-          // reducir a máx 900px de ancho para que entre en localStorage
-          const maxW = 900, esc = Math.min(1, maxW / im.width);
+          const maxW = Math.min(1600, Math.max(1080, (window.innerWidth || 420) * 2));
+          const esc = Math.min(1, maxW / im.width);
           const cv = document.createElement('canvas');
           cv.width = Math.round(im.width * esc); cv.height = Math.round(im.height * esc);
           cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
-          let data; try { data = cv.toDataURL('image/jpeg', 0.82); } catch (e) { data = fr.result; }
-          try { localStorage.setItem('asagi-wall-img', data); } catch (e) {}
-          if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
-          try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
-          pintar();
+          let data; try { data = cv.toDataURL('image/jpeg', 0.86); } catch (e) { data = fr.result; }
+          usarImagen(data);
         };
         im.src = fr.result;
       };
@@ -3206,7 +3221,17 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => inp.remove(), 60000);
   }
   window._asagiPedirVideo = pedirVideo;
-  (async () => { try { if (localStorage.getItem('asagi-wall-modo') === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); } } catch (e) {} })();
+  (async () => {
+    try {
+      const modo = localStorage.getItem('asagi-wall-modo');
+      if (modo === 'video') { const b = await IDB.leer('video'); if (b) ponerVideoBlob(b); }
+      else if (modo === 'imagen') {
+        let data = null; try { data = await IDB.leer('img'); } catch (e) {}
+        if (!data) { try { data = localStorage.getItem('asagi-wall-img'); } catch (e) {} }   // fotos viejas
+        if (data && window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); pintar(); }
+      }
+    } catch (e) {}
+  })();
   const SW = { cian: '#db143c', violeta: '#ffdb1b', verde: '#e42449', rosa: '#f84e6b', ambar: '#ffd700',
     auto: 'conic-gradient(from 0deg, #db143c, #ffdb1b, #e42449, #ffd700, #f84e6b, #db143c)' };
   function cur() { const w = window._asagiWall; return { m: w ? w.getModo() : 'tinta', t: w ? w.getTema() : 'cian' }; }
@@ -3217,12 +3242,7 @@ if ('serviceWorker' in navigator) {
       const b = document.createElement('button');
       b.className = 'wall-chip' + (m === c.m ? ' on' : ''); b.type = 'button'; b.textContent = NOMBRE[m] || m;
       b.addEventListener('click', () => {
-        if (m === 'imagen') {
-          let guardada = null; try { guardada = localStorage.getItem('asagi-wall-img'); } catch (e) {}
-          if (guardada && window._asagiWall) { window._asagiWall.setImagen(guardada); window._asagiWall.setModo('imagen'); try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {} pintar(); }
-          else pedirImagen();                 // sin imagen aún -> pide una
-          return;
-        }
+        if (m === 'imagen') { pedirImagen(); return; }   // siempre te deja elegir una foto de tu galería
         if (m === 'video') { pedirVideo(); return; }
         if (window._asagiWall) window._asagiWall.setModo(m);
         try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {}
@@ -3413,8 +3433,20 @@ if ('serviceWorker' in navigator) {
     fr.readAsDataURL(f);
   }
 
-  pick.addEventListener('click', () => file.click());
-  window._asagiElegirFoto = () => file.click();
+  // Elegir del teléfono: en Android usa el Selector de fotos nativo (sin permiso de galería); en web, el archivo.
+  function elegirDeGaleria() {
+    const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (AC && AC.elegirFoto) {
+      AC.elegirFoto().then((r) => {
+        if (r && r.ok && r.foto) fetch(r.foto).then((x) => x.blob()).then((b) => importar(b)).catch(() => {});
+        else if (r && r.error && r.error !== 'cancelado' && window._asagiAviso) window._asagiAviso('No pude abrir tu galería (' + r.error + ').', false, '🖼');
+      }).catch(() => file.click());
+      return;
+    }
+    file.click();
+  }
+  pick.addEventListener('click', elegirDeGaleria);
+  window._asagiElegirFoto = elegirDeGaleria;
   window._asagiImportarFoto = (blob) => importar(blob);
   window._asagiQuitarFoto = () => { if (quitar) quitar.click(); };
   file.addEventListener('change', () => { if (file.files && file.files[0]) importar(file.files[0]); file.value = ''; });

@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#111827" />
+    <meta name="theme-color" content="#080408" />
     <meta
       name="description"
       content="ASAGI: asistente personal con navegación por secciones y memoria local."
@@ -16,6 +16,7 @@
     <link rel="apple-touch-icon" href="./assets/icon.svg" />
     <title>ASAGI</title>
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./tema-asagi.css" />
   </head>
   <body>
     <!-- Boot de arranque (estilo BrowOS). CSS puro: se desvanece solo. -->
@@ -34,8 +35,9 @@
           </div>
           <header class="panel-header">
             <div class="panel-header-text">
-              <p class="eyebrow">ASAGI · ambiental</p>
-              <h2>Asistente</h2>
+              <p class="eyebrow">浅葱 · tu asistente</p>
+              <h2>Asagi</h2>
+              <button id="nivel-chip" class="nivel-chip" type="button" aria-label="Ver nivel de aprendizaje"><span id="nivel-txt">NV 1 · SEMILLA</span><i><b id="nivel-bar"></b></i></button>
               <p id="brain-hint" class="brain-hint" hidden></p>
             </div>
 
@@ -93,10 +95,17 @@
                   placeholder="mistral key (código)"
                   autocomplete="off"
                 />
+                <textarea
+                  id="brain-claves-extra"
+                  rows="3"
+                  spellcheck="false"
+                  autocomplete="off"
+                  placeholder="Más keys gratis, una por línea (si una se agota, salta a la otra):&#10;groq: gsk_…&#10;openrouter: sk-or-…&#10;cerebras: csk-…"
+                ></textarea>
               </div>
             </div>
 
-            <button id="reset-chat" class="secondary" type="button">Reset chat</button>
+            <button id="reset-chat" class="secondary" type="button">Nuevo chat</button>
           </header>
 
           <p id="brain-alert" class="brain-alert" role="status" aria-live="polite" hidden></p>
@@ -106,13 +115,21 @@
 
           <div id="bot-reply-status" class="bot-reply-status hidden" aria-live="polite"></div>
 
+          <div id="sugerencias" class="sugerencias" aria-label="Ideas para empezar">
+            <button type="button" data-di="resumen del día">Mi día</button>
+            <button type="button" data-di="qué puedes hacer">¿Qué puedes hacer?</button>
+            <button type="button" data-di="qué notificaciones tengo">Mis notificaciones</button>
+            <button type="button" data-di="cuánto gasté esta semana">Mis gastos</button>
+            <button type="button" data-di="mi música">Mi música</button>
+            <button type="button" data-di="mis habilidades">Mis habilidades</button>
+          </div>
           <form id="chat-form" class="composer" autocomplete="off">
             <label class="sr-only" for="message-input">Escribe un mensaje</label>
             <input
               id="message-input"
               name="message"
               type="text"
-              placeholder="Escribe aquí…"
+              placeholder="Escribe o toca 🎤 para hablar…"
               maxlength="300"
             />
             <button id="mic-btn" type="button" class="mic-btn" hidden aria-label="Dictar por voz">🎤</button>
@@ -123,23 +140,32 @@
         <section id="launcher" class="home active" data-panel="launcher">
           <canvas id="launcher-wall"></canvas>
           <div id="launcher-photo" class="launcher-photo"><img id="launcher-photo-img" alt=""><div id="wf-tint" class="wf-tint"></div><div id="wf-vig" class="wf-vig"></div></div>
-          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots">⟐</button>
-          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo">✶</button>
-          <div class="home-hint home-hint-top" aria-hidden="true">⌄ Status</div>
+          <button id="enjambre-btn" class="corner-btn corner-left" type="button" aria-label="Enjambre de bots" data-txt="Bots">⟐</button>
+          <button id="wall-cfg" class="wall-cfg corner-btn corner-right" type="button" aria-label="Personalizar fondo" data-txt="Fondo">✶</button>
+          <div class="home-hint home-hint-top" aria-hidden="true">⌄ Control y ajustes</div>
           <div class="launcher-top">
             <div id="launcher-clock" class="launcher-clock">--:--</div>
             <div id="launcher-date" class="launcher-date"></div>
+            <div id="launcher-pila" class="lpila" hidden><span class="lpila-num"></span><span class="lpila-frase"></span><span class="lpila-firma" aria-hidden="true">asagi</span><i class="lpila-barra" aria-hidden="true"></i></div>
             <div id="launcher-chips" class="launcher-chips" aria-label="Estado"></div>
-            <input id="launcher-search" class="launcher-search" type="text" placeholder="Busca una app, calcula o pregunta a ASAGI…" autocomplete="off">
+            <input id="launcher-search" class="launcher-search" type="text" placeholder="Busca una app o pregúntale a ASAGI" autocomplete="off">
             <button id="launcher-ask" class="launcher-ask" type="button" hidden>Preguntar a ASAGI</button>
             <button id="pend-open" class="pend-chip" type="button">✓ Pendientes <span id="pend-count" class="pend-count" hidden>0</span></button>
           </div>
           <div id="launcher-fav-wrap" class="launcher-fav-wrap" hidden>
-            <div class="launcher-sec">Más usadas</div>
+
             <div id="launcher-fav" class="launcher-fav"></div>
           </div>
           <div id="launcher-grid" class="launcher-grid">
             <div class="launcher-empty">Toca para cargar tus apps…<br><small>(requiere el plugin nativo)</small></div>
+          </div>
+          <div id="home-atajos" class="home-atajos" aria-label="Atajos">
+            <button type="button" data-atajo="#pendientes">✓ Pendientes<span id="atajo-pend" class="atajo-n" hidden></span></button>
+            <button type="button" data-atajo="mi día">☀ Mi día</button>
+            <button type="button" data-atajo="qué veo hoy">📺 Qué veo</button>
+            <button type="button" data-atajo="sorpréndeme">✨ Sorpréndeme</button>
+            <button type="button" data-atajo="mis creaciones">🛠 Taller</button>
+            <button type="button" data-atajo="editor">🎨 Editor</button>
           </div>
           <div class="home-hint home-hint-bottom" aria-hidden="true">⌃ desliza para hablar con ASAGI</div>
 
@@ -219,10 +245,26 @@
           <header class="panel-header">
             <div class="panel-header-text">
               <p class="eyebrow">ASAGI · ajustes rápidos</p>
-              <h2>Status</h2>
+              <h2>Ajustes</h2>
             </div>
           </header>
           <div class="placeholder-box">
+            <p>🧠 Cerebro</p>
+            <small id="aj-cerebro-estado">Comprobando…</small>
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+              <button id="aj-gemini" class="secondary" type="button" style="width:auto;">🔑 Usar Gemini gratis</button>
+              <button id="aj-modelo" class="secondary" type="button" style="width:auto;" hidden>Descargar modelo (~400 MB)</button>
+            </div>
+            <hr style="border:none;border-top:1px solid var(--line);margin:14px 0;">
+            <p>🪞 Cómo soy</p>
+            <small>Dime con tus palabras cómo quieres que te hable. Lo tengo presente en cada respuesta.</small>
+            <textarea id="aj-alma" maxlength="300" rows="3" placeholder="Ej.: háblame directo y con humor; explícame como a un estudiante de ingeniería."></textarea>
+            <div style="display:flex;justify-content:center;margin-top:8px;"><button id="aj-alma-ok" class="secondary" type="button" style="width:auto;">Guardar</button></div>
+            <hr style="border:none;border-top:1px solid var(--line);margin:14px 0;">
+            <p>🧠 Lo que sé de ti</p>
+            <small>Solo vive en tu celular. Toca ✕ para que lo olvide.</small>
+            <div id="aj-memoria" class="aj-memoria"></div>
+            <hr style="border:none;border-top:1px solid var(--line);margin:14px 0;">
             <p>Inicio</p>
             <div style="display:flex;justify-content:center;margin-bottom:6px;">
               <button id="launcher-home" class="secondary" type="button" style="width:auto;">Hacer ASAGI mi inicio</button>
@@ -232,7 +274,7 @@
             <small id="acc-status">Accesibilidad: comprobando…</small>
             <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
               <button id="acc-toggle" class="secondary" type="button" style="width:auto;">Activar accesibilidad</button>
-              <button id="acc-check" class="secondary" type="button" style="width:auto;">Comprobar</button>
+              <button id="acc-check" class="secondary" type="button" style="width:auto;" title="Revisa si el permiso de accesibilidad quedó activo">Probar que funciona</button>
             </div>
             <small style="display:block;margin-top:12px;opacity:.8;">
               Leer pantalla y abrir apps = automático. Tocar/escribir en otras apps pide tu aprobación.
@@ -241,11 +283,11 @@
             <p>Anuncios y voz</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
               <button id="ads-dns" class="secondary" type="button" style="width:auto;">Bloquear anuncios (DNS)</button>
-              <button id="voz-sigilo" class="secondary" type="button" style="width:auto;">Voz: sigilo</button>
+              <button id="voz-sigilo" class="secondary" type="button" style="width:auto;">🔇 Voz: apagada</button>
               <label class="pill" style="width:auto;">
                 <input type="checkbox" id="crt-toggle">
                 <span class="pill-track"><span class="pill-knob"></span></span>
-                <span class="pill-label">CRT</span>
+                <span class="pill-label">Pantalla retro</span>
               </label>
             </div>
             <small id="voz-estado" style="display:block;margin-top:10px;opacity:.8;">Voz: desactivada</small>
@@ -357,14 +399,21 @@
             </div>
           </header>
           <div class="pend-add">
-            <input id="pend-input" type="text" placeholder="Escribe o dicta: recuérdame… mañana a las 8" autocomplete="off">
+            <input id="pend-input" type="text" placeholder="Ej: pagar la luz mañana" autocomplete="off">
             <button id="pend-mic" class="mic-btn" type="button" hidden aria-label="Dictar pendiente">🎤</button>
             <button id="pend-go" type="button">Añadir</button>
           </div>
           <ul id="pend-list" class="pend-list"></ul>
-          <div id="pend-vacio" class="pend-vacio">Nada pendiente. Dile a ASAGI "recuérdame…" o escríbelo arriba.</div>
+          <div id="pend-vacio" class="pend-vacio">Nada pendiente. Escríbelo arriba o dile a ASAGI «recuérdame…».
+            <div class="pend-ejemplos"><button type="button" data-ej="Llamar a mamá hoy 7 pm">Llamar a mamá hoy 7 pm</button><button type="button" data-ej="Estudiar para la UNI mañana 4 pm">Estudiar mañana 4 pm</button><button type="button" data-ej="Pagar internet el viernes">Pagar internet el viernes</button></div></div>
           <div class="pend-foot">
             <button id="pend-limpiar" class="secondary" type="button" style="width:auto;">Limpiar hechos</button>
+          </div>
+          <div id="compras-panel" class="co-panel">
+            <div class="co-head"><h3>🛒 Compras</h3><span class="co-cnt"></span></div>
+            <div class="co-form"><input class="co-input" type="text" placeholder="Ej: pan, leche y huevos" autocomplete="off" aria-label="Añadir a compras"><button class="co-add" type="button">Añadir</button></div>
+            <ul class="co-lista"></ul>
+            <button class="co-limpiar secondary" type="button" hidden>Borrar lo comprado</button>
           </div>
         </section>
 
@@ -383,11 +432,12 @@
           </div>
           <canvas id="enj-graph" class="enj-graph"></canvas>
           <div id="enj-bots" class="enj-grid">
-            <div class="launcher-empty">Escribe una tarea y despliego a los bots adecuados.</div>
+            <div class="launcher-empty">Escribe una tarea y despliego a los bots adecuados.<div class="pend-ejemplos enj-ejemplos"><button type="button" data-enj="Investiga las mejores laptops para estudiar por menos de S/ 3000">Investigar laptops</button><button type="button" data-enj="Hazme un plan de estudio de 2 semanas para matemáticas">Plan de estudio</button><button type="button" data-enj="Compara ventajas y riesgos de comprar una PC armada o por partes">Comparar opciones</button></div></div>
           </div>
+          <div id="enj-final" class="enj-final" hidden></div>
           <div class="enj-feed-wrap">
             <div class="enj-feed-h"><span class="enj-live">◉</span> actividad del enjambre</div>
-            <div id="enj-feed" class="enj-feed"></div>
+            <div id="enj-feed" class="enj-feed" data-vacio="Aquí verás, paso a paso, lo que hace cada bot."></div>
           </div>
           <div class="composer">
             <input id="grok-input" type="text" placeholder="¿Qué necesitas que hagan?" autocomplete="off">
@@ -406,6 +456,7 @@
     <script src="asagi-browser.js"></script>
     <script src="asagi-apps.js"></script>
     <script src="sync-memoria.js"></script>
+    <script src="mapa_mundo.js"></script>
     <script src="enlace.js"></script>
     <script src="personalidad.js"></script>
     <script src="razonamiento.js"></script>
@@ -441,6 +492,53 @@
     <script src="herramientas.js"></script>
     <script src="bandeja.js"></script>
     <script src="enlace-lan.js"></script>
+    <script src="actualizador.js"></script>
+    <script src="niveles.js"></script>
+    <script src="manos.js"></script>
+    <script src="vistas.js"></script>
+    <script src="estudia.js"></script>
+    <script src="citas.js"></script>
+    <script src="personajes.js"></script>
+    <script src="sin-cerebro.js"></script>
+    <script src="navegador-lector.js"></script>
+    <script src="navegador.js"></script>
+    <script src="openverse.js"></script>
+    <script src="wiki.js"></script>
+    <script src="notificaciones.js"></script>
+    <script src="habilidades.js"></script>
+    <script src="musica.js"></script>
+    <script src="resumen-dia.js"></script>
+    <script src="compras.js"></script>
+    <script src="sobre-mi.js"></script>
+    <script src="calculos.js"></script>
+    <script src="gemini-guia.js"></script>
+    <script src="memoria-ia.js"></script>
+    <script src="buscar-mis-cosas.js"></script>
+    <script src="conversacion.js"></script>
+    <script src="rutinas.js"></script>
+    <script src="redes.js"></script>
+    <script src="compartir.js"></script>
+    <script src="precios.js"></script>
+    <script src="vigia-web.js"></script>
+    <script src="explorar.js"></script>
+    <script src="efectos.js"></script>
+    <script src="centro.js"></script>
+    <script src="entrevista.js"></script>
+    <script src="instintos.js"></script>
+    <script src="traspaso.js"></script>
+    <script src="aprende.js"></script>
+    <script src="iniciativa.js"></script>
+    <script src="creador.js"></script>
+    <script src="recetas.js"></script>
+    <script src="editor.js"></script>
+    <script src="ojos.js"></script>
+    <script src="tipeo.js"></script>
+    <script src="youtube.js"></script>
+    <script src="chrome.js"></script>
+    <script src="escudo.js"></script>
+    <script src="agente.js"></script>
+    <script src="utiles.js"></script>
+    <script src="piensa.js"></script>
     <script src="discord.js"></script>
     <script src="radio.js"></script>
     <script src="dispositivos.js"></script>

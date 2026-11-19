@@ -51,13 +51,13 @@ public class AsagiBrainPlugin extends Plugin {
     private static final String TAG = "AsagiBrain";
     private static final String MODEL_FILENAME = "Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf";
     // Revisión fijada del repo (no "main"): el archivo y su hash no cambian
-    // aunque el autor actualice la rama. 50968a4 = revisión verificada.
-    private static final String MODEL_REVISION = "main";
+    // aunque el autor actualice la rama. 2fc6c39 = subida del archivo (397808512 bytes, sha256 eddb18fb…, verificado contra la API de HuggingFace el 14-nov-2026).
+    private static final String MODEL_REVISION = "2fc6c39fcfca22bf662cf44f5e563a6b2d3b8984";
     private static final String MODEL_HTTP_URL =
             "https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/" + MODEL_REVISION
                     + "/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf";
-    private static final long MODEL_EXPECTED_BYTES = 396705472L;
-    private static final String MODEL_EXPECTED_SHA256 = "ac2d97712095a558e31573f62f466a3f9d93990898b0ec79d7c974c1780d524a";
+    private static final long MODEL_EXPECTED_BYTES = 397808512L;
+    private static final String MODEL_EXPECTED_SHA256 = "eddb18fbeee320a9eca35cefc88efdb938d9ebe106922f3d91e261f3cbc1c9f6";
     private static final int DOWNLOAD_BUFFER_BYTES = 8192;
     private static final long DOWNLOAD_FALLBACK_BYTES = 400 * 1024 * 1024;
 
@@ -82,8 +82,8 @@ public class AsagiBrainPlugin extends Plugin {
     private static native String nativeGenerateStream(String[] roles, String[] contents, int maxTokens);
 
     private Context appContext;
-    private File modelDirectory;
-    private File modelFile;
+    private volatile File modelDirectory;
+    private volatile File modelFile;
     private DownloadState downloadState;
     private AtomicBoolean loaded = new AtomicBoolean(false);
     private Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -114,10 +114,23 @@ public class AsagiBrainPlugin extends Plugin {
     public void load() {
         instance = this;
         appContext = getContext().getApplicationContext();
-        modelDirectory = new File(appContext.getFilesDir(), "models");
+        // El modelo vive en la tarjeta SD si hay (no llena la memoria interna).
+        modelDirectory = Almacen.carpetaModelos(appContext, MODEL_FILENAME);
         modelFile = new File(modelDirectory, MODEL_FILENAME);
         downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME);
         iniciarEnlacePoller();
+        // Si ya estaba en la interna y hay SD con espacio: lo pasa en segundo plano.
+        if (modelFile.exists() && modelDirectory.equals(new File(appContext.getFilesDir(), "models")) && Almacen.sd(appContext) != null) {
+            new Thread(() -> {
+                File nuevo = Almacen.moverModeloASd(appContext, MODEL_FILENAME);
+                if (nuevo != null) {
+                    modelDirectory = nuevo.getParentFile();
+                    modelFile = nuevo;
+                    try { downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME); } catch (Throwable ignored) {}
+                    Log.i(TAG, "modelo movido a la SD: " + nuevo);
+                }
+            }, "asagi-modelo-sd").start();
+        }
     }
 
     private File resolveModelDirectory() {
@@ -516,7 +529,7 @@ public class AsagiBrainPlugin extends Plugin {
 
     private static final String[] MODEL_URLS = new String[]{
             MODEL_HTTP_URL,
-            "https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main"
+            "https://hf-mirror.com/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/" + MODEL_REVISION
                     + "/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf"
     };
 

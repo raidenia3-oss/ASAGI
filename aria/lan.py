@@ -300,7 +300,11 @@ class Servidor:
                         r = self.al_recibir(c) or {"ok": True}
                     except Exception as e:  # el manejador nunca tumba el enlace
                         r = {"ok": False, "error": str(e)[:120]}
+                    arch = r.pop("_archivo", None) if isinstance(r, dict) else None
                     con.sendall((sellar(self.claves, YO, r) + "\n").encode())
+                    if arch:                  # pedido autenticado de un archivo grande (Wikipedia): va tal cual
+                        self._mandar_archivo(con, arch)  # detrás de la línea; el celular comprueba el sha256
+                        return
         except OSError:
             pass
         finally:
@@ -308,6 +312,17 @@ class Servidor:
                 con.close()
             except OSError:
                 pass
+
+    @staticmethod
+    def _mandar_archivo(con: socket.socket, arch: Dict[str, Any]) -> None:
+        con.settimeout(60.0)
+        with open(arch["ruta"], "rb") as f:
+            f.seek(int(arch.get("desde") or 0))
+            while True:
+                b = f.read(1 << 20)
+                if not b:
+                    break
+                con.sendall(b)
 
     def _bt(self) -> None:
         try:

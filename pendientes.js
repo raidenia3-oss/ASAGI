@@ -95,6 +95,46 @@ function parsearTiempo(texto, ahora) {
     }
   }
 
+  // hora sin «a las»: «8 am», «6pm», «8:30 p. m.», «20:30»
+  if (!tieneHora) {
+    var mA = n.match(/(?:^|\s)(\d{1,2})(?::(\d{2}))?\s*(a\.?\s?m\.?|p\.?\s?m\.?)(?=\s|$|[,.;])/) || n.match(/(?:^|\s)(\d{1,2}):(\d{2})(?=\s|$|[,.;])()/);
+    if (mA) {
+      var h2 = parseInt(mA[1], 10), m2 = mA[2] ? parseInt(mA[2], 10) : 0, s2 = (mA[3] || '').replace(/[\s.]/g, '');
+      if (s2 === 'pm' && h2 < 12) h2 += 12;
+      if (s2 === 'am' && h2 === 12) h2 = 0;
+      if (h2 >= 0 && h2 <= 23 && m2 >= 0 && m2 <= 59 && (s2 || h2 >= 0)) {
+        d.setHours(h2, m2, 0, 0); tieneHora = true;
+        quitar.push(/(^|\s)\d{1,2}(?::\d{2})?\s*(?:a\.?\s?m\.?|p\.?\s?m\.?)(?=\s|$|[,.;])/i, /(^|\s)\d{1,2}:\d{2}(?=\s|$|[,.;])/);
+      }
+    }
+  }
+  // fecha: «20 de noviembre», «20 nov» (si ya pasó este año, el próximo)
+  if (!tieneDia) {
+    var MS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    var mF = n.match(/\b(?:el\s+)?(\d{1,2})\s+(?:de\s+)?(ene|feb|mar|abr|may|jun|jul|ago|sep|set|oct|nov|dic)[a-z]*\b/);
+    if (mF) {
+      var mes = MS.indexOf(mF[2] === 'set' ? 'sep' : mF[2]), dia = parseInt(mF[1], 10);
+      if (mes >= 0 && dia >= 1 && dia <= 31) {
+        d.setMonth(mes, dia); tieneDia = true;
+        if (!tieneHora) d.setHours(9, 0, 0, 0);
+        if (d.getTime() < base.getTime() - 864e5) d.setFullYear(d.getFullYear() + 1);
+        quitar.push(/\b(?:el\s+)?\d{1,2}\s+(?:de\s+)?(?:ene|feb|mar|abr|may|jun|jul|ago|sep|set|oct|nov|dic)[a-zñ]*\b/i);
+      }
+    }
+  }
+  // día de la semana: «el viernes», «el lunes 6 pm» (el próximo; si es hoy y la hora ya pasó, el de la otra semana)
+  if (!tieneDia) {
+    var DS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    var mD = n.match(/\b(?:el\s+|este\s+|para\s+el\s+)?(domingo|lunes|martes|miercoles|jueves|viernes|sabado)\b/);
+    if (mD) {
+      var add = (DS.indexOf(mD[1]) - d.getDay() + 7) % 7;
+      d.setDate(d.getDate() + add); tieneDia = true;
+      if (!tieneHora) d.setHours(9, 0, 0, 0);
+      if (d.getTime() <= base.getTime()) d.setDate(d.getDate() + 7);
+      quitar.push(/\b(?:el\s+|este\s+|para\s+el\s+)?(?:domingo|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado)\b/i);
+    }
+  }
+
   if (!tieneDia && !tieneHora) return { limpio: t.trim(), cuando: null, etiqueta: '' };
   if (tieneDia && !tieneHora) d.setHours(9, 0, 0, 0);               // día sin hora -> 9:00
   if (!tieneDia && tieneHora && d.getTime() <= base.getTime()) d.setDate(d.getDate() + 1); // hora ya pasada -> mañana
@@ -113,7 +153,7 @@ function etiquetaCuando(cuando, base) {
   if (!cuando) return '';
   var d = new Date(cuando);
   var b = (base instanceof Date) ? new Date(base.getTime()) : new Date(base || Date.now());
-  var hhmm = _dosDig(d.getHours()) + ':' + _dosDig(d.getMinutes());
+  var hhmm = (d.getHours() % 12 || 12) + ':' + _dosDig(d.getMinutes()) + (d.getHours() < 12 ? ' a. m.' : ' p. m.');
   var d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   var b0 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
   var dias = Math.round((d0 - b0) / 86400000);

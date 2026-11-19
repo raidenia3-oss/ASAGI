@@ -53,7 +53,9 @@ function tick(estado, ritmo) {
     nw._t += 1;
     // velocidad: cada fase dura ~ 7-11 ticks
     const porFase = 100 / nw.fases.length;
-    nw.progreso = Math.min(100, nw.progreso + (2.2 + (nw.id.length % 3)) * r);
+    const tope = (nw.real && !nw.realHecho) ? 90 : 100;   // no se marca listo hasta que el bot responde de verdad
+    nw.progreso = Math.min(tope, nw.progreso + (2.2 + (nw.id.length % 3)) * r);
+    if (nw.progreso >= 90 && nw.real && !nw.realHecho) { nw.paso = 'esperando su respuesta'; activos++; return nw; }
     const faseObj = Math.min(nw.fases.length - 1, Math.floor(nw.progreso / porFase));
     if (faseObj !== nw.faseIdx) {
       nw.faseIdx = faseObj;

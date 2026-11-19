@@ -18,10 +18,10 @@ const _COMPLEJO = ['explica', 'disena', 'compara', 'analiza', 'por que', 'porque
 
 const _FRESCO = ['hoy', 'ahora', 'ultimo', 'ultima', 'reciente', 'actual', 'precio',
                  'cuanto cuesta', 'noticia', 'noticias', 'clima', 'tiempo', 'quien es',
-                 'quien gano', 'resultado', 'cotiza', 'version mas nueva', '2026', '2027'];
+                 'quien gano', 'resultado', 'ayer', 'presidente', 'ministro', 'alcalde', 'campeon', 'estreno', 'salio', 'tipo de cambio', 'esta semana', 'este ano', 'cotiza', 'version mas nueva', '2026', '2027'];
 
 function _tiene(texto, lista) {
-  const t = (texto || '').toLowerCase();
+  const t = (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return lista.some((k) => t.includes(k));
 }
 

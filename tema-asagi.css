@@ -1,0 +1,586 @@
+/* =====================================================================
+   ASAGI · tema visual "Asagi-iro" (浅葱色)
+   Noche verde-tinta, verde azulado asagi, oro de horquilla, carmín de borla.
+   Display: Shippori Mincho B1 (mincho japonés, con mesura: reloj, nombres).
+   Texto:   Zen Kaku Gothic New.   Datos: JetBrains Mono.
+   Va DESPUÉS de styles.css: solo afina, no reescribe la estructura.
+   ===================================================================== */
+@font-face { font-family: "Shippori Mincho B1"; font-weight: 500; font-display: swap; src: url("assets/fonts/shippori-mincho-b1-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Shippori Mincho B1"; font-weight: 700; font-display: swap; src: url("assets/fonts/shippori-mincho-b1-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 400; font-display: swap; src: url("assets/fonts/zen-kaku-gothic-new-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 500; font-display: swap; src: url("assets/fonts/zen-kaku-gothic-new-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Zen Kaku Gothic New"; font-weight: 700; font-display: swap; src: url("assets/fonts/zen-kaku-gothic-new-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 600; font-display: swap; src: url("assets/fonts/jetbrains-mono-latin-600-normal.woff2") format("woff2"); }
+
+:root {
+  --noche: #0f060b;
+  --laca: #17080e;
+  --asagi: #de183f;
+  --oro: #ffd700;
+  --carmin: #f03c5c;
+  --papel: #f0f0f8;
+  --niebla: #a09ca3;
+  --display: "Shippori Mincho B1", "Noto Serif JP", Georgia, serif;
+  --sans: "Zen Kaku Gothic New", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, ui-monospace, monospace;
+}
+html, body { font-family: var(--sans); color: var(--papel); }
+
+/* ---------- Casa: reloj en mincho, grande y sereno ---------- */
+.launcher-clock {
+  font: 700 3.8rem/0.95 var(--display);
+  letter-spacing: 0.02em;
+  color: var(--papel);
+  text-shadow: 0 2px 30px rgba(255, 215, 0, 0.28);
+}
+#launcher-date, .launcher-date {
+  font: 500 0.72rem/1.4 var(--mono);
+  letter-spacing: 0.32em;
+  color: var(--oro);
+  text-transform: uppercase;
+}
+
+/* ---------- Iconos de apps: el icono real sobre un "sello" de vidrio ---------- */
+.launcher-ico {
+  width: 56px; height: 56px;
+  border-radius: 19px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(240, 240, 248, 0.10), rgba(23, 8, 14, 0.55)) !important;
+  border: 1px solid rgba(240, 240, 248, 0.10);
+  box-shadow: 0 10px 22px -12px rgba(8, 4, 8, 0.9), inset 0 1px 0 rgba(240, 240, 248, 0.10);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font: 700 1.35rem/1 var(--display) !important;
+  color: var(--papel) !important;
+}
+.launcher-ico img { width: 72%; height: 72%; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(8, 4, 8, 0.45)); }
+/* sin icono real: monograma en mincho sobre tinta con un hilo de color propio */
+.launcher-ico.mono::after {
+  content: ""; position: absolute; left: 22%; right: 22%; bottom: 9px; height: 2px; border-radius: 2px;
+  background: var(--hilo, var(--asagi)); opacity: 0.85;
+}
+.launcher-lbl { font: 500 0.74rem/1.25 var(--sans) !important; color: rgba(240, 240, 248, 0.86) !important; letter-spacing: 0.01em; }
+.launcher-app:active .launcher-ico { box-shadow: 0 0 0 2px var(--oro), 0 8px 20px -6px rgba(255, 215, 0, 0.5); }
+
+/* ---------- Cabecera del asistente: la cara manda ---------- */
+#avatar-cv { width: 200px; height: 200px; }
+.avatar-wrap { margin: 30px 0 2px; }
+.avatar-estado { font: 600 0.62rem/1 var(--mono); letter-spacing: 0.3em; color: var(--oro); opacity: 0.85; }
+#assistant .panel-header { border-bottom: 0; background: none; align-items: center; text-align: center; padding: 4px 16px 8px; }
+#assistant .panel-header .eyebrow { font: 500 0.6rem/1 var(--mono); letter-spacing: 0.34em; color: var(--niebla); }
+#assistant .panel-header h2 { font: 700 1.9rem/1.1 var(--display); letter-spacing: 0.06em; color: var(--papel); margin: 6px 0 0; }
+
+/* ---------- Chat: ASAGI escribe en el papel, tú en una cápsula ---------- */
+.chat { gap: 14px; padding: 12px 16px 18px; }
+.message { font: 400 0.98rem/1.6 var(--sans); animation: none; }
+.message.bot {
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  max-width: 92%;
+  padding: 2px 0 2px 16px;
+  position: relative;
+  color: var(--papel);
+  animation: entra-bot .35s cubic-bezier(.2, .7, .3, 1);
+}
+.message.bot::before {
+  content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--asagi), rgba(222, 24, 63, 0));
+}
+.message.bot::after {
+  content: "ASAGI"; position: absolute; left: 16px; top: -13px;
+  font: 600 0.52rem/1 var(--mono); letter-spacing: 0.3em; color: var(--oro); opacity: 0.8;
+}
+.message.user {
+  background: rgba(23, 8, 14, 0.72) !important;
+  color: var(--papel) !important;
+  font-weight: 400;
+  border: 1px solid rgba(255, 215, 0, 0.42);
+  border-radius: 20px 20px 6px 20px !important;
+  box-shadow: 0 10px 26px -18px rgba(255, 215, 0, 0.6) !important;
+  padding: 9px 15px;
+  animation: entra-user .3s cubic-bezier(.2, .7, .3, 1);
+}
+.msg-meta { color: var(--niebla); }
+.message.user .msg-meta { color: rgba(255, 215, 0, 0.75); }
+@keyframes entra-bot { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+@keyframes entra-user { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* ---------- Barra de escribir: una sola pieza de vidrio ---------- */
+.composer {
+  margin: 0 12px 12px;
+  padding: 6px 6px 6px 16px;
+  border-radius: 26px;
+  background: rgba(23, 8, 14, 0.78);
+  border: 1px solid rgba(222, 24, 63, 0.22);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  gap: 6px;
+}
+.composer input { background: none !important; border: 0 !important; box-shadow: none !important; font: 400 1rem var(--sans); color: var(--papel); padding: 10px 0; }
+.composer input:focus { outline: none; }
+.composer:focus-within { border-color: rgba(255, 215, 0, 0.6); }
+.composer button[type="submit"] {
+  width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 50%;
+  font-size: 0; color: transparent;
+  background: radial-gradient(circle at 35% 30%, #ffe043, var(--oro) 60%, #ffd700) !important;
+  box-shadow: 0 6px 16px -6px rgba(255, 215, 0, 0.8);
+  position: relative;
+}
+.composer button[type="submit"]::after {
+  content: ""; position: absolute; inset: 0; margin: auto; width: 16px; height: 16px;
+  background: #14070d;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11.5 21 3l-8.5 18-2-7.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 11.5 21 3l-8.5 18-2-7.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.mic-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 50% !important; background: rgba(222, 24, 63, 0.14) !important; border: 1px solid rgba(222, 24, 63, 0.35) !important; }
+
+/* ---------- Títulos de paneles en mincho ---------- */
+.panel h2 { font-family: var(--display); letter-spacing: 0.03em; }
+.eyebrow { font-family: var(--mono); color: var(--oro); }
+
+@media (prefers-reduced-motion: reduce) {
+  .message.bot, .message.user { animation: none; }
+}
+
+/* aviso del modelo: tarjeta compacta, no franja que se come el chat */
+#assistant .brain-alert {
+  margin: 4px 14px 2px; padding: 8px 12px; border-radius: 12px;
+  font: 400 0.74rem/1.45 var(--sans); color: #ffe45e;
+  background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.28);
+}
+#avatar-cv { width: 176px; height: 176px; }
+
+/* icono hecho con tu foto: ocupa todo el sello */
+.launcher-ico.con-foto img.foto { width: 100%; height: 100%; object-fit: cover; filter: none; }
+
+/* nivel de aprendizaje bajo el nombre */
+.nivel-chip { margin: 8px auto 0; display: inline-flex; flex-direction: column; align-items: center; gap: 5px;
+  background: none; border: 0; padding: 2px 8px; cursor: pointer; width: auto; box-shadow: none; }
+.nivel-chip span { font: 600 0.6rem/1 var(--mono); letter-spacing: 0.28em; color: var(--oro); }
+.nivel-chip i { display: block; width: 120px; height: 3px; border-radius: 3px; background: rgba(255, 215, 0, 0.18); overflow: hidden; }
+.nivel-chip b { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--asagi), var(--oro)); transition: width .6s ease; }
+
+/* resultado del equipo de bots */
+.enj-final { margin: 10px 14px; padding: 14px 16px; border-radius: 16px; background: rgba(23, 8, 14, 0.82);
+  border: 1px solid rgba(255, 215, 0, 0.35); }
+.enj-final-h { font: 700 1.05rem/1.2 var(--display); color: var(--papel); margin-bottom: 8px; }
+.enj-final-h small { display: block; margin-top: 3px; font: 500 0.6rem/1 var(--mono); letter-spacing: .14em; color: var(--oro); }
+.enj-final-txt { font: 400 0.92rem/1.6 var(--sans); color: var(--papel); white-space: pre-wrap; }
+.enj-critica { margin-top: 10px; padding: 8px 10px; border-left: 2px solid var(--carmin); font: 400 0.8rem/1.5 var(--sans); color: #ff5c76; white-space: pre-wrap; }
+.enj-critica b { font: 600 0.58rem/1 var(--mono); letter-spacing: .2em; color: var(--carmin); margin-right: 6px; }
+.enj-acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.enj-acciones button { width: auto; font-size: .75rem; padding: 7px 10px; }
+.enj-card.fallo { border-color: rgba(238, 57, 90, 0.6) !important; }
+.enj-aportes { margin-top: 10px; font: 400 0.82rem/1.5 var(--sans); color: var(--niebla); }
+.enj-aportes summary { cursor: pointer; font: 600 0.62rem/1.6 var(--mono); letter-spacing: .14em; color: var(--asagi); text-transform: uppercase; }
+.enj-aportes p { margin: 8px 0 0; white-space: pre-wrap; color: var(--papel); }
+.enj-aportes p b { color: var(--oro); font-weight: 600; }
+.enj-aportes button { margin-top: 6px; width: auto; font-size: .72rem; padding: 5px 9px; }
+.enj-salud { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.enj-salud span { font: 500 0.66rem/1 var(--mono); padding: 5px 8px; border-radius: 999px; border: 1px solid rgba(222, 24, 63, .35); color: var(--asagi); }
+.enj-salud span.mal { border-color: rgba(240, 60, 92, .5); color: var(--carmin); }
+/* reloj de 12 h: "10:49" grande y "p. m." chico al lado */
+.clock-ampm { font: 600 0.9rem/1 var(--mono); letter-spacing: 0.12em; color: var(--oro); margin-left: 0.35em; vertical-align: 0.35em; text-transform: lowercase; }
+
+/* ---------- Ergonomía (revisión "como persona" en el emulador) ---------- */
+/* todo lo que se toca mide al menos 44 px: dedo, no cursor */
+.ov-back { min-width: 64px !important; min-height: 44px !important; }
+#pend-open, #reset-chat, .enj-acciones button, .enj-aportes button { min-height: 44px; }
+.nivel-chip { min-height: 44px; justify-content: center; }
+/* contador de pendientes: si está en 0 no se muestra (antes salía un "0" rojo) */
+.pend-count[hidden] { display: none !important; }
+/* letras de adorno: nunca menos de 11 px para que se lean en el celular */
+.home-hint, .avatar-estado, #assistant .panel-header .eyebrow, .nivel-chip span, .eyebrow,
+.enj-stat span, .enj-stat small, .enj-live, .brain-badge, .mode-chip, .msg-meta { font-size: max(11px, 0.7rem) !important; }
+/* la etiqueta "ASAGI" de cada respuesta no se pega a la tarjeta de arriba */
+.message.bot { margin-top: 10px; }
+.radio-group label span, .brain-hint, .brain-status, #brain-status { font-size: max(11.5px, 0.72rem) !important; }
+
+/* ---------- Chat en conversación: la cara se hace chica y el chat ocupa la pantalla ----------
+   (antes la cabecera se comía ~500 de 866 px y el chat quedaba en 260 px) */
+#assistant.conversando .avatar-wrap { position: absolute; top: 6px; left: 12px; margin: 0; z-index: 2; }
+#assistant.conversando #avatar-cv { width: 60px !important; height: 60px !important; }
+#assistant.conversando .avatar-estado,
+#assistant.conversando .panel-header .eyebrow,
+#assistant.conversando .brain-hint { display: none !important; }
+#assistant.conversando .panel-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 14px 6px 84px; min-height: 72px; text-align: left; }
+#assistant.conversando .panel-header-text { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; }
+#assistant.conversando .panel-header h2 { font-size: 1.35rem; margin: 0; }
+#assistant.conversando .nivel-chip { margin: 0; min-height: 44px; }
+#assistant.conversando .nivel-chip i { width: 64px; }
+#assistant.conversando .panel-brain { flex: 0 0 auto; }
+#assistant.conversando #reset-chat { padding: 6px 12px; }
+#assistant.conversando .ov-back { left: auto; right: 10px; transform: none; }
+#assistant.conversando .brain-alert { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+#assistant.conversando .brain-alert.abierta { display: block; }
+#assistant.conversando .panel-header-text { flex-direction: row; justify-content: flex-start; width: auto; flex: 1 1 150px; margin: 0; }
+#assistant.conversando .panel-brain { border: 0 !important; margin: 0 !important; padding: 0 !important; width: auto; }
+#assistant.conversando .panel-brain .radio-group { margin: 0; }
+#assistant.conversando #reset-chat { margin: 0 0 0 auto; }
+#assistant.conversando .ov-back { top: 12px; }
+#assistant.conversando .panel-header { padding-right: 84px; }
+/* cabecera compacta en 2 filas: [nombre + nivel] / [Local·Remoto  ·  Reset] */
+#assistant.conversando .panel-header { display: grid !important; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center;
+  gap: 4px 8px; padding: 8px 12px 6px 84px !important; min-height: 0; }
+#assistant.conversando .panel-header-text { grid-column: 1 / 3; grid-row: 1; flex-direction: row !important; align-items: center; justify-content: flex-start;
+  gap: 12px; padding-right: 72px; overflow: visible; }
+#assistant.conversando .panel-brain { grid-column: 1; grid-row: 2; width: auto !important; }
+#assistant.conversando #reset-chat { grid-column: 2; grid-row: 2; align-self: center; }
+#assistant.conversando .nivel-chip { align-items: flex-start; }
+/* con el teclado abierto (poca altura): fuera todo lo que no sea la conversación */
+@media (max-height: 640px) {
+  #assistant.conversando .panel-brain, #assistant.conversando #reset-chat, #assistant .brain-alert { display: none !important; }
+  #assistant.conversando .panel-header { padding-top: 4px !important; padding-bottom: 2px !important; }
+  #assistant:not(.conversando) .avatar-wrap { display: none; }
+}
+#assistant.conversando .panel-header { min-height: 70px !important; }
+.avatar-wrap { margin-top: 56px; }  /* que el botón ⌄ no tape la cara */
+
+/* Hoja del fondo (12-nov): con la foto puesta la hoja medía más que la pantalla y la parte de arriba
+   («Elegir foto…», estilos, color) quedaba fuera, sin poder llegar. Ahora tiene alto máximo y se desplaza. */
+.wall-sheet-in { max-height: calc(100% - 16px); overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px)); }
+.wall-foto-edit[hidden], #wf-notas[hidden], #wf-lib-h[hidden], #wf-ascii[hidden], #wf-ascii-off[hidden],
+#wall-foto-quitar[hidden] { display: none !important; }
+.brain-alert { position: relative; padding-right: 34px !important; }
+.brain-alert-x { position: absolute; top: -4px; right: -4px; width: 44px; height: 44px; border: 0; background: none;
+  color: inherit; font-size: 20px; line-height: 1; opacity: .75; cursor: pointer; }
+/* los saltos de línea de ASAGI (listas, tácticas, pasos) se veían pegados en un solo párrafo */
+.message .msg-text { white-space: pre-line; }
+
+/* Openverse: hoja de fondos libres */
+.ov-hoja { position: fixed; left: 8px; right: 8px; bottom: 8px; max-height: 78vh; z-index: 60; display: flex; flex-direction: column;
+  background: rgba(8, 4, 8, 0.96); border: 1px solid rgba(220, 20, 60, 0.45); border-radius: 18px; padding: 10px; box-shadow: 0 -8px 40px rgba(0,0,0,.6); }
+.ov-cab { display: flex; align-items: center; justify-content: space-between; color: #FFD700; padding: 2px 4px 8px; font-size: .9rem; }
+.ov-x { background: none; border: 0; color: #F0F0F8; font-size: 1.6rem; line-height: 1; padding: 0 8px; cursor: pointer; }
+.ov-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: max-content; align-content: start; min-height: 0; gap: 6px; overflow-y: auto; overscroll-behavior: contain; }
+.ov-grid.ov-cargando { opacity: .45; pointer-events: none; }
+.ov-item { padding: 0; border: 1px solid rgba(240,240,248,.12); border-radius: 10px; overflow: hidden; aspect-ratio: 9 / 16; background: #140810; cursor: pointer; }
+.ov-item:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
+.ov-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ov-pie { color: rgba(240,240,248,.6); font-size: .7rem; padding-top: 8px; text-align: center; }
+
+/* revisión como usuario (14-nov) */
+#assistant.conversando .brain-alert:not([hidden]) { display: block; max-height: calc(2 * 1.45em + 14px); padding-bottom: 0; overflow: hidden; position: relative; padding-right: 38px; }
+#assistant.conversando .brain-alert.abierta { max-height: none; }
+#assistant.conversando .nivel-chip span { white-space: nowrap; letter-spacing: 0.16em; }
+.sugerencias { display: flex; gap: 8px; overflow-x: auto; padding: 4px 14px 8px; scrollbar-width: none; }
+.sugerencias::-webkit-scrollbar { display: none; }
+.sugerencias button { flex: 0 0 auto; min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.35);
+  background: rgba(255, 215, 0, 0.06); color: #F0F0F8; font: 500 0.82rem/1 var(--sans); cursor: pointer; }
+.sugerencias button:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+#assistant.con-usuario .sugerencias { display: none; }
+
+/* ---------- Música: mini reproductor encima del cuadro de texto + hoja con la lista ---------- */
+.mu-mini { display: flex; align-items: center; gap: 4px; margin: 0 12px 8px; padding: 6px 6px 6px 10px; border-radius: 16px;
+  background: linear-gradient(90deg, rgba(220, 20, 60, 0.18), rgba(8, 4, 8, 0.92)); border: 1px solid rgba(220, 20, 60, 0.45); }
+.mu-mini[hidden] { display: none; }
+.mu-info { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; background: none; border: 0; color: #F0F0F8; text-align: left; padding: 4px 0; cursor: pointer; }
+.mu-nota { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; background: #DC143C; color: #FFD700; font-size: 1.1rem; }
+.mu-sonando .mu-nota { animation: mu-pulso 1.6s ease-in-out infinite; }
+@keyframes mu-pulso { 50% { box-shadow: 0 0 0 6px rgba(220, 20, 60, 0.18); } }
+@media (prefers-reduced-motion: reduce) { .mu-sonando .mu-nota { animation: none; } }
+.mu-tx { min-width: 0; display: flex; flex-direction: column; }
+.mu-tx b, .mu-tx small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-tx b { font: 600 0.88rem/1.25 var(--sans); }
+.mu-tx small { font: 400 0.72rem/1.3 var(--sans); color: rgba(240, 240, 248, 0.65); }
+.mu-b { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 12px; border: 0; background: none; color: #F0F0F8; font-size: 1.1rem; cursor: pointer; }
+.mu-pp { background: #FFD700; color: #080408; border-radius: 50%; }
+.mu-b:focus-visible, .mu-info:focus-visible, .mu-fila:focus-visible, .mu-acc-b:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.mu-hoja { position: fixed; left: 8px; right: 8px; bottom: 8px; top: 12vh; z-index: 61; display: flex; flex-direction: column; gap: 8px;
+  background: rgba(8, 4, 8, 0.97); border: 1px solid rgba(220, 20, 60, 0.45); border-radius: 18px; padding: 12px; box-shadow: 0 -8px 40px rgba(0, 0, 0, .6); }
+.mu-cab { display: flex; justify-content: space-between; align-items: center; color: #FFD700; }
+.mu-x { background: none; border: 0; color: #F0F0F8; font-size: 1.7rem; line-height: 1; width: 44px; height: 44px; cursor: pointer; }
+.mu-busca { width: 100%; min-height: 44px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.2); background: rgba(240, 240, 248, 0.06);
+  color: #F0F0F8; padding: 0 14px; font: 400 0.92rem var(--sans); }
+.mu-acc { display: flex; gap: 8px; }
+.mu-acc-b { flex: 1; min-height: 44px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.4); background: rgba(255, 215, 0, 0.08); color: #F0F0F8; font: 600 0.88rem var(--sans); cursor: pointer; }
+.mu-lista { flex: 1; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; }
+.mu-fila { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 6px; background: none; border: 0;
+  border-bottom: 1px solid rgba(240, 240, 248, 0.07); color: #F0F0F8; text-align: left; cursor: pointer; }
+.mu-ft { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mu-ft b, .mu-ft small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mu-ft b { font: 500 0.9rem/1.3 var(--sans); }
+.mu-ft small { font: 400 0.74rem/1.3 var(--sans); color: rgba(240, 240, 248, 0.6); }
+.mu-dur { font: 500 0.72rem var(--mono); color: rgba(240, 240, 248, 0.55); }
+.mu-actual { background: rgba(220, 20, 60, 0.14); border-radius: 10px; }
+.mu-actual b { color: #FFD700; }
+.mu-vacio { color: rgba(240, 240, 248, 0.65); padding: 16px 4px; font: 400 0.88rem/1.5 var(--sans); }
+
+/* revisión como usuario (14-nov, noche): el botón de volver no tapa títulos ni texto; Pendientes cabe en pantalla */
+.panel.overlay > .ov-back { left: auto !important; right: 12px; transform: none !important; top: 14px; }
+.panel.overlay > .ov-back.ov-back-top { top: 14px; bottom: auto; }
+.panel.overlay > .panel-header { padding-right: 88px; }
+#pendientes .pend-add { margin: 0 12px 12px; }
+#pendientes .pend-add .mic-btn { flex: 0 0 44px; width: 44px; height: 44px; }
+.sugerencias { flex-wrap: nowrap; overflow-x: auto; -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 40px; }
+
+.mu-casa { margin: 10px 0 0; width: 100%; max-width: 420px; align-self: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+/* ---- Chat legible en el celular (15-nov): con el teclado abierto la cabecera se encoge a una barra
+   fina y el chat se queda con casi toda la pantalla. El aviso vacío ya no ocupa una fila. ---- */
+.brain-alert[hidden] { display: none !important; }
+#assistant.escribiendo .panel-header { padding-top: 6px; padding-bottom: 6px; gap: 6px; }
+#assistant.escribiendo .eyebrow, #assistant.escribiendo .brain-mode, #assistant.escribiendo .brain-hint,
+#assistant.escribiendo .panel-brain, #assistant.escribiendo #reset-chat, #assistant.escribiendo .brain-alert,
+#assistant.escribiendo .sugerencias, #assistant.escribiendo .mu-mini, #assistant.escribiendo .nivel-chip i { display: none !important; }
+#assistant.escribiendo .avatar-wrap { width: 40px !important; height: 40px !important; flex: 0 0 40px; }
+#assistant.escribiendo .avatar-wrap canvas { width: 40px !important; height: 40px !important; }
+#assistant.escribiendo .panel-header h2 { font-size: 1.15rem !important; margin: 0; }
+#assistant.escribiendo .nivel-chip span { font-size: 0.62rem; }
+#assistant.escribiendo .ov-back { top: 6px !important; transform: scale(.85) !important; }
+#assistant.escribiendo .chat { flex: 1 1 auto; min-height: 0; }
+.bot-reply-status { padding-top: 4px !important; padding-bottom: 4px !important; }
+#assistant.conversando:not(.escribiendo) .panel-header-text { margin-right: 66px !important; min-width: 0; }
+#assistant.conversando .nivel-chip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#assistant.conversando:not(.escribiendo) .panel-header-text { overflow: hidden; padding-right: 0; }
+#assistant.conversando .nivel-chip { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+#assistant.conversando .nivel-chip span { letter-spacing: 0.1em; }
+#assistant.conversando .nivel-chip span { letter-spacing: 0.05em; font-size: 0.68rem; }
+#assistant.conversando:not(.escribiendo) .panel-header-text { gap: 8px; }
+.pend-ejemplos { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+.pend-ejemplos button { min-height: 40px; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.35); background: rgba(255, 215, 0, 0.06); color: #F0F0F8; font: inherit; font-size: 0.85rem; width: auto; }
+#pend-limpiar[hidden] { display: none !important; }
+.enj-feed-h { font-size: 0.72rem !important; }
+/* lista de compras dentro de Pendientes */
+.co-panel { margin: 18px 14px 24px; padding: 14px; border-radius: 16px; border: 1px solid rgba(220, 20, 60, 0.3); background: rgba(220, 20, 60, 0.05); }
+.co-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.co-head h3 { margin: 0; font-size: 1.05rem; color: #F0F0F8; }
+.co-cnt { font: 500 0.78rem var(--mono); color: #FFD700; }
+.co-form { display: flex; gap: 8px; }
+.co-input { flex: 1 1 auto; min-width: 0; min-height: 44px; }
+.co-add { width: auto !important; min-height: 44px; padding: 0 16px; }
+.co-lista { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.co-item { width: 100%; text-align: left; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.12); background: rgba(8, 4, 8, 0.6); color: #F0F0F8; font: inherit; font-size: 0.95rem; }
+.co-item.hecho { color: rgba(240, 240, 248, 0.45); text-decoration: line-through; }
+.co-limpiar { width: auto !important; margin-top: 10px; }
+.co-limpiar[hidden] { display: none !important; }
+.co-input { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(240, 240, 248, .04) !important; color: var(--text) !important; font-size: 15px; }
+.co-add { border-radius: 12px; border: none; background: var(--cyan) !important; color: #15070d !important; font-weight: 700; }
+/* frases tocables dentro de los mensajes de ASAGI */
+.frase-tap { display: inline; padding: 1px 4px; margin: 0 1px; border: 0; border-radius: 6px; background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; line-height: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.35); text-underline-offset: 3px; width: auto; min-height: 0; box-shadow: none; }
+.frase-tap:active { background: rgba(255, 215, 0, 0.25); }
+.frase-tap:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
+#assistant.conversando:not(.escribiendo) .panel-header h2 { font-size: 1.2rem !important; }
+#assistant.conversando .nivel-chip span { letter-spacing: 0 !important; font-size: 0.64rem !important; }
+/* guía «Usar Gemini gratis» */
+#brain-alert.abre-guia { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.4); text-underline-offset: 3px; }
+.gg-fondo { position: fixed; inset: 0; z-index: 9000; background: rgba(8, 4, 8, 0.78); display: flex; align-items: flex-end; justify-content: center; }
+.gg-hoja { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; background: #120a10; border: 1px solid rgba(220, 20, 60, 0.45); border-bottom: 0; border-radius: 20px 20px 0 0; padding: 20px 18px calc(18px + env(safe-area-inset-bottom)); color: #F0F0F8; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.6); }
+.gg-hoja h3 { margin: 0 0 12px; font-size: 1.2rem; color: #FFD700; }
+.gg-pasos { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 14px; font-size: 0.98rem; line-height: 1.45; }
+.gg-pasos b { color: #F0F0F8; }
+.gg-pasos li::marker { color: #DC143C; font-weight: 700; }
+.gg-abrir { margin-top: 8px; width: auto !important; min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.5); background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; font-weight: 600; }
+.gg-fila { display: flex; gap: 8px; margin-top: 8px; }
+.gg-key { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.2); background: rgba(240, 240, 248, 0.05); color: #F0F0F8; font: 0.95rem var(--mono, monospace); }
+.gg-pegar { width: auto !important; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(240, 240, 248, 0.25); background: transparent; color: #F0F0F8; font: inherit; }
+.gg-msg { min-height: 1.4em; margin: 14px 0 0; font-size: 0.92rem; color: #FFD700; }
+.gg-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+.gg-acciones button { width: auto !important; min-height: 48px; padding: 0 18px; border-radius: 14px; font: inherit; font-weight: 700; }
+.gg-guardar { border: 0; background: #DC143C; color: #F0F0F8; }
+.gg-guardar:disabled { opacity: 0.6; }
+.gg-cerrar { background: transparent; border: 1px solid rgba(240, 240, 248, 0.2); color: #F0F0F8; }
+.gg-nota { margin: 12px 0 0; font-size: 0.8rem; color: rgba(240, 240, 248, 0.6); text-align: center; }
+.gg-hoja button:focus-visible, .gg-key:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.message.bot .msg-text strong { color: #FFD700; font-weight: 700; }
+/* arranque más rápido: la app ya está lista en <1 s; antes esperaba 2,6 s fijos */
+#boot { animation: boot-out 0.35s ease 0.8s forwards !important; }
+.boot-bar span { animation: boot-fill 0.8s ease forwards !important; }
+@media (prefers-reduced-motion: reduce) { #boot { animation: boot-out 0.2s ease 0.3s forwards !important; } .boot-bar span { animation: none !important; } }
+.deshacer-chat { position: fixed; left: 12px; right: 12px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 8000; display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; border-radius: 14px; background: #1c1018; border: 1px solid rgba(255, 215, 0, 0.35); color: #F0F0F8; font-size: 0.9rem; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+.deshacer-chat span { flex: 1 1 auto; }
+.deshacer-chat button { width: auto !important; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 0; background: #FFD700; color: #080408; font: inherit; font-weight: 700; }
+.deshacer-chat button { white-space: nowrap; }
+/* frases tocables: zona de toque de ~44 px sin mover el texto (reporte del emulador: medían 27 px) */
+.frase-tap { position: relative; }
+.frase-tap::before { content: ''; position: absolute; left: -2px; right: -2px; top: -9px; bottom: -9px; }
+/* nivel compacto legible (≥11 px) */
+#assistant.conversando .nivel-chip span { font-size: 0.7rem !important; }
+@media (max-width: 359px) {
+  #assistant.conversando .panel-header-text { flex-direction: column !important; align-items: flex-start !important; gap: 2px !important; }
+  #assistant.conversando .nivel-chip span { white-space: nowrap; overflow: visible; }
+}
+.pend-txt { cursor: text; }
+.pend-edit { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.5); background: rgba(240, 240, 248, 0.06); color: #F0F0F8; font: inherit; font-size: 15px; }
+/* resultados de herramientas que ASAGI usó sola: compactos, la respuesta final es la que destaca */
+.message.bot.herr { cursor: pointer; }
+.message.bot.herr .msg-text { font-size: 0.86em; opacity: 0.72; max-height: 3.1em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
+.message.bot.herr .msg-text::before { content: '🔧 '; }
+.message.bot.herr.abierta .msg-text { max-height: none; -webkit-mask-image: none; mask-image: none; opacity: 0.9; }
+/* frases tocables: el relleno vertical cuenta como zona de toque (~45 px) y no mueve las líneas */
+.frase-tap { padding: 9px 3px !important; margin: -9px 0 !important; vertical-align: baseline; background: none !important; border-radius: 0 !important; }
+.frase-tap::before { content: none !important; }
+.frase-tap:active { background: rgba(255, 215, 0, 0.18) !important; border-radius: 6px !important; }
+/* barra del modo conversación */
+.conv-barra { position: fixed; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top)); z-index: 8500; min-height: 48px; padding: 10px 16px; border-radius: 16px; border: 1px solid rgba(220, 20, 60, 0.6); background: #1c0810; color: #F0F0F8; font: inherit; font-size: 0.95rem; text-align: left; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); width: auto !important; animation: conv-latido 1.6s ease-in-out infinite; }
+@keyframes conv-latido { 50% { box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.5); } }
+@media (prefers-reduced-motion: reduce) { .conv-barra { animation: none; } }
+/* enlaces tocables en el chat (pasan por el escudo y se abren en Chrome) */
+.enlace-tap { display: inline; padding: 9px 2px; margin: -9px 0; border: 0; background: none; color: #FFD700; font: inherit; font-size: 0.92em; text-decoration: underline; text-underline-offset: 3px; word-break: break-all; text-align: left; width: auto; min-height: 0; box-shadow: none; cursor: pointer; }
+.enlace-tap::before { content: '🔗 '; text-decoration: none; }
+.enlace-tap:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
+
+/* Mensajes largos: recorte con «Ver más» */
+.msg-text.msg-largo { max-height: 21em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 78%, transparent); mask-image: linear-gradient(#000 78%, transparent); }
+.ver-mas { display: block; margin: 4px 0 2px; padding: 8px 14px; min-height: 40px; border: 1px solid rgba(255, 215, 0, 0.35); border-radius: 999px; background: rgba(255, 215, 0, 0.06); color: #FFD700; font: inherit; font-size: 0.86em; width: auto; box-shadow: none; cursor: pointer; }
+.ver-mas:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+
+/* Sala de control: estado vacío con ejemplos y texto guía */
+.enj-feed:empty::before { content: attr(data-vacio); display: block; padding: 18px 8px; color: rgba(240, 240, 248, 0.5); text-align: center; }
+
+/* Rebote «sakuga»: los botones se aplastan al tocarlos y vuelven pasándose un poco (como animación dibujada) */
+@media (prefers-reduced-motion: no-preference) {
+  button, .lchip, .enlace-tap, .frase-tap { transition: transform 0.38s cubic-bezier(0.34, 1.7, 0.5, 1); }
+  button:active, .enlace-tap:active, .frase-tap:active { transform: scale(0.9, 0.86); transition: transform 0.06s ease-out; }
+}
+
+/* Ajustes: «Cómo soy» y «Lo que sé de ti» */
+#aj-alma { width: 100%; margin-top: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(8, 4, 8, 0.6); color: #F0F0F8; font: inherit; resize: vertical; }
+#aj-alma:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.aj-memoria { margin-top: 10px; max-height: 260px; overflow-y: auto; text-align: left; }
+.aj-mem-fila { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(240, 240, 248, 0.08); }
+.aj-mem-fila span { flex: 1; font-size: 0.9em; overflow-wrap: anywhere; }
+.aj-mem-x { width: 40px; min-width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid rgba(220, 20, 60, 0.5); background: transparent; color: #DC143C; box-shadow: none; }
+
+/* Onomatopeya manga (efectos.js → grito) */
+.sk-grito { position: fixed; left: 50%; top: 38%; z-index: 9998; pointer-events: none; white-space: nowrap;
+  font: italic 900 clamp(44px, 15vw, 76px)/1 'Arial Black', Impact, system-ui, sans-serif; letter-spacing: -1px; color: #FFD700;
+  -webkit-text-stroke: 2px #080408; text-shadow: 4px 4px 0 #DC143C, 7px 7px 0 #080408;
+  transform: translate(-50%, -50%) rotate(-8deg) scale(0); animation: sk-grito 1.25s cubic-bezier(0.2, 1.6, 0.4, 1) forwards; }
+@keyframes sk-grito { 0% { transform: translate(-50%, -50%) rotate(-14deg) scale(0); opacity: 0; } 18% { transform: translate(-50%, -50%) rotate(-8deg) scale(1.12); opacity: 1; }
+  30% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); } 75% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); opacity: 1; } 100% { transform: translate(-50%, -62%) rotate(-8deg) scale(1.05); opacity: 0; } }
+
+/* Casa: fila de atajos (se desliza de lado si no caben) */
+.home-atajos { position: relative; z-index: 2; flex: none; display: flex; gap: 8px; overflow-x: auto; padding: 10px 40px 30px 4px; -webkit-mask-image: linear-gradient(90deg, #000 86%, transparent); mask-image: linear-gradient(90deg, #000 86%, transparent); scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.home-atajos::-webkit-scrollbar { display: none; }
+.home-atajos button { flex: none; width: auto; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(8, 4, 8, 0.55); color: #F0F0F8; font: inherit; font-size: 0.9em; white-space: nowrap; box-shadow: none; }
+.home-atajos button:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.home-atajos .atajo-nuevo { border-color: #DC143C; background: rgba(220, 20, 60, 0.18); color: #FFD700; }
+/* Visor de creaciones (marco aislado, sin scripts) */
+.obra-visor { position: fixed; inset: 0; z-index: 9990; background: #080408; display: flex; flex-direction: column; }
+.obra-visor iframe { flex: 1; width: 100%; border: 0; background: #080408; }
+.obra-cerrar { flex: none; align-self: flex-end; width: auto; min-height: 44px; margin: calc(8px + env(safe-area-inset-top, 0px)) 10px 6px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.4); background: transparent; color: #FFD700; font: inherit; box-shadow: none; }
+
+/* Editor de imágenes */
+.editor-asagi { position: fixed; inset: 0; z-index: 9985; background: #080408; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); }
+.ed-top { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: #F0F0F8; }
+.ed-top b { font-size: 1.05em; letter-spacing: 1px; } .ed-top span { flex: 1; font-size: 0.82em; color: #FFD700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ed-top button { width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 215, 0, 0.4); background: transparent; color: #FFD700; box-shadow: none; }
+.ed-lienzo { flex: 1 1 0; min-height: 120px; display: flex; align-items: center; justify-content: center; padding: 6px 10px; }
+.ed-lienzo canvas { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.25); }
+.ed-lienzo canvas[width="300"][height="150"] { display: none; }
+.ed-grande { width: auto; min-height: 52px; padding: 0 26px; border-radius: 999px; border: 1px solid #DC143C; background: rgba(220, 20, 60, 0.18); color: #F0F0F8; font: inherit; font-size: 1.05em; box-shadow: none; position: absolute; }
+.ed-panel { flex: none; max-height: 52vh; overflow-y: auto; padding: 6px 12px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgba(255, 215, 0, 0.2); }
+.ed-fila { display: flex; gap: 8px; overflow-x: auto; padding: 6px 0; scrollbar-width: none; } .ed-fila::-webkit-scrollbar { display: none; }
+.ed-fila button, .ed-linea button { flex: none; width: auto; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255, 215, 0, 0.3); background: transparent; color: #F0F0F8; font: inherit; font-size: 0.9em; white-space: nowrap; box-shadow: none; }
+.ed-fila button.on { border-color: #DC143C; background: rgba(220, 20, 60, 0.22); color: #FFD700; }
+.ed-sl { display: flex; align-items: center; gap: 10px; min-height: 40px; color: #F0F0F8; font-size: 0.86em; } .ed-sl span { width: 74px; flex: none; } .ed-sl input { flex: 1; accent-color: #DC143C; height: 32px; }
+.ed-linea { display: flex; gap: 8px; margin-top: 8px; } .ed-linea input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(8, 4, 8, 0.6); color: #F0F0F8; font: inherit; }
+.ed-acciones { justify-content: flex-end; flex-wrap: wrap; } .ed-linea .ed-pri { border-color: #FFD700; background: #FFD700; color: #080408; font-weight: 700; }
+.editor-asagi button:focus-visible, .editor-asagi input:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+
+/* Ojos: foto con el objeto marcado */
+.ojos-visor canvas { flex: 1 1 0; min-height: 0; width: 100%; object-fit: contain; }
+
+/* Juego de tipeo «Defensa» */
+.tipeo-asagi { position: fixed; inset: 0; z-index: 9986; display: flex; flex-direction: column; background: radial-gradient(120% 80% at 50% 0%, rgba(220, 20, 60, 0.22), rgba(8, 4, 8, 0) 60%), #080408; padding-top: env(safe-area-inset-top, 0px); }
+.tp-top { flex: none; display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: #FFD700; font: 600 0.82em monospace; letter-spacing: 0.5px; }
+.tp-top span { flex: 1; } .tp-top button { width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 215, 0, 0.4); background: transparent; color: #FFD700; box-shadow: none; }
+#tp-cv { flex: 1 1 0; min-height: 0; width: 100%; }
+#tp-in { flex: none; margin: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid rgba(255, 215, 0, 0.45); background: rgba(8, 4, 8, 0.8); color: #F0F0F8; font: 600 1.05em monospace; text-align: center; }
+#tp-in:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+
+/* ===== Launcher (revisión de usuario, 17-nov) ===== */
+/* Pendientes pasa a la fila de atajos: arriba solo queda reloj, estado y buscador */
+#launcher .pend-chip { display: none; }
+.atajo-n { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 999px; background: #DC143C; color: #F0F0F8; font-size: 0.78em; line-height: 18px; text-align: center; }
+/* Favoritas: una sola fila tipo dock, sin título */
+#launcher .launcher-fav-wrap { margin: 8px 14px 0; padding: 10px 8px 6px; border-radius: 22px; }
+#launcher .launcher-fav { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+#launcher .launcher-fav .launcher-ico { width: 50px; height: 50px; }
+/* Rejilla: más espacio para tus apps y nombres legibles */
+#launcher .launcher-grid { padding: 12px 30px 14px 12px; gap: 14px 4px; scroll-padding-top: 8px; }
+#launcher .launcher-lbl { font-size: 0.72rem; color: #F0F0F8; opacity: 0.88; }
+#launcher .launcher-top { padding-top: 26px; padding-bottom: 6px; }
+/* Resultados de búsqueda en filas (icono + nombre), no tiles gigantes en columna */
+.launcher-grid.as-list .launcher-app { flex-direction: row; justify-content: flex-start; gap: 14px; width: 100%; min-height: 56px; padding: 6px 12px; border: 1px solid rgba(255, 215, 0, 0.18); border-radius: 14px; background: rgba(8, 4, 8, 0.55); }
+.launcher-grid.as-list .launcher-ico { width: 42px; height: 42px; border-radius: 12px; flex: none; }
+.launcher-grid.as-list .launcher-lbl { font-size: 0.95rem; text-align: left; opacity: 1; }
+/* Riel A–Z */
+.apps-riel { position: absolute; right: 0; width: 36px; z-index: 3; display: flex; flex-direction: column; justify-content: center; touch-action: none; }
+.apps-riel[hidden] { display: none; }
+.apps-riel span { display: block; flex: 1 1 0; max-height: 26px; min-height: 0; text-align: center; color: rgba(255, 215, 0, 0.7); font: 700 12px/1 monospace; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.apps-riel span.on { color: #DC143C; transform: scale(1.6); }
+.apps-riel.tocando { background: linear-gradient(90deg, transparent, rgba(220, 20, 60, 0.14)); border-radius: 18px; }
+/* Menú al mantener presionada una app */
+.app-menu { position: fixed; z-index: 9991; width: min(240px, calc(100vw - 24px)); padding: 6px; border-radius: 16px; border: 1px solid rgba(255, 215, 0, 0.35); background: rgba(8, 4, 8, 0.96); box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.8); }
+.app-menu-t { padding: 8px 12px 6px; color: #FFD700; font: 700 0.8rem monospace; letter-spacing: 1px; text-transform: uppercase; }
+.app-menu button { display: block; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; box-shadow: none; color: #F0F0F8; font: inherit; text-align: left; }
+.app-menu button:hover, .app-menu button:focus-visible { background: rgba(220, 20, 60, 0.2); outline: none; }
+.apps-ocultas { grid-column: 1 / -1; justify-self: center; width: auto; min-height: 40px; margin-top: 6px; padding: 0 16px; border-radius: 999px; border: 1px dashed rgba(255, 215, 0, 0.35); background: transparent; color: rgba(240, 240, 248, 0.7); font-size: 0.8em; box-shadow: none; }
+.atajo-n[hidden] { display: none; }
+/* Botones de las esquinas: con nombre debajo (antes solo un símbolo que no se entendía) */
+#launcher .corner-btn[data-txt]::after { content: attr(data-txt); position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 3px; font: 600 9px/1 monospace; letter-spacing: 1px; text-transform: uppercase; color: rgba(255, 215, 0, 0.75); white-space: nowrap; pointer-events: none; }
+
+/* Barra de batería + frase (como los fondos de bloqueo «100% · Happy Every Day» con firma) */
+.lpila { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: end; column-gap: 8px; width: min(260px, 72%); margin: 8px auto 2px; padding-bottom: 7px; color: var(--papel); }
+.lpila[hidden] { display: none; }
+.lpila-num { font: 600 0.7rem/1 var(--mono); color: var(--papel); opacity: 0.85; white-space: nowrap; }
+.lpila-frase { font: 500 0.72rem/1.1 var(--sans); color: var(--papel); opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.lpila-firma { font: italic 700 1.05rem/1 var(--display); color: #DC143C; transform: rotate(-8deg) translateY(2px); text-shadow: 0 0 12px rgba(220, 20, 60, 0.6); }
+.lpila-barra { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; background: rgba(240, 240, 248, 0.16); overflow: hidden; }
+.lpila-barra::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: #F0F0F8; border-radius: 3px; box-shadow: 0 0 8px rgba(240, 240, 248, 0.6); transition: width 0.6s ease; }
+.lpila.baja .lpila-barra::after { background: #DC143C; box-shadow: 0 0 8px rgba(220, 20, 60, 0.7); }
+.lpila.baja .lpila-num { color: #DC143C; }
+
+/* Como una app de verdad: tocar o deslizar no selecciona botones ni textos de la interfaz
+   (en el emulador salía la barra «Copy · Share · Select all» al deslizar por la casa). Los mensajes sí se pueden copiar. */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+input, textarea, [contenteditable="true"], .msg-text, .msg-text *, .seleccionable { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+
+/* ---------- Centro de control (arriba de Ajustes, idea de iControl): vidrio, fichas redondas, volumen en píldora ---------- */
+.centro { margin: 6px 14px 14px; padding: 14px; border-radius: 26px; background: linear-gradient(160deg, rgba(240, 240, 248, 0.08), rgba(23, 8, 14, 0.55));
+  border: 1px solid rgba(255, 215, 0, 0.16); box-shadow: inset 0 1px 0 rgba(240, 240, 248, 0.08), 0 18px 40px -24px rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: grid; gap: 12px; }
+.cc-musica { display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 12px; padding: 10px; border-radius: 20px; background: rgba(8, 4, 8, 0.55); border: 1px solid rgba(240, 240, 248, 0.08); }
+.cc-disco { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem; color: #FFD700;
+  background: radial-gradient(circle at 30% 30%, rgba(220, 20, 60, 0.55), rgba(8, 4, 8, 0.9)); box-shadow: 0 0 18px rgba(220, 20, 60, 0.35); }
+.cc-musica.sonando .cc-disco { animation: cc-gira 6s linear infinite; }
+@keyframes cc-gira { to { transform: rotate(360deg); } }
+.cc-m-txt { min-width: 0; display: grid; gap: 2px; }
+.cc-m-tit { color: #F0F0F8; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-m-sub { color: rgba(255, 215, 0, 0.75); font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-m-btns { display: flex; gap: 4px; }
+.cc-m-btns button { width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%; border: 0; background: transparent; color: #F0F0F8; font-size: 1.05rem; box-shadow: none; }
+.cc-m-btns .cc-play { width: 46px; height: 46px; background: #DC143C; color: #F0F0F8; box-shadow: 0 0 16px rgba(220, 20, 60, 0.5); }
+.cc-fila { display: grid; grid-template-columns: 1fr 64px; gap: 12px; align-items: stretch; }
+.cc-fichas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 6px; }
+.cc-ficha { display: grid; justify-items: center; gap: 4px; padding: 0; min-height: 0; border: 0; background: transparent; box-shadow: none; color: #F0F0F8; }
+.cc-ico { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; background: rgba(240, 240, 248, 0.08);
+  border: 1px solid rgba(240, 240, 248, 0.10); transition: background 0.2s, box-shadow 0.2s, transform 0.1s; }
+.cc-ficha:active .cc-ico { transform: scale(0.92); }
+.cc-ficha.on .cc-ico { background: #F0F0F8; color: #080408; box-shadow: 0 0 18px rgba(255, 215, 0, 0.45); }
+.cc-lbl { max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 0.66rem; color: rgba(240, 240, 248, 0.75); white-space: nowrap; }
+.cc-vol { position: relative; border-radius: 22px; overflow: hidden; background: rgba(240, 240, 248, 0.08); border: 1px solid rgba(240, 240, 248, 0.10); touch-action: none; min-height: 120px; cursor: ns-resize; }
+.cc-vol:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.cc-vol-lleno { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: linear-gradient(0deg, #DC143C, rgba(220, 20, 60, 0.55)); transition: height 0.08s; }
+.cc-vol-ico { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 1.1rem; pointer-events: none; }
+
+/* Grano de cine muy sutil sobre todo (tendencia 2026: textura que le da cuerpo al negro plano, estilo manga).
+   Fijo, no bloquea toques, se apaga con «reduce motion». Opacidad baja para no cansar. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+@media (prefers-reduced-motion: reduce) { body::after { display: none; } }

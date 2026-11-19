@@ -23,7 +23,42 @@ function dedupInsertar(nodos, texto, tema = '', fuente = '') {
   return { nodos: nodos.concat([{ texto: t, tema, fuente, ts: _ahora() }]), nuevo: true };
 }
 
-function buscarEn(nodos, consulta, k = 8) {
+// Activación (idea de ACT-R, usada en asistentes como el de M. Kraus): un recuerdo pesa más si es reciente y si se usa seguido.
+// Devuelve 0..~0.95: solo desempata entre recuerdos que coinciden igual (lo que se usa sube; lo que no, se apaga). PURO.
+function activacion(n, ahora) {
+  const dias = Math.max(0, ((ahora || _ahora()) - (n.ult || n.ts || 0)) / 86400);
+  const recencia = Math.pow(1 + dias, -0.5);                 // decae como potencia: rápido al inicio, lento después
+  const uso = Math.min(1, Math.log(1 + (n.usos || 0)) / Math.log(21));
+  return 0.55 * recencia + 0.4 * uso;
+}
+
+// «Sueño» (idea de DREAMS.md de OpenClaw): una vez al día se ordena la memoria sin gastar cerebro.
+// Junta recuerdos casi iguales (se queda el más nuevo y suma sus usos) y, si hay demasiados, suelta los más apagados
+// que nunca se usaron. Los que tienen fuente «usuario»/«tu» (lo que Daniel pidió recordar) jamás se sueltan. PURO.
+function _pal(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9ñ]+/).filter((w) => w.length > 2); }
+function sonar(nodos, ahora, tope = 400) {
+  const vivos = nodos.slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)), fuera = new Set(); let juntados = 0;
+  const P = vivos.map((n) => new Set(_pal(n.texto)));
+  for (let i = 0; i < vivos.length; i++) {
+    if (fuera.has(i) || P[i].size < 3) continue;
+    for (let j = i + 1; j < vivos.length; j++) {
+      if (fuera.has(j) || P[j].size < 3) continue;
+      let comun = 0; P[j].forEach((w) => { if (P[i].has(w)) comun++; });
+      if (comun / (P[i].size + P[j].size - comun) >= 0.75) { fuera.add(j); juntados++; vivos[i].usos = (vivos[i].usos || 0) + (vivos[j].usos || 0) + 1; }
+    }
+  }
+  let quedan = vivos.filter((_, i) => !fuera.has(i)), soltados = 0;
+  if (quedan.length > tope) {
+    const propio = (n) => /usuario|^tu$|sobre-mi/i.test(n.fuente || '') || (n.usos || 0) > 0;
+    const orden = quedan.filter((n) => !propio(n)).sort((a, b) => activacion(a, ahora) - activacion(b, ahora));
+    const quitar = new Set(orden.slice(0, quedan.length - tope)); soltados = quitar.size;
+    quedan = quedan.filter((n) => !quitar.has(n));
+  }
+  quedan.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  return { nodos: quedan, juntados, soltados };
+}
+
+function buscarEn(nodos, consulta, k = 8, ahora) {
   const q = (consulta || '').toLowerCase().trim();
   if (!q) return nodos.slice(-k).reverse();
   const palabras = q.split(/\s+/).filter((w) => w.length > 2);
@@ -32,7 +67,7 @@ function buscarEn(nodos, consulta, k = 8) {
     const txt = (n.texto || '').toLowerCase();
     let s = txt.includes(q) ? 5 : 0;
     for (const w of palabras) if (txt.includes(w)) s += 1;
-    if (s > 0) punt.push([s, n]);
+    if (s > 0) punt.push([s + activacion(n, ahora), n]);
   }
   punt.sort((a, b) => b[0] - a[0]);
   return punt.slice(0, k).map((x) => x[1]);
@@ -51,11 +86,15 @@ class Memoria {
     this._cache = null;
   }
   _leerStore() {
-    if (this._cache) return this._cache;
+    // con localStorage: si otra copia de Memoria guardó algo, releer (si no, una pisaría a la otra)
+    if (this._cache && this._store && this._store.getItem) {
+      let raw = null; try { raw = this._store.getItem(CLAVE); } catch (e) {}
+      if (raw === this._raw) return this._cache;
+    } else if (this._cache) return this._cache;
     let arr = [];
     try {
       if (this._store && this._store.get) arr = this._store.get() || [];
-      else if (this._store && this._store.getItem) arr = JSON.parse(this._store.getItem(CLAVE) || '[]');
+      else if (this._store && this._store.getItem) { this._raw = this._store.getItem(CLAVE); arr = JSON.parse(this._raw || '[]'); }
     } catch (e) { arr = []; }
     this._cache = Array.isArray(arr) ? arr : [];
     return this._cache;
@@ -64,7 +103,7 @@ class Memoria {
     this._cache = arr;
     try {
       if (this._store && this._store.set) this._store.set(arr);
-      else if (this._store && this._store.setItem) this._store.setItem(CLAVE, JSON.stringify(arr));
+      else if (this._store && this._store.setItem) { this._raw = JSON.stringify(arr); this._store.setItem(CLAVE, this._raw); }
     } catch (e) { /* best-effort */ }
   }
 
@@ -73,8 +112,24 @@ class Memoria {
     if (r.nuevo) this._guardarStore(r.nodos);
     return r.nuevo;
   }
-  buscar(consulta, k = 8) { return buscarEn(this._leerStore(), consulta, k); }
+  buscar(consulta, k = 8) {
+    const todos = this._leerStore(), r = buscarEn(todos, consulta, k);
+    // usar un recuerdo lo refuerza (máx. 1 vez por hora para no gastar almacenamiento)
+    if (r.length && (consulta || '').trim()) {
+      const t = _ahora(); let toco = false;
+      for (const n of r.slice(0, 3)) if (t - (n.ult || 0) > 3600) { n.usos = (n.usos || 0) + 1; n.ult = t; toco = true; }
+      if (toco) this._guardarStore(todos);
+    }
+    return r;
+  }
+  // quita los nodos que cumplan pred(nodo); devuelve los quitados
+  olvidar(pred) {
+    const arr = this._leerStore(), fuera = arr.filter(pred);
+    if (fuera.length) this._guardarStore(arr.filter((n) => !pred(n)));
+    return fuera;
+  }
   todos() { return this._leerStore().slice(); }
+  sonar() { const r = sonar(this._leerStore(), _ahora()); if (r.juntados || r.soltados) this._guardarStore(r.nodos); return r; }
   stats() { return statsDe(this._leerStore()); }
 
   // --- integracion con el puente sync-memoria.js ---
@@ -91,7 +146,30 @@ class Memoria {
   }
 }
 
-const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE };
+// --- memoria como ciclo: decidir QUÉ vale la pena recordar (no todo el chat). PURO. ---
+// Devuelve { texto, tema } o null. Guarda datos de Daniel (quién es, qué prefiere, qué tiene, fechas)
+// y lo que pide recordar; descarta saludos, órdenes, preguntas sueltas y lo que dice ASAGI.
+const _SALUDO = /^(hola|buenas|buenos dias|buenas tardes|buenas noches|gracias|ok|okey|vale|si|no|jaja+|xd|perfecto|listo|dale|chao|adios)\b[\s!.?]*$/;
+const _ORDEN = /^(abre|cierra|pon|activa|desactiva|busca|wifi|bluetooth|termux|nix|actualiza|nivel|equipo|bots|enlace|dile a aria|traduce|calcula)\b/;
+function _n(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim(); }
+function valeRecordar(texto, quien) {
+  const crudo = String(texto || '').trim();
+  const t = _n(crudo);
+  if (quien !== 'user' || t.length < 10 || t.length > 600) return null;
+  if (_SALUDO.test(t) || _ORDEN.test(t)) return null;
+  // preguntas sin «?» («cuándo es mi cumpleaños») y órdenes de olvidar no son datos
+  if (/^(?:cuando|como|cual|cuales|que|donde|quien|quienes|cuanto|cuantos|cuantas|por que|sabes|dime|olvida|olvidate|borra|ya no|recuerdame|recordarme|avisame|busca|buscar|donde anote|tengo algo|agrega|anota en)\b/.test(t)) return null;
+  const pide = t.match(/^(?:recuerda|recuerdalo|acuerdate|no olvides|anota|apunta)(?:\s+que)?\s*[:,]?\s+(.{4,})$/);
+  if (pide) return { texto: crudo.slice(crudo.length - pide[1].length).trim(), tema: 'pedido' };
+  if (/\b(me gusta|me encanta|no me gusta|odio|prefiero|favorit[oa]s?|siempre uso|nunca uso)\b/.test(t)) return { texto: crudo, tema: 'preferencia' };
+  if (/\b(soy|me llamo|vivo en|trabajo en|trabajo de|estudio|tengo|mi (?:novia|novio|esposa|mama|papa|hermano|hermana|hijo|hija|jefe|perro|gato|pc|celular|carro|casa|cumpleanos|correo|horario|examen)|mis \w+ son)\b/.test(t)
+      && !/\?\s*$/.test(t)) return { texto: crudo, tema: 'dato' };
+  if (/\b(\d{1,2} de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)|el (?:lunes|martes|miercoles|jueves|viernes|sabado|domingo))\b/.test(t)
+      && !/\?\s*$/.test(t)) return { texto: crudo, tema: 'fecha' };
+  return null;
+}
+
+const API = { Memoria, dedupInsertar, buscarEn, statsDe, CLAVE, valeRecordar, activacion, sonar };
 if (typeof module !== 'undefined' && module.exports) module.exports = API;
 if (typeof window !== 'undefined') window.AsagiMemoria = API;
 

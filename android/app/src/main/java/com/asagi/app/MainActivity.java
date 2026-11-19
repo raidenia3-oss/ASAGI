@@ -1,12 +1,28 @@
 package com.asagi.app;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Bundle;
+import android.view.ViewGroup;
+import android.webkit.WebView;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.asagi.brain.AsagiBrainPlugin;
 import com.asagi.brain.AsagiControlPlugin;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+
+    /** Color "noche" del tema: lo que se ve detrás de la barra de estado y de los botones del celular. */
+    private static final int NOCHE = 0xFF080408;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -16,6 +32,94 @@ public class MainActivity extends BridgeActivity {
         // window.Capacitor.Plugins.AsagiBrain.
         registerPlugin(AsagiBrainPlugin.class);
         registerPlugin(AsagiControlPlugin.class);
+        registerPlugin(com.asagi.brain.AsagiNavegadorPlugin.class);
+        registerPlugin(com.asagi.brain.AsagiMusicaPlugin.class);
+        registerPlugin(com.asagi.brain.AsagiOirPlugin.class);
+        registerPlugin(com.asagi.brain.AsagiHablarPlugin.class);
         super.onCreate(savedInstanceState);
+        ajustarABarrasDelSistema();
+        botonAtras();
+        recibirCompartido(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        recibirCompartido(intent);
+    }
+
+    /**
+     * «Compartir con ASAGI»: el texto/enlace compartido se pasa a la app web (window._asagiCompartido).
+     * Si la app aún no terminó de cargar, reintenta cada segundo (máx. 15 s). Es DATO, nunca una orden.
+     */
+    private void recibirCompartido(Intent intent) {
+        if (intent == null || !Intent.ACTION_SEND.equals(intent.getAction())) return;
+        CharSequence cs = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+        String texto = cs == null ? "" : cs.toString();
+        String asunto = intent.getStringExtra(Intent.EXTRA_SUBJECT);
+        if (texto.trim().isEmpty()) return;
+        if (texto.length() > 4000) texto = texto.substring(0, 4000);
+        final String js = "(function(){try{if(!window._asagiCompartido)return 'espera';window._asagiCompartido(" +
+                org.json.JSONObject.quote(texto) + "," + org.json.JSONObject.quote(asunto == null ? "" : asunto) + ");return 'ok'}catch(e){return 'error'}})()";
+        intent.setAction(Intent.ACTION_MAIN);   // que no se repita al girar o volver
+        final Handler h = new Handler(Looper.getMainLooper());
+        final int[] intentos = {0};
+        Runnable r = new Runnable() {
+            @Override public void run() {
+                WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+                if (wv == null) { if (++intentos[0] < 15) h.postDelayed(this, 1000); return; }
+                wv.evaluateJavascript(js, (res) -> { if (res != null && res.contains("espera") && ++intentos[0] < 15) h.postDelayed(this, 1000); });
+            }
+        };
+        h.postDelayed(r, 600);
+    }
+
+    /**
+     * Botón Atrás del celular: ASAGI es la pantalla de inicio, así que Atrás nunca la cierra.
+     * Le pregunta a la app web (window._asagiAtras): cierra la hoja/ventana abierta o vuelve a la casa.
+     */
+    private void botonAtras() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                final WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+                if (wv == null) return;
+                wv.evaluateJavascript("(function(){try{return window._asagiAtras?window._asagiAtras():'casa'}catch(e){return 'error'}})()", null);
+            }
+        });
+    }
+
+    /**
+     * Android 15/16 dibuja las apps "de borde a borde": sin esto, el reloj quedaba debajo de la
+     * barra de estado y el chat debajo de los botones del celular (y del teclado).
+     * La app se encarga de los márgenes en TODAS las versiones (igual en el HONOR con Android 16
+     * que en el emulador): la WebView se aparta de la barra de estado, del recorte de la cámara,
+     * de los botones/gesto de navegación y del teclado cuando está abierto.
+     */
+    private void ajustarABarrasDelSistema() {
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().getDecorView().setBackgroundColor(NOCHE);
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        WindowInsetsControllerCompat ctl = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        ctl.setAppearanceLightStatusBars(false);       // iconos claros sobre fondo oscuro
+        ctl.setAppearanceLightNavigationBars(false);
+
+        final WebView wv = getBridge() != null ? getBridge().getWebView() : null;
+        if (wv == null) return;
+        wv.setBackgroundColor(NOCHE);
+        ViewCompat.setOnApplyWindowInsetsListener(wv, (v, w) -> {
+            Insets barras = w.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            Insets teclado = w.getInsets(WindowInsetsCompat.Type.ime());
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            mlp.leftMargin = barras.left;
+            mlp.topMargin = barras.top;
+            mlp.rightMargin = barras.right;
+            mlp.bottomMargin = Math.max(barras.bottom, teclado.bottom);
+            v.setLayoutParams(mlp);
+            return WindowInsetsCompat.CONSUMED;
+        });
+        ViewCompat.requestApplyInsets(wv);
     }
 }

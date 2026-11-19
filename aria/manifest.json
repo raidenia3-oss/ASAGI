@@ -1,0 +1,311 @@
+{
+ "archivos": {
+  "app_automator.py": {
+   "previos": [
+    "a0ca51e7eab828295e4f110031d7c5cb2d39433edaa975b971b2136746f54e7f"
+   ],
+   "sha256": "793c5526185e10d0064d967fd7c49c09fd478f9e8a707e368f8e6d1ca27ff908"
+  },
+  "aria_actualizador.py": {
+   "previos": [],
+   "sha256": "c77115bdeed9782f8288428e1eec593a448d6ecac7bd43566b4c4d5f16880149"
+  },
+  "aria_browser.py": {
+   "previos": [
+    "c59025233c13073597c679b9c646f1106cb265972569dee1d0fe3a5368a6cce6"
+   ],
+   "sha256": "7038c311546af74957ca24ecc6c2f661b53b6dea0a903592b00923c138d35c83"
+  },
+  "aria_main.py": {
+   "previos": [],
+   "sha256": "da5f8b4997f3bbd7bb28a61125ad5adc72714506d67c0c082b7d945e434287cc"
+  },
+  "aria_mcp.py": {
+   "previos": [],
+   "sha256": "6761b0c9e0a994f04be37cd8bf7d7e9ee39fdec4eee1cd279f10ea7174facd74"
+  },
+  "aria_va_core.py": {
+   "previos": [
+    "27b28b8b62408111d31ba1e87c9575c4b622034f121ee6829471c6f414ca07ef",
+    "548293595403469ca35fa5761f929ab9743a11e097f89f1ca1f0b032ecb31a34",
+    "8ade0578d26ad33b9818eafa593fc46667d012739bd8b68ab0fbaa6b2ca00848",
+    "b5e71375b240e31604cb1e03ac576f896de05d5e9f9668d352fe7821e8df0ae9",
+    "35a2e07b07ada5bfe8541ef8fe1345c1c27b96f5f56735aa1be4c9128314ed4f",
+    "b997e33d4fd7bce813484732904025c17ab397ce18ae2e65bdea978ad26508e6",
+    "020c2af3df1ef90d4a25c2511bd7e778af0df127c613bcf397f10b8a66bf9878",
+    "5c7f2221854be0c0c71b49928a788d55c71b6deb55a460362749ae09feac5b08",
+    "76423ea183cf8caad13b4da82394e183d5fb1f04d310b8371daa191dae562e89",
+    "d224371aac2680a815f4359e8c607344f41f574b4da3db64f24b102562d608e2",
+    "3e99dfcb2c33b08cf82678a43931107e12249a4beafd4eb110e6ede0abcc3143",
+    "5775d509ca5e7f47be410751adb7c48d57c29730a06e2cc5c2c079fc0d88a1ea",
+    "698bf7ec5d344b06e868120d16cdf3c81bc8e993d7e7dd47dc2dbe08bad0dcba",
+    "d62bdc7bfaefdc9160355c7fe4a5c91f7d3a701bbf62bcc1283b0662544bcc61",
+    "d7f02c8d6aa07fb7c6403f4be7734d298382d79cc12cad29649823f39451c206",
+    "2bf0ddd730084005bec457087a4f4503e56a7cbeeb9240ff786399e7b5f9c3d9",
+    "2b579217de80aa79cc626a0f2d3eafe39ac2a2def0a6568b1c53b5a04ad7356b",
+    "4428495ff840a854d8e6d33f13c4a5492363ffad2a773decde463e50eac10887",
+    "ccdfc2778e8a85a2c6c9a05670dd8058a76a54f98a0bce26fb07c1b33a6cba9e",
+    "33b1040d6daf017eedd470a323b1e824f370b4257bd4cfa945a54cde887ce624"
+   ],
+   "sha256": "1945a1aeb7d80da041b1903ca6d57e8d033af25807e970b33f877cdb7355ebbf"
+  },
+  "arranque_pc.py": {
+   "previos": [
+    "48d8520ab04378b34f294fd8d98469305a00c90c58c7973f37f9f62a5d0e5865",
+    "b122e53080ae5e3e40eef6f6105a9298f4979f38e2b37d5eaed110ac6748baf8"
+   ],
+   "sha256": "aa86c4064b1e18c00e02381453a24525ab023c582c2fdf6556a7b3207cf280ab"
+  },
+  "assets/fondo-aria.jpg": {
+   "previos": [],
+   "sha256": "2fd4f4ba0ab00be8567837dd9b5a54365017a4dea32c0f1b548b69e910a2e489"
+  },
+  "bitacora.py": {
+   "previos": [
+    "06ef20356d3964bdcaf0132b89c45b5d7b64868c6c9d2f84945bd95844a2a39f"
+   ],
+   "sha256": "300feb5da19930d936cea3ec773dd4fc3bc91d4ea63ba7075918a8d0801ef0b5"
+  },
+  "bots_agenda.py": {
+   "previos": [
+    "844df1d3956aeb6c6d6ea8ec56187f59c89a0a78a1c427353334e734345d1e70",
+    "8d9520e3ddc28c20468610a34727742c1392bd017aa11aa6aed218e7823d8610"
+   ],
+   "sha256": "5c81ffbcb288cd8f1b2adb0028f62a3f38dc2826eba16aa3c34f7a02dd35252e"
+  },
+  "brain_engine.py": {
+   "previos": [
+    "76d52c0febb48753f6b7eee09a668352be404aae52a6fa2d2fcecc13b322b707"
+   ],
+   "sha256": "7762c2bb58122e089f2030788f169acb231722313df5eeb5b4a397ace0797ea0"
+  },
+  "claude_pc.py": {
+   "previos": [],
+   "sha256": "9722c73078bb8ffc72b5499fcefe4a7926ccb4688f33cd1e7486d9791d87fc22"
+  },
+  "componentes.py": {
+   "previos": [
+    "265bbcbc7fb95349b34b2b75c9ee80f8031ef39930c12e9aaf7f9ab829ad3d52"
+   ],
+   "sha256": "ddedd55def47fe589cd24a3022db725ea39bf6936c7d0ea1e705dfe0f23f1f48"
+  },
+  "cookies_pc.py": {
+   "previos": [
+    "6dd60df6c3cbe613ff89b0395ad938fe309600359580d4f2352be28500b1fbfc"
+   ],
+   "sha256": "90747fc77c66679528f2ae0a829cbf0c7249130eb2517e33ebbf111771a6c0cb"
+  },
+  "correo.py": {
+   "previos": [
+    "9451bd1e2a59345df6d8ed81278be0dc723646f964f7b9686c4e9488cb77555a"
+   ],
+   "sha256": "010ca4071f610d2202ff65e96869367e8bc00254b71816b5f9c9a84d4c128399"
+  },
+  "desktop_ui.py": {
+   "previos": [
+    "38c3eed85a4211c8004093de7e3ca7188cd79d976015b04f8f79f35da84ef455",
+    "b6c46b25a0831407dcc1e2ed870bbede7074b28a72db36e3fe54f56653cba1fa"
+   ],
+   "sha256": "3fc74cdf79529b1a7d6dbaf28d4e8902c41a95abdc46378b44ba96b69a1b58c5"
+  },
+  "dictado_pc.py": {
+   "previos": [
+    "85c5afc60380be3093c7f4538f98a62d73be5431d9fed0720a74aab99b17fe75"
+   ],
+   "sha256": "1abd67207795735bb354bd60efb386e234cc88d130ad9733940716cd81a136e9"
+  },
+  "editor_video.py": {
+   "previos": [
+    "94ab0eee3e062177cad4819a5ba48fc36b1a04b26b24eba362b09ef741fb2c3c",
+    "0fa534f153377bd7c3577549dfc8ebf2414e32360704bf973fa7acb93cfde76a"
+   ],
+   "sha256": "83f1333b4b845add5678c007183006912a864ec09c3f653729f693e82d7fd65b"
+  },
+  "ensenar.py": {
+   "previos": [],
+   "sha256": "c342df0c3f7ba428915b44596eb1964ec6c019b989216696ce02f610f3de62a6"
+  },
+  "escritorio_pc.py": {
+   "previos": [
+    "6daced9a57fedf1902c23dcb15d4c115ef385406f713a303cb379fa69181f82d"
+   ],
+   "sha256": "431934d0fe7ee003d6a869bd135d65e5fa36ecea7969f7241c6b3b7a48839093"
+  },
+  "extras_pc.py": {
+   "previos": [],
+   "sha256": "e825308e6c66fca6e262ecd3db8df880ba2c457a0fc43ba8552cf67acd31f9d2"
+  },
+  "fondo_foto.py": {
+   "previos": [],
+   "sha256": "4695a125591f9646ca0af709f6e7dedaf6ee41b654176f8b7d99bbc0cb0b43c9"
+  },
+  "habilidades_pc.py": {
+   "previos": [],
+   "sha256": "a76d048690b4697b63c36b63dd632d59bae404ca15237af14e4e7ea025676f57"
+  },
+  "informe.py": {
+   "previos": [],
+   "sha256": "78ef98fd39feb1bda8af1a06c150283347a8e747a78554fff4deb5c3edc87a39"
+  },
+  "limpieza_pc.py": {
+   "previos": [],
+   "sha256": "2ba6edaf65455a1046f8ef5b624dd73403bc0213ff1f8afc2e015e0d758b5501"
+  },
+  "manos_pc.py": {
+   "previos": [],
+   "sha256": "a37bf3c2ef3add9fb2f758a2d54c128612fd401bfedbe31d16fbe1fd37aacb82"
+  },
+  "mapa.py": {
+   "previos": [],
+   "sha256": "3426f07e7947a57a2946bccb55d18376f928464d59ab22a36870608bb3ef72ab"
+  },
+  "musa.py": {
+   "previos": [
+    "2b14719e953a9bf9178e4d755aae1a575dd432e17ab8cb1a47802396050e0aab",
+    "018c842b102f21921673a5b704644bcee2b95e681978234858317f8a5030ced1",
+    "d2e943cf20c3e20f2c31ad3cd8b12236d1f456c75aea837736467c3e917a482e",
+    "1d0359fbf9f5f7629bbbffd3e37a34130cb8f5603c0c2ffd34475c671bfc1fcb"
+   ],
+   "sha256": "409e21dd768d4a6784439ffb9ac7cdf4ae6c35acf68613a8df4038ed5290e633"
+  },
+  "navegador-lector.js": {
+   "previos": [
+    "8c299213599a837e5309affd9d70e25e5413919fb7a08838c206ef2fb3b71ebd",
+    "561c9f3c5e7b5e2b2f1f5a7b66dffb76843b59341bf9d3c6fa233bdfaa7fa7a8"
+   ],
+   "sha256": "b4b17b20b81fa9dbc8722aca3c9cd7a95d88e75cd032f25301a35ea8d6ab99db"
+  },
+  "navegador_aria.py": {
+   "previos": [
+    "4836b4be09085d6b4aa545ddfbe2106a7ca2b846002cc6331e5fb380b7e8471b",
+    "e9345d72c22fdb6ac6455d40894c5b6892067968dbf667f74c303896d917fa7e",
+    "bf2ab30f7dd96de6a9bdc55a6517f1435d24e94270c1fb4d0e83ba07ca83e511",
+    "0512bcd55ff0e9eae5157c246dd5cfa36a8f7b29724032c1dfe02b071a710e19",
+    "a2aa9955ca8f6a2de68c14bc6ab450c1aeacdf7bf0fa76a1428246011f109da3",
+    "05cc33bd38af8aff6b45b7976688dc343be490bc59463dbce2795a51c588d040"
+   ],
+   "sha256": "914c298b6627e9e2b404f3dff431dd85138a3b8261839ee4bd0609009669a206"
+  },
+  "openverse_pc.py": {
+   "previos": [],
+   "sha256": "6e71ccc1bf133d431dd4ef964b07cc0cf01e34eeb263894ba42dbfb1744d9aab"
+  },
+  "ordenar_pc.py": {
+   "previos": [
+    "44bf06661c24e6f7e18d4ab57d94fe9228ee743f7b757daeb054d052aaa6a838"
+   ],
+   "sha256": "1db223c13b7d2de511cc5656058b1d76becc2fb425b652aced40a7d70aa6df32"
+  },
+  "personajes.py": {
+   "previos": [
+    "f05fd3635fc17170c813d2925c732e4ac035ee7c9f6e1304436bd1fa3f54ce69"
+   ],
+   "sha256": "8a83cfa6ec1539ae21bd16da90ce8a1b6a39ba4519a838140dbf647010a5552e"
+  },
+  "personajes/README.md": {
+   "previos": [],
+   "sha256": "9c1b2acfda3ef4e4b978303965d0fa8abb11c1094e5e84b11ad7b82f1d19346c"
+  },
+  "personajes/barney-stinson.json": {
+   "previos": [],
+   "sha256": "546efc7b2bc70c662d3cbffa460027527a9366a5cb3d377c793043000256d566"
+  },
+  "personajes/indice.json": {
+   "previos": [],
+   "sha256": "37d38fe71997fdad673ebdf50f61b5a6dced73a9ae5c7709b5c21ff58ea0cf5e"
+  },
+  "personajes/patrick-jane.json": {
+   "previos": [],
+   "sha256": "0a6c5ba667b97fe1475611a176af1e0f7c00ac77da2dc7e81d82c0fb221d5c6b"
+  },
+  "publicar_web.py": {
+   "previos": [],
+   "sha256": "b9a2f4f92ea3ea1cefe6c965d73b61c4e659245ee7c8ffd32ad8bd3e9f37b8b9"
+  },
+  "recuerdos.py": {
+   "previos": [],
+   "sha256": "5f87e6bba4401271aadc86f96456dfbb56a543fc39aca638016a9dadfc7bd708"
+  },
+  "rollercoin_google.py": {
+   "previos": [
+    "e20ad0c550ac0860887ed85e72ccf2566c9b32eec00e834f6d053f711c375ec5"
+   ],
+   "sha256": "b8bcf7711c8e73c42bab014bbd9b880d910e1d2b42d06927bd0c3acc080bce4f"
+  },
+  "sesiones.py": {
+   "previos": [],
+   "sha256": "4c2ce72ff568917fddca82bf4a046a693d4e901175cbfbf674d6f7aa6828722c"
+  },
+  "taller_web.py": {
+   "previos": [
+    "148faa84e507d728eb2d7d1f3d24c47ad585ccb1e318280902246931250cc9fc"
+   ],
+   "sha256": "43c51ae089702d0a9ab11358fbc1243302c5f0fa874e48f818a92a597c21d4fd"
+  },
+  "ui/escritorio_ui.py": {
+   "previos": [
+    "530398ec91a06ea0c1a9e5f53c640b29dcb23229ecefea8959a099850fed4856",
+    "2298a75937a5e79c2dd11d71fb2fe15a94aa92bbaf3c82bc234c641ca9823c01"
+   ],
+   "sha256": "4e9384c5d51ecb759d18c2fb189fa501df44744d2c1edea96ad5e1a5b6409289"
+  },
+  "ui/isla.py": {
+   "previos": [],
+   "sha256": "027419333ba1edafd09a4856e7f83593814b567b4066a7f8e00021a42a33addb"
+  },
+  "ui/mascota.py": {
+   "previos": [
+    "288441e0c82f53f3ca6d94ba15ca55e6e80f35ddb7c8c4636b5b70076589eaed"
+   ],
+   "sha256": "45f1a621a9edeefb35fbf96769ba19e90061d30c01e416e3703eed3c23a14cef"
+  },
+  "ui/rostro_aria.py": {
+   "previos": [],
+   "sha256": "c946f14d9f0986306ef30b87624632b0f84b48c3f76ce7759805471a3d39e292"
+  },
+  "ui_shell.py": {
+   "previos": [
+    "e9cb47b6e87f634078654662b271a72bb1985c2acfaf62b48026a7a07ca35c91",
+    "dde9f0a4a028edbfd3f6d3959bd99b6158be14fef08f01950e0ca1775df840e7",
+    "43a6e4d4684766ad3eb58f5c7c87911857490492b66910e68e61755673f74d51",
+    "0b39b99c48a679f37c52a2ecaeaacc3991aa71378b3886582494ccfcfa7f5730",
+    "95a101f7aed511a395d737b28c46fceff4e6a978dac12d43ad58231e6330fabd",
+    "1a30c02a37ef498f9e8367f752a6c44d0fe76b73529b584d77bf4fb8ea269f73",
+    "09f58a625fc8f3790517f799aa16ea952da29717acfd3d0aa5800ca95569ddae",
+    "8b4c2808ee8d17459664a9c53358183d0a57db399d669a8736280652c2c46664",
+    "4c41f146244035afc908cac4ca2c3610f942b602343faf4b255da8a364609133",
+    "f8b6d5e2bff0f1994e7ff860598ea2b2bec3b35dd3372f8713d4a2fe10ac662c",
+    "80931b1d21582d1c64e6f20688a27c1e2ad705811da2ba7549bf10fa0b7cab87",
+    "03e69045c6d630aea6f0d57d230ec55992ef79db73d2a4c1462f7df182916f0f",
+    "82f0a6becf98ca308794032699e77aefbe66bf9ad8aca7aeca376b7b64e6b69b",
+    "a8de89067fe176efde9383d3c8f4d601023148b43725f833e17f9dd1b7b42c0a",
+    "8cb8328183a7ec89656335245d7bdb4e7edc07c3439e38dc806f3762d1804e36",
+    "9c622fba346cfd42ab6e73e1fdf21e2edc650c40deca7a0627f3b80899a7e86e",
+    "7eb4c8eeae477e03a96956896acd67b02ee4cf2a6f11f2e90b545efbb5f1b4b6",
+    "104e7fee44bdf7ff334f5184530e3440e9fb09f0c9846cc9e9b9a800ba579293",
+    "abe8694af6ed51683904a45b7328c26a42b3f1999d0e77d798bf93eaf3729042",
+    "df11ac29564e39aaea20c4a69a108fb690171fa145ee46b0a9f2ea2ec3ac4c34"
+   ],
+   "sha256": "f1d8c774db5dacd4dba1c5b77c213dbe7a56be6544b18feba54bfd089eb087e7"
+  },
+  "voz_local.py": {
+   "previos": [
+    "376f693efb9d581ac02050ad42e707486dce9b680966b6366ff917391e1e2ff4",
+    "31fc2012cb3ab44ac42df94acced78d34b2998e019f7efa52603280638997258"
+   ],
+   "sha256": "89f6233dc6dd1d1f90198df78325b6b028e15afe1668953047f613977cd52aba"
+  },
+  "voz_natural.py": {
+   "previos": [],
+   "sha256": "36bf7ba37fb90134480e7240f3465429069b06eeeb4e8579cdd2187258e94fbe"
+  },
+  "wiki_pc.py": {
+   "previos": [
+    "4d7b650d3b2e18de95d3b672f7b97de4887a129dd749589a405f53423b997623",
+    "8b05b7dcdf3778d1ebec5a7bc02c5f6b73cfee804c4f31a2b549cd89158fbcf7"
+   ],
+   "sha256": "cef1ca6704d6a36995956cb102d9b2b3e5d56940172f3de8fd8a187b009b89ee"
+  }
+ },
+ "version": 1
+}

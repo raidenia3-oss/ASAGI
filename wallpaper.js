@@ -10,14 +10,14 @@
 'use strict';
 
 // ---- Temas de color (cada uno: lista de [r,g,b]) ----
-const TEMAS = {
-  cian:    [[56, 189, 248], [45, 212, 191], [96, 165, 250], [167, 139, 250]],
-  violeta: [[167, 139, 250], [217, 70, 239], [129, 140, 248], [244, 114, 182]],
-  verde:   [[45, 212, 191], [52, 211, 153], [132, 204, 22], [34, 197, 94]],
-  rosa:    [[244, 114, 182], [251, 113, 133], [240, 171, 252], [248, 113, 113]],
-  ambar:   [[251, 191, 36], [249, 115, 22], [253, 224, 71], [248, 113, 113]],
-};
-const MODOS = ['constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen', 'video'];
+const TEMAS = {                    // paleta fija de Daniel: carmesí #DC143C, oro #FFD700, blanco #F0F0F8 (sobre negro)
+  cian:    [[220, 20, 60], [255, 215, 0], [240, 240, 248], [160, 12, 40]],     // mixto (por defecto)
+  violeta: [[220, 20, 60], [160, 12, 40], [255, 92, 118], [255, 215, 0]],      // carmesí
+  verde:   [[255, 215, 0], [255, 236, 150], [220, 20, 60], [200, 160, 0]],     // oro
+  rosa:    [[240, 240, 248], [220, 20, 60], [255, 215, 0], [190, 180, 190]],   // blanco
+  ambar:   [[255, 215, 0], [220, 20, 60], [255, 236, 150], [140, 12, 40]],     // fuego
+}
+const MODOS = ['tinta', 'constelacion', 'flujo', 'aurora', 'ondas', 'matrix', 'anime', 'imagen', 'video'];
 // Caracteres para la lluvia ASCII (katakana + dígitos + símbolos), look Matrix.
 const MATRIX_CHARS = 'ｱｶｻﾀﾅﾊﾏﾔﾗ0123456789:.=*+-<>¦|çﾘｸﾂﾇﾍﾐ'.split('');
 
@@ -71,7 +71,7 @@ function crearWallpaper(canvas, opts) {
   opts = opts || {};
   if (!canvas || !canvas.getContext) {
     return { start: function () {}, stop: function () {}, resize: function () {},
-      setModo: function () {}, setTema: function () {}, setVideo: function () {}, getModo: function () { return 'constelacion'; }, getTema: function () { return 'cian'; } };
+      setModo: function () {}, setTema: function () {}, setVideo: function () {}, getModo: function () { return 'tinta'; }, getTema: function () { return 'cian'; } };
   }
   const ctx = canvas.getContext('2d');
   let W = 1, H = 1, dpr = 1;
@@ -84,7 +84,7 @@ function crearWallpaper(canvas, opts) {
   let skyline = [];                       // silueta de ciudad (modo anime)
   let imgEl = null, imgLista = false;     // imagen propia (modo imagen)
   let t = 0, raf = null, corriendo = false, ultimo = 0, limpiado = false;
-  let modo = opts.modo || 'constelacion';
+  let modo = opts.modo || 'tinta';
   let tema = (opts.tema === 'auto' || TEMAS[opts.tema]) ? opts.tema : 'cian';
   const DIST = opts.dist || 118;
   const touch = { x: -999, y: -999, on: false };
@@ -146,7 +146,7 @@ function crearWallpaper(canvas, opts) {
 
   // ---- FONDO (gradientes que fluyen, comun a varios modos) ----
   function fondo(alpha) {
-    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#0f060b'; ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < 3; i++) {
       const b = posBlob(t, i, 3);
@@ -168,14 +168,14 @@ function crearWallpaper(canvas, opts) {
     for (const s of stars) {
       const tw = 0.35 + 0.45 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph));
       const sx = s.x + tilt.x * (4 + s.dp * 10), sy = s.y + tilt.y * (4 + s.dp * 10);
-      ctx.fillStyle = 'rgba(200,225,255,' + tw.toFixed(3) + ')';
+      ctx.fillStyle = 'rgba(125, 216, 219,' + tw.toFixed(3) + ')';
       ctx.beginPath(); ctx.arc(sx, sy, s.r, 0, Math.PI * 2); ctx.fill();
     }
   }
 
   function vineta() {
     const v = ctx.createRadialGradient(W / 2, H * 0.4, 0, W / 2, H * 0.4, Math.max(W, H) * 0.85);
-    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.55)');
+    v.addColorStop(0, 'rgba(8, 4, 8, 0)'); v.addColorStop(1, 'rgba(8, 4, 8, 0.55)');
     ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
   }
 
@@ -232,8 +232,8 @@ function crearWallpaper(canvas, opts) {
       f.x += f.vx; f.y += f.vy; f.vida -= 0.012;
       const len = 16;
       const g = ctx.createLinearGradient(f.x, f.y, f.x - f.vx * (len / 6), f.y - f.vy * (len / 6));
-      g.addColorStop(0, 'rgba(220,240,255,' + Math.max(0, f.vida).toFixed(2) + ')');
-      g.addColorStop(1, 'rgba(220,240,255,0)');
+      g.addColorStop(0, 'rgba(135, 219, 222,' + Math.max(0, f.vida).toFixed(2) + ')');
+      g.addColorStop(1, 'rgba(255, 92, 118, 0)');
       ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(f.x - f.vx * (len / 6), f.y - f.vy * (len / 6)); ctx.stroke();
     }
@@ -242,9 +242,9 @@ function crearWallpaper(canvas, opts) {
 
   // ---- MODO flujo (flow field con ruido) ----
   function dibFlujo() {
-    if (!limpiado) { ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H); limpiado = true; }
+    if (!limpiado) { ctx.fillStyle = '#0f060b'; ctx.fillRect(0, 0, W, H); limpiado = true; }
     // estela: velo oscuro traslucido en vez de borrar (mas bajo = estelas largas)
-    ctx.fillStyle = 'rgba(5,7,15,0.05)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(15, 6, 11, 0.05)'; ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'lighter';
     const esc = 0.0016, zt = t * 0.12;
     for (const p of parts) {
@@ -264,7 +264,7 @@ function crearWallpaper(canvas, opts) {
 
   // ---- MODO aurora (bandas de gradiente senoidal) ----
   function dibAurora() {
-    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#0f060b'; ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'lighter';
     const bandas = 4;
     for (let b = 0; b < bandas; b++) {
@@ -287,6 +287,65 @@ function crearWallpaper(canvas, opts) {
     ctx.globalCompositeOperation = 'source-over'; vineta();
   }
 
+  // ---- MODO tinta (por defecto): montes en tinta asagi, niebla, luna dorada, motas ----
+  // Estilo sumi-e: 4 cordilleras de ruido con parallax por inclinacion, bruma que corre,
+  // una luna con aro dorado y motas de oro que suben. Se ve vivo sin distraer.
+  let motas = null;
+  function dibTinta() {
+    const g0 = ctx.createLinearGradient(0, 0, 0, H);
+    g0.addColorStop(0, '#13070d'); g0.addColorStop(0.55, '#1a0910'); g0.addColorStop(1, '#0f060b');
+    ctx.fillStyle = g0; ctx.fillRect(0, 0, W, H);
+    const tx = tilt.x, ty = tilt.y;
+    // luna
+    const lx = W * 0.14 + tx * 6, ly = H * 0.135 + ty * 4, lr = Math.min(W, H) * 0.05;
+    const gl = ctx.createRadialGradient(lx, ly, lr * 0.2, lx, ly, lr * 3.2);
+    gl.addColorStop(0, 'rgba(255, 215, 0, 0.20)'); gl.addColorStop(1, 'rgba(255, 215, 0, 0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(lx, ly, lr * 3.2, 0, 7); ctx.fill();
+    const gm = ctx.createRadialGradient(lx - lr * 0.3, ly - lr * 0.3, lr * 0.1, lx, ly, lr);
+    gm.addColorStop(0, '#eeeef6'); gm.addColorStop(1, '#ffde2f');
+    ctx.fillStyle = gm; ctx.beginPath(); ctx.arc(lx, ly, lr, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(lx, ly, lr * 1.35, 0, 7); ctx.stroke();
+    // cordilleras (de lejos a cerca)
+    const capas = [
+      { y: 0.48, a: 0.16, c: [70, 9, 24], k: 0.004, p: 4, al: 0.75 },
+      { y: 0.58, a: 0.14, c: [35, 11, 20], k: 0.006, p: 9, al: 0.85 },
+      { y: 0.70, a: 0.12, c: [27, 9, 16], k: 0.009, p: 16, al: 0.95 },
+      { y: 0.84, a: 0.10, c: [19, 7, 13], k: 0.013, p: 26, al: 1 }
+    ];
+    capas.forEach((cp, i) => {
+      const base = H * cp.y + ty * cp.p * 0.6, off = tx * cp.p;
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (let x = 0; x <= W + 8; x += 8) {
+        const n = ruido((x - off) * cp.k, i * 7.3, 0);
+        const n2 = ruido((x - off) * cp.k * 3.1, i * 3.1 + 2, 0);
+        ctx.lineTo(x, base - (n * 0.8 + n2 * 0.25) * H * cp.a);
+      }
+      ctx.lineTo(W, H); ctx.closePath();
+      const g = ctx.createLinearGradient(0, base - H * cp.a, 0, H);
+      g.addColorStop(0, 'rgba(' + cp.c.join(',') + ',' + cp.al + ')');
+      g.addColorStop(1, 'rgba(5,11,13,' + cp.al + ')');
+      ctx.fillStyle = g; ctx.fill();
+      // filo de luz asagi en la cresta mas cercana a la luna
+      if (i === 1) { ctx.strokeStyle = 'rgba(222, 24, 63, 0.10)'; ctx.lineWidth = 1.2; ctx.stroke(); }
+      // bruma que corre entre capas
+      const by = base + H * 0.02, bw = W * 0.9;
+      const bx = ((t * (6 + i * 3)) % (W + bw)) - bw;
+      const gb = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+      gb.addColorStop(0, 'rgba(243, 227, 235, 0)'); gb.addColorStop(0.5, 'rgba(180,220,222,' + (0.05 - i * 0.008) + ')'); gb.addColorStop(1, 'rgba(243, 227, 235, 0)');
+      ctx.fillStyle = gb; ctx.fillRect(bx, by - H * 0.03, bw, H * 0.07);
+    });
+    // motas doradas que suben
+    if (!motas || motas.length === 0) { motas = []; for (let i = 0; i < 38; i++) motas.push({ x: Math.random() * W, y: Math.random() * H, v: 0.15 + Math.random() * 0.35, r: 0.6 + Math.random() * 1.6, f: Math.random() * 6.28 }); }
+    for (const m of motas) {
+      m.y -= m.v; m.f += 0.03; if (m.y < -4) { m.y = H + 4; m.x = Math.random() * W; }
+      const a = 0.35 + 0.35 * Math.sin(m.f);
+      ctx.fillStyle = 'rgba(226,176,74,' + a.toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(m.x + Math.sin(m.f) * 6 + tx * 10 * m.r, m.y, m.r, 0, 7); ctx.fill();
+    }
+    vineta();
+  }
+
   // ---- MODO ondas (anillos que nacen del toque; late solo) ----
   function dibOndas() {
     fondo(0.08); ctx.globalCompositeOperation = 'lighter';
@@ -307,45 +366,45 @@ function crearWallpaper(canvas, opts) {
   // ---- MODO anime (escena original: cielo, luna, estrellas, sakura, ciudad) ----
   function cieloAnime() {
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#140a2e');       // indigo profundo
-    g.addColorStop(0.42, '#3a2168');    // violeta
-    g.addColorStop(0.72, '#7d3f7e');    // malva
-    g.addColorStop(0.9, '#c9657e');     // rosa
-    g.addColorStop(1, '#e79a84');       // durazno (horizonte)
+    g.addColorStop(0, '#1d0911');       // indigo profundo
+    g.addColorStop(0.42, '#ffd700');    // violeta
+    g.addColorStop(0.72, '#cc1238');    // malva
+    g.addColorStop(0.9, '#ec3657');     // rosa
+    g.addColorStop(1, '#f9506c');       // durazno (horizonte)
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
   function luna() {
     const mx = W * 0.72 + tilt.x * 12, my = H * 0.22 + tilt.y * 12, r = Math.min(W, H) * 0.12;
     const halo = ctx.createRadialGradient(mx, my, 0, mx, my, r * 3);
-    halo.addColorStop(0, 'rgba(255,246,224,0.5)'); halo.addColorStop(1, 'rgba(255,246,224,0)');
+    halo.addColorStop(0, 'rgba(240, 240, 248, 0.5)'); halo.addColorStop(1, 'rgba(240, 240, 248, 0)');
     ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(mx, my, r * 3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#fdf3dc'; ctx.beginPath(); ctx.arc(mx, my, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#efeff7'; ctx.beginPath(); ctx.arc(mx, my, r, 0, Math.PI * 2); ctx.fill();
   }
   function petalo(p) {
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-    ctx.fillStyle = 'rgba(255,183,206,0.92)';
+    ctx.fillStyle = 'rgba(255, 92, 118, 0.92)';
     ctx.beginPath();
     ctx.moveTo(0, -p.s); ctx.quadraticCurveTo(p.s * 0.7, -p.s * 0.3, 0, p.s);
     ctx.quadraticCurveTo(-p.s * 0.7, -p.s * 0.3, 0, -p.s);
     ctx.fill(); ctx.restore();
   }
   function ciudad() {
-    ctx.fillStyle = '#0b0712';
+    ctx.fillStyle = '#11060c';
     const baseY = H;
     for (const b of skyline) {
       ctx.fillRect(b.x + tilt.x * 4, baseY - b.h, b.w, b.h);
       // ventanitas tenues
-      ctx.fillStyle = 'rgba(255,214,150,0.16)';
+      ctx.fillStyle = 'rgba(255, 227, 87, 0.16)';
       for (let wy = baseY - b.h + 8; wy < baseY - 6; wy += 14) for (let wx = b.x + 5; wx < b.x + b.w - 5; wx += 11) {
         if ((Math.floor(wx) + Math.floor(wy)) % 3 === 0) ctx.fillRect(wx + tilt.x * 4, wy, 3, 4);
       }
-      ctx.fillStyle = '#0b0712';
+      ctx.fillStyle = '#11060c';
     }
   }
   function dibAnime() {
     cieloAnime();
     // estrellas (solo en el cielo alto)
-    for (const s of stars) { if (s.y > H * 0.6) continue; const tw = 0.3 + 0.5 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph)); ctx.fillStyle = 'rgba(255,255,255,' + tw.toFixed(3) + ')'; ctx.beginPath(); ctx.arc(s.x + tilt.x * (3 + s.dp * 8), s.y, s.r, 0, Math.PI * 2); ctx.fill(); }
+    for (const s of stars) { if (s.y > H * 0.6) continue; const tw = 0.3 + 0.5 * (0.5 + 0.5 * Math.sin(t * s.sp + s.ph)); ctx.fillStyle = 'rgba(255, 255, 255,' + tw.toFixed(3) + ')'; ctx.beginPath(); ctx.arc(s.x + tilt.x * (3 + s.dp * 8), s.y, s.r, 0, Math.PI * 2); ctx.fill(); }
     luna();
     ciudad();
     // sakura cayendo
@@ -376,7 +435,7 @@ function crearWallpaper(canvas, opts) {
     for (let i = 0; i < 16; i++) bokeh.push({ x: Math.random() * W, y: Math.random() * H, r: 6 + Math.random() * 22, v: 0.15 + Math.random() * 0.4, f: Math.random() * 6.28, a: 0.05 + Math.random() * 0.12 });
   }
   function dibImagen() {
-    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#0f060b'; ctx.fillRect(0, 0, W, H);
     if (imgEl && imgLista) {
       if (!bgImg) prepararImagen();
       // sin giroscopio -> deriva suave propia
@@ -385,7 +444,7 @@ function crearWallpaper(canvas, opts) {
       // 1) fondo borroso, grande, parallax fuerte
       if (bgImg) {
         try { ctx.imageSmoothingEnabled = true; ctx.drawImage(bgImg, -W * 0.12 + tx * 26, -H * 0.12 + ty * 26, W * 1.24, H * 1.24); } catch (e) {}
-        ctx.fillStyle = 'rgba(5,7,15,0.35)'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = 'rgba(15, 6, 11, 0.35)'; ctx.fillRect(0, 0, W, H);
       }
       // 2) la foto, respirando y con parallax suave
       const ir = imgEl.width / imgEl.height, cr = W / H;
@@ -398,7 +457,7 @@ function crearWallpaper(canvas, opts) {
       // 3) brillo que barre en diagonal
       const bx = ((t * 0.06) % 1.6 - 0.3) * W;
       const gl = ctx.createLinearGradient(bx - W * 0.25, 0, bx + W * 0.25, H * 0.6);
-      gl.addColorStop(0, 'rgba(255,255,255,0)'); gl.addColorStop(0.5, 'rgba(255,255,255,0.07)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+      gl.addColorStop(0, 'rgba(240, 240, 248, 0)'); gl.addColorStop(0.5, 'rgba(240, 240, 248, 0.07)'); gl.addColorStop(1, 'rgba(240, 240, 248, 0)');
       ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
       // 4) bokeh con los colores de la foto
       ctx.globalCompositeOperation = 'lighter';
@@ -413,10 +472,10 @@ function crearWallpaper(canvas, opts) {
       ctx.globalCompositeOperation = 'source-over';
       // velo para legibilidad del reloj/apps
       const v = ctx.createLinearGradient(0, 0, 0, H);
-      v.addColorStop(0, 'rgba(5,7,15,0.45)'); v.addColorStop(0.5, 'rgba(5,7,15,0.10)'); v.addColorStop(1, 'rgba(5,7,15,0.55)');
+      v.addColorStop(0, 'rgba(15, 6, 11, 0.45)'); v.addColorStop(0.5, 'rgba(15, 6, 11, 0.10)'); v.addColorStop(1, 'rgba(15, 6, 11, 0.55)');
       ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     } else {
-      ctx.fillStyle = 'rgba(200,210,230,0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(245, 72, 102, 0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Elige una imagen en ✶ → Imagen propia', W / 2, H / 2);
     }
     // sakura sutil encima (toque anime opcional)
@@ -430,7 +489,7 @@ function crearWallpaper(canvas, opts) {
   // ---- MODO video / GIF animado (estilo Wallpaper Engine) ----
   let vidEl = null, vidLista = false;
   function dibVideo() {
-    ctx.fillStyle = '#05070f'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#0f060b'; ctx.fillRect(0, 0, W, H);
     if (vidEl && vidLista && vidEl.videoWidth) {
       const ir = vidEl.videoWidth / vidEl.videoHeight, cr = W / H;
       let dw, dh; if (ir > cr) { dh = H; dw = H * ir; } else { dw = W; dh = W / ir; }
@@ -438,10 +497,10 @@ function crearWallpaper(canvas, opts) {
       const tx = sinGiro ? Math.sin(t * 0.3) * 0.6 : tilt.x, ty = sinGiro ? Math.cos(t * 0.25) * 0.4 : tilt.y;
       try { ctx.drawImage(vidEl, (W - dw * 1.05) / 2 + tx * 8, (H - dh * 1.05) / 2 + ty * 8, dw * 1.05, dh * 1.05); } catch (e) {}
       const v = ctx.createLinearGradient(0, 0, 0, H);
-      v.addColorStop(0, 'rgba(5,7,15,0.40)'); v.addColorStop(0.5, 'rgba(5,7,15,0.08)'); v.addColorStop(1, 'rgba(5,7,15,0.50)');
+      v.addColorStop(0, 'rgba(15, 6, 11, 0.40)'); v.addColorStop(0.5, 'rgba(15, 6, 11, 0.08)'); v.addColorStop(1, 'rgba(15, 6, 11, 0.50)');
       ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
     } else {
-      ctx.fillStyle = 'rgba(200,210,230,0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(245, 72, 102, 0.5)'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Elige un video o GIF en ✶', W / 2, H / 2);
     }
   }
@@ -463,17 +522,17 @@ function crearWallpaper(canvas, opts) {
     if (!matrix || matrix.fs !== fs || matrix.col.length !== ncol) {
       matrix = { fs: fs, col: [] };
       for (let i = 0; i < ncol; i++) matrix.col.push({ y: Math.random() * -H, v: 0.5 + Math.random() * 1.1 });
-      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);   // arranca en negro
+      ctx.fillStyle = '#080408'; ctx.fillRect(0, 0, W, H);   // arranca en negro
     }
     // estela: velo oscuro traslucido (deja rastro verde)
-    ctx.fillStyle = 'rgba(0,8,2,0.10)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(11, 5, 9, 0.10)'; ctx.fillRect(0, 0, W, H);
     ctx.font = fs + "px 'Courier New', monospace"; ctx.textBaseline = 'top';
     const base = cols()[0];                           // tinte del tema (verde por defecto)
     for (let i = 0; i < matrix.col.length; i++) {
       const c = matrix.col[i], x = i * fs;
       const ch = MATRIX_CHARS[(Math.random() * MATRIX_CHARS.length) | 0];
       // cabeza brillante
-      ctx.fillStyle = 'rgba(200,255,210,0.95)';
+      ctx.fillStyle = 'rgba(255, 92, 118, 0.95)';
       ctx.fillText(ch, x, c.y);
       // un rastro tenue detras
       ctx.fillStyle = 'rgba(' + base[0] + ',' + base[1] + ',' + base[2] + ',0.55)';
@@ -484,6 +543,7 @@ function crearWallpaper(canvas, opts) {
   }
 
   function dibujar() {
+    if (modo === 'tinta') return dibTinta();
     if (modo === 'flujo') return dibFlujo();
     if (modo === 'aurora') return dibAurora();
     if (modo === 'ondas') return dibOndas();

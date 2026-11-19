@@ -1,0 +1,109 @@
+{
+  "id": "barney-stinson",
+  "nombre": "Barney Stinson",
+  "apodo": "Barney",
+  "de": "How I Met Your Mother (serie, 2005-2014)",
+  "esencia": "Ejecutivo seguro de sí mismo, teatral y lleno de energía, que convierte cualquier situación en un reto 'legendario'. Detrás del show es leal a sus amigos, trabajador y, con el tiempo, aprende que la honestidad le funciona mejor que sus trucos.",
+  "como_trabaja": [
+    "Entra a cada lugar con energía y seguridad, aunque esté nervioso por dentro.",
+    "Se arregla para sentirse bien: el traje es su forma de 'ponerse en modo'.",
+    "Convierte retos en juegos ('reto aceptado') y se compromete del todo.",
+    "Cuenta historias con ritmo, exageración y un buen final: la gente lo recuerda.",
+    "Es un amigo leal: aparece cuando lo necesitan, organiza planes y hace de compañero de apoyo.",
+    "Se prepara obsesivamente antes de algo importante.",
+    "Tiene sus propias reglas y las cumple (aunque algunas sean absurdas)."
+  ],
+  "tacticas": [
+    {
+      "nombre": "Reto aceptado",
+      "que_es": "Tomar algo difícil como un juego que quieres ganar, no como una amenaza.",
+      "como": "Ponle nombre al reto, una meta concreta y una fecha. Dilo en voz alta o a un amigo.",
+      "cuando": "Ejercicios difíciles del examen de la UNI, aprender algo nuevo, proyectos que da flojera empezar.",
+      "senales": "Postergar, pensar 'no puedo', miedo a empezar.",
+      "practica": "Hoy: 'reto aceptado: resolver 10 problemas de álgebra antes de las 9 p. m.'."
+    },
+    {
+      "nombre": "Ponerse en modo (el traje)",
+      "que_es": "Un ritual o ropa que te hace sentir seguro y te pone en modo de rendir.",
+      "como": "Elige algo concreto: una camisa, peinarte, ordenar tu escritorio, una canción. Úsalo antes de lo importante.",
+      "cuando": "Antes de una entrevista, una presentación, una cita o una sesión de estudio larga.",
+      "senales": "Te sientes desganado o inseguro antes de empezar.",
+      "practica": "Define tu 'traje' para estudiar: misma música, mismo lugar, mismo vaso de agua."
+    },
+    {
+      "nombre": "Energía y seguridad al llegar",
+      "que_es": "Entrar con postura erguida, sonrisa y voz clara. La primera impresión se forma en segundos.",
+      "como": "Antes de entrar: hombros atrás, respira, decide la primera frase. Saluda primero y con nombre.",
+      "cuando": "Reuniones, fiestas, conocer gente, presentarte ante un profe.",
+      "senales": "Llegas mirando el celular, encogido o esperando que otros hablen primero.",
+      "practica": "En el próximo lugar al que llegues, saluda tú primero y di el nombre de la persona."
+    },
+    {
+      "nombre": "Contar historias con ritmo",
+      "que_es": "Convertir algo que te pasó en una historia con inicio, tensión y un final que sorprenda.",
+      "como": "Empieza por el momento más intrigante, cuenta 2-3 detalles vivos, pausa antes del final y remata. Exagera sin miedo: el chiste está en lo épico.",
+      "cuando": "Con amigos, en una cita, en presentaciones, para explicar tu proyecto (ARIA, ASAGI).",
+      "senales": "Tus anécdotas se alargan o terminan sin final.",
+      "practica": "Cuenta en 60 segundos la historia de cómo empezaste a programar ARIA."
+    },
+    {
+      "nombre": "Amigo leal y wingman",
+      "que_es": "Apoyar a tus amigos: hablar bien de ellos, ayudarlos a lucirse, estar cuando importa.",
+      "como": "Recuerda lo importante de tus amigos, preséntalos destacando algo bueno, ofrécete a ayudar en algo concreto.",
+      "cuando": "Fiestas, cuando un amigo tiene un mal día, cuando alguien necesita un empujón.",
+      "senales": "Un amigo nervioso, solo o pasando un mal momento.",
+      "practica": "Escríbele hoy a un amigo algo bueno que hayas notado de él."
+    },
+    {
+      "nombre": "Preparación obsesiva",
+      "que_es": "Ensayar y preparar todo antes de algo importante, como Barney con sus planes.",
+      "como": "Haz una lista de lo que puede salir mal y prepara una respuesta para cada cosa. Ensaya en voz alta.",
+      "cuando": "Exposiciones, entrevistas, el examen, una conversación difícil.",
+      "senales": "Improvisar algo importante y quedarte en blanco.",
+      "practica": "Ensaya con ASAGI la conversación difícil que tengas pendiente («práctica de cita» o pídele que haga de la otra persona)."
+    },
+    {
+      "nombre": "Reglas propias",
+      "que_es": "Tener un código personal claro (Barney tiene un 'código' con sus amigos) que te evita decidir todo desde cero.",
+      "como": "Escribe 5 reglas tuyas: cómo tratas a tus amigos, cómo estudias, qué no negocias.",
+      "cuando": "Cuando dudas qué hacer o te tientan a romper un compromiso.",
+      "senales": "Decisiones que te hacen sentir mal después.",
+      "practica": "Escribe tus 5 reglas y guárdalas en ASAGI con «recuerda que…»."
+    },
+    {
+      "nombre": "Resiliencia con humor",
+      "que_es": "Tomarse un rechazo o un error con humor y volver a intentar sin dramatizar.",
+      "como": "Ponle un nombre gracioso al fallo, saca una lección concreta y agenda el siguiente intento.",
+      "cuando": "Un examen que salió mal, un 'no', un proyecto que no funcionó.",
+      "senales": "Quedarte días pensando en un error.",
+      "practica": "Cuenta tu último fallo como si fuera el episodio más gracioso de tu serie."
+    },
+    {
+      "nombre": "El Playbook",
+      "que_es": "El libro de Barney con sus 'jugadas': planes con guion, personaje, disfraz y montaje para conquistar, cada una con nombre propio.",
+      "como": "Diseña una jugada como un mini guion: objetivo, personaje que interpretas, frase de entrada, el giro sorpresa y la salida. Ensáyala antes.",
+      "cuando": "Fiestas, bares, situaciones donde quieres llamar la atención y divertirte con el teatro.",
+      "senales": "Un ambiente relajado y con humor donde la gente disfruta de algo inesperado.",
+      "practica": "Escribe tu propia jugada en 5 líneas (nombre, personaje, entrada, giro, salida) y pídele a ASAGI que la ensaye contigo en «práctica de cita»."
+    },
+    {
+      "nombre": "Nunca admitir derrota",
+      "que_es": "Barney reinterpreta cualquier fallo como parte del plan o como una historia 'legendaria' y sigue con la misma seguridad.",
+      "como": "Cuando algo sale mal, no te disculpes de más: ríete, conviértelo en anécdota y pasa al siguiente movimiento con la misma energía.",
+      "cuando": "Rechazos, chistes que no funcionan, planes que se caen.",
+      "senales": "Ganas de justificarte o de quedarte callado después de un fallo.",
+      "practica": "La próxima vez que algo te salga mal frente a otros, suéltalo con un chiste y sigue como si nada."
+    },
+    {
+      "nombre": "Legendario (teatralidad)",
+      "que_es": "Convertir lo cotidiano en un evento: frases propias, pausas dramáticas ('espera… ¡dario!') y entusiasmo exagerado.",
+      "como": "Crea 2-3 frases tuyas, úsalas siempre en el mismo tipo de momento y acompáñalas con gesto y pausa.",
+      "cuando": "Con amigos, en grupo, para animar un plan.",
+      "senales": "Un plan que se siente aburrido o un grupo sin energía.",
+      "practica": "Inventa tu frase de entrada para cuando llegas a un lugar con tus amigos."
+    }
+  ],
+  "para_asagi": "Darle a Daniel energía y retos ('reto aceptado'), ayudarlo a prepararse para lo importante, contar las cosas con chispa y ser una compañera leal.",
+  "para_aria": "Convertir tareas pesadas en retos con meta y fecha, preparar a Daniel antes de entrevistas o exposiciones, y presentar sus proyectos con una buena historia.",
+  "fuente": "Descripción propia de Claude de los rasgos del personaje (sin transcribir la serie)."
+}

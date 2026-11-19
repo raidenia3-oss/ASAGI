@@ -113,7 +113,9 @@ function crearCliente(o) {
     for (var intento = 0; intento < 2; intento++) {
       if (!destino && !(await buscar())) return null;
       var linea = await sellar('asagi', carga);
-      var r; try { r = await P.lanEnviar({ host: destino.host, puerto: destino.puerto, linea: linea }); } catch (e) { r = null; }
+      var esperaMs = carga && (carga.t === 'bot' || carga.t === 'web') ? 50000 : 8000;   // un bot que piensa con ARIA tarda mas
+      var r; try { r = await P.lanEnviar({ host: destino.host, puerto: destino.puerto, linea: linea, esperaMs: esperaMs }); } catch (e) { r = null; }
+      if (!r && carga && (carga.t === 'bot' || carga.t === 'web')) return null;        // no reenviar: ARIA ya puede estar pensando
       if (r && r.ok) { var resp = await abrir(r.linea, 'aria'); if (resp) return resp; }
       destino = null;                                      // cambio de red / IP nueva: reintenta descubriendo
     }
@@ -138,7 +140,16 @@ function crearCliente(o) {
     return { ok: false, motivo: 'sinCamino' };
   }
 
-  return { enviar: enviar, buscar: buscar, verificar: verificar, estado: function () { return { destino: destino, via: ultimaVia }; } };
+  // Archivo grande (Wikipedia) solo por WiFi: el plugin lo escribe directo en la SD; aquí solo se sella el pedido.
+  async function bajarArchivo(carga) {
+    var P = o.plugin(); if (!P || !P.lanBajarArchivo) return { ok: false, error: 'app vieja' };
+    if (!(await K())) return { ok: false, error: 'sinClave' };
+    if (!destino && !(await buscar())) return { ok: false, error: 'no veo a ARIA en el WiFi' };
+    var linea = await sellar('asagi', carga);
+    try { return await P.lanBajarArchivo({ host: destino.host, puerto: destino.puerto, linea: linea }); } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
+  }
+
+  return { enviar: enviar, buscar: buscar, bajarArchivo: bajarArchivo, verificar: verificar, estado: function () { return { destino: destino, via: ultimaVia }; } };
 }
 
 var API = { SAL_LAN: SAL_LAN, emparejar: emparejar, dhPar: dhPar, dhClave: dhClave, nuevaClaveLan: nuevaClaveLan, codigoLan: codigoLan, parsearCodigoLan: parsearCodigoLan, crearCliente: crearCliente };

@@ -65,6 +65,79 @@ public class AsagiControlPlugin extends Plugin {
     }
 
     /** Lista las apps lanzables del telefono (para el Launcher de ASAGI). */
+
+    private static String firmaGenerica = null;
+
+    /** True si la app usa el icono por defecto de Android (el robot generico). */
+    private static boolean esIconoGenerico(ResolveInfo ri, PackageManager pm) {
+        try {
+            if (ri.activityInfo != null && ri.activityInfo.getIconResource() == 0
+                    && (ri.activityInfo.applicationInfo == null || ri.activityInfo.applicationInfo.icon == 0)) return true;
+            if (firmaGenerica == null) {
+                android.graphics.drawable.Drawable d = pm.getDefaultActivityIcon();
+                firmaGenerica = dibujarBase64(d, 24);
+            }
+            String mio = dibujarBase64(ri.loadIcon(pm), 24);
+            return mio != null && mio.equals(firmaGenerica);
+        } catch (Throwable e) { return false; }
+    }
+
+    private static String dibujarBase64(android.graphics.drawable.Drawable d, int s) {
+        try {
+            android.graphics.Bitmap bm = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas c = new android.graphics.Canvas(bm);
+            d.setBounds(0, 0, s, s); d.draw(c);
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            bm.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bo); bm.recycle();
+            return android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP);
+        } catch (Throwable e) { return null; }
+    }
+
+    /** Foto de perfil del dueño (contacto "Yo"). Pide el permiso de contactos una vez. */
+    @PluginMethod
+    public void fotoPerfil(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            if (!tiene("android.permission.READ_CONTACTS")) {
+                android.app.Activity act = (android.app.Activity) getContext();
+                androidx.core.app.ActivityCompat.requestPermissions(act, new String[] { "android.permission.READ_CONTACTS" }, 4471);
+                r.put("ok", false); r.put("error", "sinPermiso"); call.resolve(r); return;
+            }
+            android.database.Cursor cur = getContext().getContentResolver().query(
+                    android.provider.ContactsContract.Profile.CONTENT_URI,
+                    new String[] { android.provider.ContactsContract.Profile.PHOTO_URI, android.provider.ContactsContract.Profile.DISPLAY_NAME },
+                    null, null, null);
+            String uri = null, nombre = null;
+            if (cur != null) { if (cur.moveToFirst()) { uri = cur.getString(0); nombre = cur.getString(1); } cur.close(); }
+            if (uri == null) { r.put("ok", false); r.put("error", "sinFoto"); if (nombre != null) r.put("nombre", nombre); call.resolve(r); return; }
+            java.io.InputStream in = getContext().getContentResolver().openInputStream(android.net.Uri.parse(uri));
+            android.graphics.Bitmap bm = android.graphics.BitmapFactory.decodeStream(in); in.close();
+            int lado = Math.min(bm.getWidth(), bm.getHeight());
+            android.graphics.Bitmap sq = android.graphics.Bitmap.createBitmap(bm, (bm.getWidth() - lado) / 2, (bm.getHeight() - lado) / 2, lado, lado);
+            android.graphics.Bitmap sc = android.graphics.Bitmap.createScaledBitmap(sq, 256, 256, true);
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            sc.compress(android.graphics.Bitmap.CompressFormat.JPEG, 88, bo);
+            r.put("ok", true); r.put("foto", android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP));
+            if (nombre != null) r.put("nombre", nombre);
+        } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+        call.resolve(r);
+    }
+
+    /** Icono real de la app como PNG 96x96 en base64 (lo pinta el launcher de ASAGI). */
+    private static String iconoBase64(ResolveInfo ri, PackageManager pm) {
+        try {
+            android.graphics.drawable.Drawable d = ri.loadIcon(pm);
+            int s = 96;
+            android.graphics.Bitmap bm = android.graphics.Bitmap.createBitmap(s, s, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas c = new android.graphics.Canvas(bm);
+            d.setBounds(0, 0, s, s); d.draw(c);
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            bm.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bo);
+            bm.recycle();
+            return android.util.Base64.encodeToString(bo.toByteArray(), android.util.Base64.NO_WRAP);
+        } catch (Throwable e) { return null; }
+    }
+
     @PluginMethod
     public void listApps(PluginCall call) {
         Context ctx = getContext();
@@ -89,6 +162,9 @@ public class AsagiControlPlugin extends Plugin {
                 o.put("label", pkg);
             }
             o.put("package", pkg);
+            String ic = iconoBase64(ri, pm);
+            if (ic != null) o.put("icon", ic);
+            if (ic == null || esIconoGenerico(ri, pm)) o.put("generico", true);
             arr.put(o);
         }
         JSObject r = new JSObject();
@@ -176,6 +252,141 @@ public class AsagiControlPlugin extends Plugin {
         call.resolve();
     }
 
+    /** Acciones del sistema por intent (lista cerrada): alarma, temporizador, marcar, buscar, url, bateria.
+     *  Sin permisos peligrosos: SET_ALARM es normal y ACTION_DIAL solo abre el marcador (no llama). */
+    @PluginMethod
+    public void accion(PluginCall call) {
+        String tipo = call.getString("tipo", "");
+        Context ctx = getContext();
+        JSObject r = new JSObject();
+        try {
+            Intent i = null;
+            switch (tipo == null ? "" : tipo) {
+                case "alarma": {
+                    i = new Intent(android.provider.AlarmClock.ACTION_SET_ALARM);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_HOUR, call.getInt("hora", 7));
+                    i.putExtra(android.provider.AlarmClock.EXTRA_MINUTES, call.getInt("minuto", 0));
+                    String msg = call.getString("mensaje", "");
+                    if (msg != null && !msg.isEmpty()) i.putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, msg);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, call.getBoolean("silenciosa", true));
+                    break;
+                }
+                case "temporizador": {
+                    i = new Intent(android.provider.AlarmClock.ACTION_SET_TIMER);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_LENGTH, Math.max(1, call.getInt("segundos", 60)));
+                    String msg = call.getString("mensaje", "");
+                    if (msg != null && !msg.isEmpty()) i.putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, msg);
+                    i.putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, call.getBoolean("silenciosa", true));
+                    break;
+                }
+                case "marcar": {
+                    String num = call.getString("numero", "");
+                    i = new Intent(Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + (num == null ? "" : num.replaceAll("[^0-9+*#]", ""))));
+                    break;
+                }
+                case "contactos": {
+                    i = new Intent(Intent.ACTION_VIEW, android.provider.ContactsContract.Contacts.CONTENT_URI);
+                    break;
+                }
+                case "buscar": {
+                    i = new Intent(Intent.ACTION_WEB_SEARCH);
+                    i.putExtra(android.app.SearchManager.QUERY, call.getString("texto", ""));
+                    break;
+                }
+                case "url": {
+                    String u = call.getString("url", "");
+                    if (u == null || !(u.startsWith("https://") || u.startsWith("http://"))) { call.reject("url invalida"); return; }
+                    i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u));
+                    break;
+                }
+                case "chrome": {          // abrir en el Chrome de Daniel (con sus sesiones); si no hay Chrome, en el navegador normal
+                    String u = call.getString("url", "");
+                    if (u == null || !u.startsWith("https://")) { call.reject("url invalida (solo https)"); return; }
+                    i = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u));
+                    i.setPackage("com.android.chrome");
+                    if (i.resolveActivity(ctx.getPackageManager()) == null) i.setPackage(null);
+                    else r.put("chrome", true);
+                    break;
+                }
+                case "anclaje": {         // pantalla de «Anclaje USB / zona WiFi» (Daniel activa el interruptor; ASAGI no cambia ajustes sola)
+                    i = new Intent();
+                    i.setClassName("com.android.settings", "com.android.settings.TetherSettings");
+                    if (i.resolveActivity(ctx.getPackageManager()) == null) i = new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS);
+                    break;
+                }
+                case "linterna": {
+                    android.hardware.camera2.CameraManager cm = (android.hardware.camera2.CameraManager) ctx.getSystemService(Context.CAMERA_SERVICE);
+                    boolean on = call.getBoolean("encender", true);
+                    boolean hecho = false;
+                    for (String id : cm.getCameraIdList()) {
+                        Boolean flash = cm.getCameraCharacteristics(id).get(android.hardware.camera2.CameraCharacteristics.FLASH_INFO_AVAILABLE);
+                        if (flash != null && flash) { cm.setTorchMode(id, on); hecho = true; break; }
+                    }
+                    r.put("ok", hecho);
+                    if (!hecho) r.put("error", "este celular no tiene linterna");
+                    call.resolve(r);
+                    return;
+                }
+                case "panel": {
+                    String que = call.getString("que", "");
+                    String a;
+                    switch (que == null ? "" : que) {
+                        case "wifi": a = Build.VERSION.SDK_INT >= 29 ? Settings.Panel.ACTION_WIFI : Settings.ACTION_WIFI_SETTINGS; break;
+                        case "bluetooth": a = Settings.ACTION_BLUETOOTH_SETTINGS; break;
+                        case "datos": a = Build.VERSION.SDK_INT >= 29 ? Settings.Panel.ACTION_INTERNET_CONNECTIVITY : Settings.ACTION_DATA_ROAMING_SETTINGS; break;
+                        case "modo avion": a = Settings.ACTION_AIRPLANE_MODE_SETTINGS; break;
+                        case "ubicacion": a = Settings.ACTION_LOCATION_SOURCE_SETTINGS; break;
+                        default: a = Settings.ACTION_SETTINGS;
+                    }
+                    i = new Intent(a);
+                    break;
+                }
+                case "bateria": {
+                    Intent b = ctx.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                    int nivel = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1);
+                    int escala = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1);
+                    int est = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1);
+                    int temp = b == null ? -1 : b.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, -1);
+                    r.put("ok", nivel >= 0 && escala > 0);
+                    r.put("porcentaje", (nivel >= 0 && escala > 0) ? Math.round(nivel * 100f / escala) : -1);
+                    r.put("cargando", est == android.os.BatteryManager.BATTERY_STATUS_CHARGING || est == android.os.BatteryManager.BATTERY_STATUS_FULL);
+                    r.put("temperatura", temp > 0 ? temp / 10.0 : -1);
+                    call.resolve(r);
+                    return;
+                }
+                case "volumen": {          // sube/baja/silencio/al N% del volumen de música, mostrando la barra de Android
+                    android.media.AudioManager am = (android.media.AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+                    String dir = call.getString("dir", "subir");
+                    int st = android.media.AudioManager.STREAM_MUSIC, max = am.getStreamMaxVolume(st);
+                    int fl = android.media.AudioManager.FLAG_SHOW_UI;
+                    try {
+                        if ("subir".equals(dir)) { am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_RAISE, fl); am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_RAISE, fl); }
+                        else if ("bajar".equals(dir)) { am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_LOWER, fl); am.adjustStreamVolume(st, android.media.AudioManager.ADJUST_LOWER, fl); }
+                        else if ("silencio".equals(dir)) am.setStreamVolume(st, 0, fl);
+                        else if ("poner".equals(dir)) am.setStreamVolume(st, Math.round(max * Math.max(0, Math.min(100, call.getInt("valor", 50))) / 100f), fl);
+                    } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); call.resolve(r); return; }
+                    r.put("ok", true);
+                    r.put("porcentaje", Math.round(am.getStreamVolume(st) * 100f / Math.max(1, max)));
+                    call.resolve(r);
+                    return;
+                }
+                default:
+                    call.reject("accion desconocida: " + tipo);
+                    return;
+            }
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (i.resolveActivity(ctx.getPackageManager()) == null && !"marcar".equals(tipo)) {
+                r.put("ok", false); r.put("error", "ninguna app del celular acepta esto");
+                call.resolve(r); return;
+            }
+            ctx.startActivity(i);
+            r.put("ok", true);
+        } catch (Throwable e) {
+            r.put("ok", false); r.put("error", String.valueOf(e.getMessage()));
+        }
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void readScreen(PluginCall call) {
         AsagiAccessibilityService s = AsagiAccessibilityService.getInstance();
@@ -204,6 +415,56 @@ public class AsagiControlPlugin extends Plugin {
         boolean ok = s.tap(x.floatValue(), y.floatValue());
         JSObject r = new JSObject();
         r.put("ok", ok);
+        call.resolve(r);
+    }
+
+    // ---------------- Modo manos (agente de pantalla) ----------------
+    private AsagiAccessibilityService manos(PluginCall call) {
+        AsagiAccessibilityService s = AsagiAccessibilityService.getInstance();
+        if (s == null) call.reject("accesibilidad no activada");
+        return s;
+    }
+
+    @PluginMethod
+    public void manosLeer(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("app", s.paqueteActual());
+        try { r.put("nodos", new com.getcapacitor.JSArray(s.leerNodos(call.getInt("max", 80)).toString())); }
+        catch (org.json.JSONException e) { r.put("nodos", new com.getcapacitor.JSArray()); }
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosTocar(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("ok", s.tocarElemento(call.getString("texto", "")));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosEscribir(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        String res = s.escribirSeguro(call.getString("texto", ""));
+        JSObject r = new JSObject();
+        r.put("ok", "ok".equals(res)); r.put("motivo", res);
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosGlobal(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("ok", s.global(call.getString("accion", "")));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void manosDesplazar(PluginCall call) {
+        AsagiAccessibilityService s = manos(call); if (s == null) return;
+        JSObject r = new JSObject();
+        r.put("ok", s.desplazar(!"arriba".equals(call.getString("dir", "abajo"))));
         call.resolve(r);
     }
 
@@ -848,6 +1109,18 @@ public class AsagiControlPlugin extends Plugin {
                     int bc = (ip & mask) | ~mask;
                     destinos.add((bc & 0xff) + "." + ((bc >> 8) & 0xff) + "." + ((bc >> 16) & 0xff) + "." + ((bc >> 24) & 0xff));
                 } catch (Throwable ignored) { }
+                // Todas las redes activas del celular, no solo el WiFi: así ARIA también se encuentra por el cable USB
+                // («Anclaje USB» crea una red celular↔PC) y por la zona WiFi del celular. Sin adb ni depuración.
+                try {
+                    java.util.Enumeration<java.net.NetworkInterface> nis = java.net.NetworkInterface.getNetworkInterfaces();
+                    while (nis != null && nis.hasMoreElements()) {
+                        java.net.NetworkInterface ni = nis.nextElement();
+                        if (!ni.isUp() || ni.isLoopback()) continue;
+                        for (java.net.InterfaceAddress ia : ni.getInterfaceAddresses()) {
+                            if (ia.getBroadcast() != null) destinos.add(ia.getBroadcast().getHostAddress());
+                        }
+                    }
+                } catch (Throwable ignored) { }
                 String extra = call.getString("host", "");
                 if (extra != null && !extra.isEmpty()) destinos.add(extra);
                 for (String d : destinos) {
@@ -874,16 +1147,93 @@ public class AsagiControlPlugin extends Plugin {
         final String host = call.getString("host", "");
         final int puerto = call.getInt("puerto", 47832);
         final String linea = call.getString("linea", "");
+        final int espera = Math.max(2000, Math.min(60000, call.getInt("esperaMs", 8000)));   // los bots que piensan con ARIA esperan mas
         new Thread(new Runnable() { public void run() {
             JSObject r = new JSObject();
             try {
                 java.net.Socket so = new java.net.Socket();
                 so.connect(new java.net.InetSocketAddress(host, puerto), 4000);
-                so.setSoTimeout(8000);
+                so.setSoTimeout(espera);
                 try { r = lineaPorSocket(so.getInputStream(), so.getOutputStream(), linea); } finally { so.close(); }
             } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
             call.resolve(r);
         } }).start();
+    }
+
+    /**
+     * Trae un archivo grande de ARIA por WiFi (hoy: la Wikipedia sin internet) directo a la SD, sin pasar
+     * por JS. Manda la línea sellada; ARIA contesta una línea y detrás el archivo crudo desde «desde».
+     * Escribe en wiki_es.db.part (reanuda) y devuelve el sha256 de TODO el archivo; JS lo compara con el
+     * sha256 que ARIA dio por el canal cifrado y recién ahí llama a wikiActivar.
+     */
+    @PluginMethod
+    public void lanBajarArchivo(final PluginCall call) {
+        final String host = call.getString("host", "");
+        final int puerto = call.getInt("puerto", 47832);
+        final String linea = call.getString("linea", "");
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            java.io.File dir = Almacen.sd(getContext());
+            if (dir == null) dir = getContext().getExternalFilesDir(null);
+            java.io.File carpeta = new java.io.File(dir, "wiki");
+            carpeta.mkdirs();
+            java.io.File parte = new java.io.File(carpeta, "wiki_es.db.part");
+            try {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                long previo = parte.exists() ? parte.length() : 0L;
+                if (previo > 0) {
+                    try (java.io.InputStream in = new java.io.FileInputStream(parte)) {
+                        byte[] b = new byte[1 << 20]; int n;
+                        while ((n = in.read(b)) > 0) md.update(b, 0, n);
+                    }
+                }
+                java.net.Socket so = new java.net.Socket();
+                so.connect(new java.net.InetSocketAddress(host, puerto), 4000);
+                so.setSoTimeout(60000);
+                long nuevos = 0;
+                try {
+                    java.io.InputStream in = new java.io.BufferedInputStream(so.getInputStream(), 1 << 16);
+                    java.io.OutputStream out = so.getOutputStream();
+                    out.write((linea + "\n").getBytes("UTF-8")); out.flush();
+                    int c, cab = 0;
+                    while ((c = in.read()) != -1 && c != '\n') { if (++cab > 65536) throw new java.io.IOException("cabecera"); }
+                    if (cab == 0) throw new java.io.IOException("sinRespuesta");
+                    try (java.io.OutputStream f = new java.io.FileOutputStream(parte, true)) {
+                        byte[] b = new byte[1 << 20]; int n;
+                        while ((n = in.read(b)) > 0) { f.write(b, 0, n); md.update(b, 0, n); nuevos += n; }
+                    }
+                } finally { so.close(); }
+                StringBuilder hx = new StringBuilder();
+                for (byte x : md.digest()) hx.append(String.format("%02x", x));
+                r.put("ok", true); r.put("bytes", nuevos); r.put("total", parte.length()); r.put("sha256", hx.toString());
+            } catch (Throwable e) {
+                r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); r.put("total", parte.exists() ? parte.length() : 0);
+            }
+            call.resolve(r);
+        } }).start();
+    }
+
+    /** Tamaño de la copia a medias (para reanudar) */
+    @PluginMethod
+    public void wikiParte(PluginCall call) {
+        java.io.File dir = Almacen.sd(getContext());
+        if (dir == null) dir = getContext().getExternalFilesDir(null);
+        java.io.File parte = new java.io.File(new java.io.File(dir, "wiki"), "wiki_es.db.part");
+        JSObject r = new JSObject(); r.put("bytes", parte.exists() ? parte.length() : 0); call.resolve(r);
+    }
+
+    /** ok=true: la copia está completa y verificada -> pasa a ser la Wikipedia activa. ok=false: se borra para empezar de cero. */
+    @PluginMethod
+    public void wikiActivar(PluginCall call) {
+        java.io.File dir = Almacen.sd(getContext());
+        if (dir == null) dir = getContext().getExternalFilesDir(null);
+        java.io.File carpeta = new java.io.File(dir, "wiki");
+        java.io.File parte = new java.io.File(carpeta, "wiki_es.db.part"), db = new java.io.File(carpeta, "wiki_es.db");
+        JSObject r = new JSObject();
+        if (!call.getBoolean("ok", false)) { parte.delete(); r.put("ok", true); call.resolve(r); return; }
+        if (db.exists()) db.delete();
+        r.put("ok", parte.renameTo(db));
+        call.resolve(r);
     }
 
     private JSObject lineaPorSocket(java.io.InputStream in, java.io.OutputStream out, String linea) throws java.io.IOException {
@@ -928,6 +1278,124 @@ public class AsagiControlPlugin extends Plugin {
                     } finally { try { if (so != null) so.close(); } catch (Throwable ignored) { } }
                 }
             } catch (Throwable e) { r.put("error", String.valueOf(e.getMessage())); }
+            call.resolve(r);
+        } }).start();
+    }
+
+    // ------------------------------------------------------------------ actualizaciones sin desinstalar
+
+    private static String sha256Firma(android.content.pm.PackageInfo pi) {
+        try {
+            android.content.pm.Signature[] sigs;
+            if (Build.VERSION.SDK_INT >= 28 && pi.signingInfo != null) sigs = pi.signingInfo.getApkContentsSigners();
+            else sigs = pi.signatures;
+            if (sigs == null || sigs.length == 0) return "";
+            byte[] d = java.security.MessageDigest.getInstance("SHA-256").digest(sigs[0].toByteArray());
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < d.length; i++) { if (i > 0) sb.append(':'); sb.append(String.format("%02X", d[i])); }
+            return sb.toString();
+        } catch (Throwable e) { return ""; }
+    }
+
+    /** Guarda una imagen (JPEG en base64) en la galería, carpeta Pictures/ASAGI. Sin permisos en Android 10+. */
+    @PluginMethod
+    public void guardarImagen(final PluginCall call) {
+        final String b64 = call.getString("base64", "");
+        final String nombre = call.getString("nombre", "ASAGI_" + System.currentTimeMillis() + ".jpg").replaceAll("[^A-Za-z0-9_.-]", "_");
+        if (b64 == null || b64.isEmpty() || b64.length() > 16000000) { call.reject("imagen vacia o demasiado grande"); return; }
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            try {
+                byte[] datos = android.util.Base64.decode(b64, android.util.Base64.DEFAULT);
+                Context ctx = getContext();
+                if (android.os.Build.VERSION.SDK_INT >= 29) {
+                    android.content.ContentValues cv = new android.content.ContentValues();
+                    cv.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, nombre);
+                    cv.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    cv.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, "Pictures/ASAGI");
+                    android.net.Uri uri = ctx.getContentResolver().insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, cv);
+                    if (uri == null) throw new java.io.IOException("no se pudo crear el archivo");
+                    java.io.OutputStream os = ctx.getContentResolver().openOutputStream(uri);
+                    try { os.write(datos); } finally { os.close(); }
+                    r.put("uri", uri.toString());
+                } else {                       // Android 6-9: carpeta propia de la app (no pide permiso de almacenamiento)
+                    java.io.File dir = new java.io.File(ctx.getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES), "ASAGI");
+                    dir.mkdirs();
+                    java.io.File f = new java.io.File(dir, nombre);
+                    java.io.FileOutputStream os = new java.io.FileOutputStream(f);
+                    try { os.write(datos); } finally { os.close(); }
+                    r.put("uri", f.getAbsolutePath());
+                }
+                r.put("ok", true);
+                call.resolve(r);
+            } catch (Throwable e) { call.reject("no pude guardar: " + e.getMessage()); }
+        } }).start();
+    }
+
+    /** Version instalada + huella de la firma (para saber si un APK nuevo se puede instalar encima). */
+    @PluginMethod
+    public void versionApp(PluginCall call) {
+        JSObject r = new JSObject();
+        try {
+            android.content.pm.PackageManager pm = getContext().getPackageManager();
+            int fl = Build.VERSION.SDK_INT >= 28 ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES : android.content.pm.PackageManager.GET_SIGNATURES;
+            android.content.pm.PackageInfo pi = pm.getPackageInfo(getContext().getPackageName(), fl);
+            long code = Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode;
+            r.put("ok", true); r.put("build", code); r.put("nombre", pi.versionName); r.put("firma", sha256Firma(pi));
+            r.put("puedeInstalar", Build.VERSION.SDK_INT < 26 || pm.canRequestPackageInstalls());
+        } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
+        call.resolve(r);
+    }
+
+    /** Baja el APK (sigue redirecciones de GitHub) y abre el instalador de Android: se instala ENCIMA. */
+    @PluginMethod
+    public void instalarApk(final PluginCall call) {
+        final String url = call.getString("url", "");
+        new Thread(new Runnable() { public void run() {
+            JSObject r = new JSObject();
+            try {
+                android.content.pm.PackageManager pm = getContext().getPackageManager();
+                if (Build.VERSION.SDK_INT >= 26 && !pm.canRequestPackageInstalls()) {
+                    Intent ps = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                            android.net.Uri.parse("package:" + getContext().getPackageName()));
+                    ps.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(ps);
+                    r.put("ok", false); r.put("error", "permisoInstalar"); call.resolve(r); return;
+                }
+                java.io.File dir = new java.io.File(getContext().getCacheDir(), "upd"); dir.mkdirs();
+                java.io.File apk = new java.io.File(dir, "asagi.apk");
+                String u = url; java.net.HttpURLConnection c = null;
+                for (int i = 0; i < 6; i++) {
+                    c = (java.net.HttpURLConnection) new java.net.URL(u).openConnection();
+                    c.setInstanceFollowRedirects(false); c.setConnectTimeout(20000); c.setReadTimeout(60000);
+                    c.setRequestProperty("User-Agent", "ASAGI-actualizador");
+                    int code = c.getResponseCode();
+                    if (code >= 300 && code < 400) { u = new java.net.URL(new java.net.URL(u), c.getHeaderField("Location")).toString(); c.disconnect(); continue; }
+                    if (code != 200) throw new java.io.IOException("servidor respondio " + code);
+                    break;
+                }
+                long total = c.getContentLengthLong(), hecho = 0, aviso = 0;
+                java.io.InputStream in = c.getInputStream(); java.io.FileOutputStream out = new java.io.FileOutputStream(apk);
+                byte[] b = new byte[65536]; int n;
+                while ((n = in.read(b)) != -1) {
+                    out.write(b, 0, n); hecho += n;
+                    if (System.currentTimeMillis() - aviso > 500) { aviso = System.currentTimeMillis(); JSObject ev = new JSObject(); ev.put("hecho", hecho); ev.put("total", total); notifyListeners("actualizacion", ev); }
+                }
+                out.close(); in.close(); c.disconnect();
+                // misma firma? si no, Android rechazaria la instalacion encima
+                int fl = Build.VERSION.SDK_INT >= 28 ? android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES : android.content.pm.PackageManager.GET_SIGNATURES;
+                android.content.pm.PackageInfo nuevo = pm.getPackageArchiveInfo(apk.getAbsolutePath(), fl);
+                android.content.pm.PackageInfo actual = pm.getPackageInfo(getContext().getPackageName(), fl);
+                if (nuevo == null) throw new java.io.IOException("el APK llego danado");
+                String fN = sha256Firma(nuevo), fA = sha256Firma(actual);
+                if (!fN.isEmpty() && !fA.isEmpty() && !fN.equals(fA)) { r.put("ok", false); r.put("error", "firmaDistinta"); call.resolve(r); return; }
+                android.net.Uri uri = androidx.core.content.FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
+                Intent it = new Intent(Intent.ACTION_VIEW);
+                it.setDataAndType(uri, "application/vnd.android.package-archive");
+                it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(it);
+                r.put("ok", true);
+            } catch (Throwable e) { r.put("ok", false); r.put("error", String.valueOf(e.getMessage())); }
             call.resolve(r);
         } }).start();
     }
@@ -1010,5 +1478,81 @@ public class AsagiControlPlugin extends Plugin {
             r.put("estado", pego ? "pegado" : "copiado");
             call.resolve(r);
         }, 2500);
+    }
+
+    // ---- Almacenamiento y Wikipedia sin internet (en la SD; la prepara ARIA en la PC) ----
+    @PluginMethod
+    public void almacen(PluginCall call) {
+        Context c = getContext();
+        java.io.File sd = Almacen.sd(c), w = Almacen.wikiDb(c);
+        JSObject r = new JSObject();
+        r.put("sd", sd != null);
+        r.put("sdLibreGB", sd != null ? Math.round(sd.getUsableSpace() / 1e8) / 10.0 : 0);
+        r.put("internaLibreGB", Math.round(c.getFilesDir().getUsableSpace() / 1e8) / 10.0);
+        r.put("wiki", w != null);
+        r.put("wikiGB", w != null ? Math.round(w.length() / 1e8) / 10.0 : 0);
+        r.put("wikiEnSd", w != null && sd != null && w.getAbsolutePath().startsWith(sd.getAbsolutePath()));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void wikiBuscar(PluginCall call) {
+        final String q = call.getString("q", "");
+        final int n = Math.max(1, Math.min(5, call.getInt("n", 3)));
+        new Thread(() -> {
+            JSArray arr = new JSArray();
+            for (String[] f : Almacen.buscarWiki(getContext(), q, n)) {
+                JSObject o = new JSObject();
+                o.put("titulo", f[0]);
+                o.put("texto", f[1]);
+                arr.put(o);
+            }
+            JSObject r = new JSObject();
+            r.put("resultados", arr);
+            call.resolve(r);
+        }, "asagi-wiki").start();
+    }
+
+    // ---- Notificaciones (Ajustes > Acceso a notificaciones; lo activa el usuario) ----
+    @PluginMethod
+    public void notifEstado(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("activo", androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(getContext()).contains(getContext().getPackageName()));
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void notifAbrirAjustes(PluginCall call) {
+        try {
+            Intent i = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(i);
+            JSObject r = new JSObject(); r.put("ok", true); call.resolve(r);
+        } catch (Throwable e) { call.reject(String.valueOf(e.getMessage())); }
+    }
+
+    @PluginMethod
+    public void notifLista(PluginCall call) {
+        JSArray arr = new JSArray();
+        android.content.pm.PackageManager pm = getContext().getPackageManager();
+        for (org.json.JSONObject o : AsagiNotificaciones.recientes()) {
+            try {
+                JSObject j = new JSObject(o.toString());
+                try { j.put("nombre", String.valueOf(pm.getApplicationLabel(pm.getApplicationInfo(o.optString("app"), 0)))); } catch (Throwable ignored) { j.put("nombre", o.optString("app")); }
+                arr.put(j);
+            } catch (Throwable ignored) {}
+        }
+        JSObject r = new JSObject(); r.put("lista", arr); call.resolve(r);
+    }
+
+    /** Movimientos de dinero vistos en notificaciones (Yape, Plin, bancos). desde = ms. */
+    @PluginMethod
+    public void notifFinanzas(PluginCall call) {
+        Double dd = call.getDouble("desde", 0.0); long desde = dd == null ? 0L : dd.longValue();
+        JSArray arr = new JSArray();
+        for (String l : AsagiNotificaciones.leerLineas(new java.io.File(getContext().getFilesDir(), "finanzas_notif.jsonl"))) {
+            try { org.json.JSONObject o = new org.json.JSONObject(l); if (o.optLong("ts") >= desde) arr.put(new JSObject(l)); } catch (Throwable ignored) {}
+        }
+        JSObject r = new JSObject(); r.put("lista", arr); call.resolve(r);
     }
 }

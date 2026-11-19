@@ -1,0 +1,4 @@
+{
+  "personajes": ["patrick-jane.json", "barney-stinson.json"],
+  "como_agregar": "Copia uno de los JSON, cambia el contenido (mismos campos) y agrega el nombre del archivo a esta lista. ASAGI y ARIA lo aprenden solos al abrirse."
+}

@@ -164,7 +164,7 @@ public class AsagiBrainPlugin extends Plugin {
         DownloadState(File modelFile) {
             this.modelFile = modelFile;
             this.existingBytes = modelFile.exists() ? modelFile.length() : 0L;
-            this.existingHash = modelFile.exists() ? sha256Of(modelFile) : null;
+            this.existingHash = null;
         }
 
         public static DownloadState fromStorage(Context context, File storageDir, String modelFilename) {
@@ -180,6 +180,9 @@ public class AsagiBrainPlugin extends Plugin {
         }
 
         public String getExistingHash() {
+            if (existingHash == null && modelFile.exists()) {
+                existingHash = sha256Of(modelFile);
+            }
             return existingHash;
         }
 
@@ -204,7 +207,7 @@ public class AsagiBrainPlugin extends Plugin {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             try (InputStream in = new java.io.FileInputStream(file)) {
-                byte[] buf = new byte[8192];
+                byte[] buf = new byte[64 * 1024];
                 int n;
                 while ((n = in.read(buf)) != -1) {
                     md.update(buf, 0, n);

@@ -2762,9 +2762,9 @@ if ('serviceWorker' in navigator) {
     } catch (err) {}
   }
   window._asagiDescargarModelo = () => plugin.descargarModelo().catch(() => {});
-  setTimeout(revisar, 3000);
-  window.addEventListener('online', () => setTimeout(revisar, 1500));
-  setInterval(() => { if (!document.hidden) revisar(); }, 120000);   // si fallo, reintenta solo
+  setTimeout(revisar, 500);
+  window.addEventListener('online', () => setTimeout(revisar, 500));
+  setInterval(() => { if (!document.hidden) revisar(); }, 60000);   // si fallo, reintenta solo
 })();
 
 // --- Herramientas (permisos) y Discord ---

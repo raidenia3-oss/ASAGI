@@ -785,6 +785,62 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Dispositivos de confianza (audífonos/altavoces guardados): voz automática.
+  const mConfia = text.match(/^(?:conf[ií]a\s+en|dispositivo\s+de\s+confianza|agrega\s+dispositivo|mis\s+(?:aud[íi]fonos|audífonos|altavoces|auriculares)\s+se\s+llaman?)\s+(.+)$/i);
+  const mQuitar = text.match(/^(?:quitar\s+dispositivo|borra\s+dispositivo|olvida\s+dispositivo|elimina\s+dispositivo)\s+(.+)$/i);
+  const mLista = /^(?:dispositivos\s+de\s+confianza|mis\s+dispositivos|lista\s+dispositivos|qu[eé]\s+dispositivos\s+tengo)$/i.test(text);
+  const mUsa = text.match(/^(?:voz\s+para|usa\s+dispositivo|dispositivo\s+activo)\s+(.+)$/i);
+  if (window.AsagiDispositivos && (mConfia || mQuitar || mLista || mUsa)) {
+    const D = window.AsagiDispositivos;
+    let arr;
+    try { arr = JSON.parse(localStorage.getItem(D.CLAVE) || '[]'); } catch (e) { arr = []; }
+    let resp;
+    if (mConfia) {
+      const r = D.agregarDispositivo(arr, mConfia[1], 'audífono');
+      if (r.nuevo) { localStorage.setItem(D.CLAVE, JSON.stringify(r.dispositivos)); resp = '✔ Guardé «' + mConfia[1] + '» como dispositivo de confianza (voz automática).'; }
+      else resp = '«' + mConfia[1] + '» ya está entre tus dispositivos de confianza.';
+    } else if (mQuitar) {
+      const arr2 = D.quitarDispositivo(arr, mQuitar[1]);
+      localStorage.setItem(D.CLAVE, JSON.stringify(arr2));
+      resp = '✔ Quité «' + mQuitar[1] + '» de tus dispositivos de confianza.';
+    } else if (mUsa) {
+      D.marcarUso(arr, mUsa[1]);
+      localStorage.setItem(D.CLAVE, JSON.stringify(arr));
+      resp = '🔊 Voz automática para «' + mUsa[1] + '» (cuando esté vinculado).';
+    } else {
+      const lis = D.listarDispositivos(arr);
+      if (!lis.length) resp = 'No tienes dispositivos de confianza guardados. Di "confía en mis audífonos".';
+      else {
+        const lineas = lis.map(function (d) { return '- ' + d.nombre + ' (' + d.tipo + ')'; });
+        resp = 'Tus dispositivos de confianza:\n' + lineas.join('\n') + '\n\nDi "confía en <nombre>" para agregar o "quitar dispositivo <nombre>" para borrar.';
+      }
+    }
+    appendMessage('bot', resp);
+    return;
+  }
+
+  // Ver notas libres (sin hora) o agenda (con hora) desde el chat.
+  const mNotas = /^(?:ver\s+notas|mis\s+notas|notas\s+libres|notas\s+sin\s+hora)$/i.test(text);
+  const mAgenda = /^(?:ver\s+agenda|mi\s+agenda|agenda|pendientes\s+con\s+hora)$/i.test(text);
+  if (window.AsagiPendientes && (mNotas || mAgenda)) {
+    const P = window.AsagiPendientes;
+    let arr;
+    try { arr = P.deserializar(localStorage.getItem('asagi-pendientes') || '[]'); } catch (e) { arr = []; }
+    const filtrado = arr.filter((it) => mNotas ? !it.cuando : !!it.cuando);
+    const ord = P.ordenar(filtrado);
+    if (!ord.length) {
+      appendMessage('bot', mNotas ? 'No tienes notas libres guardadas. Di «anota …» para crear una.' : 'No tienes nada en la agenda. Di «recuerdame … mañana a las 8 …» para crear una.');
+      return;
+    }
+    const titulo = mNotas ? 'Tus notas libres:' : 'Tu agenda:';
+    const lineas = ord.map(function (it) {
+      var w = it.cuando ? ' (' + P.etiquetaCuando(it.cuando, Date.now()) + ')' : '';
+      return '- ' + it.texto + w;
+    });
+    appendMessage('bot', titulo + '\n' + lineas.join('\n') + '\n\nDi «limpiar hechos» para borrar los ya hechos.');
+    return;
+  }
+
   // SomaFM radio: "pon radio <canal>" / "soma fm" / "lista radios"
   if (window.AsagiSoma && window.AsagiSoma.esComando(text)) {
     const r = window.AsagiSoma.ejecutar(text);
@@ -2500,11 +2556,26 @@ if ('serviceWorker' in navigator) {
 
   // Lo que llega de ARIA: los pendientes entran a tu lista (con su hora y su
   // notificacion); las notas se avisan en pantalla y, solo con audifonos, en voz.
+  // También memoria selectiva (nodos/lecciones) via sync-memoria.js: dedup por hash,
+  // nada privado cruza (temas 'contraseña','banca','secreto','privado' se quedan acá).
   function procesar(nuevos) {
     for (const n of nuevos || []) {
       if (n.tipo === 'pendiente') {
         const limpio = window._asagiAddPendiente ? window._asagiAddPendiente(n.cuerpo) : n.cuerpo;
         if (window._asagiAviso) window._asagiAviso('ARIA te dejó un pendiente: ' + (limpio || n.cuerpo), false, '📡');
+      } else if (n.tipo === 'memoria-sync') {
+        try {
+          if (window.AsagiSync && window._asagiMem) {
+            const res = window.AsagiSync.importar({
+              bundleStr: n.cuerpo,
+              leer: () => window._asagiMem.leer(),
+              importarItems: (items) => { window._asagiMem.importarItems(items); },
+            });
+            if (res.ok && (res.nodos_nuevos || res.lecciones_nuevas)) {
+              if (window._asagiAviso) window._asagiAviso('Memoria sincronizada desde ARIA (' + res.nodos_nuevos + ' nodos).', false, '🧠');
+            }
+          }
+        } catch (e) {}
       } else {
         if (window._asagiAviso) window._asagiAviso('ARIA: ' + n.cuerpo, false, '📡');
         try { if (window.asagiSpeakPrivado) window.asagiSpeakPrivado('ARIA dice: ' + n.cuerpo); } catch (e) {}
@@ -2516,6 +2587,22 @@ if ('serviceWorker' in navigator) {
     if (!cli.vinculado()) return null;
     ultimo = await cli.sincronizar();
     if (ultimo && ultimo.nuevos) procesar(ultimo.nuevos);
+
+    // Exporto memoria selectiva hacia ARIA (dedup por hash; privado no cruza).
+    try {
+      if (window.AsagiSync && window._asagiMem) {
+        const exp = window.AsagiSync.exportar({
+          leer: () => window._asagiMem.leer(),
+          guardar: () => {},
+          pol: window.AsagiSync.politica({ temas_privados: ['contraseña', 'banca', 'secreto', 'privado'] }),
+          origen: 'asagi-celu',
+        });
+        if (exp.ok && exp.bundle && (exp.bundle.nodos.length || exp.bundle.lecciones.length)) {
+          await cli.enviar('memoria-sync', JSON.stringify(exp.bundle));
+        }
+      }
+    } catch (e) {}
+
     pintar();
     return ultimo;
   }

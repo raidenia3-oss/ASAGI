@@ -36,6 +36,7 @@ const APP_SHELL = [
   './bandeja.js',
   './enlace-lan.js',
   './discord.js',
+  './dispositivos.js',
   './radio.js',
   './styles.css',
   './app.js',

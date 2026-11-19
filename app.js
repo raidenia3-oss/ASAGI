@@ -785,6 +785,12 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // SomaFM radio: "pon radio <canal>" / "soma fm" / "lista radios"
+  if (window.AsagiSoma && window.AsagiSoma.esComando(text)) {
+    const r = window.AsagiSoma.ejecutar(text);
+    if (r) { appendMessage('bot', r); return; }
+  }
+
   showReplyStatus('generando…');
   if (window._asagiAvatarEstado) window._asagiAvatarEstado('pensando');
   Promise.resolve(startBotStreaming(text))
@@ -1059,6 +1065,37 @@ renderBrainControls();
 
   cargar(); pintar();
   try { if (window.AsagiNotificar) window.AsagiNotificar.sincronizar(lista); } catch (e) {}
+
+  // --- Bitácora diaria del celular: resumen de pendientes nuevos, una vez al día ---
+  (function () {
+    const CLAVE = 'asagi-bitacora-reportados';
+    let reportados = new Set();
+    try { JSON.parse(localStorage.getItem(CLAVE) || '[]').forEach(function (id) { reportados.add(id); }); } catch (e) {}
+    function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify([...reportados])); } catch (e) {} }
+    function construir() {
+      const ahora = Date.now();
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      const nuevos = [];
+      for (var i = 0; i < lista.length; i++) {
+        var it = lista[i];
+        if (reportados.has(it.id)) continue;
+        if (!it.hecho && it.creado >= hoy.getTime()) {
+          nuevos.push(it.texto + (it.cuando ? ' (' + it.etiqueta + ')' : ''));
+          reportados.add(it.id);
+        }
+      }
+      guardar();
+      return nuevos.length ? 'Hoy en el celular: ' + nuevos.join('; ') : null;
+    }
+    async function enviar() {
+      var res = construir();
+      if (!res || !window._asagiEnlaceEnviar) return;
+      try { await window._asagiEnlaceEnviar(res); } catch (e) {}
+    }
+    setTimeout(enviar, 30000);
+    setInterval(enviar, 24 * 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(enviar, 5000); });
+  })();
 
   // El primer chequeo espera a que la voz (asagiSpeakPrivado) este definida.
   setTimeout(revisarVencidos, 1500);
@@ -2747,5 +2784,8 @@ if ('serviceWorker' in navigator) {
   setTimeout(ciclo, 4000);
   setInterval(ciclo, 20000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) ciclo(); });
-  window._asagiDiscord = { cli, ciclo };
+window._asagiDiscord = { cli, ciclo };
+
+// SomaFM radio: definido en ./radio.js (window.AsagiSoma), despachado abajo.
+
 })();

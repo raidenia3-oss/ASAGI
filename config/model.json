@@ -1,9 +1,11 @@
 {
-  "_comment": "Modelo local que descarga Asagi (GGUF). Cambia aqui + en los 3 Java si quieres otro.",
+  "_comment": "Modelo local de ASAGI. Estos datos deben coincidir con AsagiBrainPlugin.java y BrainDownloadActivity.java; el plugin Android fija URL y hash para verificar el archivo antes de instalarlo.",
   "filename": "Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf",
-  "url": "https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf",
-  "revision": "main",
+  "url": "https://huggingface.co/mradermacher/Qwen2.5-0.5B-Instruct-abliterated-GGUF/resolve/2fc6c39fcfca22bf662cf44f5e563a6b2d3b8984/Qwen2.5-0.5B-Instruct-abliterated.Q4_K_M.gguf",
+  "revision": "2fc6c39fcfca22bf662cf44f5e563a6b2d3b8984",
+  "bytes": 397808512,
   "tamano_mb": 398,
+  "sha256": "eddb18fbeee320a9eca35cefc88efdb938d9ebe106922f3d91e261f3cbc1c9f6",
   "censura": "ninguna (abliterated / uncensored)",
   "base": "Qwen2.5-0.5B-Instruct (ChatML, compatible con el motor actual)"
 }

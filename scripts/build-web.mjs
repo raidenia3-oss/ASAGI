@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 const files = [
   'index.html',
@@ -80,6 +80,7 @@ const files = [
   'ojos.js',
   'tipeo.js',
   'agente.js',
+  'agente-codigo.js',
   'utiles.js',
   'piensa.js',
   'discord.js',
@@ -98,5 +99,15 @@ for (const file of files) {
 }
 cpSync('assets', 'dist/assets', { recursive: true });
 cpSync('personajes', 'dist/personajes', { recursive: true });   // personajes de los que aprende (JSON)
+
+// El módulo se carga en todos los despliegues construidos (PWA y Capacitor), justo
+// antes de app.js para que su interfaz quede lista cuando el resto de ASAGI arranque.
+const indexPath = 'dist/index.html';
+const index = readFileSync(indexPath, 'utf8');
+if (!index.includes('<script src="agente-codigo.js"></script>')) {
+  const anchor = '<script src="./app.js"></script>';
+  if (!index.includes(anchor)) throw new Error('No encontré el punto de entrada app.js en index.html');
+  writeFileSync(indexPath, index.replace(anchor, '<script src="agente-codigo.js"></script>\n    ' + anchor));
+}
 
 console.log('Web estática compilada en dist/');

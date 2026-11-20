@@ -460,10 +460,13 @@ function refreshBrainStatus() {
     let cerrado = ''; try { cerrado = localStorage.getItem('asagi-aviso-cerebro-cerrado') || ''; } catch (e) {}
     brainAlert.textContent = info.alert;
     if (info.alert) {
-      const x = document.createElement('button');
-      x.type = 'button'; x.className = 'brain-alert-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Cerrar aviso');
-      x.addEventListener('click', (ev) => { ev.stopPropagation(); try { localStorage.setItem('asagi-aviso-cerebro-cerrado', info.alert); } catch (e) {} brainAlert.hidden = true; });
-      brainAlert.appendChild(x);
+      let x = brainAlert.querySelector('.brain-alert-x');
+      if (!x) {
+        x = document.createElement('button');
+        x.type = 'button'; x.className = 'brain-alert-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Cerrar aviso');
+        x.addEventListener('click', (ev) => { ev.stopPropagation(); try { localStorage.setItem('asagi-aviso-cerebro-cerrado', info.alert); } catch (e) {} brainAlert.hidden = true; });
+        brainAlert.appendChild(x);
+      }
     }
     brainAlert.hidden = !info.alert || cerrado === info.alert;
     brainAlert.classList.toggle('abre-guia', /gemini/i.test(info.alert || ''));
@@ -717,7 +720,7 @@ async function startBotStreaming(userText) {
             herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase,
             avisar: (t) => showReplyStatus(t) });
           // memoria inteligente (Mem0): en segundo plano, si Daniel contó algo de sí mismo
-          if (fuerte && pen && pen.texto && window.AsagiMemoriaIA) setTimeout(() => { window.AsagiMemoriaIA.revisar(state.messages, pedir, (t) => appendMessage('bot', t)).catch(() => {}); }, 1200);
+          if (fuerte && pen && pen.texto && window.AsagiMemoriaIA) setTimeout(() => { window.AsagiMemoriaIA.revisar(state.messages, pedir, tareaDecir()).catch(() => {}); }, 1200);
         } catch (e) { pen = null; }
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
@@ -1044,8 +1047,8 @@ chatForm.addEventListener('submit', (event) => {
     const EN = window.AsagiEntrevista;
     if (!reesc && EN) {
       const c = EN.parsear(text);
-      if (c) { input.value = ''; EN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
-      if (EN.activa()) { input.value = ''; EN.responder(text, (t) => appendMessage('bot', t)); return; }
+      if (c) { input.value = ''; EN.ejecutar(c, tareaDecir()); return; }
+      if (EN.activa()) { input.value = ''; EN.responder(text, tareaDecir()); return; }
     }
   }
   // Traspaso celular ↔ PC (memoria unificada de ECC): «sigue en la pc» · «trae lo de la pc»
@@ -1059,15 +1062,16 @@ chatForm.addEventListener('submit', (event) => {
     const IN = window.AsagiInstintos;
     if (!reesc && IN) {
       const c = IN.parsear(text);
-      if (c) { input.value = ''; IN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      if (c) { input.value = ''; IN.ejecutar(c, tareaDecir()); return; }
       const esEstilo = !!IN.estiloDe(text), dicho = IN.observar(text);
       if (esEstilo) { input.value = ''; appendMessage('bot', dicho || '🧬 Anotado.'); return; }
       if (dicho) setTimeout(() => appendMessage('bot', dicho), 2500);
     }
   }
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
-  if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, (t) => appendMessage('bot', t));
+  if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, tareaDecir());
   input.value = '';
+  showReplyStatus('generando…');
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   // Modo autónomo: «hazlo tú: …», «objetivo: …», «detén el modo autónomo», «activa/apaga el vigilante».
   {
@@ -1149,8 +1153,8 @@ chatForm.addEventListener('submit', (event) => {
     }
     const OJ = window.AsagiOjos, co = !reesc && OJ && OJ.parsear(text);
     if (co) { OJ.ejecutar(co, tareaDecir()).catch((e) => appendMessage('bot', '👁 No pude: ' + ((e && e.message) || e))); return; }
-    if (!reesc && window.AsagiTipeo && window.AsagiTipeo.parsear(text)) { appendMessage('bot', '⌨ ¡Defensa! Escribe cada palabra antes de que cruce la línea roja.'); window._asagiJuegoTipeo = window.AsagiTipeo.abrir((t) => appendMessage('bot', t)); return; }
-    if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir((t) => appendMessage('bot', t)); return; }
+    if (!reesc && window.AsagiTipeo && window.AsagiTipeo.parsear(text)) { appendMessage('bot', '⌨ ¡Defensa! Escribe cada palabra antes de que cruce la línea roja.'); window._asagiJuegoTipeo = window.AsagiTipeo.abrir(tareaDecir()); return; }
+    if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir(tareaDecir()); return; }
     const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }
     const ci = !reesc && IN && IN.parsear(text);
@@ -1774,7 +1778,6 @@ chatForm.addEventListener('submit', (event) => {
     if (r) { appendMessage('bot', r); return; }
   }
 
-  showReplyStatus('generando…');
   if (window._asagiAvatarEstado) window._asagiAvatarEstado('pensando');
   Promise.resolve(startBotStreaming(text))
     .catch((error) => {
@@ -2034,7 +2037,7 @@ renderBrainControls();
   // (al abrir la app y cada 20 min con la app a la vista; reanuda si se corta).
   window._asagiWikiTraer = async (avisar) => {
     const W = window.AsagiWiki; if (!W || !W.traer) return;
-    const decir = avisar ? (t) => appendMessage('bot', t) : null;
+    const decir = avisar ? tareaDecir() : null;
     const r = await W.traer(decir);
     if (r.ok && !r.ya) appendMessage('bot', '📚 Listo: tu Wikipedia sin internet ya está en la SD. Prueba «wiki fotosíntesis».');
     else if (avisar && !r.ok) appendMessage('bot', '📚 ' + r.error + '.');

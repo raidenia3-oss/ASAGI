@@ -1,0 +1,2 @@
+11-21 02:13:46.245  2938  2938 I chromium: [INFO:CONSOLE(0)] "Uncaught (in promise) TypeError: Failed to execute 'addAll' on 'Cache': Request failed", source: https://localhost/sw.js (0)
+11-21 02:20:27.857  2938  2938 I chromium: [INFO:CONSOLE(1)] "Uncaught TypeError: Cannot read properties of undefined (reading 'sources')", source: https://www.worldatlas.com/build/editorial-article-mobile.96c1c160.js (1)

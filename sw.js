@@ -3,6 +3,7 @@ const APP_SHELL = [
   './',
   './index.html',
   './brain-router.js',
+  './ui-adapt.js',
   './asagi-browser.js',
   './asagi-apps.js',
   './sync-memoria.js',

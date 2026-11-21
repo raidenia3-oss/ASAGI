@@ -4,7 +4,7 @@
 // PURO: sin red, sin servidores, stdlib-equivalente.
 'use strict';
 
-const VERSION = 1;
+const VERSION = 2;
 const _SEED_DEFAULT = "aura2026";
 
 const _BIOMES = [
@@ -25,11 +25,33 @@ const _BIOMES = [
     "Inverse Crossing",
     "Unlimited Void 0.2s",
     "Unlimited Void",
+    "Ocean",
+    "Desert",
+    "Tundra",
+    "Forest",
+    "Volcano",
+    "Ruins",
+    "Sanctuary",
+    "Void Rift"
 ];
 
-const _LAYERS = ["terreno", "naturaleza", "estructuras", "entidades"];
+const _LAYERS = ["terreno", "naturaleza", "estructuras", "entidades", "elevacion", "clima"];
 
-// ------------------------------------------------------------- SHA-256 puro (coincide con hashlib.sha256 de Python)
+// Memoization cache
+const _cache = new Map();
+function _cacheKey(fn, args) { return fn + ":" + args.join("|"); }
+function _memo(fn, keyFn) {
+    return function() {
+        const args = Array.prototype.slice.call(arguments);
+        const key = keyFn ? keyFn.apply(null, args) : _cacheKey(fn.name, args);
+        if (_cache.has(key)) return _cache.get(key);
+        const r = fn.apply(null, args);
+        _cache.set(key, r);
+        return r;
+    };
+}
+
+// ------------------------------------------------------------- SHA-256 puro
 function _sha256(str) {
   const utf8 = unescape(encodeURIComponent(str));
   const bytes = [];
@@ -87,7 +109,6 @@ function _sha256(str) {
   return toHex(h0) + toHex(h1) + toHex(h2) + toHex(h3) + toHex(h4) + toHex(h5) + toHex(h6) + toHex(h7);
 }
 
-// int(sha256_hex, 16) % mod sin construir el entero completo (exacto, evita overflow de JS)
 function _modHex(hex, mod) {
   let r = 0;
   for (let i = 0; i < hex.length; i++) {
@@ -100,14 +121,62 @@ function _h(text, semilla, mod) {
   return _modHex(_sha256(semilla + "|" + text), mod);
 }
 
+// Perlin-like smooth noise
+function _noise(x, y, semilla) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const a = _h("n:" + ix + ":" + iy, semilla, 1000) / 1000;
+  const b = _h("n:" + (ix+1) + ":" + iy, semilla, 1000) / 1000;
+  const c = _h("n:" + ix + ":" + (iy+1), semilla, 1000) / 1000;
+  const d = _h("n:" + (ix+1) + ":" + (iy+1), semilla, 1000) / 1000;
+  const ux = fx * fx * (3 - 2 * fx);
+  const uy = fy * fy * (3 - 2 * fy);
+  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+}
+
 // ------------------------------------------------------------- generacion determinista
+function _biomaRaw(x, y, semilla) {
+  const e = _noise(x * 0.05, y * 0.05, semilla);
+  const m = _noise(x * 0.1, y * 0.1, semilla + "|m");
+  if (e < 0.25) return "Ocean";
+  if (e < 0.32) return "Swamp";
+  if (e > 0.85) return "Tundra";
+  if (m > 0.75) return "Volcano";
+  if (m < 0.2) return "Desert";
+  const idx = _h("bioma:" + Math.floor(x/4) + ":" + Math.floor(y/4), semilla, _BIOMES.length);
+  return _BIOMES[idx];
+}
+
 function biomaEn(x, y, semilla) {
   semilla = semilla || _SEED_DEFAULT;
-  return _BIOMES[_h("bioma:" + x + ":" + y, semilla, _BIOMES.length)];
+  return _memo(_biomaRaw, (a,b,c) => "bioma:" + a + ":" + b + ":" + c)(x, y, semilla);
+}
+
+function elevacionEn(x, y, semilla) {
+  semilla = semilla || _SEED_DEFAULT;
+  const key = "elev:" + x + ":" + y + ":" + semilla;
+  if (_cache.has(key)) return _cache.get(key);
+  const v = Math.round(_noise(x * 0.08, y * 0.08, semilla + "|elev") * 100);
+  _cache.set(key, v);
+  return v;
+}
+
+function climaEn(x, y, semilla) {
+  semilla = semilla || _SEED_DEFAULT;
+  const key = "clima:" + x + ":" + y + ":" + semilla;
+  if (_cache.has(key)) return _cache.get(key);
+  const e = elevacionEn(x, y, semilla);
+  const temp = Math.round(30 - e * 0.3 + _noise(x*0.1, y*0.1, semilla+"|t")*10);
+  const hum = Math.round(_noise(x*0.12, y*0.12, semilla+"|h")*100);
+  const r = { temp: temp, humedad: hum, viento: Math.round(_noise(x*0.15,y*0.15,semilla+"|v")*100) };
+  _cache.set(key, r);
+  return r;
 }
 
 function valorCapa(capa, x, y, semilla) {
   semilla = semilla || _SEED_DEFAULT;
+  if (capa === "elevacion") return elevacionEn(x, y, semilla);
+  if (capa === "clima") return climaEn(x, y, semilla);
   return _h(capa + ":" + x + ":" + y, semilla, 1000);
 }
 
@@ -128,6 +197,7 @@ function chunk(cx, cy, semilla, tam) {
   return {
     cx: cx, cy: cy, tam: tam, semilla: semilla, version: VERSION,
     biomaPrincipal: biomaEn(cx * tam, cy * tam, semilla),
+    elevacionMedia: Math.round(celdas.reduce((s,c)=>s+c.elevacion,0)/celdas.length),
     celdas: celdas
   };
 }
@@ -145,6 +215,69 @@ function region(x, y, radio, semilla) {
   return Object.entries(vistos).sort((a, b) => b[1] - a[1]);
 }
 
+// Puntos de interes
+function puntosInteres(semilla, cantidad) {
+  semilla = semilla || _SEED_DEFAULT;
+  cantidad = cantidad || 5;
+  const pts = [];
+  for (let i = 0; i < cantidad; i++) {
+    const x = _h("poi:x:" + i, semilla, 200) - 100;
+    const y = _h("poi:y:" + i, semilla, 200) - 100;
+    pts.push({ id: i, x: x, y: y, nombre: "Punto " + (i+1), bioma: biomaEn(x, y, semilla) });
+  }
+  return pts;
+}
+
+// Export .auraworld
+function exportarAuraworld(semilla, radio) {
+  semilla = semilla || _SEED_DEFAULT;
+  radio = radio || 32;
+  const data = { version: VERSION, semilla: semilla, radio: radio, celdas: [] };
+  for (let y = -radio; y <= radio; y++) {
+    for (let x = -radio; x <= radio; x++) {
+      data.celdas.push({ x: x, y: y, b: biomaEn(x,y,semilla), e: elevacionEn(x,y,semilla) });
+    }
+  }
+  return JSON.stringify(data);
+}
+
+// Render texto
+function renderTexto(cx, cy, radio, semilla) {
+  semilla = semilla || _SEED_DEFAULT;
+  radio = radio || 8;
+  const lines = [];
+  for (let y = cy - radio; y <= cy + radio; y++) {
+    let row = "";
+    for (let x = cx - radio; x <= cx + radio; x++) {
+      const b = biomaEn(x, y, semilla);
+      row += (b[0] || "?") + " ";
+    }
+    lines.push(row);
+  }
+  return lines.join("\n");
+}
+
+// Pathfinding simple (BFS)
+function camino(ax, ay, bx, by, semilla) {
+  semilla = semilla || _SEED_DEFAULT;
+  const visited = new Set();
+  const queue = [[ax, ay, [[ax, ay]]]];
+  while (queue.length) {
+    const [x, y, path] = queue.shift();
+    const key = x + "," + y;
+    if (visited.has(key)) continue;
+    visited.add(key);
+    if (x === bx && y === by) return path;
+    for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nx = x + dx, ny = y + dy;
+      const b = biomaEn(nx, ny, semilla);
+      if (b === "Ocean" || b === "Void Rift") continue;
+      queue.push([nx, ny, path.concat([[nx, ny]])]);
+    }
+  }
+  return null;
+}
+
 const API = {
   VERSION: VERSION,
   biomaEn: biomaEn,
@@ -153,7 +286,15 @@ const API = {
   region: region,
   biomas: _BIOMES,
   capas: _LAYERS,
-  sha256: _sha256
+  sha256: _sha256,
+  elevacionEn: elevacionEn,
+  climaEn: climaEn,
+  puntosInteres: puntosInteres,
+  exportarAuraworld: exportarAuraworld,
+  renderTexto: renderTexto,
+  camino: camino,
+  noise: _noise,
+  limpiarCache: function() { _cache.clear(); }
 };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = API;

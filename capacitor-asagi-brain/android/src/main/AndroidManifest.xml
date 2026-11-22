@@ -31,6 +31,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <!-- Termux: ejecutar comandos (Termux debe tener allow-external-apps=true). -->
     <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+    <!-- WorkManager: reanudar workers tras reinicio -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <queries>
         <package android:name="com.termux" />
     </queries>
@@ -54,6 +56,15 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="asagi.brain.download.progress" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Boot receiver: re-encola WorkManager workers tras reinicio -->
+        <receiver android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

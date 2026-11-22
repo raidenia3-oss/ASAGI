@@ -52,7 +52,7 @@ function parsearCodigoLan(t) {
   return m ? m[1].toLowerCase() : null;
 }
 
-// o: { plugin() -> AsagiControl, clave() -> string, leer(k), guardar(k,v) }
+// o: { plugin() -> AsagiControl, clave() -> string, leer(k), guardar(k,v), onPush(mensaje) }
 function crearCliente(o) {
   var E = _E(), claves = null, claveUsada = '', destino = null, ultimaVia = null;
 
@@ -65,6 +65,8 @@ function crearCliente(o) {
   async function sellar(de, carga) {
     var k = await K(); if (!k) return null;
     var ts = Date.now(), id = de + '-' + ts + '-' + E._aHex(crypto.getRandomValues(new Uint8Array(4)));
+    // Protocolo v2: marca la carga con versión
+    if (carga && typeof carga === 'object' && !carga.v) carga = Object.assign({}, carga, { v: 2 });
     return JSON.stringify({ id: id, de: de, ts: ts, c: await E.cifrar(k, id, de, ts, carga) });
   }
   async function abrir(linea, deEsperado) {
@@ -113,11 +115,24 @@ function crearCliente(o) {
     for (var intento = 0; intento < 2; intento++) {
       if (!destino && !(await buscar())) return null;
       var linea = await sellar('asagi', carga);
-      var esperaMs = carga && (carga.t === 'bot' || carga.t === 'web') ? 50000 : 8000;   // un bot que piensa con ARIA tarda mas
+      var esperaMs = carga && (carga.t === 'bot' || carga.t === 'web') ? 50000 : 8000;
       var r; try { r = await P.lanEnviar({ host: destino.host, puerto: destino.puerto, linea: linea, esperaMs: esperaMs }); } catch (e) { r = null; }
-      if (!r && carga && (carga.t === 'bot' || carga.t === 'web')) return null;        // no reenviar: ARIA ya puede estar pensando
-      if (r && r.ok) { var resp = await abrir(r.linea, 'aria'); if (resp) return resp; }
-      destino = null;                                      // cambio de red / IP nueva: reintenta descubriendo
+      if (!r && carga && (carga.t === 'bot' || carga.t === 'web')) return null;
+      if (r && r.ok) { 
+        // Manejar respuesta multilínea (push + respuesta real)
+        var lineas = String(r.linea).trim().split('\n');
+        var respuesta = null, pushes = [];
+        for (var i = 0; i < lineas.length; i++) {
+          var resp = await abrir(lineas[i], 'aria');
+          if (resp) {
+            if (resp.t === 'push') pushes.push(resp);
+            else if (!respuesta) respuesta = resp;
+          }
+        }
+        if (pushes.length && o.onPush) { try { o.onPush(pushes); } catch (e) {} }
+        return respuesta;
+      }
+      destino = null;
     }
     return null;
   }
@@ -126,7 +141,18 @@ function crearCliente(o) {
     var P = o.plugin(); if (!P || !P.btEnviar) return null;
     var linea = await sellar('asagi', carga); if (!linea) return null;
     var r; try { r = await P.btEnviar({ linea: linea, canal: CANAL_BT }); } catch (e) { return null; }
-    return r && r.ok ? await abrir(r.linea, 'aria') : null;
+    if (!r || !r.ok) return null;
+    var lineas = String(r.linea).trim().split('\n');
+    var respuesta = null, pushes = [];
+    for (var i = 0; i < lineas.length; i++) {
+      var resp = await abrir(lineas[i], 'aria');
+      if (resp) {
+        if (resp.t === 'push') pushes.push(resp);
+        else if (!respuesta) respuesta = resp;
+      }
+    }
+    if (pushes.length && o.onPush) { try { o.onPush(pushes); } catch (e) {} }
+    return respuesta;
   }
 
   // WiFi primero (rapido); si no hay, Bluetooth. Devuelve { ok, via, resp } o { ok:false }.
@@ -149,7 +175,12 @@ function crearCliente(o) {
     try { return await P.lanBajarArchivo({ host: destino.host, puerto: destino.puerto, linea: linea }); } catch (e) { return { ok: false, error: String(e && e.message || e) }; }
   }
 
-  return { enviar: enviar, buscar: buscar, bajarArchivo: bajarArchivo, verificar: verificar, estado: function () { return { destino: destino, via: ultimaVia }; } };
+  // Solicitar mensajes push pendientes (protocolo v2)
+  async function poll() {
+    return await enviar({ t: 'poll' });
+  }
+
+  return { enviar: enviar, buscar: buscar, bajarArchivo: bajarArchivo, verificar: verificar, poll: poll, estado: function () { return { destino: destino, via: ultimaVia }; } };
 }
 
 var API = { SAL_LAN: SAL_LAN, emparejar: emparejar, dhPar: dhPar, dhClave: dhClave, nuevaClaveLan: nuevaClaveLan, codigoLan: codigoLan, parsearCodigoLan: parsearCodigoLan, crearCliente: crearCliente };

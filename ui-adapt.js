@@ -100,8 +100,43 @@ function ajustarColorBlind(c, tipo) {
   return c;
 }
 
+function _mezcla(c, hacia, t) {
+  return { r: Math.round(c.r * (1 - t) + hacia.r * t), g: Math.round(c.g * (1 - t) + hacia.g * t), b: Math.round(c.b * (1 - t) + hacia.b * t) };
+}
+
+// Modo marca-segura (regla 6): la foto solo tiñe lo ambiental (fondo y paneles glass, jalados casi a negro).
+// El carmesí, el oro y el papel de ASAGI quedan FIJOS: la identidad manda sobre la foto.
+function aplicarMarcaSegura(colors) {
+  if (!colors || !colors.length) return;
+  const root = document.documentElement;
+  const NEGRO = { r: 8, g: 4, b: 8 };                 // #080408
+  const CARMESI = { r: 220, g: 20, b: 60 };           // #DC143C
+  const dark = colors[colors.length - 1] || colors[0];
+  const bg = _mezcla(NEGRO, dark, 0.10);              // casi negro, apenas teñido por la foto
+  const bg2 = _mezcla(NEGRO, dark, 0.05);
+  const pan = _mezcla(NEGRO, dark, 0.30);
+  root.style.setProperty('--bg', rgbToHex(bg.r, bg.g, bg.b));
+  root.style.setProperty('--bg-2', rgbToHex(bg2.r, bg2.g, bg2.b));
+  root.style.setProperty('--panel', 'rgba(' + pan.r + ',' + pan.g + ',' + pan.b + ',0.55)');
+  // hairlines y glow en carmesí de marca (no de la foto)
+  root.style.setProperty('--line', 'rgba(220,20,60,0.22)');
+  root.style.setProperty('--line-soft', 'rgba(220,20,60,0.12)');
+  root.style.setProperty('--glow', 'rgba(220,20,60,0.40)');
+  root.style.setProperty('--glass-blur', '14px');
+  root.style.setProperty('--radius', '16px');
+  // --cyan (carmesí), --gold, --text: NO se tocan. La marca manda.
+}
+
+function limpiar() {
+  const root = document.documentElement;
+  ['--bg', '--bg-2', '--panel', '--line', '--line-soft', '--glow', '--glass-blur', '--radius', '--cyan', '--teal', '--violet', '--success', '--text'].forEach(function (v) { root.style.removeProperty(v); });
+  const g = document.getElementById('ui-adapt-glass'); if (g) g.remove();
+  try { localStorage.removeItem('asagi-ui-palette'); localStorage.removeItem('asagi-ui-modo'); localStorage.removeItem('asagi-ui-colorblind'); } catch (e) {}
+}
+
 function aplicarColores(colors, modo) {
-  modo = modo || 'user-generated';
+  modo = modo || 'marca';
+  if (modo === 'marca') { aplicarMarcaSegura(colors); return; }
   if (!colors || !colors.length) return;
   const root = document.documentElement;
   let primary = fixDisliked(colors[0]);
@@ -177,7 +212,7 @@ function activarGlass() {
 
 function integrarWallpaper(imgSrc, opts) {
   opts = opts || {};
-  const modo = opts.modo || 'user-generated';
+  const modo = opts.modo || 'marca';
   const colorBlind = opts.colorBlind || 'none';
   const img = new Image();
   img.crossOrigin = 'anonymous';
@@ -213,6 +248,8 @@ if (typeof window !== 'undefined') {
     aplicarColores: aplicarColores,
     activarGlass: activarGlass,
     integrarWallpaper: integrarWallpaper,
+    aplicarMarcaSegura: aplicarMarcaSegura,
+    limpiar: limpiar,
     restaurarPaleta: restaurarPaleta,
     armonia: armonia,
     contraste: contraste,

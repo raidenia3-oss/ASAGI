@@ -62,7 +62,7 @@ function promptEdit(texto) {
     'Sé moderado (la mayoría entre -40 y 40) salvo que pida algo extremo. Sin texto extra.';
 }
 function leerAjustes(resp) { var s = String(resp || ''), a = s.indexOf('{'), b = s.lastIndexOf('}'); if (a < 0 || b <= a) return null; try { return limpiar(JSON.parse(s.slice(a, b + 1))); } catch (e) { return null; } }
-function parsear(t) { return /^(?:editor|editor de (?:fotos|imagenes|imágenes)|edita(?:r)? (?:una |mi |esta )?(?:foto|imagen)|abre el editor|quiero editar una foto|haz(?:me)? un edit)$/i.test(String(t || '').trim().replace(/[.!¡]+$/, '')); }
+function parsear(t) { return /^(?:editor|editor de (?:fotos|imagenes|imágenes)|edita(?:r)? (?:una |mi |esta )?(?:foto|imagen)|abre el editor|quiero editar una foto|haz(?:me)? un edit|haz(?:me)? un meme|un meme|meme|censura(?:r)?(?: (?:una|esta|mi) foto| una imagen)?|tapa(?:r)? (?:datos|una foto|esta foto))$/i.test(String(t || '').trim().replace(/[.!¡]+$/, '')); }
 
 function ls(k, d) { try { return JSON.parse(localStorage.getItem(k) || '') || d; } catch (e) { return d; } }
 function gs(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -78,12 +78,21 @@ function abrir(decir) {
     '<div class="ed-fila" id="ed-estilos"></div>' +
     '<div class="ed-fila" id="ed-props"></div>' +
     '<div id="ed-sliders"></div>' +
-    '<div class="ed-linea"><input type="text" id="ed-texto" maxlength="60" placeholder="Texto sobre la foto (opcional)"></div>' +
+    '<div class="ed-linea"><input type="text" id="ed-texto" maxlength="60" placeholder="Texto (o «Arriba / Abajo» para meme)"></div>' +
     '<div class="ed-linea"><input type="text" id="ed-desc" maxlength="200" placeholder="Describe el edit: más dramática, tonos fríos…"><button type="button" id="ed-ia">Aplicar</button></div>' +
+    '<div class="ed-linea"><button type="button" id="ed-censura">🔒 Censura: toca para tapar</button><button type="button" id="ed-censura-reset" hidden>Quitar censura</button></div>' +
     '<div class="ed-linea ed-acciones"><button type="button" id="ed-otra">Otra foto</button><button type="button" id="ed-estilo">Guardar estilo</button><button type="button" id="ed-guardar" class="ed-pri">Guardar foto</button></div></div>';
   document.body.appendChild(v);
   var $ = function (id) { return document.getElementById(id); }, cv = $('ed-canvas'), g = cv.getContext('2d', { willReadFrequently: true });
   var img = null, orig = null, p = Object.assign({}, BASE), prop = 'original', nombreEstilo = '', pend = 0;
+  var censuras = [], modoCensura = false;
+  function pixelar(cx, cy, r) {
+    var x = Math.max(0, cx - r), y = Math.max(0, cy - r), w = Math.min(cv.width - x, r * 2), h = Math.min(cv.height - y, r * 2);
+    if (w <= 1 || h <= 1) return;
+    var bl = 6, tmp = document.createElement('canvas'); tmp.width = bl; tmp.height = bl;
+    tmp.getContext('2d').drawImage(cv, x, y, w, h, 0, 0, bl, bl);
+    g.imageSmoothingEnabled = false; g.drawImage(tmp, 0, 0, bl, bl, x, y, w, h); g.imageSmoothingEnabled = true;
+  }
   var NOM = { brillo: 'Brillo', contraste: 'Contraste', saturacion: 'Color', calidez: 'Calidez', vineta: 'Viñeta', grano: 'Grano', tinte: 'Carmesí' };
   function nota(t) { $('ed-nota').textContent = t || ''; }
   function pintar() {
@@ -92,11 +101,21 @@ function abrir(decir) {
     pend = requestAnimationFrame(function () {
       var d = new ImageData(new Uint8ClampedArray(orig.data), orig.width, orig.height);
       aplicar(d.data, d.width, d.height, p); g.putImageData(d, 0, 0);
+      censuras.forEach(function (c) { pixelar(c.x, c.y, Math.round(cv.width * 0.11)); });   // tapa lo que no quieres mostrar
       var t = $('ed-texto').value.trim();
       if (t) {
-        var px = Math.max(18, Math.round(cv.width * 0.075)); g.font = 'italic 900 ' + px + 'px "Arial Black", Impact, sans-serif'; g.textAlign = 'center'; g.lineJoin = 'round';
-        g.lineWidth = px * 0.16; g.strokeStyle = '#080408'; g.strokeText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
-        g.fillStyle = '#FFD700'; g.fillText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
+        var px = Math.max(18, Math.round(cv.width * 0.075)); g.textAlign = 'center'; g.lineJoin = 'round';
+        var pt = t.split('/');
+        if (pt.length >= 2) {                                                              // meme clásico: ARRIBA / ABAJO
+          g.font = '900 ' + px + 'px Impact, "Arial Black", sans-serif'; g.lineWidth = px * 0.18; g.strokeStyle = '#000'; g.fillStyle = '#fff';
+          var arr = pt[0].trim().toUpperCase(), aba = pt.slice(1).join('/').trim().toUpperCase();
+          if (arr) { g.strokeText(arr, cv.width / 2, px * 1.15, cv.width * 0.94); g.fillText(arr, cv.width / 2, px * 1.15, cv.width * 0.94); }
+          if (aba) { g.strokeText(aba, cv.width / 2, cv.height - px * 0.55, cv.width * 0.94); g.fillText(aba, cv.width / 2, cv.height - px * 0.55, cv.width * 0.94); }
+        } else {
+          g.font = 'italic 900 ' + px + 'px "Arial Black", Impact, sans-serif'; g.lineWidth = px * 0.16; g.strokeStyle = '#080408';
+          g.strokeText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
+          g.fillStyle = '#FFD700'; g.fillText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
+        }
       }
     });
   }
@@ -104,7 +123,7 @@ function abrir(decir) {
     var r = recorte(img.naturalWidth, img.naturalHeight, prop), esc = Math.min(1, LADO / Math.max(r.w, r.h));
     cv.width = Math.max(1, Math.round(r.w * esc)); cv.height = Math.max(1, Math.round(r.h * esc));
     g.drawImage(img, r.x, r.y, r.w, r.h, 0, 0, cv.width, cv.height);
-    orig = g.getImageData(0, 0, cv.width, cv.height); pintar();
+    orig = g.getImageData(0, 0, cv.width, cv.height); censuras = []; actualizarCensura(); pintar();
   }
   function sliders() {
     $('ed-sliders').innerHTML = Object.keys(BASE).map(function (k) { var min = k === 'vineta' || k === 'grano' || k === 'tinte' ? 0 : -100; return '<label class="ed-sl"><span>' + NOM[k] + '</span><input type="range" min="' + min + '" max="100" value="' + p[k] + '" data-k="' + k + '"></label>'; }).join('');
@@ -132,6 +151,18 @@ function abrir(decir) {
   $('ed-props').addEventListener('click', function (e) { var b = e.target.closest('[data-prop]'); if (!b || !img) return; prop = b.getAttribute('data-prop'); props(); cargar(); });
   $('ed-sliders').addEventListener('input', function (e) { var k = e.target.getAttribute('data-k'); if (!k) return; p[k] = parseInt(e.target.value, 10); nombreEstilo = ''; pintar(); });
   $('ed-texto').addEventListener('input', pintar);
+  function actualizarCensura() { var b = $('ed-censura-reset'); if (b) b.hidden = censuras.length === 0; }
+  cv.addEventListener('click', function (e) {
+    if (!modoCensura || !orig) return;
+    var rect = cv.getBoundingClientRect();
+    censuras.push({ x: Math.round((e.clientX - rect.left) / rect.width * cv.width), y: Math.round((e.clientY - rect.top) / rect.height * cv.height) });
+    actualizarCensura(); pintar();
+  });
+  $('ed-censura').addEventListener('click', function () {
+    modoCensura = !modoCensura; this.classList.toggle('on', modoCensura);
+    nota(modoCensura ? 'Toca la foto para tapar lo que no quieres mostrar. Pulsa de nuevo el botón al terminar.' : '');
+  });
+  $('ed-censura-reset').addEventListener('click', function () { censuras = []; actualizarCensura(); pintar(); nota('Censura quitada.'); });
   $('ed-ia').addEventListener('click', async function () {
     var t = $('ed-desc').value.trim(); if (!t) return;
     if (!window._asagiPensar) { nota('Para entender descripciones necesito un cerebro («conecta gemini»).'); return; }
@@ -156,7 +187,7 @@ function abrir(decir) {
     if (ok && window.AsagiEfectos) window.AsagiEfectos.grito('¡EDIT!');
     estilos();
   });
-  if (decir) decir('🎨 Abrí el editor. Elige una foto y toca un estilo; mientras más guardes, mejor aprendo tu gusto.');
+  if (decir) decir('🎨 Abrí el editor. Elige una foto: estilos y ajustes, «Arriba / Abajo» para meme, y 🔒 Censura para tapar lo privado. Mientras más guardes, mejor aprendo tu gusto.');
 }
 
 var API = { BASE: BASE, ESTILOS: ESTILOS, limpiar: limpiar, aplicar: aplicar, recorte: recorte, gusto: gusto, promptEdit: promptEdit, leerAjustes: leerAjustes, parsear: parsear, abrir: abrir };

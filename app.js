@@ -463,10 +463,13 @@ function refreshBrainStatus() {
     let cerrado = ''; try { cerrado = localStorage.getItem('asagi-aviso-cerebro-cerrado') || ''; } catch (e) {}
     brainAlert.textContent = info.alert;
     if (info.alert) {
-      const x = document.createElement('button');
-      x.type = 'button'; x.className = 'brain-alert-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Cerrar aviso');
-      x.addEventListener('click', (ev) => { ev.stopPropagation(); try { localStorage.setItem('asagi-aviso-cerebro-cerrado', info.alert); } catch (e) {} brainAlert.hidden = true; });
-      brainAlert.appendChild(x);
+      let x = brainAlert.querySelector('.brain-alert-x');
+      if (!x) {
+        x = document.createElement('button');
+        x.type = 'button'; x.className = 'brain-alert-x'; x.textContent = '×'; x.setAttribute('aria-label', 'Cerrar aviso');
+        x.addEventListener('click', (ev) => { ev.stopPropagation(); try { localStorage.setItem('asagi-aviso-cerebro-cerrado', info.alert); } catch (e) {} brainAlert.hidden = true; });
+        brainAlert.appendChild(x);
+      }
     }
     brainAlert.hidden = !info.alert || cerrado === info.alert;
     brainAlert.classList.toggle('abre-guia', /gemini/i.test(info.alert || ''));
@@ -563,6 +566,8 @@ setTimeout(() => {
     const IN = window.AsagiInstintos, rut = IN ? IN.rutinasDe(IN.lista(), 'mañana').map((i) => (i.accion.match(/«(.+)»/) || [])[1]).filter(Boolean) : [];
     RD.decir({ momento: 'manana' }, (t) => proactivo(t + (rut.length ? '\n🧬 Por las mañanas sueles pedir: ' + rut.map((x) => '«' + x + '»').join(', ') + '. Escríbelo y te lo doy.' : '') +
       '\n(Te lo dejo cada mañana. «no me des el resumen de la mañana» para quitarlo.)', '☀')).catch(() => {});
+    // Lo que ARIA aprendió/hizo anoche (si hay enlace): se lo cuenta a Daniel en la mañana.
+    setTimeout(() => { if (window._asagiBitacoraAria) window._asagiBitacoraAria(false).then((b) => { if (b && b.paq) proactivo(window._asagiBitacoraTexto(b.paq, '🌙 Mientras no estabas, ARIA'), '🌙'); }).catch(() => {}); }, 3500);
   } catch (e) {}
 }, 5000);
 
@@ -718,7 +723,7 @@ async function startBotStreaming(userText) {
             herramientas: AG ? AG.HERRAMIENTAS : null, permitido: AG && AG.permitido, ejecutar: window._asagiEjecutarFrase,
             avisar: (t) => showReplyStatus(t) });
           // memoria inteligente (Mem0): en segundo plano, si Daniel contó algo de sí mismo
-          if (fuerte && pen && pen.texto && window.AsagiMemoriaIA) setTimeout(() => { window.AsagiMemoriaIA.revisar(state.messages, pedir, (t) => appendMessage('bot', t)).catch(() => {}); }, 1200);
+          if (fuerte && pen && pen.texto && window.AsagiMemoriaIA) setTimeout(() => { window.AsagiMemoriaIA.revisar(state.messages, pedir, tareaDecir()).catch(() => {}); }, 1200);
         } catch (e) { pen = null; }
       }
       let res = pen && pen.texto ? { texto: pen.texto, backend: ultimo && ultimo.backend, degradado: ultimo && ultimo.degradado } : await router.responder(userText);
@@ -1045,8 +1050,8 @@ chatForm.addEventListener('submit', (event) => {
     const EN = window.AsagiEntrevista;
     if (!reesc && EN) {
       const c = EN.parsear(text);
-      if (c) { input.value = ''; EN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
-      if (EN.activa()) { input.value = ''; EN.responder(text, (t) => appendMessage('bot', t)); return; }
+      if (c) { input.value = ''; EN.ejecutar(c, tareaDecir()); return; }
+      if (EN.activa()) { input.value = ''; EN.responder(text, tareaDecir()); return; }
     }
   }
   // Traspaso celular ↔ PC (memoria unificada de ECC): «sigue en la pc» · «trae lo de la pc»
@@ -1060,15 +1065,16 @@ chatForm.addEventListener('submit', (event) => {
     const IN = window.AsagiInstintos;
     if (!reesc && IN) {
       const c = IN.parsear(text);
-      if (c) { input.value = ''; IN.ejecutar(c, (t) => appendMessage('bot', t)); return; }
+      if (c) { input.value = ''; IN.ejecutar(c, tareaDecir()); return; }
       const esEstilo = !!IN.estiloDe(text), dicho = IN.observar(text);
       if (esEstilo) { input.value = ''; appendMessage('bot', dicho || '🧬 Anotado.'); return; }
       if (dicho) setTimeout(() => appendMessage('bot', dicho), 2500);
     }
   }
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
-  if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, (t) => appendMessage('bot', t));
+  if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, tareaDecir());
   input.value = '';
+  showReplyStatus('generando…');
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   // Modo autónomo: «hazlo tú: …», «objetivo: …», «detén el modo autónomo», «activa/apaga el vigilante».
   {
@@ -1150,8 +1156,8 @@ chatForm.addEventListener('submit', (event) => {
     }
     const OJ = window.AsagiOjos, co = !reesc && OJ && OJ.parsear(text);
     if (co) { OJ.ejecutar(co, tareaDecir()).catch((e) => appendMessage('bot', '👁 No pude: ' + ((e && e.message) || e))); return; }
-    if (!reesc && window.AsagiTipeo && window.AsagiTipeo.parsear(text)) { appendMessage('bot', '⌨ ¡Defensa! Escribe cada palabra antes de que cruce la línea roja.'); window._asagiJuegoTipeo = window.AsagiTipeo.abrir((t) => appendMessage('bot', t)); return; }
-    if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir((t) => appendMessage('bot', t)); return; }
+    if (!reesc && window.AsagiTipeo && window.AsagiTipeo.parsear(text)) { appendMessage('bot', '⌨ ¡Defensa! Escribe cada palabra antes de que cruce la línea roja.'); window._asagiJuegoTipeo = window.AsagiTipeo.abrir(tareaDecir()); return; }
+    if (!reesc && window.AsagiEditor && window.AsagiEditor.parsear(text)) { window.AsagiEditor.abrir(tareaDecir()); return; }
     const CR = window.AsagiCreador, cc = !reesc && CR && CR.parsear(text);
     if (cc) { CR.ejecutar(cc, tareaDecir()).catch((e) => appendMessage('bot', '🛠 No pude: ' + ((e && e.message) || e))); return; }
     const ci = !reesc && IN && IN.parsear(text);
@@ -1191,6 +1197,20 @@ chatForm.addEventListener('submit', (event) => {
           ((x.temas || []).length ? '\nEstudia cada día: ' + x.temas.join(', ') + '.' : '') + '\nPara que estudie algo: «aria estudia <tema>».'
           : '📓 ARIA aún no estudió nada. Dile «aria estudia <tema>» (y en la PC, una vez, «conecta google» para usar tu YouTube).');
       }).catch((e) => decir('📓 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
+      return;
+    }
+  }
+  // Bitácora de ARIA: «qué hizo aria», «qué aprendió aria anoche», «bitácora de aria».
+  {
+    const nb = text.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    if (!reesc && /^(?:que (?:hizo|aprendio|estuvo haciendo)|bitacora de) aria(?: anoche| hoy| ayer)?$|^que hizo aria mientras no estaba$/.test(nb)) {
+      const decir = tareaDecir();
+      if (!window._asagiBitacoraAria) { decir('🌙 Aún no tengo la bitácora de ARIA.'); return; }
+      decir('🌙 Le pregunto a ARIA qué estuvo haciendo…');
+      window._asagiBitacoraAria(true).then((b) => {
+        decir(b && b.paq ? window._asagiBitacoraTexto(b.paq, '🌙 ARIA') + (b.fresco ? '' : '\n(Esto es lo último que me guardó; ahora no la alcanzo por el enlace.)')
+          : '🌙 ARIA no me dejó nada nuevo (o no está enlazada). En la PC ábrela y di «enlace pc».');
+      }).catch((e) => decir('🌙 No pude hablar con ARIA (' + ((e && e.message) || e) + ').'));
       return;
     }
   }
@@ -1710,7 +1730,68 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
-  showReplyStatus('generando…');
+  // Dispositivos de confianza (audífonos/altavoces guardados): voz automática.
+  const mConfia = text.match(/^(?:conf[ií]a\s+en|dispositivo\s+de\s+confianza|agrega\s+dispositivo|mis\s+(?:aud[íi]fonos|audífonos|altavoces|auriculares)\s+se\s+llaman?)\s+(.+)$/i);
+  const mQuitar = text.match(/^(?:quitar\s+dispositivo|borra\s+dispositivo|olvida\s+dispositivo|elimina\s+dispositivo)\s+(.+)$/i);
+  const mLista = /^(?:dispositivos\s+de\s+confianza|mis\s+dispositivos|lista\s+dispositivos|qu[eé]\s+dispositivos\s+tengo)$/i.test(text);
+  const mUsa = text.match(/^(?:voz\s+para|usa\s+dispositivo|dispositivo\s+activo)\s+(.+)$/i);
+  if (window.AsagiDispositivos && (mConfia || mQuitar || mLista || mUsa)) {
+    const D = window.AsagiDispositivos;
+    let arr;
+    try { arr = JSON.parse(localStorage.getItem(D.CLAVE) || '[]'); } catch (e) { arr = []; }
+    let resp;
+    if (mConfia) {
+      const r = D.agregarDispositivo(arr, mConfia[1], 'audífono');
+      if (r.nuevo) { localStorage.setItem(D.CLAVE, JSON.stringify(r.dispositivos)); resp = '✔ Guardé «' + mConfia[1] + '» como dispositivo de confianza (voz automática).'; }
+      else resp = '«' + mConfia[1] + '» ya está entre tus dispositivos de confianza.';
+    } else if (mQuitar) {
+      const arr2 = D.quitarDispositivo(arr, mQuitar[1]);
+      localStorage.setItem(D.CLAVE, JSON.stringify(arr2));
+      resp = '✔ Quité «' + mQuitar[1] + '» de tus dispositivos de confianza.';
+    } else if (mUsa) {
+      D.marcarUso(arr, mUsa[1]);
+      localStorage.setItem(D.CLAVE, JSON.stringify(arr));
+      resp = '🔊 Voz automática para «' + mUsa[1] + '» (cuando esté vinculado).';
+    } else {
+      const lis = D.listarDispositivos(arr);
+      if (!lis.length) resp = 'No tienes dispositivos de confianza guardados. Di "confía en mis audífonos".';
+      else {
+        const lineas = lis.map(function (d) { return '- ' + d.nombre + ' (' + d.tipo + ')'; });
+        resp = 'Tus dispositivos de confianza:\n' + lineas.join('\n') + '\n\nDi "confía en <nombre>" para agregar o "quitar dispositivo <nombre>" para borrar.';
+      }
+    }
+    appendMessage('bot', resp);
+    return;
+  }
+
+  // Ver notas libres (sin hora) o agenda (con hora) desde el chat.
+  const mNotas = /^(?:ver\s+notas|mis\s+notas|notas\s+libres|notas\s+sin\s+hora)$/i.test(text);
+  const mAgenda = /^(?:ver\s+agenda|mi\s+agenda|agenda|pendientes\s+con\s+hora)$/i.test(text);
+  if (window.AsagiPendientes && (mNotas || mAgenda)) {
+    const P = window.AsagiPendientes;
+    let arr;
+    try { arr = P.deserializar(localStorage.getItem('asagi-pendientes') || '[]'); } catch (e) { arr = []; }
+    const filtrado = arr.filter((it) => mNotas ? !it.cuando : !!it.cuando);
+    const ord = P.ordenar(filtrado);
+    if (!ord.length) {
+      appendMessage('bot', mNotas ? 'No tienes notas libres guardadas. Di «anota …» para crear una.' : 'No tienes nada en la agenda. Di «recuerdame … mañana a las 8 …» para crear una.');
+      return;
+    }
+    const titulo = mNotas ? 'Tus notas libres:' : 'Tu agenda:';
+    const lineas = ord.map(function (it) {
+      var w = it.cuando ? ' (' + P.etiquetaCuando(it.cuando, Date.now()) + ')' : '';
+      return '- ' + it.texto + w;
+    });
+    appendMessage('bot', titulo + '\n' + lineas.join('\n') + '\n\nDi «limpiar hechos» para borrar los ya hechos.');
+    return;
+  }
+
+  // SomaFM radio: "pon radio <canal>" / "soma fm" / "lista radios"
+  if (window.AsagiSoma && window.AsagiSoma.esComando(text)) {
+    const r = window.AsagiSoma.ejecutar(text);
+    if (r) { appendMessage('bot', r); return; }
+  }
+
   if (window._asagiAvatarEstado) window._asagiAvatarEstado('pensando');
   Promise.resolve(startBotStreaming(text))
     .catch((error) => {
@@ -1970,7 +2051,7 @@ renderBrainControls();
   // (al abrir la app y cada 20 min con la app a la vista; reanuda si se corta).
   window._asagiWikiTraer = async (avisar) => {
     const W = window.AsagiWiki; if (!W || !W.traer) return;
-    const decir = avisar ? (t) => appendMessage('bot', t) : null;
+    const decir = avisar ? tareaDecir() : null;
     const r = await W.traer(decir);
     if (r.ok && !r.ya) appendMessage('bot', '📚 Listo: tu Wikipedia sin internet ya está en la SD. Prueba «wiki fotosíntesis».');
     else if (avisar && !r.ok) appendMessage('bot', '📚 ' + r.error + '.');
@@ -2190,6 +2271,37 @@ renderBrainControls();
 
   cargar(); pintar();
   try { if (window.AsagiNotificar) window.AsagiNotificar.sincronizar(lista); } catch (e) {}
+
+  // --- Bitácora diaria del celular: resumen de pendientes nuevos, una vez al día ---
+  (function () {
+    const CLAVE = 'asagi-bitacora-reportados';
+    let reportados = new Set();
+    try { JSON.parse(localStorage.getItem(CLAVE) || '[]').forEach(function (id) { reportados.add(id); }); } catch (e) {}
+    function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify([...reportados])); } catch (e) {} }
+    function construir() {
+      const ahora = Date.now();
+      const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+      const nuevos = [];
+      for (var i = 0; i < lista.length; i++) {
+        var it = lista[i];
+        if (reportados.has(it.id)) continue;
+        if (!it.hecho && it.creado >= hoy.getTime()) {
+          nuevos.push(it.texto + (it.cuando ? ' (' + it.etiqueta + ')' : ''));
+          reportados.add(it.id);
+        }
+      }
+      guardar();
+      return nuevos.length ? 'Hoy en el celular: ' + nuevos.join('; ') : null;
+    }
+    async function enviar() {
+      var res = construir();
+      if (!res || !window._asagiEnlaceEnviar) return;
+      try { await window._asagiEnlaceEnviar(res); } catch (e) {}
+    }
+    setTimeout(enviar, 30000);
+    setInterval(enviar, 24 * 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(enviar, 5000); });
+  })();
 
   // El primer chequeo espera a que la voz (asagiSpeakPrivado) este definida.
   setTimeout(revisarVencidos, 1500);
@@ -4222,11 +4334,26 @@ if ('serviceWorker' in navigator) {
 
   // Lo que llega de ARIA: los pendientes entran a tu lista (con su hora y su
   // notificacion); las notas se avisan en pantalla y, solo con audifonos, en voz.
+  // También memoria selectiva (nodos/lecciones) via sync-memoria.js: dedup por hash,
+  // nada privado cruza (temas 'contraseña','banca','secreto','privado' se quedan acá).
   function procesar(nuevos) {
     for (const n of nuevos || []) {
       if (n.tipo === 'pendiente') {
         const limpio = window._asagiAddPendiente ? window._asagiAddPendiente(n.cuerpo) : n.cuerpo;
         if (window._asagiAviso) window._asagiAviso('ARIA te dejó un pendiente: ' + (limpio || n.cuerpo), false, '📡');
+      } else if (n.tipo === 'memoria-sync') {
+        try {
+          if (window.AsagiSync && window._asagiMem) {
+            const res = window.AsagiSync.importar({
+              bundleStr: n.cuerpo,
+              leer: () => window._asagiMem.leer(),
+              importarItems: (items) => { window._asagiMem.importarItems(items); },
+            });
+            if (res.ok && (res.nodos_nuevos || res.lecciones_nuevas)) {
+              if (window._asagiAviso) window._asagiAviso('Memoria sincronizada desde ARIA (' + res.nodos_nuevos + ' nodos).', false, '🧠');
+            }
+          }
+        } catch (e) {}
       } else {
         if (window._asagiAviso) window._asagiAviso('ARIA: ' + n.cuerpo, false, '📡');
         try { if (window.asagiSpeakPrivado) window.asagiSpeakPrivado('ARIA dice: ' + n.cuerpo); } catch (e) {}
@@ -4238,6 +4365,22 @@ if ('serviceWorker' in navigator) {
     if (!cli.vinculado()) return null;
     ultimo = await cli.sincronizar();
     if (ultimo && ultimo.nuevos) procesar(ultimo.nuevos);
+
+    // Exporto memoria selectiva hacia ARIA (dedup por hash; privado no cruza).
+    try {
+      if (window.AsagiSync && window._asagiMem) {
+        const exp = window.AsagiSync.exportar({
+          leer: () => window._asagiMem.leer(),
+          guardar: () => {},
+          pol: window.AsagiSync.politica({ temas_privados: ['contraseña', 'banca', 'secreto', 'privado'] }),
+          origen: 'asagi-celu',
+        });
+        if (exp.ok && exp.bundle && (exp.bundle.nodos.length || exp.bundle.lecciones.length)) {
+          await cli.enviar('memoria-sync', JSON.stringify(exp.bundle));
+        }
+      }
+    } catch (e) {}
+
     pintar();
     return ultimo;
   }
@@ -4404,9 +4547,9 @@ if ('serviceWorker' in navigator) {
     } catch (err) {}
   }
   window._asagiDescargarModelo = () => plugin.descargarModelo().catch(() => {});
-  setTimeout(revisar, 3000);
-  window.addEventListener('online', () => setTimeout(revisar, 1500));
-  setInterval(() => { if (!document.hidden) revisar(); }, 120000);   // si fallo, reintenta solo
+  setTimeout(revisar, 500);
+  window.addEventListener('online', () => setTimeout(revisar, 500));
+  setInterval(() => { if (!document.hidden) revisar(); }, 60000);   // si fallo, reintenta solo
 })();
 
 // --- Herramientas (permisos) y Discord ---
@@ -4513,7 +4656,10 @@ if ('serviceWorker' in navigator) {
   setTimeout(ciclo, 4000);
   setInterval(ciclo, 20000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) ciclo(); });
-  window._asagiDiscord = { cli, ciclo };
+window._asagiDiscord = { cli, ciclo };
+
+// SomaFM radio: definido en ./radio.js (window.AsagiSoma), despachado abajo.
+
 })();
 
 // Ideas para empezar (solo con el chat nuevo): un toque y se envía.
@@ -4622,11 +4768,40 @@ document.addEventListener('click', (e) => {
 // Latido ASAGI → ARIA (WiFi cifrado, cada 5 min con la app a la vista): le cuenta batería y pendientes para que la PC
 // los muestre, y guarda cómo está ARIA (en línea, ocupada, agentes). Así las dos saben una de la otra sin que hagas nada.
 (function latidoARIA() {
+  // Resumen del día del celular para ARIA: hábitos/preferencias nuevos y pendientes agregados hoy.
+  function construirBitacoraPropia() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const ini = new Date(); ini.setHours(0, 0, 0, 0); const t0 = ini.getTime();
+    const lineas = [];
+    try {
+      const IN = window.AsagiInstintos;
+      if (IN && IN.lista) {
+        const nuevos = IN.lista().filter((i) => (i.creado && i.creado >= t0) || (i.evidencia || []).some((e) => e && e.dia === hoy));
+        nuevos.filter((i) => i.dominio === 'preferencia' || i.dominio === 'estilo').slice(0, 3).forEach((i) => lineas.push('Preferencia: ' + String(i.accion || '').slice(0, 90)));
+        nuevos.filter((i) => i.dominio === 'rutina').slice(0, 2).forEach((i) => lineas.push('Rutina: ' + String(i.accion || '').slice(0, 90)));
+      }
+    } catch (e) {}
+    try {
+      const pen = JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || [];
+      const hoyP = pen.filter((p) => p && p.creado && p.creado >= t0);
+      if (hoyP.length) lineas.push('Agregó a pendientes: ' + hoyP.slice(0, 4).map((p) => String(p.texto || '').slice(0, 50)).join('; '));
+    } catch (e) {}
+    if (!lineas.length) return null;
+    return { dia: hoy, ts: Math.floor(Date.now() / 1000), texto: lineas.slice(0, 6).join('\n') };
+  }
   async function latir() {
     const cli = window._asagiLan; if (!cli || document.hidden) return;
     let enlazada = false; try { enlazada = !!(localStorage.getItem('asagi-lan-clave') || localStorage.getItem('asagi-enlace-cfg')); } catch (e) {}
     if (!enlazada) return;
     const c = { t: 'latido' };
+    // Una vez al día, ASAGI le deja a ARIA su propia bitácora (hábitos/pendientes nuevos del celular).
+    try {
+      const hoy = new Date().toISOString().slice(0, 10);
+      if (localStorage.getItem('asagi-bitacora-enviada') !== hoy) {
+        const bp = construirBitacoraPropia();
+        if (bp) c.bitacora = bp;
+      }
+    } catch (e) {}
     try { if (navigator.getBattery) { const b = await navigator.getBattery(); c.bateria = Math.round(b.level * 100); c.cargando = !!b.charging; } } catch (e) {}
     try {
       const l = (JSON.parse(localStorage.getItem('asagi-pendientes') || '[]') || []).filter((p) => p && !p.hecho);
@@ -4635,6 +4810,7 @@ document.addEventListener('click', (e) => {
     let r = null; try { r = await cli.enviar(c); } catch (e) { r = null; }
     if (r && r.ok) {
       try { localStorage.setItem('asagi-aria-visto', String(Date.now())); if (r.resp && r.resp.aria) localStorage.setItem('asagi-aria-estado', JSON.stringify(r.resp.aria)); } catch (e) {}
+      if (c.bitacora) { try { localStorage.setItem('asagi-bitacora-enviada', new Date().toISOString().slice(0, 10)); } catch (e) {} }   // entregada hoy
       // ARIA dejó algo para el celular («pásalo al celular»)
       try {
         if (r.resp && r.resp.traspaso && window.AsagiTraspaso) {
@@ -4647,6 +4823,32 @@ document.addEventListener('click', (e) => {
   window._asagiLatido = latir;
   setTimeout(latir, 25000); setInterval(latir, 5 * 60000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(latir, 4000); });
+})();
+
+// Bitácora de ARIA (idea del video de memoria compartida): lo que ARIA aprendió/hizo mientras no estabas.
+// Se pide por el enlace; si está caído, usa la última guardada. El texto viene de la web (Musa) → se escuda.
+(function bitacoraARIA() {
+  async function traer(forzar) {
+    const cli = window._asagiLan; if (!cli) return null;
+    let enlazada = false; try { enlazada = !!(localStorage.getItem('asagi-lan-clave') || localStorage.getItem('asagi-enlace-cfg')); } catch (e) {}
+    let desde = 0; try { desde = parseInt(localStorage.getItem('asagi-aria-bitacora-ts') || '0', 10) || 0; } catch (e) {}
+    if (!desde) desde = Math.floor((Date.now() - 24 * 3600000) / 1000);     // primera vez: últimas 24 h
+    let paq = null;
+    if (enlazada) {
+      try { const r = await cli.enviar({ t: 'bitacora_traer', desde: desde }); if (r && r.ok && r.resp && r.resp.ok) paq = r.resp.paquete; } catch (e) {}
+    }
+    if (paq && paq.texto) {
+      try { localStorage.setItem('asagi-aria-bitacora', JSON.stringify(paq)); localStorage.setItem('asagi-aria-bitacora-ts', String(paq.ts || Math.floor(Date.now() / 1000))); } catch (e) {}
+      return { paq: paq, fresco: true };
+    }
+    if (forzar) { try { const c = JSON.parse(localStorage.getItem('asagi-aria-bitacora') || 'null'); if (c && c.texto) return { paq: c, fresco: false }; } catch (e) {} }
+    return null;
+  }
+  window._asagiBitacoraAria = traer;
+  window._asagiBitacoraTexto = function (paq, intro) {
+    const E = window.AsagiEscudo, limpio = (t) => (E ? E.neutralizar(t).texto : t);
+    return (intro || '🌙 Anoche ARIA') + (paq.dia ? ' (' + paq.dia + ')' : '') + ':\n' + limpio(String(paq.texto || '')).slice(0, 700);
+  };
 })();
 
 // Sueño de la memoria: una vez al día ordena los recuerdos (junta repetidos, suelta los apagados que nunca se usaron).

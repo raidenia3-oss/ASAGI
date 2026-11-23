@@ -1,11 +1,8 @@
-const CACHE_NAME = 'asagi-pwa-v175';
+const CACHE_NAME = 'asagi-pwa-v179';
 const APP_SHELL = [
   './',
   './index.html',
-  './brain-router.js',
   './ui-adapt.js',
-  './asagi-browser.js',
-  './asagi-apps.js',
   './sync-memoria.js',
   './mapa_mundo.js',
   './enlace.js',
@@ -15,9 +12,7 @@ const APP_SHELL = [
   './memoria.js',
   './rea.js',
   './voz.js',
-  './ads.js',
   './launcher.js',
-  './bots.js',
   './wallpaper.js',
   './defensa.js',
   './gestures.js',
@@ -29,15 +24,13 @@ const APP_SHELL = [
   './recon.js',
   './retro.js',
   './ui-fx.js',
-  './avatar.js',
   './dictado.js',
   './pendientes.js',
   './notificar.js',
   './enlace-adb.js',
   './herramientas.js',
-  './bandeja.js',
   './enlace-lan.js',
-  './actualizador.js',
+  './workmanager.js',
   './niveles.js',
   './manos.js',
   './vistas.js',
@@ -78,11 +71,13 @@ const APP_SHELL = [
   './iniciativa.js',
   './creador.js',
   './recetas.js',
+  './rollercoin.js',
   './editor.js',
   './ojos.js',
   './tipeo.js',
   './agente.js',
   './utiles.js',
+  './progreso.js',
   './personajes/indice.json',
   './personajes/patrick-jane.json',
   './personajes/barney-stinson.json',
@@ -93,9 +88,7 @@ const APP_SHELL = [
   './styles.css',
   './tema-asagi.css',
   './app.js',
-  './manifest.webmanifest',
-  './assets/icon.svg',
-  './assets/fondo-asagi.jpg'
+  './manifest.webmanifest'
 ];
 
 self.addEventListener('install', (event) => {

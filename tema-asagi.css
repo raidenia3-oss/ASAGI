@@ -361,8 +361,9 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .co-input { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(240, 240, 248, .04) !important; color: var(--text) !important; font-size: 15px; }
 .co-add { border-radius: 12px; border: none; background: var(--cyan) !important; color: #15070d !important; font-weight: 700; }
 /* frases tocables dentro de los mensajes de ASAGI */
-.frase-tap { display: inline; padding: 1px 4px; margin: 0 1px; border: 0; border-radius: 6px; background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; line-height: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.35); text-underline-offset: 3px; width: auto; min-height: 0; box-shadow: none; }
-.frase-tap:active { background: rgba(255, 215, 0, 0.25); }
+.frase-tap { display: inline-block; position: relative; padding: 7px 6px; margin: 0 2px; border: 0; border-radius: 6px; background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; line-height: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.35); text-underline-offset: 3px; box-shadow: none; vertical-align: baseline; }
+.frase-tap::before { content: ''; position: absolute; left: -6px; right: -6px; top: -7px; bottom: -7px; pointer-events: none; }
+.frase-tap:active { background: rgba(255, 215, 0, 0.25); border-radius: 6px; }
 .frase-tap:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
 #assistant.conversando:not(.escribiendo) .panel-header h2 { font-size: 1.2rem !important; }
 #assistant.conversando .nivel-chip span { letter-spacing: 0 !important; font-size: 0.64rem !important; }
@@ -395,9 +396,6 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .deshacer-chat span { flex: 1 1 auto; }
 .deshacer-chat button { width: auto !important; min-height: 44px; padding: 0 14px; border-radius: 10px; border: 0; background: #FFD700; color: #080408; font: inherit; font-weight: 700; }
 .deshacer-chat button { white-space: nowrap; }
-/* frases tocables: zona de toque de ~44 px sin mover el texto (reporte del emulador: medían 27 px) */
-.frase-tap { position: relative; }
-.frase-tap::before { content: ''; position: absolute; left: -2px; right: -2px; top: -9px; bottom: -9px; }
 /* nivel compacto legible (≥11 px) */
 #assistant.conversando .nivel-chip span { font-size: 0.7rem !important; }
 @media (max-width: 359px) {
@@ -411,10 +409,6 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .message.bot.herr .msg-text { font-size: 0.86em; opacity: 0.72; max-height: 3.1em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); }
 .message.bot.herr .msg-text::before { content: '🔧 '; }
 .message.bot.herr.abierta .msg-text { max-height: none; -webkit-mask-image: none; mask-image: none; opacity: 0.9; }
-/* frases tocables: el relleno vertical cuenta como zona de toque (~45 px) y no mueve las líneas */
-.frase-tap { padding: 9px 3px !important; margin: -9px 0 !important; vertical-align: baseline; background: none !important; border-radius: 0 !important; }
-.frase-tap::before { content: none !important; }
-.frase-tap:active { background: rgba(255, 215, 0, 0.18) !important; border-radius: 6px !important; }
 /* barra del modo conversación */
 .conv-barra { position: fixed; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top)); z-index: 8500; min-height: 48px; padding: 10px 16px; border-radius: 16px; border: 1px solid rgba(220, 20, 60, 0.6); background: #1c0810; color: #F0F0F8; font: inherit; font-size: 0.95rem; text-align: left; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); width: auto !important; animation: conv-latido 1.6s ease-in-out infinite; }
 @keyframes conv-latido { 50% { box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.25), 0 8px 24px rgba(0, 0, 0, 0.5); } }
@@ -495,8 +489,8 @@ html, body { font-family: var(--sans); color: var(--papel); }
 #tp-in:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
 
 /* ===== Launcher (revisión de usuario, 17-nov) ===== */
-/* Pendientes pasa a la fila de atajos: arriba solo queda reloj, estado y buscador */
-#launcher .pend-chip { display: none; }
+/* Pendientes: chip visible en la launcher (acceso rápido) */
+#launcher .pend-chip { display: inline-flex; }
 .atajo-n { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 999px; background: #DC143C; color: #F0F0F8; font-size: 0.78em; line-height: 18px; text-align: center; }
 /* Favoritas: una sola fila tipo dock, sin título */
 #launcher .launcher-fav-wrap { margin: 8px 14px 0; padding: 10px 8px 6px; border-radius: 22px; }

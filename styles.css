@@ -907,8 +907,8 @@ button { cursor: pointer; }
 .enj-card-res { margin-top: 8px; font-size: .74rem; line-height: 1.4; color: #fc5671; border-top: 1px solid var(--line-soft); padding-top: 7px; white-space: pre-wrap; }
 
 /* ===== Foto de fondo + editor (recortar/centrar/ajustar) ===== */
-.launcher-photo { position: absolute; inset: 0; z-index: 0; display: none; overflow: hidden; background: #0f060b; }
-.launcher-photo.on { display: block; }
+.launcher-photo { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #0f060b; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; }
+.launcher-photo.on { opacity: 1; visibility: visible; }
 #launcher-photo-img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
   will-change: transform; transform-origin: center; }
 /* scrim para que el reloj/apps se lean sobre cualquier foto */

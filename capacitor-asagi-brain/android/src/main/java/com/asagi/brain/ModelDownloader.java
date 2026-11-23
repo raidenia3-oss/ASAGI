@@ -23,8 +23,8 @@ final class ModelDownloader {
         void onError(String mensaje);
     }
 
-    private static final int MAX_INTENTOS = 10;
-    private static final int MAX_REDIRECCIONES = 6;
+    private static final int MAX_INTENTOS = 12;
+    private static final int MAX_REDIRECCIONES = 8;
 
     private ModelDownloader() {}
 
@@ -84,8 +84,8 @@ final class ModelDownloader {
             for (int salto = 0; salto <= MAX_REDIRECCIONES; salto++) {
                 conn = (HttpURLConnection) new URL(url).openConnection();
                 conn.setInstanceFollowRedirects(false);
-                conn.setConnectTimeout(30_000);
-                conn.setReadTimeout(60_000);
+                conn.setConnectTimeout(15_000);
+                conn.setReadTimeout(90_000);
                 conn.setRequestProperty("User-Agent", "ASAGI/1.0 (Android)");
                 if (desde > 0) conn.setRequestProperty("Range", "bytes=" + desde + "-");
                 codigo = conn.getResponseCode();
@@ -112,7 +112,7 @@ final class ModelDownloader {
             long ultimoAviso = 0;
             try (InputStream in = conn.getInputStream();
                  FileOutputStream out = new FileOutputStream(tmp, anexar)) {
-                byte[] buf = new byte[64 * 1024];
+                byte[] buf = new byte[256 * 1024];
                 int n;
                 while ((n = in.read(buf)) != -1) {
                     if (cancelado.get()) return;
@@ -133,7 +133,7 @@ final class ModelDownloader {
     }
 
     private static void esperar(int intento) {
-        try { Thread.sleep(Math.min(15_000L, 1500L * (intento + 1))); } catch (InterruptedException ignored) {
+        try { Thread.sleep(Math.min(8_000L, 750L * (intento + 1))); } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
         }
     }
@@ -141,7 +141,7 @@ final class ModelDownloader {
     static String sha256(File f) {
         try (InputStream in = new java.io.FileInputStream(f)) {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] b = new byte[64 * 1024];
+            byte[] b = new byte[256 * 1024];
             int n;
             while ((n = in.read(b)) != -1) md.update(b, 0, n);
             byte[] d = md.digest();

@@ -1242,6 +1242,17 @@ chatForm.addEventListener('submit', (event) => {
       return;
     }
   }
+  // Tiempo de lectura (idea del sitio "How Long to Read"): «tiempo de lectura: <texto>».
+  {
+    const ml = text.match(/^(?:cuanto (?:tardo|me toma|demoro|tardaria|tardar[ií]a) en leer|tiempo de lectura(?: de)?|cuanto (?:se )?demora(?:s)? en leer)\s*[:\-]?\s*([\s\S]+)$/i);
+    if (ml) {
+      const txt = ml[1].trim(), palabras = (txt.match(/\S+/g) || []).length, decir = tareaDecir();
+      if (palabras < 3) { decir('📖 Pégame el texto después de «tiempo de lectura:» y te digo cuánto toma.'); return; }
+      const silen = Math.max(1, Math.round(palabras / 220)), voz = Math.max(1, Math.round(palabras / 140));
+      decir('📖 ' + palabras + ' palabras.\n• En silencio: ~' + silen + ' min\n• En voz alta: ~' + voz + ' min');
+      return;
+    }
+  }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
   {
     const VG = window.AsagiVigia, c = !reesc && VG && VG.parsear(text);

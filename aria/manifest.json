@@ -222,6 +222,10 @@
    "previos": [],
    "sha256": "b9a2f4f92ea3ea1cefe6c965d73b61c4e659245ee7c8ffd32ad8bd3e9f37b8b9"
   },
+  "radio.py": {
+   "previos": [],
+   "sha256": "3e3134bb45411e45836961b8d6d9f7d7858535f3cdf5aae57ddc397a2767c1db"
+  },
   "recuerdos.py": {
    "previos": [],
    "sha256": "5f87e6bba4401271aadc86f96456dfbb56a543fc39aca638016a9dadfc7bd708"
@@ -265,7 +269,6 @@
   },
   "ui_shell.py": {
    "previos": [
-    "e9cb47b6e87f634078654662b271a72bb1985c2acfaf62b48026a7a07ca35c91",
     "dde9f0a4a028edbfd3f6d3959bd99b6158be14fef08f01950e0ca1775df840e7",
     "43a6e4d4684766ad3eb58f5c7c87911857490492b66910e68e61755673f74d51",
     "0b39b99c48a679f37c52a2ecaeaacc3991aa71378b3886582494ccfcfa7f5730",
@@ -284,9 +287,10 @@
     "7eb4c8eeae477e03a96956896acd67b02ee4cf2a6f11f2e90b545efbb5f1b4b6",
     "104e7fee44bdf7ff334f5184530e3440e9fb09f0c9846cc9e9b9a800ba579293",
     "abe8694af6ed51683904a45b7328c26a42b3f1999d0e77d798bf93eaf3729042",
-    "df11ac29564e39aaea20c4a69a108fb690171fa145ee46b0a9f2ea2ec3ac4c34"
+    "df11ac29564e39aaea20c4a69a108fb690171fa145ee46b0a9f2ea2ec3ac4c34",
+    "f1d8c774db5dacd4dba1c5b77c213dbe7a56be6544b18feba54bfd089eb087e7"
    ],
-   "sha256": "f1d8c774db5dacd4dba1c5b77c213dbe7a56be6544b18feba54bfd089eb087e7"
+   "sha256": "10d8dbedfe09ab42540d4f689d9582e4dca9d99f4c866507dd27565d93016f33"
   },
   "voz_local.py": {
    "previos": [

@@ -1112,6 +1112,28 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Habilidades web (ideas de los 15 sitios): abren una web útil con tu dato. Antes del escudo (verificador local).
+  if (!reesc) {
+    const nw = text.trim();
+    const abrirWeb = (u) => { const CH = window.AsagiChrome; if (CH && CH.abrir) CH.abrir(u).then((t) => { if (/⛔|⚠️/.test(t || '')) appendMessage('bot', t); }).catch(() => { try { window.open(u, '_blank'); } catch (e) {} }); else { try { window.open(u, '_blank'); } catch (e) {} } };
+    let mw;
+    if ((mw = nw.match(/^(?:virustotal\s+|(?:escanea|revisa|analiza)(?:lo)?\s+(?:a fondo|en virustotal|con virustotal)\s+)(?:este\s+|el\s+)?(?:enlace|link|url\s+)?\s*(https?:\/\/\S+)/i))) {
+      tareaDecir()('🛡️ Lo escaneo a fondo en VirusTotal (muchos antivirus a la vez)…'); abrirWeb('https://www.virustotal.com/gui/search/' + encodeURIComponent(mw[1])); return;
+    }
+    if (/^(?:escanea|revisa|analiza)(?:lo)?\s+(?:este\s+)?archivo(?:\s+en virustotal)?$|^virustotal$/i.test(nw)) {
+      tareaDecir()('🛡️ Abro VirusTotal para subir y escanear el archivo.'); abrirWeb('https://www.virustotal.com/gui/home/upload'); return;
+    }
+    if ((mw = nw.match(/^(?:rastreadores de|qui[eé]n me rastrea en|revisa los rastreadores de|esp[ií]as en)\s+(https?:\/\/\S+|[a-z0-9.-]+\.[a-z]{2,}\S*)/i))) {
+      const host = mw[1].replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+      tareaDecir()('🕵️ Reviso quién te rastrea ahí con Blacklight…'); abrirWeb('https://themarkup.org/blacklight?url=' + encodeURIComponent(host) + '&device=mobile'); return;
+    }
+    if ((mw = nw.match(/^(?:busca esta imagen|de d[oó]nde sali[oó] esta imagen|b[uú]squeda inversa de|busca la imagen)\s+(https?:\/\/\S+)/i))) {
+      tareaDecir()('🔎 Búsqueda inversa en TinEye…'); abrirWeb('https://tineye.com/search?url=' + encodeURIComponent(mw[1])); return;
+    }
+    if (/^(?:enviar|mandar|comparte|compartir|quiero enviar)\s+(?:un\s+)?archivo\s+(?:grande|pesado|gigante)$|^archivo grande$/i.test(nw)) {
+      tareaDecir()('📤 Abro Filemail para mandar archivos pesados (hasta 5 GB, sin cuenta).'); abrirWeb('https://www.filemail.com/'); return;
+    }
+  }
   // Escudo: «¿es seguro este link? …» (phishing, marcas falsas, acortadores…)
   {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);
@@ -1239,6 +1261,17 @@ chatForm.addEventListener('submit', (event) => {
         const poi = MM.puntosInteres(semilla, 3).map((p) => '• ' + p.nombre + ' (' + p.x + ',' + p.y + '): ' + p.bioma).join('\n');
         decir('🗺️ Mundo «' + semilla + '»\n' + grid + '\nBiomas: ' + top + '\nPuntos de interés:\n' + poi + '\n\n(«mapa de <otra palabra>» genera otro mundo.)');
       } catch (e) { decir('🗺️ No pude generar el mundo (' + ((e && e.message) || e) + ').'); }
+      return;
+    }
+  }
+  // Tiempo de lectura (idea del sitio "How Long to Read"): «tiempo de lectura: <texto>».
+  {
+    const ml = text.match(/^(?:cuanto (?:tardo|me toma|demoro|tardaria|tardar[ií]a) en leer|tiempo de lectura(?: de)?|cuanto (?:se )?demora(?:s)? en leer)\s*[:\-]?\s*([\s\S]+)$/i);
+    if (ml) {
+      const txt = ml[1].trim(), palabras = (txt.match(/\S+/g) || []).length, decir = tareaDecir();
+      if (palabras < 3) { decir('📖 Pégame el texto después de «tiempo de lectura:» y te digo cuánto toma.'); return; }
+      const silen = Math.max(1, Math.round(palabras / 220)), voz = Math.max(1, Math.round(palabras / 140));
+      decir('📖 ' + palabras + ' palabras.\n• En silencio: ~' + silen + ' min\n• En voz alta: ~' + voz + ' min');
       return;
     }
   }

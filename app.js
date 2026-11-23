@@ -652,6 +652,7 @@ function estadoVivo() {
     else l.push('Pendientes: ninguno.');
   } catch (e) {}
   try { const C = window.AsagiCompras; const f = C ? C.faltantes() : []; if (f.length) l.push('Lista de compras: ' + f.slice(0, 8).map((x) => x.texto).join(', ')); } catch (e) {}
+  try { const VE = window.AsagiVencimientos; const v = VE ? VE.lineaDia(VE.leer(), new Date()) : ''; if (v) l.push('Se vence pronto: ' + v.replace(/^🥛 Ojo: /, '')); } catch (e) {}
   try { const M = window.AsagiMusica, e2 = M && M.estado && M.estado(); if (e2 && e2.activo && e2.pista) l.push('Música: ' + (e2.sonando ? 'suena' : 'en pausa') + ' «' + e2.pista.titulo + '»'); } catch (e) {}
   try { const c = localStorage.getItem('asagi-ciudad'); l.push('Ciudad: ' + (c || 'Lima')); } catch (e) {}
   return l;
@@ -1071,7 +1072,6 @@ chatForm.addEventListener('submit', (event) => {
   // rutinas que se repiten (idea de Voyager): anota el uso y, si toca, propone juntarlas en una habilidad
   if (!reesc && window.AsagiRutinas) window.AsagiRutinas.observar(text, tareaDecir());
   input.value = '';
-  showReplyStatus('generando…');
   if (window.AsagiNiveles) window.AsagiNiveles.registrar('charla');
   // Modo autónomo: «hazlo tú: …», «objetivo: …», «detén el modo autónomo», «activa/apaga el vigilante».
   {
@@ -1486,6 +1486,11 @@ chatForm.addEventListener('submit', (event) => {
     const CO = window.AsagiCompras, c = CO && CO.parsear(text);
     if (c) { appendMessage('bot', CO.hacer(c)); return; }
   }
+  // Lo que se vence en casa (idea de Grocy): «la leche vence el viernes», «qué se vence», «ya usé la leche».
+  {
+    const VE = window.AsagiVencimientos, c = VE && VE.parsear(text, new Date());
+    if (c && (c.tipo !== 'usado' || VE.tiene(c.cosa))) { appendMessage('bot', VE.hacer(c)); return; }
+  }
 
   if (/^(?:no me des|quita|apaga) el resumen de (?:la )?ma[nñ]ana$/i.test(text.trim())) { try { localStorage.setItem('asagi-manana-off', '1'); } catch (e) {} appendMessage('bot', '☀ Listo, ya no te doy el resumen solo. Pídelo con «buenos días» cuando quieras (o «dame el resumen cada mañana»).'); return; }
   if (/^dame el resumen cada ma[nñ]ana$/i.test(text.trim())) { try { localStorage.removeItem('asagi-manana-off'); } catch (e) {} appendMessage('bot', '☀ Hecho: cada mañana, al abrirme, te dejo el resumen del día.'); return; }
@@ -1778,6 +1783,8 @@ chatForm.addEventListener('submit', (event) => {
     if (r) { appendMessage('bot', r); return; }
   }
 
+  // «generando…» solo cuando de verdad va al cerebro (antes se quedaba pegado tras las respuestas rápidas)
+  showReplyStatus('generando…');
   if (window._asagiAvatarEstado) window._asagiAvatarEstado('pensando');
   Promise.resolve(startBotStreaming(text))
     .catch((error) => {
@@ -2231,7 +2238,8 @@ renderBrainControls();
   function mostrarAviso(texto, sono, icono) {
     if (!aviso || !avisoTxt) return;
     avisoTxt.textContent = (icono || '⏰') + ' ' + texto;
-    if (avisoModo) avisoModo.textContent = sono ? '🎧' : 'en silencio';
+    // «en silencio» solo tiene sentido en las alarmas de pendientes (antes salía también al subir de nivel)
+    if (avisoModo) { avisoModo.textContent = icono ? '' : (sono ? '🎧' : 'en silencio'); avisoModo.hidden = !!icono; }
     aviso.hidden = false;
     clearTimeout(avisoTimer);
     avisoTimer = setTimeout(() => { aviso.hidden = true; }, 12000);

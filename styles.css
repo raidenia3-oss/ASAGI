@@ -1047,8 +1047,9 @@ button { cursor: pointer; }
 
 /* ===== Aviso de pendiente vencido (discreto) ===== */
 .aviso {
-  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
-  z-index: 10000; max-width: min(92vw, 420px);
+  /* ancho fijo y encima de la barra de escribir: antes salía angosto (texto en 6 líneas) y tapaba el teclado */
+  position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  z-index: 10000; width: min(92vw, 420px); box-sizing: border-box;
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px; border-radius: 14px;
   border: 1px solid var(--cyan);
@@ -1060,7 +1061,7 @@ button { cursor: pointer; }
 .aviso-txt { flex: 1 1 auto; color: var(--text); font-size: 14px; }
 .aviso-modo { flex: 0 0 auto; font-size: 11px; color: var(--muted); }
 .aviso-x { flex: 0 0 auto; border: none; background: transparent; color: var(--muted);
-  font-size: 15px; cursor: pointer; padding: 2px 4px; }
+  font-size: 15px; cursor: pointer; padding: 2px 4px; min-width: 40px; min-height: 40px; }
 
 /* ===== Enlace con ARIA ===== */
 .enl-estado { font-size: .82rem; margin-bottom: 10px; color: var(--text); }

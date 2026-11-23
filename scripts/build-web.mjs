@@ -53,6 +53,7 @@ const files = [
   'musica.js',
   'resumen-dia.js',
   'compras.js',
+  'vencimientos.js',
   'sobre-mi.js',
   'calculos.js',
   'gemini-guia.js',

@@ -41,7 +41,7 @@ function aprender(nombre, pasos, store) {
 function olvidar(nombre, store) { var h = cargar(store), k = norm(nombre); if (!h[k]) return false; delete h[k]; guardar(h, store); return true; }
 function listar(store) {
   var h = cargar(store), ks = Object.keys(h);
-  if (!ks.length) return '🧠 Aún no me enseñaste habilidades. Ejemplo: «aprende buenos días: clima; mis gastos hoy; qué notificaciones tengo».';
+  if (!ks.length) return '🧠 Aún no me enseñaste habilidades. Ejemplo: «aprende buenos días: clima; mis gastos hoy; qué notificaciones tengo»';
   return '🧠 Mis habilidades:\n' + ks.map(function (k) { return '• «' + h[k].nombre + '» → ' + h[k].pasos.join(' → ') + (h[k].usos ? '  (' + h[k].usos + ' usos)' : ''); }).join('\n');
 }
 

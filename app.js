@@ -1211,6 +1211,37 @@ chatForm.addEventListener('submit', (event) => {
       return;
     }
   }
+  // Mundo procedural (MapaMundo): «genera un mundo», «muestra el mapa», «mapa de <palabra>».
+  {
+    const MM = window.MapaMundo;
+    const nm = text.trim().toLowerCase();
+    const mm = nm.match(/^(?:genera(?:me)?|crea(?:me)?|muestra(?:me)?|dibuja(?:me)?|explora|abre|dame)?\s*(?:un\s+|el\s+)?(?:mapa|mundo)(?:\s+(?:de|con|semilla)\s+(.+))?$/);
+    if (MM && mm && /\b(mapa|mundo)\b/.test(nm)) {
+      const semilla = ((mm[1] || 'asagi').trim()) || 'asagi';
+      const emoji = (b) => {
+        const s = String(b || '').toLowerCase();
+        if (s.includes('ocean')) return '🌊'; if (s.includes('desert')) return '🏜️';
+        if (s.includes('tundra')) return '🏔️'; if (s.includes('forest')) return '🌲';
+        if (s.includes('volcano')) return '🌋'; if (s.includes('ruins')) return '🏚️';
+        if (s.includes('sanctuary') || s.includes('shrine')) return '⛩️'; if (s.includes('swamp')) return '🌿';
+        if (s.includes('sky') || s.includes('ethereal')) return '☁️'; if (s.includes('tempest')) return '🌩️';
+        if (s.includes('mountain') || s.includes('iron')) return '⛰️'; if (s.includes('void') || s.includes('rift')) return '🕳️';
+        if (s.includes('death') || s.includes('coffin') || s.includes('gamble') || s.includes('sentencing')) return '💀';
+        if (s.includes('resonance') || s.includes('chamber')) return '🔮'; if (s.includes('feeding')) return '🩸';
+        if (s.includes('perfection')) return '✨'; if (s.includes('crossing') || s.includes('inverse')) return '🔀';
+        return '◾';
+      };
+      const decir = tareaDecir();
+      try {
+        const R = 6; let grid = '';
+        for (let y = -R; y <= R; y++) { let row = ''; for (let x = -R; x <= R; x++) row += emoji(MM.biomaEn(x, y, semilla)); grid += row + '\n'; }
+        const top = MM.region(0, 0, R, semilla).slice(0, 4).map((e) => e[0]).join(', ');
+        const poi = MM.puntosInteres(semilla, 3).map((p) => '• ' + p.nombre + ' (' + p.x + ',' + p.y + '): ' + p.bioma).join('\n');
+        decir('🗺️ Mundo «' + semilla + '»\n' + grid + '\nBiomas: ' + top + '\nPuntos de interés:\n' + poi + '\n\n(«mapa de <otra palabra>» genera otro mundo.)');
+      } catch (e) { decir('🗺️ No pude generar el mundo (' + ((e && e.message) || e) + ').'); }
+      return;
+    }
+  }
   // Vigía de páginas y precios: «vigila esta página https://…», «avísame si baja el precio de …»
   {
     const VG = window.AsagiVigia, c = !reesc && VG && VG.parsear(text);
@@ -3290,6 +3321,7 @@ if ('serviceWorker' in navigator) {
     try { localStorage.removeItem('asagi-wall-img'); } catch (e) {}  // la foto va en IndexedDB, no en localStorage
     if (window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); }
     try { localStorage.setItem('asagi-wall-modo', 'imagen'); } catch (e) {}
+    try { if (window.UIAdapt) window.UIAdapt.integrarWallpaper(data); } catch (e) {}   // la UI toma el ambiente de la foto (marca fija)
     pintar();
   }
   // Elegir una foto de tu galería para el fondo. En el celular usa el Selector de fotos nativo de Android
@@ -3332,7 +3364,7 @@ if ('serviceWorker' in navigator) {
   const IDB = { abrir() { return new Promise((ok, no) => { const r = indexedDB.open('asagi-wall', 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }); },
     async poner(k, v) { const d = await this.abrir(); return new Promise((ok, no) => { const t = d.transaction('f', 'readwrite'); t.objectStore('f').put(v, k); t.oncomplete = ok; t.onerror = () => no(t.error); }); },
     async leer(k) { const d = await this.abrir(); return new Promise((ok, no) => { const q = d.transaction('f').objectStore('f').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); } };
-  function ponerVideoBlob(b) { try { window._asagiWall.setVideo(URL.createObjectURL(b)); window._asagiWall.setModo('video'); localStorage.setItem('asagi-wall-modo', 'video'); } catch (e) {} pintar(); }
+  function ponerVideoBlob(b) { try { window._asagiWall.setVideo(URL.createObjectURL(b)); window._asagiWall.setModo('video'); localStorage.setItem('asagi-wall-modo', 'video'); if (window.UIAdapt) window.UIAdapt.limpiar(); } catch (e) {} pintar(); }
   function pedirVideo() {
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'video/*,image/gif'; inp.style.display = 'none';
@@ -3353,6 +3385,7 @@ if ('serviceWorker' in navigator) {
         let data = null; try { data = await IDB.leer('img'); } catch (e) {}
         if (!data) { try { data = localStorage.getItem('asagi-wall-img'); } catch (e) {} }   // fotos viejas
         if (data && window._asagiWall) { window._asagiWall.setImagen(data); window._asagiWall.setModo('imagen'); pintar(); }
+        try { if (data && window.UIAdapt) window.UIAdapt.integrarWallpaper(data); } catch (e) {}   // reaplica el ambiente de la foto al abrir
       }
     } catch (e) {}
   })();
@@ -3370,6 +3403,7 @@ if ('serviceWorker' in navigator) {
         if (m === 'video') { pedirVideo(); return; }
         if (window._asagiWall) window._asagiWall.setModo(m);
         try { localStorage.setItem('asagi-wall-modo', m); } catch (e) {}
+        try { if (window.UIAdapt) window.UIAdapt.limpiar(); } catch (e) {}   // fondo generado → vuelve a la marca pura
         pintar();
       });
       rModos.appendChild(b);

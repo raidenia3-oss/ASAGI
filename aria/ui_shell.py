@@ -990,6 +990,11 @@ if _QT:
             """Cerrar la ventana NO cierra ARIA: la manda a la bandeja.
             Solo 'Salir' del menu (que marca _salir_real) la cierra de verdad."""
             if getattr(self, "_salir_real", False):
+                try:
+                    if getattr(self, "_radio", None) is not None:
+                        self._radio.apagar()          # no dejar la radio sonando tras cerrar
+                except Exception:
+                    pass
                 e.accept()
                 return
             if getattr(self, "_bandeja_sistema", None) is not None:
@@ -1953,6 +1958,42 @@ if _QT:
             self._linea("\n\n".join(partes), "aria")
             return True
 
+        def _cmd_radio(self, t):
+            """Radio en vivo (SomaFM): «pon radio», «pon radio hacker», «qué radio suena», «apaga la radio»."""
+            try:
+                import radio as _radio
+            except Exception:
+                return False
+            plan = _radio.parsear(t)
+            if not plan:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            accion, canal = plan
+            rep = getattr(self, "_radio", None)
+            if rep is None:
+                rep = _radio.Reproductor(); self._radio = rep
+            if accion == "apagar":
+                self._linea("📻 Radio apagada." if rep.suena() else "📻 No hay radio sonando.", "aria")
+                rep.apagar(); return True
+            if accion == "estado":
+                c = rep.suena()
+                self._linea(("📻 " + c["titulo"] + " — " + c["nota"] + ".") if c else "📻 No hay radio sonando. Di «pon radio» o «pon radio hacker».", "aria")
+                return True
+            if accion == "siguiente":
+                canal = rep.siguiente(); accion = "poner"
+            if accion == "poner":
+                if not canal:
+                    self._linea("📻 No tengo esa radio. Prueba: ambiental, hacker, jazz, lounge, vaporwave, indie, espacial, dormir.", "aria")
+                    return True
+                modo = rep.poner(canal)
+                if modo:
+                    extra = " (en el reproductor de Windows)" if modo == "sistema" else ""
+                    self._linea("📻 " + canal["titulo"] + " — " + canal["nota"] + "." + extra, "aria")
+                else:
+                    self._linea("📻 No pude poner la radio. Si falta ffmpeg, di «instala ffmpeg».", "aria")
+                return True
+            return False
+
         def _saludo_celular(self):
             """Una vez al día, al abrir: si el celular dejó algo nuevo, ARIA lo comenta."""
             try:
@@ -2118,6 +2159,8 @@ if _QT:
             if self._cmd_traspaso(t):
                 return
             if self._cmd_bitacora_celular(t):
+                return
+            if self._cmd_radio(t):
                 return
             if self._cmd_musa(t):
                 return

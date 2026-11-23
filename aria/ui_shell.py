@@ -699,6 +699,7 @@ if _QT:
             self._actu_t = QTimer(self); self._actu_t.timeout.connect(self._auto_actualizar); self._actu_t.start(6 * 3600 * 1000)
             self._musa_t = QTimer(self); self._musa_t.timeout.connect(self._musa_diaria); self._musa_t.start(3 * 3600 * 1000)   # estudia sola sus temas
             QTimer.singleShot(4 * 60 * 1000, self._musa_diaria)     # y una vez poco después de abrir
+            QTimer.singleShot(7000, self._saludo_celular)           # al abrir: comenta lo que dejó el celular
             def _calentar():        # autónoma: deja listo lo de descifrar tus cookies de Chrome (sin pedirte nada)
                 try:
                     import cookies_pc as _ck
@@ -934,6 +935,12 @@ if _QT:
                     import aria_actualizador as _au
                     r = _au.actualizar()
                     txt = _au.resumen(r)
+                    if r["instalados"] or r["actualizados"]:
+                        try:
+                            import bitacora as _bi
+                            _bi.anotar("hice", "Me actualicé sola: " + txt)   # para la bitácora de la mañana
+                        except Exception:
+                            pass
                     if avisar_si_nada or r["instalados"] or r["actualizados"] or r["conflictos"]:
                         cola = getattr(self, "_bots_cola", None)
                         if cola is not None:
@@ -1240,8 +1247,14 @@ if _QT:
             def _h():
                 try:
                     r = _mu.estudio_diario(pensar)
-                    if r and cola is not None:
-                        cola.put(r)
+                    if r:
+                        try:
+                            import bitacora as _bi
+                            _bi.anotar("aprendi", r)       # queda en la bitácora para que ASAGI lo lea en la mañana
+                        except Exception:
+                            pass
+                        if cola is not None:
+                            cola.put(r)
                 finally:
                     self._musa_corriendo = False
             _th.Thread(target=_h, daemon=True).start()
@@ -1920,6 +1933,50 @@ if _QT:
                 self._linea("No pude dejarlo para el celular: %s" % exc, "aria")
             return True
 
+        def _cmd_bitacora_celular(self, t):
+            """«qué hizo el celular» / «qué hizo asagi» / «qué pasó en el celular»: lo que ASAGI dejó en su latido."""
+            if not _re.match(r"^(?:qu[eé] (?:hizo|pas[oó]|hay)(?: en| con)?|novedades? de)\s+(?:el\s+)?(?:celular|cel|asagi|tel[eé]fono|m[oó]vil)(?:\s+(?:hoy|ayer|anoche))?$",
+                             t.strip(), _re.I):
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            try:
+                import bitacora as _bi
+                reg = _bi.de_asagi(2)
+            except Exception:
+                reg = None
+            if not reg:
+                self._linea("📱 El celular aún no me dejó novedades. Abre ASAGI y que esté enlazado (WiFi o cable).", "aria")
+                return True
+            partes = []
+            for x in reg:
+                partes.append(("📱 " + (x.get("dia") or "") + ":\n" + str(x.get("texto") or "")).strip())
+            self._linea("\n\n".join(partes), "aria")
+            return True
+
+        def _saludo_celular(self):
+            """Una vez al día, al abrir: si el celular dejó algo nuevo, ARIA lo comenta."""
+            try:
+                est = _cargar_estado()
+                hoy = time.strftime("%Y-%m-%d")
+                if est.get("saludo_celular") == hoy:
+                    return
+                import bitacora as _bi
+                reg = _bi.de_asagi(1)
+                if not reg:
+                    return
+                x = reg[-1]
+                if x.get("dia") not in (hoy, time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))):
+                    return                           # solo si es de hoy o ayer
+                est["saludo_celular"] = hoy; _guardar_estado(est)
+                cola = getattr(self, "_bots_cola", None)
+                msg = "📱 En el celular: \n" + str(x.get("texto") or "")
+                if cola is not None:
+                    cola.put(msg)
+                else:
+                    self._linea(msg, "aria")
+            except Exception:
+                pass
+
         def _avisos_asagi(self):
             """ARIA cuida lo del celular mientras estás en la PC (cada ~30 s, sin pedirlo):
             recuerda pendientes de ASAGI que vencen en 15 min y avisa si el celular se queda sin batería."""
@@ -2059,6 +2116,8 @@ if _QT:
             if self._cmd_orden(t):
                 return
             if self._cmd_traspaso(t):
+                return
+            if self._cmd_bitacora_celular(t):
                 return
             if self._cmd_musa(t):
                 return

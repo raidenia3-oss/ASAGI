@@ -43,4 +43,6 @@ dependencies {
     implementation project(':capacitor-android')
     // NotificationCompat para el aviso de descarga del modelo.
     implementation "androidx.core:core:$androidxCoreVersion"
+    // WorkManager para tareas en background (vigía, YouTube, Musa)
+    implementation "androidx.work:work-runtime:2.9.0"
 }

@@ -43,26 +43,29 @@ html, body { font-family: var(--sans); color: var(--papel); }
 
 /* ---------- Iconos de apps: el icono real sobre un "sello" de vidrio ---------- */
 .launcher-ico {
-  width: 56px; height: 56px;
-  border-radius: 19px;
+  width: 54px; height: 54px;
+  border-radius: 17px;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(160deg, rgba(240, 240, 248, 0.10), rgba(23, 8, 14, 0.55)) !important;
-  border: 1px solid rgba(240, 240, 248, 0.10);
-  box-shadow: 0 10px 22px -12px rgba(8, 4, 8, 0.9), inset 0 1px 0 rgba(240, 240, 248, 0.10);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  font: 700 1.35rem/1 var(--display) !important;
+  /* vidrio "Clear": frosted que deja respirar la foto en vez de taparla con tinta */
+  background: linear-gradient(155deg, rgba(240, 240, 248, 0.09), rgba(8, 4, 8, 0.24)) !important;
+  border: 1px solid rgba(240, 240, 248, 0.16);
+  box-shadow: 0 8px 20px -14px rgba(8, 4, 8, 0.85), inset 0 1px 0 rgba(240, 240, 248, 0.14);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  font: 700 1.3rem/1 var(--display) !important;
   color: var(--papel) !important;
 }
-.launcher-ico img { width: 72%; height: 72%; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(8, 4, 8, 0.45)); }
-/* sin icono real: monograma en mincho sobre tinta con un hilo de color propio */
-.launcher-ico.mono::after {
-  content: ""; position: absolute; left: 22%; right: 22%; bottom: 9px; height: 2px; border-radius: 2px;
-  background: var(--hilo, var(--asagi)); opacity: 0.85;
+.launcher-ico img { width: 70%; height: 70%; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(8, 4, 8, 0.45)); }
+/* sin icono real: monograma en mincho, trato UNIFORME (fuera el hilo de color por app) */
+.launcher-ico.mono {
+  color: var(--papel) !important;
+  border-color: rgba(255, 215, 0, 0.20) !important;
+  background: linear-gradient(155deg, rgba(255, 215, 0, 0.05), rgba(8, 4, 8, 0.26)) !important;
 }
+.launcher-ico.mono::after { content: none !important; }
 .launcher-lbl { font: 500 0.74rem/1.25 var(--sans) !important; color: rgba(240, 240, 248, 0.86) !important; letter-spacing: 0.01em; }
-.launcher-app:active .launcher-ico { box-shadow: 0 0 0 2px var(--oro), 0 8px 20px -6px rgba(255, 215, 0, 0.5); }
+.launcher-app:active .launcher-ico { box-shadow: 0 0 0 1.5px var(--oro), 0 8px 20px -6px rgba(255, 215, 0, 0.5); }
 
 /* ---------- Cabecera del asistente: la cara manda ---------- */
 #avatar-cv { width: 200px; height: 200px; }
@@ -361,9 +364,9 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .co-input { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: rgba(240, 240, 248, .04) !important; color: var(--text) !important; font-size: 15px; }
 .co-add { border-radius: 12px; border: none; background: var(--cyan) !important; color: #15070d !important; font-weight: 700; }
 /* frases tocables dentro de los mensajes de ASAGI */
-.frase-tap { display: inline-block; position: relative; padding: 7px 6px; margin: 0 2px; border: 0; border-radius: 6px; background: rgba(255, 215, 0, 0.1); color: #FFD700; font: inherit; line-height: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255, 215, 0, 0.35); text-underline-offset: 3px; box-shadow: none; vertical-align: baseline; }
-.frase-tap::before { content: ''; position: absolute; left: -6px; right: -6px; top: -7px; bottom: -7px; pointer-events: none; }
-.frase-tap:active { background: rgba(255, 215, 0, 0.25); border-radius: 6px; }
+.frase-tap { display: inline; position: relative; padding: 6px 2px; margin: 0; border: 0; border-radius: 5px; background: none; color: #FFD700; font: inherit; font-weight: 600; line-height: inherit; text-align: left; cursor: pointer; text-decoration: underline; text-decoration-thickness: 1.5px; text-decoration-color: rgba(255, 215, 0, 0.5); text-underline-offset: 4px; box-shadow: none; vertical-align: baseline; }
+.frase-tap::before { content: ''; position: absolute; left: -4px; right: -4px; top: -6px; bottom: -6px; pointer-events: none; }
+.frase-tap:active { background: rgba(255, 215, 0, 0.18); border-radius: 5px; }
 .frase-tap:focus-visible { outline: 2px solid #FFD700; outline-offset: 1px; }
 #assistant.conversando:not(.escribiendo) .panel-header h2 { font-size: 1.2rem !important; }
 #assistant.conversando .nivel-chip span { letter-spacing: 0 !important; font-size: 0.64rem !important; }

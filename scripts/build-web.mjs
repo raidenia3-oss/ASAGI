@@ -57,6 +57,7 @@ const files = [
   'radio.js',
   'resumen-dia.js',
   'compras.js',
+  'pagos-fijos.js',
   'sobre-mi.js',
   'calculos.js',
   'gemini-guia.js',

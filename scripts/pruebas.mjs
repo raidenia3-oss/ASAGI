@@ -34,6 +34,15 @@ ok(SM.aTi('mi mamá se llama Rosa') === 'Tu mamá se llama Rosa', 'a ti');
 ok(SC.entender('qué puedes hacer').tipo === 'ayuda' && SC.entender('ayuda de cuentas').tema === 'cuentas', 'ayuda');
 ok(SC.entender('cómo llego a Miraflores').tipo === 'ruta', 'ruta');
 ok(CO.parsear('agrega pan y leche a la lista').tipo === 'agregar', 'compras');
+{ const PF = R('pagos-fijos.js'), a = PF.parsear('pago fijo Netflix 35 soles el 5'), b = PF.parsear('agrega pago fijo Spotify 5.99 dólares el día 31');
+  ok(a && a.tipo === 'agregar' && a.nombre === 'Netflix' && a.monto === 35 && a.moneda === 'PEN' && a.dia === 5, 'pagos fijos: agregar');
+  ok(b && b.moneda === 'USD' && b.monto === 5.99 && b.dia === 31, 'pagos fijos: dólares');
+  ok(PF.parsear('mis pagos fijos').tipo === 'ver' && PF.parsear('cuánto pago al mes').tipo === 'ver' && PF.parsear('próximos cobros').tipo === 'pronto' && PF.parsear('borra el pago fijo netflix').nombre === 'netflix', 'pagos fijos: ver/borrar');
+  ok(PF.parsear('mis suscripciones') === null && PF.parsear('pago fijo Netflix 35 el 40') === null, 'pagos fijos: no choca con YouTube');
+  ok(PF.proxima(31, new Date(2026, 1, 10)).fecha.getDate() === 28 && PF.proxima(5, new Date(2026, 10, 24)).dias === 11, 'pagos fijos: próxima fecha');
+  const hoy = new Date(2026, 10, 24); let l = PF.aplicar([], a, hoy).lista; l = PF.aplicar(l, PF.parsear('pago fijo internet 89 el 25'), hoy).lista;
+  const v = PF.aplicar(l, { tipo: 'ver' }, hoy).texto;
+  ok(/⚠ internet — S\/ 89\.00 · día 25 \(mañana\)/i.test(v) && /Al mes: S\/ 124\.00/.test(v) && PF.aplicar(l, PF.parsear('borra el pago fijo netflix'), hoy).lista.length === 1, 'pagos fijos: lista y total'); }
 ok(RZ.necesitaDatos('quién es el presidente del perú') && !RZ.necesitaDatos('explícame las derivadas'), 'actualidad');
 
 const av = AG.vigilar({ ahora: new Date(2026, 10, 19, 10).getTime(), vistos: {}, datos: ['el cumpleaños de mi mamá es el 20 de noviembre'] });

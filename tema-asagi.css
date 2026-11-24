@@ -139,7 +139,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 
 /* ---------- Títulos de paneles en mincho ---------- */
 .panel h2 { font-family: var(--display); letter-spacing: 0.03em; }
-.eyebrow { font-family: var(--mono); color: var(--oro); }
+.eyebrow { font-family: var(--mono); color: var(--oro); line-height: 1.5; } /* con line-height 1 se cortaba la tilde: «TU DIA», «RAPIDOS» */
 
 @media (prefers-reduced-motion: reduce) {
   .message.bot, .message.user { animation: none; }

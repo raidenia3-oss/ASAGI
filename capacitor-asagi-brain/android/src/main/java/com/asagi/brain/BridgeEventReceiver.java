@@ -6,10 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.getcapacitor.JSObject;
-import com.getcapacitor.Plugin;
-import com.getcapacitor.PluginManager;
-
 public class BridgeEventReceiver extends BroadcastReceiver {
 
     private static final String TAG = "BridgeEventReceiver";
@@ -36,21 +32,13 @@ public class BridgeEventReceiver extends BroadcastReceiver {
 
     private void reenviarAJS(Context context, String evento, Bundle extras) {
         try {
-            PluginManager pm = PluginManager.getInstance();
-            if (pm == null) return;
-            // Buscar el plugin AsagiControl que es quien expone addListener
-            Plugin plugin = pm.getPlugin("AsagiControl");
+            // El plugin AsagiWorkManager es quien expone addListener('workEvent') en JS.
+            AsagiWorkManagerPlugin plugin = AsagiWorkManagerPlugin.INSTANCE;
             if (plugin != null) {
-                JSObject data = new JSObject();
-                data.put("evento", evento);
-                if (extras != null) {
-                    for (String key : extras.keySet()) {
-                        Object val = extras.get(key);
-                        if (val != null) data.put(key, val);
-                    }
-                }
-                plugin.notifyListeners("workEvent", data);
+                plugin.emitirWorkEvent(evento, extras);
             }
+            // Si el plugin no está vivo (app cerrada), el evento se pierde: el JS lo recupera
+            // al abrir, revisando el estado de los workers. No es un error.
         } catch (Throwable e) {
             Log.e(TAG, "Error reenviando evento a JS: " + evento, e);
         }

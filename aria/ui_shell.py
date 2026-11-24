@@ -1994,6 +1994,21 @@ if _QT:
                 return True
             return False
 
+        def _cmd_orquesta(self, t):
+            """Orquestador benigno: «orquesta <meta>» / «planifica <meta>» / «cómo harías <meta>»."""
+            m = _re.match(r"^(?:orquesta|planifica|arma(?:me)? (?:un )?plan(?: para)?|como harias|cómo harías|como har´ias)\s*[:\-]?\s*(.+)$", t.strip(), _re.I)
+            if not m:
+                return False
+            self.entrada.clear(); self._linea(t, "user")
+            meta = m.group(1).strip()
+            try:
+                import orquestador as _orq
+                pensar = (lambda p: str(self.responder(p) or "")) if callable(getattr(self, "responder", None)) else None
+                self._linea(_orq.plan(meta, pensar)["texto"], "aria")
+            except Exception as e:
+                self._linea("🧭 No pude armar el plan (%s)." % e, "aria")
+            return True
+
         def _saludo_celular(self):
             """Una vez al día, al abrir: si el celular dejó algo nuevo, ARIA lo comenta."""
             try:
@@ -2161,6 +2176,8 @@ if _QT:
             if self._cmd_bitacora_celular(t):
                 return
             if self._cmd_radio(t):
+                return
+            if self._cmd_orquesta(t):
                 return
             if self._cmd_musa(t):
                 return

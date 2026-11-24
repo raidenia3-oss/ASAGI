@@ -476,6 +476,11 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .ed-linea { display: flex; gap: 8px; margin-top: 8px; } .ed-linea input { flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(255, 215, 0, 0.3); background: rgba(8, 4, 8, 0.6); color: #F0F0F8; font: inherit; }
 .ed-acciones { justify-content: flex-end; flex-wrap: wrap; } .ed-linea .ed-pri { border-color: #FFD700; background: #FFD700; color: #080408; font-weight: 700; }
 .editor-asagi button:focus-visible, .editor-asagi input:focus-visible { outline: 2px solid #FFD700; outline-offset: 2px; }
+.ed-colores { align-items: center; }
+.ed-colores .ed-cap { color: #F0F0F8; opacity: 0.75; font-size: 0.9em; }
+.ed-colores .ed-col { width: 40px; min-width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%; border: 2px solid rgba(240, 240, 248, 0.3); box-shadow: none; }
+.ed-colores .ed-col.on { border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.35); }
+#ed-censura.on { border-color: #DC143C; color: #DC143C; }
 
 /* Ojos: foto con el objeto marcado */
 .ojos-visor canvas { flex: 1 1 0; min-height: 0; width: 100%; object-fit: contain; }

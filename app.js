@@ -2806,9 +2806,8 @@ if ('serviceWorker' in navigator) {
     const ox = (fotoImg.width - l2) * ((h >> 3) % 100) / 100, oy = (fotoImg.height - l2) * ((h >> 9) % 60) / 100;
     x.drawImage(fotoImg, ox, oy, l2, l2, 0, 0, S, S);
     const g = x.createLinearGradient(0, S * 0.35, 0, S);
-    g.addColorStop(0, 'rgba(15, 6, 11, 0)'); g.addColorStop(1, 'rgba(15, 6, 11, 0.88)');
+    g.addColorStop(0, 'rgba(15, 6, 11, 0)'); g.addColorStop(1, 'rgba(15, 6, 11, 0.6)');
     x.fillStyle = g; x.fillRect(0, 0, S, S);
-    x.fillStyle = L().colorTile(a.label); x.fillRect(S * 0.12, S - 14, S * 0.3, 3);
     x.font = '700 44px "Shippori Mincho B1", Georgia, serif'; x.fillStyle = '#ffd700';
     x.shadowColor = 'rgba(8, 4, 8, .6)'; x.shadowBlur = 6;
     x.fillText(L().inicial(a.label), S * 0.1, S - 22);

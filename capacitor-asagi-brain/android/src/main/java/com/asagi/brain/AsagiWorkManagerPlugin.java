@@ -2,6 +2,7 @@ package com.asagi.brain;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.getcapacitor.JSArray;
@@ -38,6 +39,27 @@ public class AsagiWorkManagerPlugin extends Plugin {
     private static final String KEY_VIGILA_ACTIVE = "vigila_active";
     private static final String KEY_YT_ACTIVE = "yt_active";
     private static final String KEY_MUSA_ACTIVE = "musa_active";
+
+    // Instancia viva para que los workers (vía BridgeEventReceiver) puedan emitir eventos a JS.
+    static volatile AsagiWorkManagerPlugin INSTANCE;
+
+    @Override
+    public void load() {
+        INSTANCE = this;
+    }
+
+    /** Emite 'workEvent' hacia el JS (notifyListeners es protegido: solo se puede desde aquí dentro). */
+    public void emitirWorkEvent(String evento, Bundle extras) {
+        JSObject data = new JSObject();
+        data.put("evento", evento);
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                Object val = extras.get(key);
+                if (val != null) data.put(key, String.valueOf(val));
+            }
+        }
+        notifyListeners("workEvent", data);
+    }
 
     @PluginMethod
     public void startVigilante(PluginCall call) {

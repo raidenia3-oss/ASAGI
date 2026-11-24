@@ -1348,6 +1348,36 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // REA: junta fuentes de la web y arma un PLAYBOOK accionable — «robar» la mejor idea de algo.
+  // «rea <tema>», «roba la idea de <tema>», «qué le robo a <tema>», «playbook de <tema>». Puro: sirve con o sin cerebro.
+  {
+    const mRea = text.trim().match(/^(?:rea|roba(?:r)?(?:\s+(?:la|las)\s+ideas?\s+de)?|qu[eé]\s+le\s+robo\s+a|playbook\s+(?:de|para))\b[\s:\-]+(.+)$/i);
+    if (mRea && window.AsagiREA && window.AsagiNavegador) {
+      const tema = mRea[1].trim();
+      const di = tareaDecir();
+      di('🧪 REA: junto fuentes de la web sobre «' + tema + '»…');
+      (async () => {
+        const NV = window.AsagiNavegador, E = window.AsagiEscudo;
+        const fuentes = [];
+        try {
+          const res = (await NV.buscar(tema)).filter((r) => /^https?:/.test(r.url)).slice(0, 7);
+          for (const r of res) {
+            if (fuentes.length >= 4) break;
+            if (E && E.analizarUrl(r.url).nivel === 'peligro') continue;
+            di('📖 Leyendo ' + (fuentes.length + 1) + '/4: ' + String(r.titulo || r.url).slice(0, 48) + '…');
+            try { const p = await NV.ir(r.url); if (p && p.texto && p.texto.length > 150) fuentes.push({ titulo: p.titulo || r.titulo, url: p.url || r.url, texto: p.texto }); } catch (e) {}
+          }
+        } catch (e) {}
+        if (!fuentes.length) { di('🧪 REA: no pude juntar fuentes de «' + tema + '». ¿Hay internet o ARIA conectada?'); return; }
+        try {
+          const an = window.AsagiREA.investigar(tema, fuentes);
+          appendMessage('bot', '🧪 REA · ' + tema + '\n\n' + an.playbook);
+        } catch (e) { di('🧪 REA falló: ' + ((e && e.message) || e)); }
+      })();
+      return;
+    }
+  }
+
   // Navegador propio de ASAGI (WebView oculto): «navega a x.com», «busca en la web: …», «lee la página», «clic 3», «escribe 5: hola y envía».
   {
     const L = window.AsagiNavLector, NV = window.AsagiNavegador, o = L && NV && L.parsear(text);

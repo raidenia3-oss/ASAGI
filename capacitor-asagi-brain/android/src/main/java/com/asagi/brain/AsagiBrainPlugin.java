@@ -44,8 +44,17 @@ public class AsagiBrainPlugin extends Plugin {
     public static final String PLUGIN_NAME = "AsagiBrain";
 
     // La biblioteca nativa (llama.cpp + motor) viaja en el APK, solo arm64-v8a.
+    // CLAVE: si falla al cargar (p.ej. ABI no soportada), NO debe tumbar todo el plugin.
+    // La DESCARGA del modelo es Java puro y no necesita la librería; solo la inferencia la usa
+    // (loadModel ya atrapa el UnsatisfiedLinkError y reporta el error con claridad).
+    static boolean NATIVO_OK = false;
     static {
-        System.loadLibrary("asagi_brain");
+        try {
+            System.loadLibrary("asagi_brain");
+            NATIVO_OK = true;
+        } catch (Throwable e) {
+            android.util.Log.e("AsagiBrain", "No se pudo cargar la libreria nativa asagi_brain: " + e);
+        }
     }
 
     private static final String TAG = "AsagiBrain";

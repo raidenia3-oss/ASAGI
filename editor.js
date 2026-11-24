@@ -79,13 +79,20 @@ function abrir(decir) {
     '<div class="ed-fila" id="ed-props"></div>' +
     '<div id="ed-sliders"></div>' +
     '<div class="ed-linea"><input type="text" id="ed-texto" maxlength="60" placeholder="Texto (o «Arriba / Abajo» para meme)"></div>' +
+    '<div class="ed-linea ed-colores"><span class="ed-cap">Color:</span>' +
+    '<button type="button" class="ed-col on" data-col="#ffffff" style="background:#ffffff" aria-label="blanco"></button>' +
+    '<button type="button" class="ed-col" data-col="#FFD700" style="background:#FFD700" aria-label="oro"></button>' +
+    '<button type="button" class="ed-col" data-col="#DC143C" style="background:#DC143C" aria-label="carmesí"></button>' +
+    '<button type="button" class="ed-col" data-col="#080408" style="background:#080408" aria-label="negro"></button>' +
+    '</div>' +
     '<div class="ed-linea"><input type="text" id="ed-desc" maxlength="200" placeholder="Describe el edit: más dramática, tonos fríos…"><button type="button" id="ed-ia">Aplicar</button></div>' +
-    '<div class="ed-linea"><button type="button" id="ed-censura">🔒 Censura: toca para tapar</button><button type="button" id="ed-censura-reset" hidden>Quitar censura</button></div>' +
+    '<div class="ed-linea"><button type="button" id="ed-censura">🔒 Censura: toca para tapar</button><button type="button" id="ed-censura-tam" hidden>Tamaño: M</button><button type="button" id="ed-censura-reset" hidden>↶ Deshacer</button></div>' +
     '<div class="ed-linea ed-acciones"><button type="button" id="ed-otra">Otra foto</button><button type="button" id="ed-estilo">Guardar estilo</button><button type="button" id="ed-guardar" class="ed-pri">Guardar foto</button></div></div>';
   document.body.appendChild(v);
   var $ = function (id) { return document.getElementById(id); }, cv = $('ed-canvas'), g = cv.getContext('2d', { willReadFrequently: true });
   var img = null, orig = null, p = Object.assign({}, BASE), prop = 'original', nombreEstilo = '', pend = 0;
-  var censuras = [], modoCensura = false;
+  var censuras = [], modoCensura = false, memeColor = '#ffffff';
+  var TAMS = [{ k: 'S', f: 0.07 }, { k: 'M', f: 0.11 }, { k: 'L', f: 0.16 }], tamIdx = 1;
   function pixelar(cx, cy, r) {
     var x = Math.max(0, cx - r), y = Math.max(0, cy - r), w = Math.min(cv.width - x, r * 2), h = Math.min(cv.height - y, r * 2);
     if (w <= 1 || h <= 1) return;
@@ -101,20 +108,22 @@ function abrir(decir) {
     pend = requestAnimationFrame(function () {
       var d = new ImageData(new Uint8ClampedArray(orig.data), orig.width, orig.height);
       aplicar(d.data, d.width, d.height, p); g.putImageData(d, 0, 0);
-      censuras.forEach(function (c) { pixelar(c.x, c.y, Math.round(cv.width * 0.11)); });   // tapa lo que no quieres mostrar
+      censuras.forEach(function (c) { pixelar(c.x, c.y, c.r || Math.round(cv.width * 0.11)); });   // tapa lo que no quieres mostrar
       var t = $('ed-texto').value.trim();
       if (t) {
         var px = Math.max(18, Math.round(cv.width * 0.075)); g.textAlign = 'center'; g.lineJoin = 'round';
         var pt = t.split('/');
+        var oscuro = memeColor === '#080408';
+        var borde = oscuro ? '#F0F0F8' : '#080408';                                        // contorno que contrasta con el color
         if (pt.length >= 2) {                                                              // meme clásico: ARRIBA / ABAJO
-          g.font = '900 ' + px + 'px Impact, "Arial Black", sans-serif'; g.lineWidth = px * 0.18; g.strokeStyle = '#000'; g.fillStyle = '#fff';
+          g.font = '900 ' + px + 'px Impact, "Arial Black", sans-serif'; g.lineWidth = px * 0.18; g.strokeStyle = borde; g.fillStyle = memeColor;
           var arr = pt[0].trim().toUpperCase(), aba = pt.slice(1).join('/').trim().toUpperCase();
           if (arr) { g.strokeText(arr, cv.width / 2, px * 1.15, cv.width * 0.94); g.fillText(arr, cv.width / 2, px * 1.15, cv.width * 0.94); }
           if (aba) { g.strokeText(aba, cv.width / 2, cv.height - px * 0.55, cv.width * 0.94); g.fillText(aba, cv.width / 2, cv.height - px * 0.55, cv.width * 0.94); }
         } else {
-          g.font = 'italic 900 ' + px + 'px "Arial Black", Impact, sans-serif'; g.lineWidth = px * 0.16; g.strokeStyle = '#080408';
+          g.font = 'italic 900 ' + px + 'px "Arial Black", Impact, sans-serif'; g.lineWidth = px * 0.16; g.strokeStyle = borde;
           g.strokeText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
-          g.fillStyle = '#FFD700'; g.fillText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
+          g.fillStyle = memeColor; g.fillText(t, cv.width / 2, cv.height - px * 0.9, cv.width * 0.94);
         }
       }
     });
@@ -151,18 +160,37 @@ function abrir(decir) {
   $('ed-props').addEventListener('click', function (e) { var b = e.target.closest('[data-prop]'); if (!b || !img) return; prop = b.getAttribute('data-prop'); props(); cargar(); });
   $('ed-sliders').addEventListener('input', function (e) { var k = e.target.getAttribute('data-k'); if (!k) return; p[k] = parseInt(e.target.value, 10); nombreEstilo = ''; pintar(); });
   $('ed-texto').addEventListener('input', pintar);
-  function actualizarCensura() { var b = $('ed-censura-reset'); if (b) b.hidden = censuras.length === 0; }
+  function actualizarCensura() {
+    var hayCens = censuras.length > 0;
+    var r = $('ed-censura-reset'); if (r) r.hidden = !hayCens;
+    var tm = $('ed-censura-tam'); if (tm) tm.hidden = !modoCensura;
+  }
   cv.addEventListener('click', function (e) {
     if (!modoCensura || !orig) return;
     var rect = cv.getBoundingClientRect();
-    censuras.push({ x: Math.round((e.clientX - rect.left) / rect.width * cv.width), y: Math.round((e.clientY - rect.top) / rect.height * cv.height) });
+    censuras.push({
+      x: Math.round((e.clientX - rect.left) / rect.width * cv.width),
+      y: Math.round((e.clientY - rect.top) / rect.height * cv.height),
+      r: Math.round(cv.width * TAMS[tamIdx].f)
+    });
     actualizarCensura(); pintar();
   });
   $('ed-censura').addEventListener('click', function () {
     modoCensura = !modoCensura; this.classList.toggle('on', modoCensura);
-    nota(modoCensura ? 'Toca la foto para tapar lo que no quieres mostrar. Pulsa de nuevo el botón al terminar.' : '');
+    actualizarCensura();
+    nota(modoCensura ? 'Toca la foto para tapar lo que no quieres mostrar. «Tamaño» cambia el cuadro; «Deshacer» quita el último.' : '');
   });
-  $('ed-censura-reset').addEventListener('click', function () { censuras = []; actualizarCensura(); pintar(); nota('Censura quitada.'); });
+  $('ed-censura-tam').addEventListener('click', function () {
+    tamIdx = (tamIdx + 1) % TAMS.length; this.textContent = 'Tamaño: ' + TAMS[tamIdx].k;
+  });
+  $('ed-censura-reset').addEventListener('click', function () { censuras.pop(); actualizarCensura(); pintar(); });   // ↶ deshacer el último toque
+  [].forEach.call(document.querySelectorAll('#editor-asagi .ed-col'), function (btn) {
+    btn.addEventListener('click', function () {
+      memeColor = this.getAttribute('data-col') || '#ffffff';
+      [].forEach.call(document.querySelectorAll('#editor-asagi .ed-col'), function (b) { b.classList.remove('on'); });
+      this.classList.add('on'); pintar();
+    });
+  });
   $('ed-ia').addEventListener('click', async function () {
     var t = $('ed-desc').value.trim(); if (!t) return;
     if (!window._asagiPensar) { nota('Para entender descripciones necesito un cerebro («conecta gemini»).'); return; }

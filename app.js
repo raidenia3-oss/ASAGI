@@ -237,11 +237,12 @@ function renderMessages() {
 
     const textEl = document.createElement('div');
     textEl.className = 'msg-text';
-    if (message.sender === 'bot') pintarConFrases(textEl, message.text);
-    else textEl.textContent = message.text;
+    const _txt = (message.text == null) ? '' : (typeof message.text === 'string' ? message.text : String(message.text));
+    if (message.sender === 'bot') pintarConFrases(textEl, _txt);
+    else textEl.textContent = _txt;
     bubble.appendChild(textEl);
     // mensajes largos de ASAGI: se ven ~14 líneas y un «Ver más» (el chat no se vuelve una pared de texto)
-    if (message.sender === 'bot' && !message.herr && (message.text.split('\n').length > 16 || message.text.length > 1100)) {
+    if (message.sender === 'bot' && !message.herr && (_txt.split('\n').length > 16 || _txt.length > 1100)) {
       window._asagiAbiertos = window._asagiAbiertos || {};
       if (!window._asagiAbiertos[message.id]) {
         textEl.classList.add('msg-largo');
@@ -1115,6 +1116,28 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Habilidades web (ideas de los 15 sitios): abren una web útil con tu dato. Antes del escudo (verificador local).
+  if (!reesc) {
+    const nw = text.trim();
+    const abrirWeb = (u) => { const CH = window.AsagiChrome; if (CH && CH.abrir) CH.abrir(u).then((t) => { if (/⛔|⚠️/.test(t || '')) appendMessage('bot', t); }).catch(() => { try { window.open(u, '_blank'); } catch (e) {} }); else { try { window.open(u, '_blank'); } catch (e) {} } };
+    let mw;
+    if ((mw = nw.match(/^(?:virustotal\s+|(?:escanea|revisa|analiza)(?:lo)?\s+(?:a fondo|en virustotal|con virustotal)\s+)(?:este\s+|el\s+)?(?:enlace|link|url\s+)?\s*(https?:\/\/\S+)/i))) {
+      tareaDecir()('🛡️ Lo escaneo a fondo en VirusTotal (muchos antivirus a la vez)…'); abrirWeb('https://www.virustotal.com/gui/search/' + encodeURIComponent(mw[1])); return;
+    }
+    if (/^(?:escanea|revisa|analiza)(?:lo)?\s+(?:este\s+)?archivo(?:\s+en virustotal)?$|^virustotal$/i.test(nw)) {
+      tareaDecir()('🛡️ Abro VirusTotal para subir y escanear el archivo.'); abrirWeb('https://www.virustotal.com/gui/home/upload'); return;
+    }
+    if ((mw = nw.match(/^(?:rastreadores de|qui[eé]n me rastrea en|revisa los rastreadores de|esp[ií]as en)\s+(https?:\/\/\S+|[a-z0-9.-]+\.[a-z]{2,}\S*)/i))) {
+      const host = mw[1].replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+      tareaDecir()('🕵️ Reviso quién te rastrea ahí con Blacklight…'); abrirWeb('https://themarkup.org/blacklight?url=' + encodeURIComponent(host) + '&device=mobile'); return;
+    }
+    if ((mw = nw.match(/^(?:busca esta imagen|de d[oó]nde sali[oó] esta imagen|b[uú]squeda inversa de|busca la imagen)\s+(https?:\/\/\S+)/i))) {
+      tareaDecir()('🔎 Búsqueda inversa en TinEye…'); abrirWeb('https://tineye.com/search?url=' + encodeURIComponent(mw[1])); return;
+    }
+    if (/^(?:enviar|mandar|comparte|compartir|quiero enviar)\s+(?:un\s+)?archivo\s+(?:grande|pesado|gigante)$|^archivo grande$/i.test(nw)) {
+      tareaDecir()('📤 Abro Filemail para mandar archivos pesados (hasta 5 GB, sin cuenta).'); abrirWeb('https://www.filemail.com/'); return;
+    }
+  }
   // Escudo: «¿es seguro este link? …» (phishing, marcas falsas, acortadores…)
   {
     const E = window.AsagiEscudo, c = !reesc && E && E.parsear(text);

@@ -236,11 +236,12 @@ function renderMessages() {
 
     const textEl = document.createElement('div');
     textEl.className = 'msg-text';
-    if (message.sender === 'bot') pintarConFrases(textEl, message.text);
-    else textEl.textContent = message.text;
+    const _txt = (message.text == null) ? '' : (typeof message.text === 'string' ? message.text : String(message.text));
+    if (message.sender === 'bot') pintarConFrases(textEl, _txt);
+    else textEl.textContent = _txt;
     bubble.appendChild(textEl);
     // mensajes largos de ASAGI: se ven ~14 líneas y un «Ver más» (el chat no se vuelve una pared de texto)
-    if (message.sender === 'bot' && !message.herr && (message.text.split('\n').length > 16 || message.text.length > 1100)) {
+    if (message.sender === 'bot' && !message.herr && (_txt.split('\n').length > 16 || _txt.length > 1100)) {
       window._asagiAbiertos = window._asagiAbiertos || {};
       if (!window._asagiAbiertos[message.id]) {
         textEl.classList.add('msg-largo');

@@ -112,19 +112,14 @@ function aplicarMarcaSegura(colors) {
   const NEGRO = { r: 8, g: 4, b: 8 };                 // #080408
   const CARMESI = { r: 220, g: 20, b: 60 };           // #DC143C
   const dark = colors[colors.length - 1] || colors[0];
-  const bg = _mezcla(NEGRO, dark, 0.10);              // casi negro, apenas teñido por la foto
-  const bg2 = _mezcla(NEGRO, dark, 0.05);
-  const pan = _mezcla(NEGRO, dark, 0.30);
+  // Tinte MÍNIMO y solo en el fondo ambiental: el chat y las tarjetas quedan negro nítido.
+  // El ambiente de la foto se ve en el launcher (donde está la foto), no embarra las superficies.
+  const bg = _mezcla(NEGRO, dark, 0.06);              // apenas un susurro del tono de la foto
+  const bg2 = _mezcla(NEGRO, dark, 0.03);
   root.style.setProperty('--bg', rgbToHex(bg.r, bg.g, bg.b));
   root.style.setProperty('--bg-2', rgbToHex(bg2.r, bg2.g, bg2.b));
-  root.style.setProperty('--panel', 'rgba(' + pan.r + ',' + pan.g + ',' + pan.b + ',0.55)');
-  // hairlines y glow en carmesí de marca (no de la foto)
-  root.style.setProperty('--line', 'rgba(220,20,60,0.22)');
-  root.style.setProperty('--line-soft', 'rgba(220,20,60,0.12)');
-  root.style.setProperty('--glow', 'rgba(220,20,60,0.40)');
-  root.style.setProperty('--glass-blur', '14px');
-  root.style.setProperty('--radius', '16px');
-  // --cyan (carmesí), --gold, --text: NO se tocan. La marca manda.
+  // --panel, --line, --glow, --cyan (carmesí), --gold, --text: NO se tocan. La marca manda y las
+  // superficies (burbujas, paneles) quedan negro-carmesí limpio, sin sepia.
 }
 
 function limpiar() {

@@ -94,8 +94,10 @@ function loadState() {
   }
 }
 
+const MAX_MSGS = 300;                                   // tope de historial: RAM/storage acotados (regla 4)
 function saveState() {
   try {
+    if (state.messages && state.messages.length > MAX_MSGS) state.messages.splice(0, state.messages.length - MAX_MSGS);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (error) {
     // LocalStorage puede estar lleno o inaccesible; no romper la app.

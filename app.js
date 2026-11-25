@@ -4624,7 +4624,8 @@ if ('serviceWorker' in navigator) {
   const plugin = cap && cap.Plugins ? cap.Plugins.AsagiBrain : null;
   if (!plugin || typeof plugin.descargarModelo !== 'function') return;
   const refrescar = () => { try { refreshBrainStatus(); } catch (e) {} };
-  let avisado = false;
+  const decirChat = (m) => { try { appendMessage('bot', m); } catch (e) { try { if (window._asagiAviso) window._asagiAviso(m, false, '🧠'); } catch (_) {} } };
+  let avisado = false, ultimoError = '';
   plugin.addListener('descarga', (ev) => {
     if (!ev) return;
     const prev = window._asagiModelo, ahora = Date.now();
@@ -4634,6 +4635,8 @@ if ('serviceWorker' in navigator) {
     if (ev.estado === 'listo') cargarMotor();
     if (ev.estado === 'error') {            // cuenta los fallos del día: tras 3, no reintenta solo (no gasta datos en bucle)
       try { const k = 'asagi-dl-fallos-' + new Date().toISOString().slice(0, 10); localStorage.setItem(k, String((+localStorage.getItem(k) || 0) + 1)); } catch (e) {}
+      const msg = ev.error || 'error de red';            // HAZLO VISIBLE: antes fallaba callado y parecía que "no se descargaba"
+      if (msg !== ultimoError) { ultimoError = msg; decirChat('⚠️ La descarga del modelo falló: ' + msg + '\nToca «Descargar modelo» para reintentar. Mientras tanto puedes usar «conecta gemini» (cerebro gratis). Si se repite, dime qué dice este mensaje y lo arreglo.'); }
     }
     if (ev.estado === 'listo' && !avisado) {
       avisado = true;
@@ -4667,7 +4670,23 @@ if ('serviceWorker' in navigator) {
       await plugin.descargarModelo();
     } catch (err) {}
   }
-  window._asagiDescargarModelo = () => plugin.descargarModelo().catch(() => {});
+  window._asagiDescargarModelo = async () => {
+    try {
+      try { localStorage.removeItem('asagi-dl-fallos-' + new Date().toISOString().slice(0, 10)); } catch (e) {}   // toque manual = reintenta siempre
+      const e = await plugin.estadoModelo();
+      if (e.listo) { window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' }; cargarMotor(); refrescar(); decirChat('🧠 El modelo ya está descargado y listo.'); return; }
+      if (e.descargando) { decirChat('⏳ El modelo ya se está descargando… te aviso cuando termine.'); refrescar(); return; }
+      ultimoError = '';
+      window._asagiModelo = { estado: 'descargando', bytes: e.parcial || 0, total: e.total || 0, error: '' }; refrescar();
+      decirChat('⬇️ Empiezo a descargar el modelo (~400 MB). Sigue usando ASAGI; te aviso al terminar. Si falla, te digo exactamente por qué.');
+      const r = await plugin.descargarModelo();
+      if (r && r.estado === 'listo') { window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' }; cargarMotor(); refrescar(); }
+    } catch (err) {
+      const m = (err && (err.message || err.errorMessage)) || String(err);
+      window._asagiModelo = { estado: 'error', error: m }; refrescar();
+      decirChat('⚠️ No pude empezar la descarga: ' + m + '\nPrueba otra vez, o usa «conecta gemini» para tener cerebro ya. Si se repite, pásame este mensaje y lo arreglo.');
+    }
+  };
   setTimeout(revisar, 500);
   window.addEventListener('online', () => setTimeout(revisar, 500));
   setInterval(() => { if (!document.hidden) revisar(); }, 60000);   // si fallo, reintenta solo

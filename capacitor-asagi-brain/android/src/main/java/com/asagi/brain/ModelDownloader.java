@@ -68,7 +68,8 @@ final class ModelDownloader {
                 l.onDone(destino);
                 return;
             } catch (IOException e) {
-                ultimoError = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+                String host = url; try { host = new java.net.URL(url).getHost(); } catch (Exception ignored) {}
+                ultimoError = (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()) + " (" + host + ")";
                 esperar(intento);
             }
         }

@@ -1351,6 +1351,25 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Piloto automático: un reto al día (pregunta + acción) que hace crecer el «cerebro». Local, nada se publica.
+  if (window.AsagiPiloto) {
+    const PI = window.AsagiPiloto, tp = text.trim();
+    const leerPi = () => { try { return JSON.parse(localStorage.getItem('asagi-piloto')) || {}; } catch (e) { return {}; } };
+    const guardarPi = (o) => { try { localStorage.setItem('asagi-piloto', JSON.stringify(o)); } catch (e) {} };
+    if (/^(?:reto|mi reto|reto de hoy|piloto(?:\s+autom[aá]tico)?|override)\s*$/i.test(tp)) {
+      appendMessage('bot', PI.texto(leerPi(), new Date())); return;
+    }
+    let mp;
+    if ((mp = tp.match(/^(?:reto|piloto|override)\s*(?:hecho|cumplido|listo|:)\s*(.*)$/i)) || /^(?:ya\s+)?(?:hice|cumpl[ií]|termin[eé])\s+el\s+reto\b/i.test(tp)) {
+      const nota = mp && mp[1] ? mp[1].trim() : '';
+      const res = PI.marcar(leerPi(), new Date(), nota);
+      guardarPi(res.obj);
+      try { if (window.AsagiNiveles && window.AsagiNiveles.registrar) window.AsagiNiveles.registrar('charla', 'piloto'); } catch (e) {}
+      appendMessage('bot', PI.textoHecho(res, res.obj, new Date()));
+      return;
+    }
+  }
+
   // REA: junta fuentes de la web y arma un PLAYBOOK accionable — «robar» la mejor idea de algo.
   // «rea <tema>», «roba la idea de <tema>», «qué le robo a <tema>», «playbook de <tema>». Puro: sirve con o sin cerebro.
   {

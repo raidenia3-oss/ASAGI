@@ -1303,6 +1303,28 @@ chatForm.addEventListener('submit', (event) => {
     if (c) { CP.recibir(c.url, '', tareaDecir()).catch(() => {}); return; }
     if (!reesc && CP && CP.parsearCopia && CP.parsearCopia(text)) { CP.revisarCopia(tareaDecir()).catch(() => {}); return; }
   }
+  // Proponer un post (idea del reel AIsa Social): ASAGI redacta un BORRADOR; publicar es tuyo (regla 9).
+  {
+    const mpost = text.trim().match(/^(?:proponme|hazme|arma(?:me)?|dame|escr[ií]be(?:me)?|borrador de)\s+(?:un\s+)?post\s+(?:sobre|de|para|:)\s*(.+)$/i);
+    if (mpost) {
+      const tema = mpost[1].trim(), dp = tareaDecir();
+      dp('✍️ Te armo un borrador sobre «' + tema + '» (no publico nada)…');
+      (async () => {
+        let draft = '';
+        if (window._asagiPensar) {
+          try { draft = String(await window._asagiPensar('Escribe un BORRADOR de post para redes sobre «' + tema + '», en español: un gancho de 1 línea + 2-3 líneas + 3 hashtags al final. Solo el texto del post, sin explicaciones.') || '').trim(); } catch (e) {}
+          if (/cerebro no disponible|sin cerebro|necesit\w*\s+(?:un\s+)?cerebro|no tengo (?:ning[uú]n )?cerebro/i.test(draft)) draft = '';
+        }
+        if (!draft) {
+          const tag = tema.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
+          draft = tema.charAt(0).toUpperCase() + tema.slice(1) + '.\n\n[Tu idea en 2-3 líneas aquí.]\n\n#' + (tag || 'post') + ' #ia #asagi';
+        }
+        appendMessage('bot', '✍️ Borrador (revísalo y publícalo tú; yo no publico nada):\n\n' + draft);
+      })();
+      return;
+    }
+  }
+
   // Chrome como herramienta, YouTube y redes (solo lectura; usan TU Chrome con tus sesiones)
   {
     const decir = tareaDecir();

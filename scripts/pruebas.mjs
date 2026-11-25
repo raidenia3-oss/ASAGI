@@ -202,6 +202,14 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   r = HA.aplicar(r.lista, r.papelera, { tipo: 'recuperar', nombre: 'tomar agua' }, d('2026-11-12'));
   ok(r.lista.length === 1 && r.lista[0].dias.length === 3, 'hábitos: borrar y recuperar');
 }
+{ const OG = require('../ojos.js'); const t = Date.UTC(2026, 10, 20, 12);
+  ok(OG.categoria('KFC Javier Prado', []) === 'Comida' && OG.categoria('Grifo Primax', []) === 'Transporte' && OG.categoria('Movistar', []) === 'Servicios' && OG.categoria('Inkafarma', []) === 'Salud' && OG.categoria('Cosa Rara SAC', []) === 'Otros', 'gastos: categoría por comercio');
+  const bl = [{ comercio: 'KFC', total: 30, moneda: 'S/', ts: t }, { comercio: 'Uber', total: 15, moneda: 'S/', ts: t }, { comercio: 'KFC', total: 20, moneda: 'S/', ts: t }];
+  const pc = OG.porCategoria(bl, t); ok(pc[0][0] === 'Comida' && pc[0][1] === 50 && pc.length === 2, 'gastos: por categoría del mes');
+  ok(OG.deCategoria(bl, 'comida').length === 2, 'gastos: filtro por categoría');
+  const csv = OG.exportarCSV([{ comercio: 'Café, S.A.', total: 12.5, moneda: 'S/', items: ['pan'], ts: t, categoria: 'Comida' }]);
+  ok(csv.split('\n')[0] === 'fecha,comercio,categoria,moneda,total,items' && /"Café, S\.A\."/.test(csv), 'gastos: export CSV con escape'); }
+
 { const PIm = require('../piloto.js'); const f1 = new Date(2026, 10, 24), f2 = new Date(2026, 10, 25), f3 = new Date(2026, 10, 26);
   ok(PIm.reto(f1) === PIm.reto(new Date(2026, 10, 24, 23)) && PIm.reto(f1) !== PIm.reto(f2), 'piloto: reto estable por día y rota');
   let o = {};

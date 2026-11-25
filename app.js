@@ -2163,10 +2163,9 @@ renderBrainControls();
   async function ciclo(desdeChat) {
     const d = await U.revisar();
     if (d.accion === 'actualizar') {
-      const wifi = !(navigator.connection && navigator.connection.type === 'cellular');
-      if (!desdeChat && (!wifi || avisado === d.remota.build)) return d;
+      if (!desdeChat && avisado === d.remota.build) return d;   // ya avisé de este build (el APK pesa ~11MB: va en cualquier red)
       avisado = d.remota.build;
-      appendMessage('bot', '⬆ Hay una ASAGI nueva (' + d.motivo + '). La bajo y Android te pedirá "Actualizar": tus datos y el modelo se quedan.');
+      appendMessage('bot', '⬆ Hay una ASAGI nueva (' + d.motivo + '). La bajo sola; Android solo te pedirá tocar "Instalar/Actualizar" una vez (es seguridad suya, no lo puedo saltar). Tus datos y el modelo se quedan.');
       const r = await U.instalar();
       if (!r.ok && r.error === 'permisoInstalar') { try { localStorage.setItem('asagi-upd-pendiente', '1'); } catch (e) {} appendMessage('bot', '⚙ Android necesita que permitas "Instalar apps desconocidas" para ASAGI (una sola vez). Activa el interruptor y vuelve: lo reintento solo.'); }
       else if (!r.ok && r.error === 'firmaDistinta') appendMessage('bot', '⚠ Esta versión vino firmada con otra llave y Android no la instala encima. Conéctame por cable y corre ASAGI_CONECTAR.bat: migra tus datos solo.');
@@ -2185,8 +2184,8 @@ renderBrainControls();
       if (e && e.total > 0) { const st = document.getElementById('brain-hint'); if (st) { st.hidden = false; st.textContent = 'Bajando ASAGI nueva ' + Math.round(e.hecho * 100 / e.total) + '%'; } }
     });
   } catch (e) {}
-  setTimeout(() => ciclo(false), 45000);
-  setInterval(() => ciclo(false), 6 * 3600 * 1000);
+  setTimeout(() => ciclo(false), 6000);
+  setInterval(() => ciclo(false), 3 * 3600 * 1000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && localStorage.getItem('asagi-upd-pendiente')) { localStorage.removeItem('asagi-upd-pendiente'); ciclo(true); } });
 })();
 

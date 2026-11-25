@@ -207,5 +207,17 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(PIm.racha(o, f3) === 3 && PIm.hechos(o) === 3 && PIm.cerebro(3).nivel >= 1, 'piloto: racha 3 y cerebro crece');
   ok(PIm.racha({ dias: { '2026-11-20': {} } }, f3) === 0, 'piloto: racha cortada si no es hoy/ayer'); }
 
+// ¿Dónde lo dejé? (donde.js)
+{ const DO = R('donde.js'); let L = [];
+  const g = DO.parsear('dejé las llaves en el cajón de la cocina');
+  ok(g && g.accion === 'guardar' && g.cosa === 'las llaves' && g.lugar === 'en el cajón de la cocina', 'donde: guardar');
+  L = DO.responder(g, L, 1).lista;
+  const b = DO.responder(DO.parsear('¿Dónde están mis llaves?'), L, 2);
+  ok(b && /cajón de la cocina/.test(b.texto), 'donde: buscar (plural/posesivo)');
+  ok(DO.responder(DO.parsear('dónde está la plaza de armas'), L, 2) === null, 'donde: no se mete con lugares');
+  ok(DO.responder(DO.parsear('dónde guardé lo del examen'), L, 2) === null, 'donde: deja pasar «dónde guardé …» a buscar en mis cosas');
+  ok(DO.parsear('dejé a mi hermano en el colegio') === null && DO.parsear('puse la alarma en 7') === null && DO.parsear('dejé de fumar') === null, 'donde: no confunde');
+  ok(DO.responder(DO.parsear('ya encontré las llaves'), L, 3).lista.length === 0, 'donde: encontré borra'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

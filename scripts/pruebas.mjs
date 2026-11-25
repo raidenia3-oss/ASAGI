@@ -189,6 +189,19 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
 
+{ // hábitos (idea de Loop Habit Tracker)
+  const HA = require('../habitos.js'), d = (s) => new Date(s + 'T10:00:00');
+  ok(HA.parsear('nuevo hábito leer').tipo === 'crear' && HA.parsear('mis hábitos').tipo === 'ver' && HA.parsear('ya hice la tarea', ['Leer']) === null &&
+     HA.parsear('ya hice ejercicio', ['Ejercicio']).tipo === 'marcar' && HA.parsear('marca el hábito leer').nombre === 'leer' && HA.parsear('mis habilidades') === null, 'hábitos: entiende');
+  let r = HA.aplicar([], [], HA.parsear('nuevo hábito tomar agua'), d('2026-11-10'));
+  ok(r.lista.length === 1 && r.lista[0].nombre === 'Tomar agua', 'hábitos: crear');
+  for (const f of ['2026-11-10', '2026-11-11', '2026-11-12']) r = HA.aplicar(r.lista, r.papelera, { tipo: 'marcar', nombre: 'agua' }, d(f));
+  const e = HA.estado(r.lista[0], d('2026-11-12')), e2 = HA.estado(r.lista[0], d('2026-11-14'));
+  ok(e.racha === 3 && e.hoy && e.fuerza > 0 && e.semana.endsWith('●●●') && e2.racha === 0 && e2.fuerza > 0 && e2.fuerza < e.fuerza, 'hábitos: racha y fuerza');
+  r = HA.aplicar(r.lista, r.papelera, { tipo: 'borrar', nombre: 'tomar agua' }, d('2026-11-12'));
+  r = HA.aplicar(r.lista, r.papelera, { tipo: 'recuperar', nombre: 'tomar agua' }, d('2026-11-12'));
+  ok(r.lista.length === 1 && r.lista[0].dias.length === 3, 'hábitos: borrar y recuperar');
+}
 { const OG = require('../ojos.js'); const t = Date.UTC(2026, 10, 20, 12);
   ok(OG.categoria('KFC Javier Prado', []) === 'Comida' && OG.categoria('Grifo Primax', []) === 'Transporte' && OG.categoria('Movistar', []) === 'Servicios' && OG.categoria('Inkafarma', []) === 'Salud' && OG.categoria('Cosa Rara SAC', []) === 'Otros', 'gastos: categoría por comercio');
   const bl = [{ comercio: 'KFC', total: 30, moneda: 'S/', ts: t }, { comercio: 'Uber', total: 15, moneda: 'S/', ts: t }, { comercio: 'KFC', total: 20, moneda: 'S/', ts: t }];

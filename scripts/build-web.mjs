@@ -13,6 +13,7 @@ const files = [
   'noticias.js',
   'memoria.js',
   'rea.js',
+  'piloto.js',
   'voz.js',
   'ads.js',
   'launcher.js',

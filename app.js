@@ -3104,6 +3104,41 @@ if ('serviceWorker' in navigator) {
 
   function val(id) { const e = document.getElementById(id); return e && e.value ? e.value.trim() : ''; }
 
+  // --- Cerebro en Termux: usa el modelo .gguf con llama.cpp del celular (sin PC, sin nube) ---
+  let _termuxCerebro = null;          // null=sin saber, true/false=cache
+  async function termuxTieneModelo() {
+    if (_termuxCerebro === true) return true;
+    const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (!AC || !AC.termuxRun) { _termuxCerebro = false; return false; }
+    try {
+      const r = await AC.termuxRun({ cmd: 'test -f ~/asagi.gguf && command -v llama-cli >/dev/null && echo SI || echo NO', timeoutMs: 15000 });
+      _termuxCerebro = /SI/.test((r && r.stdout) || '');
+    } catch (e) { _termuxCerebro = false; }
+    return _termuxCerebro;
+  }
+  function limpiarSalidaLlama(out) {
+    if (!out) return '';
+    const lines = String(out).replace(/\r/g, '').split('\n');
+    let i = lines.findIndex((l) => /^>\s/.test(l));   // el REPL hace eco del prompt como "> ..."
+    if (i < 0) return '';
+    const resp = [];
+    for (let j = i + 1; j < lines.length; j++) {
+      if (/^\s*\[\s*Prompt:/.test(lines[j]) || /^Exiting\b/.test(lines[j])) break;   // corta en estadísticas / salida
+      resp.push(lines[j]);
+    }
+    return resp.join('\n').trim();
+  }
+  async function pensarTermux(prompt) {
+    const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    if (!AC || !AC.termuxRun) return '';
+    if (!(await termuxTieneModelo())) return '';
+    const limpio = String(prompt).replace(/\s+/g, ' ').trim().slice(0, 1200);
+    const b64 = btoa(unescape(encodeURIComponent(limpio)));
+    const cmd = "echo '" + b64 + "' | base64 -d | llama-cli -m ~/asagi.gguf -n 220 2>/dev/null";
+    const r = await AC.termuxRun({ cmd: cmd, timeoutMs: 120000 });
+    return limpiarSalidaLlama((r && r.stdout) || '');
+  }
+
   async function ejecutarBot(prompt, bot) {
     const R = window.AsagiBrainRouter;
     if (!R) return '(cerebro no disponible)';
@@ -3113,6 +3148,7 @@ if ('serviceWorker' in navigator) {
     if (!nube.hay) {
       // Sin key: primero el modelo del celular (funciona sin la PC); si no está, ARIA por WiFi/Bluetooth.
       try { const loc = await localResponder(prompt); if (loc && loc.trim()) return loc; } catch (e) {}
+      try { const tx = await pensarTermux(prompt); if (tx && tx.trim()) return tx; } catch (e) {}   // modelo en Termux (llama.cpp)
       const cli = window._asagiLan;
       if (cli) {
         const r = await cli.enviar({ t: 'bot', bot: bot ? bot.nombre : 'Bot', prompt: prompt });

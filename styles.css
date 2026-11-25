@@ -1084,3 +1084,11 @@ button { cursor: pointer; }
 /* hora dentro de la burbuja: debajo del texto, sin encimarse */
 .msg-meta { display: block; margin-top: 4px; text-align: right; font: 600 0.6rem/1.2 var(--mono); letter-spacing: 0.05em; opacity: 0.62; }
 .message.bot .msg-meta { text-align: left; color: var(--muted); }
+
+/* Contraseña generada (contrasena.js): valor + Copiar; solo en RAM */
+.secreto-caja { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding: 8px 10px;
+  border: 1px solid rgba(255, 215, 0, 0.45); border-radius: 12px; background: rgba(8, 4, 8, 0.55); }
+.secreto-caja.ido { color: rgba(240, 240, 248, 0.6); font-size: 13px; border-style: dashed; }
+.secreto-valor { flex: 1 1 100%; font-family: ui-monospace, 'JetBrains Mono', monospace; font-size: 16px; color: #FFD700;
+  word-break: break-all; user-select: all; -webkit-user-select: all; letter-spacing: 0.5px; }
+.secreto-copiar { min-height: 40px; padding: 0 16px; border-radius: 10px; border: 0; background: #DC143C; color: #F0F0F8; font-weight: 600; }

@@ -22,6 +22,7 @@ Una línea por archivo, tomada de su comentario inicial. Regenerar si cambia muc
 | `citas.js` | 158 | ASAGI - Citas. Dos modos: |
 | `compartir.js` | 106 | «Compartir con ASAGI» (como el panel de IA de los navegadores Comet/Atlas, pero desde cualquier app): |
 | `compras.js` | 119 | Lista de compras sin internet ni cerebro (idea de philip211/home-assistant-AI-APK: compras por voz). |
+| `contrasena.js` | 70 | Contraseñas, frase clave y PIN sin internet (idea del generador de KeePassDX). Solo en RAM: no va al historial ni a la voz. |
 | `conocimiento.js` | 103 | ASAGI - Ingestor de conocimiento: convierte lo que ASAGI "ve" (transcripciones de |
 | `conversacion.js` | 122 | Modo conversación a manos libres (como el modo voz de ChatGPT / Open WebUI): |
 | `defensa.js` | 91 | ASAGI - Defensa: auditor de seguridad de TU propio celular (defensivo y honesto). |

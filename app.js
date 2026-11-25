@@ -219,6 +219,22 @@ chat.addEventListener('click', (e) => {
   } else { inp.value = f; chatForm.requestSubmit(); }
 });
 
+// Caja con la contraseña generada + botón Copiar. Tras cerrar ASAGI ya no existe (nunca se guardó).
+function cajaSecreto(id) {
+  const v = (window._asagiSecretos || {})[id], caja = document.createElement('div');
+  caja.className = 'secreto-caja';
+  if (!v) { caja.classList.add('ido'); caja.textContent = 'Ya no se muestra: no la guardé.'; return caja; }
+  const val = document.createElement('code'); val.className = 'secreto-valor'; val.textContent = v;
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'secreto-copiar'; b.textContent = 'Copiar';
+  b.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    try { await navigator.clipboard.writeText(v); b.textContent = 'Copiada ✓'; }
+    catch (err) { try { const r = document.createRange(); r.selectNodeContents(val); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } catch (e2) {} b.textContent = 'Mantén presionado para copiar'; }
+  });
+  caja.appendChild(val); caja.appendChild(b);
+  return caja;
+}
+
 function renderMessages() {
   // con conversación empezada, la cabecera se compacta para dar espacio al chat
   try {
@@ -240,6 +256,7 @@ function renderMessages() {
     if (message.sender === 'bot') pintarConFrases(textEl, _txt);
     else textEl.textContent = _txt;
     bubble.appendChild(textEl);
+    if (message.secreto) bubble.appendChild(cajaSecreto(message.id));
     // mensajes largos de ASAGI: se ven ~14 líneas y un «Ver más» (el chat no se vuelve una pared de texto)
     if (message.sender === 'bot' && !message.herr && (_txt.split('\n').length > 16 || _txt.length > 1100)) {
       window._asagiAbiertos = window._asagiAbiertos || {};
@@ -586,13 +603,15 @@ function soltarAvisos() {
   if (c.length) appendMessage('bot', '🌙 Mientras descansabas (' + c.length + '):\n' + c.map((x) => x.t).join('\n\n'));
 }
 setTimeout(soltarAvisos, 20000); setInterval(soltarAvisos, 10 * 60000);
-function appendMessage(sender, text) {
+function appendMessage(sender, text, opts) {
   const message = {
     id: uid(),
     sender,
     text,
     time: horaCorta()
   };
+  // un secreto (contraseña generada) vive SOLO en la RAM: no va al historial, ni a la memoria, ni a la voz
+  if (opts && opts.secreto) { message.secreto = true; (window._asagiSecretos = window._asagiSecretos || {})[message.id] = String(opts.secreto); }
   // resultado de una herramienta que ASAGI usó sola (clima, búsqueda…): se muestra compacto
   if (sender === 'bot' && window._asagiHerr > 0) message.herr = true;
 
@@ -748,7 +767,7 @@ async function startBotStreaming(userText) {
           if (sc && sc.reescribir) { window._asagiReescribir = sc.reescribir; chatForm.requestSubmit(); return; }
           // con key puesta pero la nube no respondió: decirlo claro (no «necesito cerebro», que confunde)
           const caida = !(sc && sc.texto) && nube.hay ? (navigator.onLine === false ? '📡 Estás sin internet, así que mi cerebro en la nube no responde. Lo básico (pendientes, alarmas, cuentas…) sí lo hago.' :
-            '⚠ Mi cerebro en la nube no respondió ahora (la key gratis pudo agotarse por un rato). Reintento sola en unos minutos; si pasa seguido, agrega otra key en Ajustes › Cerebro.') : '';
+            '⚠ Mi cerebro en la nube no respondió ahora (la clave gratis pudo agotarse por un rato). Reintento sola en unos minutos; si pasa seguido, agrega otra clave en Ajustes › Cerebro.') : '';
           res = { texto: caida || (sc && sc.texto) || createBotReply(userText), backend: caida ? 'sin respuesta de la nube' : 'ASAGI sin cerebro' };
         } catch (e) {}
       }
@@ -776,13 +795,14 @@ async function startBotStreaming(userText) {
 
     // Modo local sin motor utilizable: aviso legible + respuestas de prueba.
     if (b.mode === 'local') {
-      let notice = 'El modelo local aún no está descargado (unos 400 MB). Te respondo con las respuestas de prueba mientras tanto.';
+      let notice = 'El modelo local aún no está descargado (unos 400 MB). Mientras tanto te ayudo con lo básico (di «qué puedes hacer»).';
       if (brain && brain.stub) {
-        notice = 'El modelo local todavía no está activo en esta versión (motor nativo deshabilitado). Te respondo con las respuestas de prueba.';
+        notice = 'El modelo local todavía no está activo en esta versión (motor nativo deshabilitado). Mientras tanto te ayudo con lo básico.';
       } else if (brain && brain.error) {
-        notice = 'El modelo local no pudo cargarse: ' + brain.error + '. Te respondo con las respuestas de prueba.';
+        notice = 'El modelo local no pudo cargarse: ' + brain.error + '. Mientras tanto te ayudo con lo básico.';
       }
-      appendMessage('bot', notice);
+      // el aviso solo una vez por sesión (antes salía en CADA mensaje, dos burbujas por respuesta)
+      if (!window._asagiAvisoSinModelo) { window._asagiAvisoSinModelo = true; appendMessage('bot', notice); }
       appendMessage('bot', createBotReply(userText));
       return;
     }
@@ -790,7 +810,7 @@ async function startBotStreaming(userText) {
     // Modo remoto: si falta URL, aviso + respuestas de prueba.
     if (b.mode === 'remote') {
       if (!b.remoteUrl) {
-        appendMessage('bot', 'El cerebro remoto no tiene URL configurada. Te respondo con las respuestas de prueba mientras lo configuras en Cerebro.');
+        appendMessage('bot', 'El cerebro remoto no tiene URL configurada. Mientras tanto te ayudo con lo básico; configúralo en Cerebro.');
         appendMessage('bot', createBotReply(userText));
         return;
       }
@@ -801,7 +821,7 @@ async function startBotStreaming(userText) {
   } catch (error) {
     // Nunca dejar sin respuesta ni cerrar la app.
     const reason = error && error.message ? error.message : String(error);
-    appendMessage('bot', 'Algo falló al generar la respuesta (' + reason + '). Te respondo con las respuestas de prueba.');
+    appendMessage('bot', 'Algo falló al generar la respuesta (' + reason + '). Mientras tanto te ayudo con lo básico.');
     appendMessage('bot', createBotReply(userText));
   }
 }
@@ -864,8 +884,8 @@ function streamLocalReply(userText, brain) {
         cancelled = true;
         if (bubble.parentNode) bubble.parentNode.removeChild(bubble);
         const line = isStubText(message)
-          ? 'El modelo local todavía no está activo en esta versión. Te respondo con las respuestas de prueba.'
-          : 'El modelo local dio un error: ' + message + '. Te respondo con las respuestas de prueba.';
+          ? 'El modelo local todavía no está activo en esta versión. Mientras tanto te ayudo con lo básico.'
+          : 'El modelo local dio un error: ' + message + '. Mientras tanto te ayudo con lo básico.';
         appendMessage('bot', line);
         appendMessage('bot', createBotReply(userText));
         resolve();
@@ -1087,7 +1107,7 @@ chatForm.addEventListener('submit', (event) => {
         const bc = readBrainControls();
         if (!(bc.geminiKey || bc.atriaKey || bc.mistralKey || bc.clavesExtra)) { const q = 'busca en la web ' + text.replace(/^\S+\s+(?:sobre\s+|acerca de\s+|bien\s+|a fondo\s+)?/i, ''); setTimeout(() => { window._asagiReescribir = q; chatForm.requestSubmit(); }, 0); return; }   // (dentro de un submit, requestSubmit se ignora)
       }
-      if (!window._asagiPensar) { decir('Para el modo autónomo necesito un cerebro: descarga el modelo o pon una key gratis en el Asistente.'); return; }
+      if (!window._asagiPensar) { decir('Para el modo autónomo necesito un cerebro: descarga el modelo o pon una clave gratis en el Asistente.'); return; }
       AG.correr(c.objetivo, (p) => window._asagiPensar(p), window._asagiEjecutarFrase, decir, { titulo: c.titulo }).catch((e) => decir('⚠ ' + ((e && e.message) || e)));
       return;
     }
@@ -1619,6 +1639,12 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Contraseñas sin internet (idea de KeePassDX): «genera una contraseña», «frase clave», «pin de 6». No se guardan.
+  {
+    const PW = window.AsagiContrasena, c = PW && PW.parsear(text);
+    if (c) { const g = PW.generar(c); appendMessage('bot', PW.texto(c, g), { secreto: g.valor }); return; }
+  }
+
   // Lista de compras (sin internet): «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan».
   {
     const CO = window.AsagiCompras, c = CO && CO.parsear(text);
@@ -1691,7 +1717,7 @@ chatForm.addEventListener('submit', (event) => {
     const OV = window.AsagiOpenverse, c = OV && OV.parsear(text);
     if (c && c.accion === 'parar') { OV.parar(); appendMessage('bot', '🔇 Listo, sonido apagado.'); return; }
     if (c && c.accion === 'fondos') {
-      appendMessage('bot', '🔎 Busco fondos libres de «' + c.q + '»…');
+      appendMessage('bot', '🔎 Busco fondos libres de “' + c.q + '”…');
       OV.imagenes(c.q).then((rs) => {
         if (!rs.length) { appendMessage('bot', 'No encontré fondos de «' + c.q + '». Prueba con otra palabra (en inglés suele haber más).'); return; }
         OV.mostrarFondos(c.q, rs, async (r) => {
@@ -1920,7 +1946,7 @@ chatForm.addEventListener('submit', (event) => {
   Promise.resolve(startBotStreaming(text))
     .catch((error) => {
       const reason = error && error.message ? error.message : String(error);
-      appendMessage('bot', 'Algo falló al generar la respuesta (' + reason + '). Te respondo con las respuestas de prueba.');
+      appendMessage('bot', 'Algo falló al generar la respuesta (' + reason + '). Mientras tanto te ayudo con lo básico.');
       appendMessage('bot', createBotReply(text));
     })
     .finally(() => {

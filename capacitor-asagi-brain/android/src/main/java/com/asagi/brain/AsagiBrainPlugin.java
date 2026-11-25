@@ -608,6 +608,118 @@ public class AsagiBrainPlugin extends Plugin {
         call.resolve(d);
     }
 
+    // ¿ASAGI tiene acceso a "todos los archivos"? (necesario en Android 11+ para leer /sdcard/Download)
+    private boolean tieneAccesoArchivos() {
+        try { if (android.os.Build.VERSION.SDK_INT >= 30) return android.os.Environment.isExternalStorageManager(); }
+        catch (Throwable ignored) {}
+        return true; // en <30 basta READ_EXTERNAL_STORAGE
+    }
+
+    @PluginMethod
+    public void permisoArchivos(PluginCall call) {
+        boolean ok = tieneAccesoArchivos();
+        if (!ok) {
+            try {
+                android.content.Intent i;
+                if (android.os.Build.VERSION.SDK_INT >= 30) {
+                    i = new android.content.Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                            android.net.Uri.parse("package:" + appContext.getPackageName()));
+                } else {
+                    i = new android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            android.net.Uri.parse("package:" + appContext.getPackageName()));
+                }
+                i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                appContext.startActivity(i);
+            } catch (Exception ignored) {}
+        }
+        JSObject d = new JSObject();
+        d.put("concedido", ok);
+        call.resolve(d);
+    }
+
+    // Importa el modelo que Termux dejó en Descargas: lo verifica (tamaño + SHA) y lo copia
+    // a la carpeta de ASAGI. Emite los mismos eventos "descarga" que la bajada normal.
+    @PluginMethod
+    public void importarModelo(PluginCall call) {
+        final File dest = resolveModelFile();
+        if (dest.exists() && dest.length() == MODEL_EXPECTED_BYTES) {
+            JSObject d = new JSObject(); d.put("estado", "listo"); call.resolve(d); return;
+        }
+        if (!tieneAccesoArchivos()) {
+            JSObject d = new JSObject(); d.put("estado", "error");
+            d.put("error", "Falta el permiso de \"todos los archivos\". Toca «dar permiso de archivos» y actívalo.");
+            call.resolve(d); return;
+        }
+        if (!descargando.compareAndSet(false, true)) {
+            JSObject d = new JSObject(); d.put("estado", "descargando"); call.resolve(d); return;
+        }
+        descargaCancelada.set(false);
+        final String origenPedido = call.getString("origen", "");
+        Thread hilo = new Thread(() -> {
+            try {
+                File src = buscarModeloDescargado(origenPedido);
+                if (src == null) {
+                    avisarDescarga("error", 0L, MODEL_EXPECTED_BYTES, "No encontré el modelo en Descargas. ¿Terminó la bajada en Termux?");
+                    return;
+                }
+                if (src.length() != MODEL_EXPECTED_BYTES) {
+                    avisarDescarga("error", src.length(), MODEL_EXPECTED_BYTES, "El archivo de Termux está incompleto (" + (src.length() / 1048576) + " MB). Vuelve a correr la bajada.");
+                    return;
+                }
+                avisarDescarga("descargando", 0L, MODEL_EXPECTED_BYTES, null);
+                String hash = sha256Of(src);
+                if (hash == null || !MODEL_EXPECTED_SHA256.equalsIgnoreCase(hash)) {
+                    avisarDescarga("error", src.length(), MODEL_EXPECTED_BYTES, "El modelo llegó dañado (hash distinto). Vuelve a bajarlo en Termux.");
+                    return;
+                }
+                if (dest.getParentFile() != null) dest.getParentFile().mkdirs();
+                File tmp = new File(dest.getParentFile(), MODEL_FILENAME + ".importando");
+                if (!copiarArchivo(src, tmp)) {
+                    avisarDescarga("error", 0L, MODEL_EXPECTED_BYTES, "No pude copiar el modelo al almacenamiento de ASAGI.");
+                    return;
+                }
+                if (dest.exists()) dest.delete();
+                if (!tmp.renameTo(dest)) {
+                    tmp.delete();
+                    avisarDescarga("error", 0L, MODEL_EXPECTED_BYTES, "No pude guardar el modelo importado.");
+                    return;
+                }
+                try { downloadState = DownloadState.fromStorage(appContext, modelDirectory, MODEL_FILENAME); } catch (Exception ignored) {}
+                avisarDescarga("listo", dest.length(), MODEL_EXPECTED_BYTES, null);
+            } catch (Throwable t) {
+                avisarDescarga("error", 0L, MODEL_EXPECTED_BYTES, "Error importando: " + t.getMessage());
+            } finally {
+                descargando.set(false);
+            }
+        }, "asagi-importar");
+        hilo.setDaemon(true);
+        hilo.start();
+        JSObject d = new JSObject(); d.put("estado", "importando"); call.resolve(d);
+    }
+
+    private File buscarModeloDescargado(String origenPedido) {
+        java.util.List<String> cands = new java.util.ArrayList<>();
+        if (origenPedido != null && !origenPedido.isEmpty()) cands.add(origenPedido);
+        String[] dirs = { "/sdcard/Download", "/storage/emulated/0/Download", "/sdcard/Downloads", "/storage/emulated/0/Downloads" };
+        String[] nombres = { "asagi-model.gguf", MODEL_FILENAME };
+        for (String dir : dirs) for (String n : nombres) cands.add(dir + "/" + n);
+        for (String p : cands) { File f = new File(p); if (f.exists() && f.isFile() && f.length() > 0) return f; }
+        return null;
+    }
+
+    private boolean copiarArchivo(File src, File dst) {
+        try (InputStream in = new java.io.FileInputStream(src); FileOutputStream out = new FileOutputStream(dst)) {
+            byte[] buf = new byte[256 * 1024]; int n; long hecho = 0;
+            while ((n = in.read(buf)) > 0) {
+                if (descargaCancelada.get()) return false;
+                out.write(buf, 0, n); hecho += n;
+                avisarDescarga("descargando", hecho, MODEL_EXPECTED_BYTES, null);
+            }
+            out.getFD().sync();
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
     // --- API que consume la app web (window.Capacitor.Plugins.AsagiBrain) ---
 
     // Llamado desde el JNI (hilo de inferencia) por cada token ya válido en UTF-8.

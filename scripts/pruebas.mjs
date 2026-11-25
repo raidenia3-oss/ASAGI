@@ -189,5 +189,15 @@ ok(SC.entender('mi examen de la UNI es en agosto') === null && SC.entender('ayú
   ok(PR.parsear('compara precios de RTX 4060').q === 'rtx 4060' && PR.precioPrincipal(PR.precios('Precio S/ 1,299.00 Antes S/ 1,599 Cuotas de S/ 108.25 al mes S/ 1,299 Funda S/ 49')) === 1299, 'precios');
   ok(PR.tiendaDe('https://articulo.mercadolibre.com.pe/x') === 'Mercado Libre' && PR.tiendaDe('https://evil.com') === null, 'precios: tiendas'); }
 
+{ const PIm = require('../piloto.js'); const f1 = new Date(2026, 10, 24), f2 = new Date(2026, 10, 25), f3 = new Date(2026, 10, 26);
+  ok(PIm.reto(f1) === PIm.reto(new Date(2026, 10, 24, 23)) && PIm.reto(f1) !== PIm.reto(f2), 'piloto: reto estable por día y rota');
+  let o = {};
+  const r1 = PIm.marcar(o, f1); o = r1.obj;
+  ok(!r1.yaEstaba && PIm.hoyHecho(o, f1) && PIm.racha(o, f1) === 1, 'piloto: marca hoy y racha 1');
+  const r1b = PIm.marcar(o, f1, 'nota'); ok(r1b.yaEstaba && r1b.obj.dias[Object.keys(r1b.obj.dias)[0]].nota === 'nota', 'piloto: idempotente, guarda nota');
+  o = PIm.marcar(o, f2).obj; o = PIm.marcar(o, f3).obj;
+  ok(PIm.racha(o, f3) === 3 && PIm.hechos(o) === 3 && PIm.cerebro(3).nivel >= 1, 'piloto: racha 3 y cerebro crece');
+  ok(PIm.racha({ dias: { '2026-11-20': {} } }, f3) === 0, 'piloto: racha cortada si no es hoy/ayer'); }
+
 console.log((fallos ? '✗ ' : '✓ ') + (total - fallos) + '/' + total + ' pruebas');
 process.exit(fallos ? 1 : 0);

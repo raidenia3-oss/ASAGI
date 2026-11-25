@@ -1370,6 +1370,44 @@ chatForm.addEventListener('submit', (event) => {
     return;
   }
 
+  // Bajar el modelo con Termux (cuando la red bloquea la descarga directa) e importarlo a ASAGI.
+  {
+    const tm = text.trim().toLowerCase();
+    const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
+    const AB = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiBrain;
+    const importarAhora = async (di) => {
+      const B = AB || (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiBrain);
+      if (!B || !B.importarModelo) { di('Esta versión no tiene «importar modelo». Instala el último APK.'); return; }
+      try {
+        if (B.permisoArchivos) { const pp = await B.permisoArchivos(); if (pp && pp.concedido === false) { di('⚠️ Te abrí los ajustes: activa el permiso de «todos los archivos» para ASAGI y vuelve a escribir «importa el modelo».'); return; } }
+        di('📥 Importo el modelo desde Descargas (verifico que esté íntegro)…');
+        const r = await B.importarModelo({});
+        if (r && r.estado === 'listo') di('🧠 ¡Modelo listo! Ya tengo cerebro local, sin internet.');
+        else if (r && r.estado === 'importando') di('📥 Importando… te aviso al terminar (verás el progreso).');
+        else di('No pude importar: ' + ((r && r.error) || 'desconocido') + '\nAsegúrate de que Termux terminó la bajada.');
+      } catch (e) { di('Falló importar: ' + ((e && e.message) || e)); }
+    };
+    if (/^(?:descarga|baja|instala)\s+el\s+modelo\s+(?:con|por|usando|desde)\s+termux$/.test(tm)) {
+      const di = tareaDecir();
+      (async () => {
+        if (!AC || !AC.termuxRun) { di('No tengo el puente con Termux en esta versión (instala el último APK).'); return; }
+        try {
+          const est = AC.termuxEstado ? await AC.termuxEstado() : { instalado: true };
+          if (est && est.instalado === false) { di('Termux no está instalado. Bájalo de F-Droid (la versión de Play Store está vieja) y repite.'); return; }
+          di('⬇️ Mando a Termux a bajar el modelo (~400 MB) con su red. Tarda; deja Termux abierto. Te aviso.');
+          const script = 'curl -fsSL https://raw.githubusercontent.com/raidenia3-oss/ASAGI/main/scripts/termux-modelo.sh | bash';
+          const r = await AC.termuxRun({ cmd: script, timeoutMs: 1800000 });
+          const sal = ((r && (r.salida || r.stdout || r.output)) || '') + '';
+          if (/\[ok\] modelo listo|ya estaba/i.test(sal)) { di('✅ Termux bajó el modelo. Lo importo a ASAGI…'); await importarAhora(di); }
+          else if (r && r.error && /allow-external-apps|No pude hablar|a tiempo/i.test(r.error)) { di('Termux aún no deja que ASAGI le mande órdenes. Abre Termux, corre el setup una vez, y repite. (Escribe «termux: echo hola» para prepararlo.)'); }
+          else { di('Termux terminó pero no confirmó el modelo:\n' + sal.slice(-600) + '\nSi se bajó bien, escribe «importa el modelo».'); }
+        } catch (e) { di('Falló al correr Termux: ' + ((e && e.message) || e) + '\nSi el modelo ya está en Descargas, escribe «importa el modelo».'); }
+      })();
+      return;
+    }
+    if (/^importa(?:r)?\s+el\s+modelo$/.test(tm)) { importarAhora(tareaDecir()); return; }
+  }
+
   // Piloto automático: un reto al día (pregunta + acción) que hace crecer el «cerebro». Local, nada se publica.
   if (window.AsagiPiloto) {
     const PI = window.AsagiPiloto, tp = text.trim();
@@ -4631,7 +4669,8 @@ if ('serviceWorker' in navigator) {
   const plugin = cap && cap.Plugins ? cap.Plugins.AsagiBrain : null;
   if (!plugin || typeof plugin.descargarModelo !== 'function') return;
   const refrescar = () => { try { refreshBrainStatus(); } catch (e) {} };
-  let avisado = false;
+  const decirChat = (m) => { try { appendMessage('bot', m); } catch (e) { try { if (window._asagiAviso) window._asagiAviso(m, false, '🧠'); } catch (_) {} } };
+  let avisado = false, ultimoError = '';
   plugin.addListener('descarga', (ev) => {
     if (!ev) return;
     const prev = window._asagiModelo, ahora = Date.now();
@@ -4641,6 +4680,8 @@ if ('serviceWorker' in navigator) {
     if (ev.estado === 'listo') cargarMotor();
     if (ev.estado === 'error') {            // cuenta los fallos del día: tras 3, no reintenta solo (no gasta datos en bucle)
       try { const k = 'asagi-dl-fallos-' + new Date().toISOString().slice(0, 10); localStorage.setItem(k, String((+localStorage.getItem(k) || 0) + 1)); } catch (e) {}
+      const msg = ev.error || 'error de red';            // HAZLO VISIBLE: antes fallaba callado y parecía que "no se descargaba"
+      if (msg !== ultimoError) { ultimoError = msg; decirChat('⚠️ La descarga del modelo falló: ' + msg + '\nToca «Descargar modelo» para reintentar. Mientras tanto puedes usar «conecta gemini» (cerebro gratis). Si se repite, dime qué dice este mensaje y lo arreglo.'); }
     }
     if (ev.estado === 'listo' && !avisado) {
       avisado = true;
@@ -4674,7 +4715,23 @@ if ('serviceWorker' in navigator) {
       await plugin.descargarModelo();
     } catch (err) {}
   }
-  window._asagiDescargarModelo = () => plugin.descargarModelo().catch(() => {});
+  window._asagiDescargarModelo = async () => {
+    try {
+      try { localStorage.removeItem('asagi-dl-fallos-' + new Date().toISOString().slice(0, 10)); } catch (e) {}   // toque manual = reintenta siempre
+      const e = await plugin.estadoModelo();
+      if (e.listo) { window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' }; cargarMotor(); refrescar(); decirChat('🧠 El modelo ya está descargado y listo.'); return; }
+      if (e.descargando) { decirChat('⏳ El modelo ya se está descargando… te aviso cuando termine.'); refrescar(); return; }
+      ultimoError = '';
+      window._asagiModelo = { estado: 'descargando', bytes: e.parcial || 0, total: e.total || 0, error: '' }; refrescar();
+      decirChat('⬇️ Empiezo a descargar el modelo (~400 MB). Sigue usando ASAGI; te aviso al terminar. Si falla, te digo exactamente por qué.');
+      const r = await plugin.descargarModelo();
+      if (r && r.estado === 'listo') { window._asagiModelo = { estado: 'listo', bytes: e.total, total: e.total, error: '' }; cargarMotor(); refrescar(); }
+    } catch (err) {
+      const m = (err && (err.message || err.errorMessage)) || String(err);
+      window._asagiModelo = { estado: 'error', error: m }; refrescar();
+      decirChat('⚠️ No pude empezar la descarga: ' + m + '\nPrueba otra vez, o usa «conecta gemini» para tener cerebro ya. Si se repite, pásame este mensaje y lo arreglo.');
+    }
+  };
   setTimeout(revisar, 500);
   window.addEventListener('online', () => setTimeout(revisar, 500));
   setInterval(() => { if (!document.hidden) revisar(); }, 60000);   // si fallo, reintenta solo

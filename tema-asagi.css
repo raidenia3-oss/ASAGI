@@ -72,7 +72,7 @@ html, body { font-family: var(--sans); color: var(--papel); }
 .avatar-wrap { margin: 30px 0 2px; }
 .avatar-estado { font: 600 0.62rem/1 var(--mono); letter-spacing: 0.3em; color: var(--oro); opacity: 0.85; }
 #assistant .panel-header { border-bottom: 0; background: none; align-items: center; text-align: center; padding: 4px 16px 8px; }
-#assistant .panel-header .eyebrow { font: 500 0.6rem/1 var(--mono); letter-spacing: 0.34em; color: var(--niebla); }
+#assistant .panel-header .eyebrow { font: 500 0.6rem/1.4 var(--mono); letter-spacing: 0.34em; color: var(--niebla); }
 #assistant .panel-header h2 { font: 700 1.9rem/1.1 var(--display); letter-spacing: 0.06em; color: var(--papel); margin: 6px 0 0; }
 
 /* ---------- Chat: ASAGI escribe en el papel, tú en una cápsula ---------- */

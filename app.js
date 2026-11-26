@@ -1547,6 +1547,32 @@ chatForm.addEventListener('submit', (event) => {
     window._asagiEnlaceEnviar(paraAria);
     return;
   }
+  // Centro de actualizaciones: estado claro (APK + web) y actualiza con un toque.
+  if (/^\s*(centro de actualizaci|actualizaciones|estado de (?:la )?app|mis? versi[oó]n(?:es)?)\b/i.test(text) && window.AsagiActualizador) {
+    const diC = tareaDecir();
+    (async () => {
+      diC('🔄 Reviso el estado…');
+      let d; try { d = await window.AsagiActualizador.revisar(); } catch (e) { d = null; }
+      const yo = d && d.instalada, rem = d && d.remota;
+      const L = ['🔄 Centro de actualizaciones', ''];
+      L.push('📱 App instalada: ' + (yo && yo.build ? 'build ' + yo.build : 'desconocida'));
+      if (rem && rem.build) L.push('☁️ Última disponible: build ' + rem.build + (yo && yo.build && rem.build > yo.build ? '  ← ¡hay nueva!' : '  (al día)'));
+      L.push('🌐 Las mejoras web llegan SOLAS al reabrir ASAGI (no bajan APK). La mayoría de cambios son así.');
+      L.push('⚙️ Auto-actualización activada: reviso al abrir y cada 3 h; el APK se instala ENCIMA (sin desinstalar) si las firmas coinciden.');
+      if (d && d.accion === 'actualizar') {
+        L.push('', '⬆ Hay versión nueva (' + d.motivo + '). La bajo ahora; Android te pedirá tocar «Instalar» una vez.');
+        appendMessage('bot', L.join('\n'));
+        try { if (window._asagiActualizar) await window._asagiActualizar(true); } catch (e) {}
+      } else if (d && d.accion === 'firmaDistinta') {
+        L.push('', '⚠ La versión nueva viene con otra firma (de antes de este arreglo): esta vez sí toca desinstalar y reinstalar UNA última vez. Después, nunca más.');
+        appendMessage('bot', L.join('\n'));
+      } else {
+        L.push('', '✅ Estás al día.');
+        appendMessage('bot', L.join('\n'));
+      }
+    })();
+    return;
+  }
   if (/^\s*(actualiza(?:te)?|actualizar|busca actualizaci[oó]n|versi[oó]n)\s*$/i.test(text) && window._asagiActualizar) {
     window._asagiActualizar(true);
     return;

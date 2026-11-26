@@ -177,7 +177,7 @@
       }
       // sin ningún cerebro disponible -> respuesta de prueba o eco, marcado honesto
       if(this.testFn){ try { return { texto: String(this.testFn(prompt)), backend: 'prueba', degradado: true }; } catch(e){} }
-      return { texto: 'No hay cerebro disponible. Pon una key gratis (Gemini, Groq, OpenRouter, Cerebras, Mistral…) en el Asistente, o descarga el modelo local.', backend: 'ninguno', degradado: true };
+      return { texto: 'No hay cerebro disponible. Pon una clave gratis (Gemini, Groq, OpenRouter, Cerebras, Mistral…) en el Asistente, o descarga el modelo local.', backend: 'ninguno', degradado: true };
     }
   }
 

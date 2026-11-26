@@ -8,7 +8,7 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function 
 
 // PURO: qué mostrar en la tarjeta de música
 function textoMusica(e) {
-  if (!e || !e.activo || !e.pista) return { titulo: 'Sin música', sub: 'Toca ▶ y pongo la tuya', sonando: false };
+  if (!e || !e.activo || !e.pista) return { titulo: 'Sin música', sub: 'Toca ▶ y suena', sonando: false };
   var p = e.pista;
   return { titulo: p.titulo || p.nombre || 'Canción', sub: p.artista || p.album || 'Tu música', sonando: !!e.sonando };
 }
@@ -43,7 +43,7 @@ function montar() {
   var c = document.createElement('div'); c.id = 'centro'; c.className = 'centro';
   c.innerHTML =
     '<div class="cc-musica" aria-live="polite"><div class="cc-disco" aria-hidden="true">♪</div>' +
-      '<div class="cc-m-txt"><b class="cc-m-tit">Sin música</b><small class="cc-m-sub">Toca ▶ y pongo la tuya</small></div>' +
+      '<div class="cc-m-txt"><b class="cc-m-tit">Sin música</b><small class="cc-m-sub">Toca ▶ y suena</small></div>' +
       '<div class="cc-m-btns"><button type="button" data-m="anterior" aria-label="Anterior">⏮</button><button type="button" data-m="alternar" class="cc-play" aria-label="Reproducir o pausar">▶</button><button type="button" data-m="siguiente" aria-label="Siguiente">⏭</button></div></div>' +
     '<div class="cc-fila"><div class="cc-fichas">' + FICHAS.map(function (f) {
       return '<button type="button" class="cc-ficha" data-f="' + f.id + '"><span class="cc-ico">' + f.ico + '</span><span class="cc-lbl">' + f.txt + '</span></button>';

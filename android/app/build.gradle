@@ -7,6 +7,11 @@ apply plugin: 'com.android.application'
 // standard debug key is used.
 def ciKeystorePath = System.getenv("SIGNING_KEYSTORE_FILE")
 def ciSigningEnabled = ciKeystorePath != null && file(ciKeystorePath).exists()
+// Respaldo ESTABLE: si no hay keystore de secret, se firma con este keystore de
+// depuracion FIJO y comiteado (credenciales estandar de debug, publicas; NO es un
+// secreto). Asi todos los APK se firman IGUAL y se instalan encima sin desinstalar.
+def estableKeystore = file("asagi-stable.keystore")
+def estableEnabled = !ciSigningEnabled && estableKeystore.exists()
 
 android {
     namespace "com.asagi.app"
@@ -34,11 +39,21 @@ android {
                 keyPassword System.getenv("SIGNING_KEY_PASSWORD")
             }
         }
+        if (estableEnabled) {
+            estable {
+                storeFile estableKeystore
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+        }
     }
     buildTypes {
         debug {
             if (ciSigningEnabled) {
                 signingConfig signingConfigs.ci
+            } else if (estableEnabled) {
+                signingConfig signingConfigs.estable
             }
         }
         release {

@@ -34,6 +34,14 @@ ok(SM.aTi('mi mamá se llama Rosa') === 'Tu mamá se llama Rosa', 'a ti');
 ok(SC.entender('qué puedes hacer').tipo === 'ayuda' && SC.entender('ayuda de cuentas').tema === 'cuentas', 'ayuda');
 ok(SC.entender('cómo llego a Miraflores').tipo === 'ruta', 'ruta');
 ok(CO.parsear('agrega pan y leche a la lista').tipo === 'agregar', 'compras');
+{ const VE = R('vencimientos.js'), a = new Date(2026, 10, 23, 10);
+  const c = VE.parsear('la leche vence el viernes', a);
+  ok(c && c.tipo === 'agregar' && c.cosa === 'leche' && new Date(c.cuando).getDate() === 27, 'vencimientos: anotar');
+  ok(VE.parsear('qué se vence', a).tipo === 'ver' && VE.parsear('ya usé la leche', a).tipo === 'usado', 'vencimientos: ver y usar');
+  ok(VE.parsear('recuérdame que la leche vence el viernes', a) === null && VE.parsear('cuándo vence mi DNI', a) === null, 'vencimientos: no roba frases');
+  ok(new Date(VE.fecha('el 15/12', a)).getMonth() === 11 && new Date(VE.fecha('el 5', a)).getMonth() === 11, 'vencimientos: fechas');
+  const l = VE.aplicar([], VE.parsear('el yogur vence mañana', a), a).lista;
+  ok(/yogur vence mañana/.test(VE.lineaDia(l, a)) && VE.lineaDia(VE.aplicar([], VE.parsear('el arroz vence el 15/12', a), a).lista, a) === '', 'vencimientos: aviso del día'); }
 ok(RZ.necesitaDatos('quién es el presidente del perú') && !RZ.necesitaDatos('explícame las derivadas'), 'actualidad');
 
 const av = AG.vigilar({ ahora: new Date(2026, 10, 19, 10).getTime(), vistos: {}, datos: ['el cumpleaños de mi mamá es el 20 de noviembre'] });

@@ -1683,6 +1683,12 @@ chatForm.addEventListener('submit', (event) => {
     }
   }
 
+  // Diario personal (sin internet): «diario: hoy terminé el informe», «mi diario», «un día como hoy».
+  {
+    const DI = window.AsagiDiario, c = DI && DI.parsear(text);
+    if (c) { appendMessage('bot', DI.hacer(c)); return; }
+  }
+
   // Lista de compras (sin internet): «agrega pan y leche a la lista», «mi lista de compras», «ya compré pan».
   {
     const CO = window.AsagiCompras, c = CO && CO.parsear(text);
@@ -2432,7 +2438,8 @@ renderBrainControls();
   function mostrarAviso(texto, sono, icono) {
     if (!aviso || !avisoTxt) return;
     avisoTxt.textContent = (icono || '⏰') + ' ' + texto;
-    if (avisoModo) avisoModo.textContent = sono ? '🎧' : 'en silencio';
+    // «en silencio/🎧» solo tiene sentido en recordatorios de pendientes (los demás avisos nunca hablan)
+    if (avisoModo) { avisoModo.textContent = (!icono || icono === '⏰') ? (sono ? '🎧' : 'en silencio') : ''; avisoModo.hidden = !avisoModo.textContent; }
     aviso.hidden = false;
     clearTimeout(avisoTimer);
     avisoTimer = setTimeout(() => { aviso.hidden = true; }, 12000);

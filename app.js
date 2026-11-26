@@ -1689,6 +1689,12 @@ chatForm.addEventListener('submit', (event) => {
     if (c) { appendMessage('bot', CO.hacer(c)); return; }
   }
 
+  // Pagos fijos del mes (sin internet; solo anota y avisa): «pago fijo Netflix 35 soles el 5», «mis pagos fijos», «próximos cobros».
+  {
+    const PF = window.AsagiPagosFijos, c = PF && PF.parsear(text);
+    if (c) { appendMessage('bot', PF.hacer(c)); return; }
+  }
+
   if (/^(?:no me des|quita|apaga) el resumen de (?:la )?ma[nñ]ana$/i.test(text.trim())) { try { localStorage.setItem('asagi-manana-off', '1'); } catch (e) {} appendMessage('bot', '☀ Listo, ya no te doy el resumen solo. Pídelo con «buenos días» cuando quieras (o «dame el resumen cada mañana»).'); return; }
   if (/^dame el resumen cada ma[nñ]ana$/i.test(text.trim())) { try { localStorage.removeItem('asagi-manana-off'); } catch (e) {} appendMessage('bot', '☀ Hecho: cada mañana, al abrirme, te dejo el resumen del día.'); return; }
   // Resumen del día (sin internet): «resumen del día», «qué tengo hoy», «buenos días», «buenas noches».
@@ -1729,8 +1735,17 @@ chatForm.addEventListener('submit', (event) => {
   {
     const W = window.AsagiWiki, c = W && W.parsear(text);
     if (c && c.accion === 'buscar') {
-      W.buscar(c.q).then((rs) => appendMessage('bot', rs.length ? W.resumen(rs[0]) + (rs.length > 1 ? '\n\nTambién: ' + rs.slice(1).map((r) => r.titulo).join(', ') : '')
-        : 'No la encontré en tu Wikipedia sin internet' + (window._asagiWikiLista ? '.' : ' (¿ya la preparaste? Di «prepara wikipedia» con ARIA en el mismo WiFi).')));
+      W.buscar(c.q).then(async (rs) => {
+        if (rs.length) { appendMessage('bot', W.resumen(rs[0]) + (rs.length > 1 ? '\n\nTambién: ' + rs.slice(1).map((r) => r.titulo).join(', ') : '')); return; }
+        // no está en la SD: si hay internet, la busco en Wikipedia en línea (antes solo decía «no la encontré»)
+        const U = window.AsagiUtiles;
+        if (U && U.ejecutar && navigator.onLine !== false) {
+          let dicho = false;
+          try { await U.ejecutar({ accion: 'quees', q: c.q }, (t) => { dicho = true; appendMessage('bot', t); }); } catch (e) {}
+          if (dicho) return;
+        }
+        appendMessage('bot', 'No pude buscar «' + c.q + '» en Wikipedia ahora (sin internet o no respondió) y no está en tu Wikipedia sin internet' + (window._asagiWikiLista ? '.' : ' (para tenerla siempre, di «prepara wikipedia» con ARIA en el mismo WiFi).'));
+      });
       return;
     }
     if (c && c.accion === 'preparar') {
@@ -3037,7 +3052,7 @@ if ('serviceWorker' in navigator) {
 
   async function cargar() {
     const c = C();
-    if (!c || !c.listApps) { if (grid) grid.innerHTML = '<div class="launcher-empty">El Launcher necesita la app nativa (APK).</div>'; return; }
+    if (!c || !c.listApps) { if (grid) grid.innerHTML = '<div class="launcher-empty">Tus apps aparecen aquí en la app instalada del celular.</div>'; return; }
     if (grid) grid.innerHTML = '<div class="launcher-empty">Cargando apps…</div>';
     try {
       const r = await c.listApps();

@@ -3106,13 +3106,17 @@ if ('serviceWorker' in navigator) {
 
   // --- Cerebro en Termux: usa el modelo .gguf con llama.cpp del celular (sin PC, sin nube) ---
   let _termuxCerebro = null;          // null=sin saber, true/false=cache
+  let _termuxModelo = '~/asagi.gguf'; // se ajusta al mejor modelo presente
   async function termuxTieneModelo() {
     if (_termuxCerebro === true) return true;
     const AC = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AsagiControl;
     if (!AC || !AC.termuxRun) { _termuxCerebro = false; return false; }
     try {
-      const r = await AC.termuxRun({ cmd: 'test -f ~/asagi.gguf && command -v llama-cli >/dev/null && echo SI || echo NO', timeoutMs: 15000 });
-      _termuxCerebro = /SI/.test((r && r.stdout) || '');
+      const r = await AC.termuxRun({ cmd: 'if ! command -v llama-cli >/dev/null; then echo SINCLI; elif [ -f ~/asagi-3b.gguf ]; then echo M3B; elif [ -f ~/asagi.gguf ]; then echo M05; else echo SINMOD; fi', timeoutMs: 15000 });
+      const o = (r && r.stdout) || '';
+      if (/M3B/.test(o)) { _termuxModelo = '~/asagi-3b.gguf'; _termuxCerebro = true; }   // prefiere el 3B (más listo)
+      else if (/M05/.test(o)) { _termuxModelo = '~/asagi.gguf'; _termuxCerebro = true; }
+      else _termuxCerebro = false;
     } catch (e) { _termuxCerebro = false; }
     return _termuxCerebro;
   }
@@ -3134,8 +3138,8 @@ if ('serviceWorker' in navigator) {
     if (!(await termuxTieneModelo())) return '';
     const limpio = String(prompt).replace(/\s+/g, ' ').trim().slice(0, 1200);
     const b64 = btoa(unescape(encodeURIComponent(limpio)));
-    const cmd = "echo '" + b64 + "' | base64 -d | llama-cli -m ~/asagi.gguf -n 220 2>/dev/null";
-    const r = await AC.termuxRun({ cmd: cmd, timeoutMs: 120000 });
+    const cmd = "echo '" + b64 + "' | base64 -d | llama-cli -m " + _termuxModelo + " -n 240 2>/dev/null";
+    const r = await AC.termuxRun({ cmd: cmd, timeoutMs: 240000 });   // el 3B es más lento: más margen
     return limpiarSalidaLlama((r && r.stdout) || '');
   }
 
